@@ -397,6 +397,38 @@
         }
     }
 
+    .role-selection {
+        padding: 20px;
+        font-family: Sans-font;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+       
+      }
+      
+      .role-selection input[type="radio"] {
+        display: none;
+      }
+      
+      .role-selection label {
+        flex: 5;
+        text-align: center;
+        cursor: pointer;
+      }
+      
+      .role-selection span {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+      
+      .role-selection input[type="radio"]:checked + span {
+        background: #418b72;
+      }
+      
+      
+      
     @media only screen and (max-width : 300px) {
         #form-personal-doctor {
             padding: 10px 15px;

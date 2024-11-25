@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react"
 
 import "./assets/style/Navfirst.scss"
-import PageFormPlant from "./page/form/PageFormPlant"
 import PageFarmer from "./page/farmer/PageFarmer"
+import PageFormPlant from "./page/form/PageFormPlant"
 
 import { clientMo } from "../../../assets/js/moduleClient"
-import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
-const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
+import { ButtonMenu } from "./page/modules"
+const NavFirst = ({setTest, setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
     
-    useEffect(()=>{
+    useEffect(()=>{ 
         if(type === 1) window.history.pushState({} , "" , "/doctor")
 
+ 
         setTextStatus([])
         Resize()
 

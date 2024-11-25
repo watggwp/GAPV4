@@ -2,6 +2,7 @@ require('dotenv').config().parsed
 const axios = require('axios').default;
 
 module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB , socket , line) {
+  
   app.post('/api/admin/check' , (req , res)=>{
     res.redirect('/api/admin/auth');
   })
@@ -151,6 +152,231 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
       }
     }
   })
+
+  app.get('/api/admin/name' , (req , res)=>{
+      
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+
+    if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
+        res.redirect('/api/logout')
+        return 0
+    }
+
+    let con = Database.createConnection(listDB)
+
+    apifunc.auth(con , username , password , res , "admin").then((result)=>{
+        con.end()
+        res.send(result['data'].username)
+    }).catch((err)=>{
+        if(err == "not pass") {
+            con.end()
+            res.redirect('/api/logout')
+        } else if( err == "connect" ) {
+            res.redirect('/api/logout')
+        }
+    })
+})
+
+app.post('/api/admin/station/list' , (req , res)=>{
+  let con = Database.createConnection(listDB)
+  con.connect(( err )=>{
+      if (err) {
+          dbpacket.dbErrorReturn(con, err, res);
+          console.log("connect");
+          return 0;
+      }
+
+      con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+          if (err) {
+              dbpacket.dbErrorReturn(con, err, res);
+              console.log("query");
+              return 0
+          }
+          con.end()
+          res.send(result)
+          
+      })
+  })
+})
+
+
+  app.post('/api/admin/profile/text/edit' , (req , res)=>{
+    let username = req.session.user_admin
+    let password = req.body.password_admin
+
+    if(username === '' || !apifunc.authCsurf("admin" , req , res)) {
+        res.redirect('/api/logout')
+        return 0
+    }
+
+    let con = Database.createConnection(listDB)
+
+    apifunc.auth(con , username , password , res , "admin").then((result)=>{
+        const SET = req.body.type === "name" ? "username = ?" :
+                        req.body.type === "station" ? "station_admin = ?" :
+                        req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
+        if(SET) {
+            con.query(
+                `
+                UPDATE admin
+                SET ${SET}
+                WHERE id = ?
+                ` , [ req.body.value , result["data"].id_table_admin ] , 
+                (err , resultEdit) => {
+                    if(!err) {
+                        if(req.body.type === "passwordNew") {
+                            req.session.pass_admin = req.body.value
+                        }
+                        con.end()
+                        res.send("1")
+                    } else {
+                        con.end()
+                        res.send("")
+                    }
+                }
+            )
+        } else {
+            res.send("")
+        }
+    }).catch((err)=>{
+        if(err == "not pass") {
+            con.end()
+            res.send('password')
+        } else if( err == "connect" ) {
+            res.send("")
+        }
+    })
+})
+
+app.post('/api/admin/profile/image/edit' , (req , res)=>{
+  let username = req.session.user_admin
+  let password = req.session.pass_admin
+
+  if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
+      res.redirect('/api/logout')
+      return 0
+  }
+
+  let con = Database.createConnection(listDB)
+
+  apifunc.auth(con , username , password , res , "admin").then((result)=>{
+      con.query(
+          `
+          UPDATE admin
+          SET img_admin = ?
+          WHERE id = ?
+          ` , [ req.body.img , result["data"].id_table_admin ] , 
+          (err , resultEdit) => {
+              con.end()
+              res.send("1")
+          }
+      )
+  }).catch((err)=>{
+      if(err == "not pass") {
+          con.end()
+          res.redirect('/api/logout')
+      } else if( err == "connect" ) {
+          res.redirect('/api/logout')
+      }
+  })
+})
+
+app.get('/api/admin/profile/get', (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
+
+  if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
+      console.log("Session invalid or CSRF authentication failed.");
+      return res.redirect('/api/logout');
+  }
+
+  let con = Database.createConnection(listDB);
+
+  apifunc.auth(con, username, password, res, "admin")
+      .then((result) => {
+          con.query(
+              `
+              SELECT name
+              FROM station_list
+              WHERE id = ?
+              `, [result['data'].station_admin],
+              (err, station) => {
+                  con.end(); 
+                  if (err) {
+                      console.error("Database query error:", err);
+                      return res.status(500).send("Database error");
+                  }
+                  
+                  const name_station = station[0] ? station[0].name : "Unknown Station";
+
+                  result['data'].img_admin = result['data'].img_admin ? result['data'].img_admin.toString() : null;
+
+                  const responsePayload = {
+                      ...result['data'],
+                      name_station: name_station
+                  };
+
+                  console.log("Response payload:", responsePayload); 
+                  res.send(responsePayload);
+              }
+          );
+      })
+      .catch((err) => {
+          con.end();
+          console.error("Authentication error:", err);
+          res.redirect('/api/logout');
+      });
+});
+
+
+app.post('/api/admin/profile/text/edit' , (req , res)=>{
+  let username = req.session.user_admin
+  let password = req.body.password
+
+  if(username === '' || !apifunc.authCsurf("admin" , req , res)) {
+      res.redirect('/api/logout')
+      return 0
+  }
+
+  let con = Database.createConnection(listDB)
+
+  apifunc.auth(con , username , password , res , "admin").then((result)=>{
+      const SET = req.body.type === "name" ? "username = ?" :
+                      req.body.type === "station" ? "station_admin = ?" :
+                      req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
+      if(SET) {
+          con.query(
+              `
+              UPDATE admin
+              SET ${SET}
+              WHERE id_table_admin = ?
+              ` , [ req.body.value , result["data"].id_table_admin ] , 
+              (err , resultEdit) => {
+                  if(!err) {
+                      if(req.body.type === "passwordNew") {
+                          req.session.pass_admin = req.body.value
+                      }
+                      con.end()
+                      res.send("1")
+                  } else {
+                      con.end()
+                      res.send("")
+                  }
+              }
+          )
+      } else {
+          res.send("")
+      }
+  }).catch((err)=>{
+      if(err == "not pass") {
+          con.end()
+          res.send('password')
+      } else if( err == "connect" ) {
+          res.send("")
+      }
+  })
+})
 
   app.post('/api/admin/add' , async (req , res)=>{
     if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {

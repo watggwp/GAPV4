@@ -1,17 +1,17 @@
-import React , {Component, useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
 // import NavDoctor from "./navDoctor";
 import NavFirst from "./navFirst";
 
-import "./assets/style/doctorMain.scss"
+import "./assets/style/doctorMain.scss";
 // import './assets/style/doctor.scss'
 import DesktopNev from "./navTop/desktop";
-import SessionOut from "./sesionOut";
-import PageFormPlant from "./page/form/PageFormPlant";
-import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
+import PageFarmer from "./page/farmer/PageFarmer";
+import PageFormPlant from "./page/form/PageFormPlant";
+import SessionOut from "./sesionOut";
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)

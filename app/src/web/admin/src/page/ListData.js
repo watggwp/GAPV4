@@ -5,9 +5,9 @@ import { GetLinkUrlOfSearch, LoadOtherOffset, MapsJSX, ReportAction, TimeDiff } 
 
 import ShowBecause from "./doctor/ShowBecause";
 
-import ManageDoctorPage from "./doctor/ManagePage";
-import ManageDataPage from "./data/ManagePage";
 import EditPage from "./data/EditPage";
+import ManageDataPage from "./data/ManagePage";
+import ManageDoctorPage from "./doctor/ManagePage";
 
 const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefPage , setStateOnPage , modify , textSearch}) => {
     // const [Body , setBody] = useState(<></>)
@@ -515,7 +515,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
             <div className="body-page">
                 <span className="head">
                     {   
-                        type === "default" ? "เพิ่มบัญชีเจ้าหน้าที่ส่งเสริม" :
+                        type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
                         type === "plant" ? "เพิ่มรายการชนิดพืช" :
                         type === "station" ? "เพิ่มรายการศูนย์" : ""
                     }
@@ -526,7 +526,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                             <span className="head-text">
                                 { 
                                     type === "default" ?
-                                        "รหัสประจำตัวผู้ส่งเสริม" :
+                                        "รหัสประจำตัวผู้ส่งเสริ" :
                                     type === "plant" ?
                                         "ชื่อพืช" :
                                     type === "station" ?

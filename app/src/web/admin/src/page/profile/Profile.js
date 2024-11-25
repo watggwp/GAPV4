@@ -4,6 +4,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/page/profile/Profile.scss";
 
 const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileReload , FetchNotify}) => {
+    
     const [getProfileOld , setProfileOld] = useState([])
     const [getProfile , setProfile] = useState([])
 
@@ -26,44 +27,47 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     useEffect(()=>{
         setLoadImage(false)
         FetchProfile()
-    } , [])
+    } , []);
 
     const FetchProfile = async () => {
-        const fetchProfile = await clientMo.get("/api/doctor/profile/get")
-        if(fetchProfile) {
-            RefPop.current.style.opacity = "1"
-            RefPop.current.style.visibility = "visible"
-            const dataProfile = JSON.parse(fetchProfile)
-            setLoadImage(true)
-            setProfile(dataProfile)
-            setProfileOld(dataProfile)
-        } else session()
-    }
+        const fetchProfile = await clientMo.get("/api/admin/profile/get");
+        if (fetchProfile) {
+            RefPop.current.style.opacity = "1";
+            RefPop.current.style.visibility = "visible";
+            const dataProfile = JSON.parse(fetchProfile);
+            setLoadImage(true);
+            setProfile(dataProfile);
+            setProfileOld(dataProfile);
+        } else {
+            console.log("fetchProfile");
+        }
+    };
 
     const Close = () => {
-        RefPop.current.style.opacity = "0"
-        RefPop.current.style.visibility = "hidden"
+        RefPop.current.style.opacity = "0";
+        RefPop.current.style.visibility = "hidden";
         setTimeout(()=>{
             setPopup(<></>)
         } , 500)
-    }
+    };
+
 
     const getImageFromClient = async (e) => {
         const file = e.target.files[0]
 
         setLoadImage(false)
         const image = await ResizeImg(file , 600)
-        if(getProfileOld.img_doctor !== image) {
-            const resultEdit = await clientMo.postForm("/api/doctor/profile/image/edit" , {
+        if(getProfileOld.img_admin !== image) {
+            const resultEdit = await clientMo.postForm("/api/admin/profile/image/edit" , {
                 img : image
             })
             if(resultEdit) {
                 setProfileOld((prevent)=>{
-                    prevent.img_doctor = image
+                    prevent.img_admin = image
                     return prevent
                 })
                 setProfile((prevent)=>{
-                    prevent.img_doctor = image
+                    prevent.img_admin = image
                     return prevent
                 })
                 FetchProfileReload()
@@ -71,42 +75,21 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
         }
         setLoadImage(true)
 
-        // reader.onload = async (e) => {
-        //     const image = await ResizeImg(file , 600)
-        //     if(getProfileOld.img_doctor !== image) {
-        //         const resultEdit = await clientMo.postForm("/api/doctor/profile/image/edit" , {
-        //             img : image
-        //         })
-        //         if(resultEdit) {
-        //             setProfileOld((prevent)=>{
-        //                 prevent.img_doctor = image
-        //                 return prevent
-        //             })
-        //             setProfile((prevent)=>{
-        //                 prevent.img_doctor = image
-        //                 return prevent
-        //             })
-        //         } else session()
-        //     }
-        //     setLoadImage(true)
-        // }
-
-        // if(file) {
-        //     reader.readAsDataURL(file)
-        // }
+        
     }
 
     const CheckEdit = () => {
         const check = 
                     StateEditName ? 
-                        getProfileOld.fullname_doctor !== Fullname.current.value && Fullname.current.value && Password.current.value && /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(Fullname.current.value) :
+                        getProfileOld.username !== Fullname.current.value && Fullname.current.value && Password.current.value && /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(Fullname.current.value) :
                     StateEditStation ? 
-                        getProfileOld.station_doctor !== Station.current.value && Station.current.value && Password.current.value :
+                        getProfileOld.station_admin !== Station.current.value && Station.current.value && Password.current.value :
                     StateEditPassword ? 
                         PasswordNew.current.value === PasswordAgain.current.value && PasswordNew.current.value && Password.current.value : false
-
+    
+        setbtEditNot(!check);
+    
         if(check) {
-            setbtEditNot(false)
             return(
                 StateEditName ? {
                     value : Fullname.current.value ,
@@ -125,18 +108,17 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                 } : {}
             )
         } else {
-            setbtEditNot(true)
             return false
         }
     }
-
+    
     const EnterEdit = async () => {
         const Data = CheckEdit()
         console.log(Data)
         if(Data) {
             setFetchEditLoad(false)
             setbtEditNot(true)
-            const Edit = await clientMo.post("/api/doctor/profile/text/edit" , Data)
+            const Edit = await clientMo.post("/api/admin/profile/text/edit" , Data)
             if(Edit) {
                 if(Edit === "1") {
                     returnToHome()
@@ -181,8 +163,8 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                         { LoadImage ?
                                             <>
                                             {
-                                                getProfile.img_doctor ?
-                                                <img src={getProfile.img_doctor}></img>
+                                                getProfile.img_admin ?
+                                                <img src={getProfile.img_admin}></img>
                                                 :
                                                 <svg viewBox="34 0 335 335">
                                                     <path d="M201.08,49.778c-38.794,0-70.355,31.561-70.355,70.355c0,18.828,7.425,40.193,19.862,57.151 c14.067,19.181,32,29.745,50.493,29.745c18.494,0,36.426-10.563,50.494-29.745c12.437-16.958,19.862-38.323,19.862-57.151 C271.436,81.339,239.874,49.778,201.08,49.778z M201.08,192.029c-13.396,0-27.391-8.607-38.397-23.616 c-10.46-14.262-16.958-32.762-16.958-48.28c0-30.523,24.832-55.355,55.355-55.355s55.355,24.832,55.355,55.355 C256.436,151.824,230.372,192.029,201.08,192.029z"></path> 
@@ -219,10 +201,10 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                     }
                                 </div>
                                 { StateEditName ?
-                                    <input ref={Fullname} onChange={CheckEdit} className="detail-input" defaultValue={getProfile.fullname_doctor}></input>
+                                    <input ref={Fullname} onChange={CheckEdit} className="detail-input" defaultValue={getProfile.fullname_admin}></input>
                                     : 
                                     <div className="detail-in-row">
-                                        {getProfile.fullname_doctor}
+                                        {getProfile.fullname_admin}
                                     </div>
                                 }
                             </div>
@@ -234,7 +216,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                             <a onClick={async ()=>{
                                                 setbtEditNot(true)
                                                 if(Password.current) Password.current.value = ""
-                                                const station = await clientMo.post("/api/doctor/station/list")
+                                                const station = await clientMo.post("/api/admin/station/list")
                                                 if(station) {
                                                     setListStation(JSON.parse(station))
                                                     setStateEditStation(true)
@@ -246,7 +228,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                     }
                                 </div>
                                 { StateEditStation ?
-                                    <select ref={Station} className="detail-input" onChange={CheckEdit} defaultValue={getProfile.station_doctor}>
+                                    <select ref={Station} className="detail-input" onChange={CheckEdit} defaultValue={getProfile.station_admin}>
                                         <option disabled value={""}>เลือกศูนย์</option>
                                         { ListStation.map((val)=>
                                             <option key={val.id} value={val.id}>{val.name}</option>

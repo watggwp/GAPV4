@@ -1,24 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
-import Login from "../Login";
 import { clientMo } from "../../../../assets/js/moduleClient";
+import Login from "../Login";
 
-import "../assets/style/NevTop/Desktop.scss"
-import NavFirst from "../navFirst";
 import { PopupDom } from "../../../../assets/js/module";
+import "../assets/style/NevTop/Desktop.scss";
+import NavFirst from "../navFirst";
+import ProfilePage from "../page/profile/Profile";
 
-const DesktopNev = ({setBodyFileMain , socket , auth , setBodyFileAdmin , modify , TabOn , HrefData}) => {
+const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , setBodyFileAdmin , modify , TabOn , HrefData ,getProfile, FetchProfile , FetchNotify , setBody , eleImageCover , eleBody , setTextStatus}) => {
     let selectPage = true
     const RefMenu = useRef()
     const [BodyMenu , setBodyMenu] = useState(<></>)
     const [Responsive , setResponsive] = useState(window.innerWidth)
+    const [getFetchStart , setFetchStart] = useState(true)
+    const [BodyPopup , setBodyPopup] = useState(<></>)
+    const RefPopup = useRef()
 
     useEffect(()=>{
         window.addEventListener("resize" , Resize)
         
-        return(()=>{
+        return()=>{
             window.removeEventListener("resize" , Resize)
-        })
+        }
     } , [])
+
+    
 
     const Logout = (e) => {
         clientMo.LoadingPage()
@@ -28,6 +34,22 @@ const DesktopNev = ({setBodyFileMain , socket , auth , setBodyFileAdmin , modify
                 setBodyFileMain(<Login socket={socket} setBodyFileMain={setBodyFileMain} state={true}/>)
             } , 2000)
         })
+    }
+
+    const Home = (e) => {
+        if(e) e.preventDefault()
+        clientMo.post('/api/doctor/check').then((context)=>{
+            if(context) 
+                setBody(<NavFirst setMain={setMain} socket={socket} setdoctor={setBody} setSession={setSession} type={1} 
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus}/>)
+            else setSession()
+        })
+    }
+
+    const Profile = (e) => {
+        if(e) e.preventDefault()
+            setBodyPopup(<ProfilePage RefPop={RefPopup} setPopup={setBodyPopup} session={setSession} returnToHome={Home} 
+            FetchProfileReload={FetchProfile} FetchNotify={FetchNotify}/>)
     }
 
     const clickMenu = async (e , OpenPage) => {
@@ -48,7 +70,7 @@ const DesktopNev = ({setBodyFileMain , socket , auth , setBodyFileAdmin , modify
         setBodyMenu(<MenuMobile RefMenu={RefMenu} setBodyMenu={setBodyMenu} Click={{
             HomeClick : ()=>clickMenu("" , "HOME"),
             LogoutClick : Logout
-        }}/>)
+        }} Profile={Profile} />)
     }
 
     const Resize = () => {
@@ -71,10 +93,8 @@ const DesktopNev = ({setBodyFileMain , socket , auth , setBodyFileAdmin , modify
                     </a>
                 </span>
                 <span className="bt-action">
-                    {/* <a onClick={(e)=>clickMenu(e , "HOME")} title="หน้าแรก" href="/admin">หน้าแรก</a> */}
                     <a onClick={(e)=>clickMenu(e , "HOME")} title="หน้าแรก" href="/admin">หน้าแรก</a>
-                    {/* <a title="การแจ้งเตือน" href="/admin">การแจ้งเตือน</a>
-                    <a title="โปรไฟล์" href="/admin">โปรไฟล์</a> */}
+                    <a title="โปรไฟล์" href="/admin" onClick={Profile}>โปรไฟล์</a>
                     <a className="logout" onClick={Logout} title="ออกจากระบบ" href="/admin/logout">ออกจากระบบ</a>
                 </span>
                 </> :
@@ -92,14 +112,17 @@ const DesktopNev = ({setBodyFileMain , socket , auth , setBodyFileAdmin , modify
                 <PopupDom Ref={RefMenu} Body={BodyMenu} zIndex={900} positionEdit={true}/>
                 : <></>
             }
+            <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={999}/>
+            
         </section>
     )
 }
 
-const MenuMobile = ({RefMenu , setBodyMenu , Profile , Click = {
+const MenuMobile = ({RefMenu , setBodyMenu , Click = {
     HomeClick : null,
+    ProfileClick : null,
     LogoutClick : null
-}}) => {
+}, Profile}) => {
 
     const [ Menu , setMenu ] = useState(false)
 
@@ -110,9 +133,9 @@ const MenuMobile = ({RefMenu , setBodyMenu , Profile , Click = {
 
         window.addEventListener("click" , CloseCheck)
 
-        return(()=>{
+        return()=>{
             window.removeEventListener("click" , CloseCheck)
-        })
+        }
     } , [])
 
     const CloseCheck = (e) => {
@@ -158,6 +181,16 @@ const MenuMobile = ({RefMenu , setBodyMenu , Profile , Click = {
                             <path d="M9.0802 22.1538V12.1538H15.0802V22.1538" stroke="#22C7A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                         <span>หน้าแรก</span>
+                    </div>
+                    <div className="menu-name-list" onClick={()=>{
+                        Click.Profile() // Call Profile function
+                        Close()
+                    }}>
+                        <svg viewBox="0 0 25 25" fill="none">
+                            <path d="M3.0802 9.15381L12.0802 2.15381L21.0802 9.15381V20.1538C21.0802 20.6842 20.8695 21.1929 20.4944 21.568C20.1193 21.9431 19.6106 22.1538 19.0802 22.1538H5.0802C4.54977 22.1538 4.04106 21.9431 3.66599 21.568C3.29091 21.1929 3.0802 20.6842 3.0802 20.1538V9.15381Z" stroke="#22C7A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M9.0802 22.1538V12.1538H15.0802V22.1538" stroke="#22C7A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span>โปรไฟล์</span>
                     </div>
                 </div>
             </div>

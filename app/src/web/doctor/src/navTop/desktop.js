@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import Login from "../Login";
-import SessionOut from "../sesionOut";
+import io from "socket.io-client";
 import { clientMo } from "../../../../assets/js/moduleClient";
-import io from "socket.io-client"
+import Login from "../Login";
 
-import "../assets/style/NevTop/Desktop.scss"
+import { Loading, PopupDom, TimeDiff } from "../../../../assets/js/module";
+import "../assets/style/NevTop/Desktop.scss";
 import NavFirst from "../navFirst";
-import { DayJSX, Loading, PopupDom, TimeDiff } from "../../../../assets/js/module";
 import ProfilePage from "../page/profile/Profile";
 
 const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCover , eleBody , setTextStatus , getProfile , FetchProfile}) => {

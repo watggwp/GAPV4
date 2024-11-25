@@ -1,9 +1,9 @@
-import React , {Component} from "react";
+import React, { Component } from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 
+import Login from "./Login";
 import List from "./listDoctor";
 import Plus from "./plusDoctor";
-import Login from "./Login";
 import SessionOut from "./sesionOut";
 
 export default class NavAdmin extends Component {

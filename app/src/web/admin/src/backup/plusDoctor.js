@@ -1,10 +1,10 @@
-import React , {Component} from "react";
+import React, { Component } from "react";
 import { clientMo } from "../../../../assets/js/moduleClient";
 
-import SessionOut from "../sesionOut";
 import Feedback from "../Feedback";
+import SessionOut from "../sesionOut";
 
-import './assets/style/Plus.scss'
+import './assets/style/Plus.scss';
 
 export default class Plus extends Component {
     constructor(){
