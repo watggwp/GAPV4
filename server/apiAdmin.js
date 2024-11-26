@@ -286,12 +286,11 @@ app.post('/api/admin/profile/image/edit' , (req , res)=>{
 app.get('/api/admin/profile/get', (req, res) => {
   let username = req.session.user_admin;
   let password = req.session.pass_admin;
-  console.log(username)
 
   if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
-    res.redirect('/api/logout')
-    return 0
-}
+      res.redirect('/api/logout')
+      return 0
+  }
 
   let con = Database.createConnection(listDB);
 
@@ -961,8 +960,6 @@ app.post('/api/admin/profile/text/edit' , (req , res)=>{
     // เช็คการเข้าสู่ระบบจริงๆ
     let username = req.session.user_admin ?? req.body['username'] ?? '';
     let password = req.session.pass_admin ?? req.body['password'] ?? '';
-    console.log(username)
-    console.log(password)
 
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -978,6 +975,7 @@ app.post('/api/admin/profile/text/edit' , (req , res)=>{
       if(auth['result'] === "pass") {
         req.session.user_admin = username
         req.session.pass_admin = password
+        req.session.tokenSession = apifunc.getTokenCsurf(req)
         res.send('1')
       }
     } catch (err) {
