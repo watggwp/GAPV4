@@ -5,7 +5,7 @@ import MenuMain from "../src/content/mainFarmHouse";
 import House from "../src/houseFile/House";
 import Signup from "../src/singupFile/Signup"
 import { CloseAccount } from "./method";
-import HouseList from "./content/House/HouseList";
+
 
 const MainFarmer = ({socket , idLiff , Path}) => {
     const [body , setBody] = useState(<></>)
@@ -45,10 +45,6 @@ const MainFarmer = ({socket , idLiff , Path}) => {
     } else if (Path === "house" && result !== "error auth") {
         if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
         else if (result === "search") setBody(<House liff={liff} uid={uid} />);
-
-    } else if (Path === "house/list" && result !== "error auth") {
-        if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-        else if (result === "search") setBody(<HouseList liff={liff} uid={uid} />);
 
     } else if (Path === "form" && result !== "error auth") {
         const auth = window.location.pathname.split("/")[3];
