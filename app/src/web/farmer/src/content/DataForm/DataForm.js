@@ -1,301 +1,421 @@
 import React, { useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
-
-import "./DataForm.scss"
+import "./DataForm.scss";
 import { ConvertDate, DatePickerThai, DateSelect, DayJSX, Loading } from "../../../../../assets/js/module";
 import MenuPlant from "../PlantList/MenuPlant";
 import DetailEdit from "../DetailEdit";
-const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0}) => {
-    const [Data , setData] = useState([])
-    const [Load , setLoad] = useState(false)
-    const [StatusEdit , setStatusEdit] = useState(false)
-    const [Popup , setPopup] = useState(<></>)
-    const [DataPlant , setDataPlant] = useState([])
-    const [getDateOut , setDateOut] = useState("")
-    const [QtyDate , setQtyDate] = useState(0)
 
-    const [getWait , setWait] = useState(false)
+const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => {
+    const [Data, setData] = useState([]);
+    const [Load, setLoad] = useState(false);
+    const [StatusEdit, setStatusEdit] = useState(false);
+    const [Popup, setPopup] = useState(<></>);
+    const [DataPlant, setDataPlant] = useState([]);
+    const [getDateOut, setDateOut] = useState("");
+    const [QtyDate, setQtyDate] = useState(0);
+    const [getWait, setWait] = useState(false);
+    const [varieties, setVarieties] = useState([]);
+    const [selectedPlantId, setSelectedPlantId] = useState(null); // ประกาศ state อย่างถูกต้อง
 
-    const PopupRef = useRef()
-    const ManageMenu = useRef()
+
+    const PopupRef = useRef();
+    const ManageMenu = useRef();
     const BtManageMenu = {
-        Frame : useRef(),
-        Svg : useRef(),
-        Path : useRef()
-    }
-    const DataContent = useRef()
+        Frame: useRef(),
+        Svg: useRef(),
+        Path: useRef()
+    };
+    const DataContent = useRef();
 
-    const TypePlantInput = useRef()
-    const Generation = useRef()
-    const DateGlow = useRef()
-    const DatePlant = useRef()
-    const PositionW = useRef()
-    const PositionH = useRef()
-    const Qty = useRef()
-    const Area = useRef()
-    const DateOut = useRef()
-    const System = useRef()
-    const Water = useRef()
-    const WaterStep = useRef()
-    const History = useRef()
-    const Insect = useRef()
-    const QtyInsect = useRef()
-    const Seft = useRef()
+    const TypePlantInput = useRef();
+    const VarietyInput = useRef();
+    const Generation = useRef();
+    const DateGlow = useRef();
+    const DatePlant = useRef();
+    const PositionW = useRef();
+    const PositionH = useRef();
+    const Qty = useRef();
+    const Area = useRef();
+    const Unit = useRef();
+    const DateOut = useRef();
+    const System = useRef();
+    const Water = useRef();
+    const WaterStep = useRef();
+    const History = useRef();
+    const Insect = useRef();
+    const QtyInsect = useRef();
+    const Seft = useRef();
+    const Because = useRef();
+    const BtConfirm = useRef();
 
-    const Because = useRef()
+    useEffect(() => {
+        if (Data.id_plant) {
+            FetchVarieties(Data.id_plant);
+        }
+        console.log(Data.id_plant)
+    }, [Data.id_plant]);
 
-    const BtConfirm = useRef()
+    useEffect(() => {
+        if (selectedPlantId) {
+            FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
+        }
+    }, [selectedPlantId]);
+    
+    
+    
 
-    useEffect(()=>{
-        setPage("DataForm")
-        if(isClick === 1) window.history.pushState({} , null , `/farmer/form/${id_house}/d/${id_plant}`)
-        window.addEventListener("touchstart" , CloseManageMenu)
-        FetchData()
+    useEffect(() => {
+        setPage("DataForm");
+        if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${id_house}/d/${id_plant}`);
+        window.addEventListener("touchstart", CloseManageMenu);
+        FetchData();
 
         return () => {
-            window.removeEventListener("touchstart" , CloseManageMenu)
-        }
-    } , [])
+            window.removeEventListener("touchstart", CloseManageMenu);
+        };
+    }, [id_plant]);
+
+    
 
     const FetchData = async () => {
-        setLoad(false)
-        setData({})
-        const result = await clientMo.post("/api/farmer/formplant/select" , {id_formplant : id_plant , id_farmhouse : id_house})
-        if(await CloseAccount(result , setPage)) {
-            const DataIn = JSON.parse(result)
-            setData(DataIn[0])
-            setDateOut(DataIn[0].date_harvest.split(" ")[0])
-            setLoad(true)
-            setWait(false)
+        setLoad(false);
+        setData({});
+        const result = await clientMo.post("/api/farmer/formplant/select", { id_formplant: id_plant, id_farmhouse: id_house });
+    
+        if (await CloseAccount(result, setPage)) {
+            const DataIn = JSON.parse(result);
+            if (DataIn && DataIn[0]) {
+                setData(DataIn[0]);
+                setDateOut(DataIn[0].date_harvest.split(" ")[0]);
+            } else {
+                console.error("DataIn ไม่มีข้อมูลที่ต้องการ");
+            }
+            setLoad(true);
+            setWait(false);
         }
-        // if(document.getElementById("loading").classList[0] !== "hide")
-            clientMo.unLoadingPage()
-    }
+    };
+    
+    
+    
+
+    const FetchVarieties = async (plantId) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/farmer/varieties`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ plant_id: plantId })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch varieties');
+            }
+            const data = await response.json();
+            setVarieties(data);
+            console.log(data)
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const FetchPlant = async () => {
-        setDataPlant([])
-        const DataFetch = await clientMo.post("/api/farmer/plant/list")
-        if(await CloseAccount(DataFetch , setPage)) {
-            const LIST = JSON.parse(DataFetch)
-            const SelectPlant = LIST.filter(val=>val.name == Data.name_plant)
-            setDataPlant(LIST)
-            setQtyDate(SelectPlant.length != 0 ? SelectPlant[0].qty_harvest : 0)
+        setDataPlant([]);
+        const DataFetch = await clientMo.post("/api/farmer/plant/list");
+        if (await CloseAccount(DataFetch, setPage)) {
+            const LIST = JSON.parse(DataFetch);
+            const SelectPlant = LIST.filter(val => val.name == Data.name_plant);
+            setDataPlant(LIST);
+            setQtyDate(SelectPlant.length != 0 ? SelectPlant[0].qty_harvest : 0);
         }
-    }
+    };
+    
 
-    const ReturnPage = async () =>{
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />)
-        }
+    // const handlePlantChange = (event) => {
+    //     const plantId = event.target.value;
+    //     FetchVarieties(plantId);
+    // };
+
+  
+
+const handlePlantChange = (event) => {
+    const plantName = event.target.value;
+
+    // ค้นหา id_plant จาก DataPlant ที่ตรงกับชื่อพืช
+    const selectedPlant = DataPlant.find((plant) => plant.name === plantName);
+
+    if (selectedPlant) {
+        setSelectedPlantId(selectedPlant.id); // อัปเดต selectedPlantId
+        FetchVarieties(selectedPlant.id); // ดึง varieties ของพืชที่เลือก
     }
+};
+
+
+    const ReturnPage = async () => {
+        const result = await clientMo.post("/api/farmer/account/check");
+        if (await CloseAccount(result, setPage)) {
+            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />);
+        }
+    };
 
     const ShowMenuManageForm = () => {
-        ManageMenu.current.toggleAttribute("show")
-    }
+        ManageMenu.current.toggleAttribute("show");
+    };
 
     const CloseManageMenu = (e) => {
-        if(ManageMenu.current) {
-            if(e.target !== BtManageMenu.Frame.current 
-                && e.target !== BtManageMenu.Svg.current 
-                && e.target !== BtManageMenu.Path.current) ManageMenu.current.removeAttribute("show")
+        if (ManageMenu.current) {
+            if (e.target !== BtManageMenu.Frame.current && e.target !== BtManageMenu.Svg.current && e.target !== BtManageMenu.Path.current) {
+                ManageMenu.current.removeAttribute("show");
+            }
         }
-    }
+    };
 
     const EditForm = async () => {
-        await FetchPlant()
-        DataContent.current.setAttribute("edit" , "")
-        setStatusEdit(true)
-        document.querySelectorAll("#data-form-page *[readonly='']").forEach((val)=>{
-            if(val.getAttribute("date_dom") !== "") {
-                val.removeAttribute("readonly")
+        await FetchPlant();
+        DataContent.current.setAttribute("edit", "");
+        setStatusEdit(true);
+        document.querySelectorAll("#data-form-page *[readonly='']").forEach((val) => {
+            if (val.getAttribute("date_dom") !== "") {
+                val.removeAttribute("readonly");
             }
-        })
-    }
+        });
+    };
 
     const CancelEdit = (cancel = true) => {
-        setLoad(false)
-        setDateOut(Data.date_harvest.split(" ")[0])
-        setStatusEdit(false)
-        DataContent.current.removeAttribute("edit")
-        if(cancel) {
-            setTimeout(()=>{
-                setLoad(true)
-            } , 100)
+        setLoad(false);
+        setDateOut(Data.date_harvest.split(" ")[0]);
+        setStatusEdit(false);
+        DataContent.current.removeAttribute("edit");
+        if (cancel) {
+            setTimeout(() => {
+                setLoad(true);
+            }, 100);
         }
-    }
+    };
 
-    // start Edit
+    const ChangeDate = () => {
+        if (!DateGlow.current) {
+            console.error("DateGlow ยังไม่ได้เชื่อมกับ DOM");
+            return;
+        }
+    
+        const dateGlowValue = DateGlow.current.value || "";
+        console.log("DateGlow Value:", dateGlowValue);
+        // ดำเนินการต่อด้วย dateGlowValue
+    };
+
+
+    const validateInputs = () => {
+        const requiredRefs = [
+            TypePlantInput,
+            VarietyInput,
+            Generation,
+            DateGlow,
+            DatePlant,
+            PositionW,
+            PositionH,
+            Qty,
+            Area,
+            Unit,
+            DateOut,
+            System,
+            Water,
+            WaterStep
+        ];
+    
+        const isValid = requiredRefs.every(ref => ref.current && ref.current.value !== "");
+        if (!isValid) {
+            console.error("Input บางตัวไม่มีค่า");
+        }
+    
+        return isValid;
+    };
+    
+
     const ConfirmEdit = async () => {
-        if(BtConfirm.current.getAttribute("no") == null) {
-            const type = TypePlantInput.current
-            const generetion = Generation.current
-            const dateGlow = DateGlow.current
-            const datePlant = DatePlant.current
-            const posiW = PositionW.current
-            const posiH = PositionH.current
-            const qty = Qty.current
-            const area = Area.current
-            const dateOut = DateOut.current
-            const system = System.current
-            const water = Water.current
-            const waterStep = WaterStep.current
-            const history = History.current
-            const insect = Insect.current
-            const qtyInsect = QtyInsect.current
-            const seft = Seft.current
+         {
+            if (!TypePlantInput.current || !VarietyInput.current || !DateGlow.current) {
+                return;
+            }
+        
+            const type = TypePlantInput.current.value || "";
+            const variety = VarietyInput.current.value || "";
+            const dateGlow = DateGlow.current.value || "";
+        
+            // ตรวจสอบเงื่อนไขหรือทำงานต่อ
+        };
+        if (BtConfirm.current.getAttribute("no") == null) {
+            const type = TypePlantInput.current;
+            const variety = VarietyInput.current;
+            const generetion = Generation.current;
+            const dateGlow = DateGlow.current;
+            const datePlant = DatePlant.current;
+            const posiW = PositionW.current;
+            const posiH = PositionH.current;
+            const qty = Qty.current;
+            const area = Area.current;
+            const unit = Unit.current;
+            const dateOut = DateOut.current;
+            const system = System.current;
+            const water = Water.current;
+            const waterStep = WaterStep.current;
+            const history = History.current;
+            const insect = Insect.current;
+            const qtyInsect = QtyInsect.current;
+            const seft = Seft.current;
+            const because = Because.current;
 
-            const because = Because.current
+            
 
             const CheckChange = [
-                type.value != Data.name_plant ,
-                generetion.value != Data.generation ,
+                type.value != Data.name_plant,
+                variety.value != Data.name_varieties,
+                generetion.value != Data.generation,
                 dateGlow.value != Data.date_glow.split(" ")[0],
-                datePlant.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-") != Data.date_plant.split(" ")[0],
+                datePlant.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_plant.split(" ")[0],
                 posiW.value != Data.posi_w,
-                posiH.value != Data.posi_h ,
-                qty.value != Data.qty ,
-                area.value != Data.area ,
-                dateOut.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-") != Data.date_harvest.split(" ")[0],
-                system.value != Data.system_glow ,
-                water.value != Data.water ,
-                waterStep.value != Data.water_flow ,
-                history.value != Data.history ,
-                insect.value != Data.insect ,
-                qtyInsect.value != Data.qtyInsect , 
+                posiH.value != Data.posi_h,
+                qty.value != Data.qty,
+                area.value != Data.area,
+                unit.value != Data.unit,
+                dateOut.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_harvest.split(" ")[0],
+                system.value != Data.system_glow,
+                water.value != Data.water,
+                waterStep.value != Data.water_flow,
+                history.value != Data.history,
+                insect.value != Data.insect,
+                qtyInsect.value != Data.qtyInsect,
                 seft.value != Data.seft
-            ]
+            ];
 
-            if( 
-                (type.value && generetion.value && dateGlow.value && datePlant.value && 
-                posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
-                water.value && waterStep.value && because.value) 
-                && 
+            if (
+                (type.value && variety.value && generetion.value && dateGlow.value && datePlant.value &&
+                    posiW.value && posiH.value && qty.value && area.value && unit.value && dateOut.value && system.value &&
+                    water.value && waterStep.value && because.value)
+                &&
                 (
-                    CheckChange.filter(val=>val)[0]
+                    CheckChange.filter(val => val)[0]
                 )
-                    ) {
-                        const Key = [ 
-                                        "name_plant" , "generation" , "date_glow" , "date_plant" , 
-                                        "posi_w" , "posi_h" , "qty" , "area" , "date_harvest" , "system_glow" ,
-                                        "water" , "water_flow" , "history" , "insect" , "qtyInsect" , "seft"
-                                    ]
-                        const Value = [
-                                        type.value,
-                                        generetion.value,
-                                        dateGlow.value,
-                                        ConvertDate(datePlant.value).christDate,
-                                        posiW.value,
-                                        posiH.value,
-                                        qty.value,
-                                        area.value,
-                                        ConvertDate(dateOut.value).christDate,
-                                        system.value,
-                                        water.value,
-                                        waterStep.value,
-                                        history.value,
-                                        insect.value,
-                                        qtyInsect.value, 
-                                        seft.value
-                                    ]
-        
-                        const foundChange = CheckChange.map((val , index) => (val) ? [ Key[index] , Value[index] ] : "").filter(val => val !== "")
-                        const data = {
-                            id_farmhouse : id_house,
-                            id_plant : id_plant ,
-                            because : because.value,
-                            dataChange : Object.fromEntries(new Map([...foundChange])),
-                            num : foundChange.length
-                        }
+            ) {
+                const Key = [
+                    "name_plant", "name_varieties", "generation", "date_glow", "date_plant",
+                    "posi_w", "posi_h", "qty", "area", "unit", "date_harvest", "system_glow",
+                    "water", "water_flow", "history", "insect", "qtyInsect", "seft"
+                ];
+                const Value = [
+                    type.value,
+                    variety.value,
+                    generetion.value,
+                    dateGlow.value,
+                    ConvertDate(datePlant.value).christDate,
+                    posiW.value,
+                    posiH.value,
+                    qty.value,
+                    area.value,
+                    unit.value,
+                    ConvertDate(dateOut.value).christDate,
+                    system.value,
+                    water.value,
+                    waterStep.value,
+                    history.value,
+                    insect.value,
+                    qtyInsect.value,
+                    seft.value
+                ];
 
-                        setWait(true)
-                        const result = await clientMo.post("/api/farmer/formplant/edit" , data)
-                        if(await CloseAccount(result , setPage)) {
-                            if(result === "133") {
-                                CancelEdit(false)
-                                FetchData()
-                            } else if (result === "submit") {
-                                CancelEdit(false)
-                                FetchData()
-                            }
-                        }  
+                const foundChange = CheckChange.map((val, index) => (val) ? [Key[index], Value[index]] : "").filter(val => val !== "");
+                const data = {
+                    id_farmhouse: id_house,
+                    id_plant: id_plant,
+                    because: because.value,
+                    dataChange: Object.fromEntries(new Map([...foundChange])),
+                    num: foundChange.length
+                };
+
+                setWait(true);
+                const result = await clientMo.post("/api/farmer/formplant/edit", data);
+                if (await CloseAccount(result, setPage)) {
+                    if (result === "133") {
+                        CancelEdit(false);
+                        FetchData();
+                    } else if (result === "submit") {
+                        CancelEdit(false);
+                        FetchData();
+                    }
+                }
             } else {
                 let RefObject = [
-                    type , generetion , dateGlow , datePlant , 
-                    posiW , posiH , qty , area , dateOut , system ,
-                    water , waterStep , history , insect , qtyInsect , because
-                    // , seft
-                ]
-                RefObject.forEach((ele)=>{
-                    if(!ele.value && ele) ele.style.border = "2px solid red"
-                    else if (ele.value && ele) ele.style.border = "2px solid transparent"
-                })
+                    type, variety, generetion, dateGlow, datePlant,
+                    posiW, posiH, qty, area, unit, dateOut, system,
+                    water, waterStep, history, insect, qtyInsect, because
+                ];
+                RefObject.forEach((ele) => {
+                    if (!ele.value && ele) ele.style.border = "2px solid red";
+                    else if (ele.value && ele) ele.style.border = "2px solid transparent";
+                });
             }
         }
-    }
+    };
 
     const ChangeEdit = () => {
-        const type = TypePlantInput.current
-        const generetion = Generation.current
-        const dateGlow = DateGlow.current
-        const datePlant = DatePlant.current
-        const posiW = PositionW.current
-        const posiH = PositionH.current
-        const qty = Qty.current
-        const area = Area.current
-        const dateOut = DateOut.current
-        const system = System.current
-        const water = Water.current
-        const waterStep = WaterStep.current
-        const history = History.current
-        const insect = Insect.current
-        const qtyInsect = QtyInsect.current
-        const seft = Seft.current
+        if (!TypePlantInput.current || !VarietyInput.current || !Data) {
+            console.error("Ref หรือ Data ยังไม่พร้อม");
+            return;
+        }
 
-        const because = Because.current
+        const type = TypePlantInput.current.value || '';
+        const variety = VarietyInput.current.value || '';
+        const generetion = Generation.current ? Generation.current.value : '';
+        const dateGlow = DateGlow.current ? DateGlow.current.value : '';
+        const datePlant = DatePlant.current ? DatePlant.current.value : '';
+        const posiW = PositionW.current ? PositionW.current.value : '';
+        const posiH = PositionH.current ? PositionH.current.value : '';
+        const qty = Qty.current ? Qty.current.value : '';
+        const area = Area.current ? Area.current.value : '';
+        const unit = Unit.current ? Unit.current.value : '';
+        const dateOut = DateOut.current ? DateOut.current.value : '';
+        const system = System.current ? System.current.value : '';
+        const water = Water.current ? Water.current.value : '';
+        const waterStep = WaterStep.current ? WaterStep.current.value : '';
+        const history = History.current ? History.current.value : '';
+        const insect = Insect.current ? Insect.current.value : '';
+        const qtyInsect = QtyInsect.current ? QtyInsect.current.value : '';
+        const seft = Seft.current ? Seft.current.value : '';
+        const because = Because.current ? Because.current.value : '';
 
         const CheckChange = [
-            type.value != Data.name_plant ,
-            generetion.value != Data.generation ,
-            dateGlow.value != Data.date_glow.split(" ")[0],
-            ConvertDate(datePlant.value).christDate != Data.date_plant.split(" ")[0],
-            posiW.value != Data.posi_w,
-            posiH.value != Data.posi_h ,
-            qty.value != Data.qty ,
-            area.value != Data.area ,
-            ConvertDate(dateOut.value).christDate != Data.date_harvest.split(" ")[0],
-            system.value != Data.system_glow ,
-            water.value != Data.water ,
-            waterStep.value != Data.water_flow ,
-            history.value != Data.history ,
-            insect.value != Data.insect ,
-            qtyInsect.value != Data.qtyInsect , 
-            seft.value != Data.seft
-        ]
+            type !== Data.name_plant,
+            variety !== Data.name_varieties,
+            generetion !== Data.generation,
+            dateGlow !== Data.date_glow?.split(" ")[0],
+            ConvertDate(datePlant).christDate !== Data.date_plant?.split(" ")[0],
+            posiW !== Data.posi_w,
+            posiH !== Data.posi_h,
+            qty !== Data.qty,
+            area !== Data.area,
+            unit !== Data.unit,
+            ConvertDate(dateOut).christDate !== Data.date_harvest?.split(" ")[0],
+            system !== Data.system_glow,
+            water !== Data.water,
+            waterStep !== Data.water_flow,
+            history !== Data.history,
+            insect !== Data.insect,
+            qtyInsect !== Data.qtyInsect,
+            seft !== Data.seft
+        ];
 
-        if( 
-            (type.value && generetion.value && dateGlow.value && datePlant.value && 
-            posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
-            water.value && waterStep.value && because.value) 
-            && 
-            (
-                CheckChange.filter(val=>val)[0]
-            )
-                ) {
-                BtConfirm.current.removeAttribute("no" , "")
+        if (CheckChange.some(change => change)) {
+            BtConfirm.current?.removeAttribute("no");
         } else {
-            BtConfirm.current.setAttribute("no" , "")
+            BtConfirm.current?.setAttribute("no", "");
         }
-    }
-    // end Edit
+    };
 
-    // history Edit
     const HistoryEdit = async () => {
         setPopup(<DetailEdit Ref={PopupRef} setRef={setPopup} setPage={setPage} Data_on={{
-            id_house : id_house , id_plant : id_plant
-        }} type={"plant"}/>)
-    }
+            id_house: id_house, id_plant: id_plant
+        }} type={"plant"} />);
+    };
 
     return (
         <section className="data-form-page" id="data-form-page">
@@ -303,34 +423,34 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                 <div className="return" onClick={ReturnPage}>
                     <svg fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
                         <g fillRule="evenodd">
-                            <path d="M1052 92.168 959.701 0-.234 959.935 959.701 1920l92.299-92.43-867.636-867.635L1052 92.168Z"/>
-                            <path d="M1920 92.168 1827.7 0 867.766 959.935 1827.7 1920l92.3-92.43-867.64-867.635L1920 92.168Z"/>
+                            <path d="M1052 92.168L959.701 0-.234 959.935 959.701 1920l92.299-92.43-867.636-867.635L1052 92.168Z" />
+                            <path d="M1920 92.168L1827.7 0 867.766 959.935 1827.7 1920l92.3-92.43-867.64-867.635L1920 92.168Z" />
                         </g>
                     </svg>
                 </div>
                 <span>ข้อมูลแบบบันทึก</span>
                 {
-                    !StatusEdit && Load ? 
+                    !StatusEdit && Load ?
                         <>
-                        <div className="manage-form" ref={BtManageMenu.Frame} onClick={ShowMenuManageForm}>
-                            <svg ref={BtManageMenu.Svg} fill="#000000" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                <path ref={BtManageMenu.Path} d="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h20q2.464 0 4.224-1.76t1.76-4.224v-20q0-2.496-1.76-4.256t-4.224-1.76h-20q-2.496 0-4.256 1.76t-1.76 4.256v20zM4 26.016v-20q0-0.832 0.576-1.408t1.44-0.608h20q0.8 0 1.408 0.608t0.576 1.408v20q0 0.832-0.576 1.408t-1.408 0.576h-20q-0.832 0-1.44-0.576t-0.576-1.408zM8 24h16v-4h-16v4zM8 18.016h16v-4h-16v4zM8 12h16v-4h-16v4z"></path>
-                            </svg>
-                        </div>
-                        <div className="manage-menu" ref={ManageMenu}>
-                            { Data.state_status < 2 ?
-                                <div onClick={EditForm}>แก้ไขข้อมูล</div>
-                                : <></>
-                            }
-                            <div onClick={HistoryEdit}>ประวัติแก้ไข</div>
-                        </div>
+                            <div className="manage-form" ref={BtManageMenu.Frame} onClick={ShowMenuManageForm}>
+                                <svg ref={BtManageMenu.Svg} fill="#000000" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                    <path ref={BtManageMenu.Path} d="M0 26.016q0 2.496 1.76 4.224t4.256 1.76h20q2.464 0 4.224-1.76t1.76-4.224v-20q0-2.496-1.76-4.256t-4.224-1.76h-20q-2.496 0-4.256 1.76t-1.76 4.256v20zM4 26.016v-20q0-0.832 0.576-1.408t1.44-0.608h20q0.8 0 1.408 0.608t0.576 1.408v20q0 0.832-0.576 1.408t-1.408 0.576h-20q-0.832 0-1.44-0.576t-0.576-1.408zM8 24h16v-4h-16v4zM8 18.016h16v-4h-16v4zM8 12h16v-4h-16v4z"></path>
+                                </svg>
+                            </div>
+                            <div className="manage-menu" ref={ManageMenu}>
+                                {Data.state_status < 2 ?
+                                    <div onClick={EditForm}>แก้ไขข้อมูล</div>
+                                    : <></>
+                                }
+                                <div onClick={HistoryEdit}>ประวัติแก้ไข</div>
+                            </div>
                         </> : <></>
                 }
             </div>
             <div className="form">
                 <div className="data-content" ref={DataContent}>
                     <div className="frame-content">
-                        { Load ? 
+                        {Load ?
                             <div className="content">
                                 <div className="step">
                                     <div className="num">1.</div>
@@ -339,23 +459,15 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                             <label className={`frame-textbox${Data.subjectResult.name_plant == 2 ? " not" : ""}`}>
                                                 <span>ชนิดพืช</span>
                                                 <div className="input-select-popup">
-                                                    { StatusEdit ?
-                                                        DataPlant.length != 0 ?
-                                                            <select style={{width : "100%"}} onChange={(e)=>{
-                                                                ChangeEdit()
-
-                                                                const SelectPlant = DataPlant.filter(val=>val.name == e.target.value)
-                                                                const DatePlantQty = new Date(DatePlant.current.value)
-
-                                                                setQtyDate(SelectPlant[0].qty_harvest)
-                                                                DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(SelectPlant[0].qty_harvest))
-                                                                DateOut.current.value = DatePlantQty.toISOString().split("T")[0]
-
-                                                            }} ref={TypePlantInput} defaultValue={Data.name_plant}>
+                                                    {StatusEdit ?
+                                                        DataPlant.length !== 0 ?
+                                                            <select style={{ width: "100%" }} onChange={handlePlantChange} ref={TypePlantInput} defaultValue={Data.name_plant}>
                                                                 <option disabled value={""}>เลือกพืช</option>
-                                                                { 
-                                                                    DataPlant.map((plant , key)=>
+                                                                {
+                                                                    DataPlant.map((plant, key) =>
                                                                         <option key={key} value={plant.name}>{plant.name}</option>
+
+                                                                    
                                                                     )
                                                                 }
                                                             </select> : <></>
@@ -365,6 +477,25 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                             </label>
                                         </div>
                                         <div className="row">
+                                            <label className={`frame-textbox${Data.subjectResult.name_varieties == 2 ? " not" : ""}`}>
+                                            <span>สายพันธุ์พืช</span>
+                                                <div className="input-select-popup">
+                                                    {StatusEdit ?
+                                                       (varieties) && varieties.length !== 0 ?
+                                                            <select style={{ width: "100%" }} ref={VarietyInput} defaultValue={Data.name_varieties} onChange={ChangeEdit}>
+                                                                <option disabled value="">เลือกสายพันธุ์พืช</option>
+                                                                {varieties.map((variety, key) =>
+                                                                    <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
+                                                                )}
+                                                            </select>
+                                                            : <input readOnly value={Data.name_varieties} />
+                                                        : <input readOnly defaultValue={Data.name_varieties} />
+                                                    }
+                                                </div>
+                                            </label>
+                                        </div>
+                                        
+                                        <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.generation == 2 ? " not" : ""}`}>
                                                 <span>รุ่นที่ปลูก</span>
                                                 <input ref={Generation} onChange={StatusEdit ? ChangeEdit : null} type="number" readOnly defaultValue={Data.generation}></input>
@@ -372,7 +503,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         </div>
                                         <div className="row">
                                             <label className={`frame-textbox colume${Data.subjectResult.date_glow == 2 ? " not" : ""}`}>
-                                                <span className="full">วันที่เพาะกล้า</span>
+                                            <span className="full">วันที่เพาะกล้า</span>
                                                 <div className="full">
                                                     {
                                                         StatusEdit ? 
@@ -391,44 +522,21 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                                 <div className="full">
                                                     {
                                                         StatusEdit ?
-                                                            // <input ref={DatePlant} onChange={StatusEdit ? (e)=>{
-                                                            //     ChangeEdit()
-
-                                                            //     const DatePlantQty = new Date(e.target.value)
-                                                            //     DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(QtyDate))
-                                                            //     DateOut.current.value = DatePlantQty.toISOString().split("T")[0]
-
-                                                            // } : null} type="date" 
-                                                            // defaultValue={Data.date_plant.split(" ")[0]}></input> 
-                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant.split(" ")[0]} offsetQtyDate={QtyDate} refIn={DatePlant} onInputIn={(e , qty)=>{
-                                                                ChangeEdit()
-
-                                                                const DateChis = e.target.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-")
-                                                                const DatePlantQty = new Date(DateChis)
-                                                                DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(qty))
-                                                                DateOut.current.value = DatePlantQty.toISOString().split("T")[0].split("-").map((val , key)=> key==0 ? parseInt(val) + 543 : val).reverse().join("-")
-                                                                setDateOut(DatePlantQty.toISOString().split("T")[0])
-                                                            }}/>
+                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant.split(" ")[0]} offsetQtyDate={QtyDate} refIn={DatePlant} onInputIn={(e, qty) => {
+                                                                ChangeEdit();
+                                                                const DateChis = e.target.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-");
+                                                                const DatePlantQty = new Date(DateChis);
+                                                                DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(qty));
+                                                                DateOut.current.value = DatePlantQty.toISOString().split("T")[0].split("-").map((val, key) => key == 0 ? parseInt(val) + 543 : val).reverse().join("-");
+                                                                setDateOut(DatePlantQty.toISOString().split("T")[0]);
+                                                            }} />
                                                             :
-                                                            <DayJSX className="w-100" DATE={Data.date_plant} TYPE="normal"/>
+                                                            <DayJSX className="w-100" DATE={Data.date_plant} TYPE="normal" />
                                                     }
                                                 </div>
                                             </label>
                                         </div>
                                         <div className="row">
-                                            {/* <label className={`frame-textbox colume${Data.subjectResult.posi_w == 2 || Data.subjectResult.posi_h == 2 ? " not" : ""}`}>
-                                                <div className="full">ระยะระหว่าง</div>
-                                                <div className="choose">
-                                                    <label className="choose">
-                                                        ต้น
-                                                        <input ref={PositionW} onChange={StatusEdit ? ChangeEdit : null} readOnly type="number" defaultValue={Data.posi_w} ></input>
-                                                    </label>
-                                                    <label className="choose">
-                                                        ระหว่างแถว
-                                                        <input ref={PositionH} onChange={StatusEdit ? ChangeEdit : null} readOnly type="number" defaultValue={Data.posi_h}></input>
-                                                    </label>
-                                                </div>
-                                            </label> */}
                                             <label className={`frame-textbox colume${Data.subjectResult.posi_w == 2 || Data.subjectResult.posi_h == 2 ? " not" : ""}`}>
                                                 <div className="full">ระยะการปลูก</div>
                                                 <div className="choose w-100">
@@ -451,25 +559,39 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox${Data.subjectResult.area == 2 ? " not" : ""}`}>
-                                                <span>พื้นที่</span>
-                                                <input ref={Area} onChange={StatusEdit ? ChangeEdit : null} type={"number"} defaultValue={Data.area}></input>
+                                            <label className={`frame-textbox colume${Data.subjectResult.area == 2 ? " not" : ""}`}>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <span style={{ marginRight: '1px' }}>พื้นที่</span>
+                                                    <input
+                                                        ref={Area}
+                                                        onChange={StatusEdit ? ChangeEdit : null}
+                                                        type="number"
+                                                        defaultValue={Data.area}
+                                                        style={{ marginRight: '5px', flex: 1 }}
+                                                    />
+                                                    {StatusEdit ? (
+                                                        <select onChange={ChangeEdit} ref={Unit} defaultValue={Data.unit} style={{ flex: 1, maxWidth: '150px' }}>
+                                                            <option disabled value="">เลือก</option>
+                                                            <option value="โรงเรือน">โรงเรือน</option>
+                                                            <option value="ไร่">ไร่</option>
+                                                            <option value="ตารางเมตร">ตารางเมตร</option>
+                                                        </select>
+                                                    ) : (
+                                                        <input readOnly defaultValue={Data.unit} style={{ flex: 1, maxWidth: '150px' }} />
+                                                    )}
+                                                </div>
                                             </label>
                                         </div>
                                         <div className="row">
                                             <label className={`frame-textbox colume${Data.subjectResult.date_harvest == 2 ? " not" : ""}`}>
                                                 <span className="full">วันที่คาดว่าจะเก็บเกี่ยว</span>
                                                 <div className="full">
-                                                <div className="full">
                                                     {
                                                         StatusEdit ?
-                                                            // <input ref={DateOut} onChange={StatusEdit ? ChangeEdit : null} type="date" 
-                                                            // defaultValue={Data.date_harvest.split(" ")[0]}></input> 
-                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={getDateOut} refIn={DateOut} onInputIn={ChangeEdit}/>
+                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={getDateOut} refIn={DateOut} onInputIn={ChangeEdit} />
                                                             :
-                                                            <DayJSX className="w-100" DATE={Data.date_harvest} TYPE="normal"/>
+                                                            <DayJSX className="w-100" DATE={Data.date_harvest} TYPE="normal" />
                                                     }
-                                                </div>
                                                 </div>
                                             </label>
                                         </div>
@@ -481,7 +603,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.system_glow == 2 ? " not" : ""}`}>
                                                 <span>รูปแบบการปลูก</span>
-                                                { StatusEdit ?
+                                                {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={System} defaultValue={Data.system_glow}>
                                                         <option disabled value="">เลือก</option>
                                                         <option value={"ขึ้นแปลงปลูกตามไหล่เขา"}>ขึ้นแปลงปลูกตามไหล่เขา</option>
@@ -503,7 +625,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.water == 2 ? " not" : ""}`}>
                                                 <span>แหล่งน้ำ</span>
-                                                { StatusEdit ?
+                                                {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={Water} defaultValue={Data.water}>
                                                         <option disabled value="">เลือก</option>
                                                         <option value={"อาศัยน้ำฝน"}>อาศัยน้ำฝน</option>
@@ -522,10 +644,10 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                 <div className="step">
                                     <div className="num">4.</div>
                                     <div className="body">
-                                    <div className="row">
+                                        <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.water_flow == 2 ? " not" : ""}`}>
                                                 <span>วิธีการให้น้ำ</span>
-                                                { StatusEdit ?
+                                                {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={WaterStep} defaultValue={Data.water_flow}>
                                                         <option disabled value="">เลือก</option>
                                                         <option value={"สปริงเกอร์"}>สปริงเกอร์</option>
@@ -545,7 +667,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                     <div className="body">
                                         <div className="row">
                                             <label className={`frame-textbox`}>
-                                                <span style={{width : "100%"}}>ประวัติการใช้พื้นที่และการเกิดโรคระบาด</span>
+                                                <span style={{ width: "100%" }}>ประวัติการใช้พื้นที่และการเกิดโรคระบาด</span>
                                             </label>
                                         </div>
                                         <div className="row">
@@ -557,7 +679,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.insect == 2 ? " not" : ""}`}>
                                                 <span>โรค/แมลงที่พบ</span>
-                                                { StatusEdit ?
+                                                {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={Insect} defaultValue={Data.insect}>
                                                         <option disabled value="">เลือก</option>
                                                         <option value={"แมลง"}>แมลง</option>
@@ -571,7 +693,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.qtyInsect == 2 ? " not" : ""}`}>
                                                 <span>ปริมาณการเกิดโรค และแมลงที่พบ</span>
-                                                { StatusEdit ?
+                                                {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={QtyInsect} defaultValue={Data.qtyInsect}>
                                                         <option disabled value="">เลือก</option>
                                                         <option value={"น้อย"}>น้อย</option>
@@ -585,7 +707,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.seft == 2 ? " not" : ""}`}>
                                                 <span>การป้องกันกำจัด</span>
-                                                <textarea style={{textAlign : "start" , padding : "0.5em"}} ref={Seft} onChange={StatusEdit ? ChangeEdit : null} readOnly defaultValue={Data.seft}></textarea>
+                                                <textarea style={{ textAlign: "start", padding: "0.5em" }} ref={Seft} onChange={StatusEdit ? ChangeEdit : null} readOnly defaultValue={Data.seft}></textarea>
                                             </label>
                                         </div>
                                     </div>
@@ -597,7 +719,7 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                                                 <div className="row">
                                                     <label className={`frame-textbox colume`}>
                                                         <span className="full">เหตุผลการแก้ไข</span>
-                                                        <textarea style={{textAlign : "start" , padding : "0.5em"}} className="full" onChange={ChangeEdit} ref={Because}></textarea>
+                                                        <textarea style={{ textAlign: "start", padding: "0.5em" }} className="full" onChange={ChangeEdit} ref={Because}></textarea>
                                                     </label>
                                                 </div>
                                             </div>
@@ -608,29 +730,29 @@ const DataForm = ({ setBody , id_house , id_plant , liff , setPage , isClick = 0
                     </div>
                 </div>
                 {
-                    StatusEdit ? 
-                    <div className="bt">
-                        <button style={{backgroundColor : "red"}} className="bt-confirm-edit" onClick={CancelEdit}>ยกเลิก</button>
-                        { getWait ?
-                            <div className="bt-confirm-edit" style={{
-                                display : "flex",
-                                justifyContent : "center",
-                                alignItems : "center",
-                                padding : "2px"
-                            }}>
-                                <Loading size={24} border={5} color="white" animetion={true}/>
-                            </div> :
-                            <button ref={BtConfirm} no=""  className="bt-confirm-edit" onClick={ConfirmEdit}>ยืนยัน</button>
-                        }
-                    </div>
-                    : <></>
+                    StatusEdit ?
+                        <div className="bt">
+                            <button style={{ backgroundColor: "red" }} className="bt-confirm-edit" onClick={CancelEdit}>ยกเลิก</button>
+                            {getWait ?
+                                <div className="bt-confirm-edit" style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    padding: "2px"
+                                }}>
+                                    <Loading size={24} border={5} color="white" animetion={true} />
+                                </div> :
+                                <button ref={BtConfirm} no="" className="bt-confirm-edit" onClick={ConfirmEdit}>ยืนยัน</button>
+                            }
+                        </div>
+                        : <></>
                 }
             </div>
             <div className="popup-detail-edit" ref={PopupRef}>
                 {Popup}
             </div>
         </section>
-    )
+    );
 }
 
-export default DataForm
+export default DataForm;

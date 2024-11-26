@@ -21,6 +21,7 @@ let Path = window.location.pathname.split("/")[2]
 const id = {
     "signup" : process.env.REACT_APP_LINE_SIGNUP ,
     "house" : process.env.REACT_APP_LINE_HOUSE ,
-    "form" : process.env.REACT_APP_LINE_FORM
+    "form" : process.env.REACT_APP_LINE_FORM ,
+    "houseList" : process.env.REACT_APP_LINE_HOUSELISE
 }
 ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)

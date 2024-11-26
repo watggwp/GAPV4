@@ -22,28 +22,28 @@ const RichMenu = {
       "areas": [
         {
           "bounds": {
-            "x": 0,
-            "y": 0,
-            "width": 1250,
-            "height": 843
+            "x": 8,
+            "y": 9,
+            "width": 1242,
+            "height": 819
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/1661049098-dorebKYg"
+            "uri": "https://liff.line.me/2004738631-d421EzL4"
           }
         },
         {
           "bounds": {
-            "x": 1252,
-            "y": 0,
-            "width": 1250,
-            "height": 843
+            "x": 1263,
+            "y": 4,
+            "width": 1229,
+            "height": 832
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/1661049098-A9PON7LB"
+            "uri": "https://liff.line.me/2004738631-1q7GMEqK"
           }
-        }
+        },
       ]
     }
     
@@ -75,7 +75,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/1661049098-Lm7mZW32"
+            "uri": "https://liff.line.me/2004738631-pOX9yM76"
           }
         },
         {
@@ -87,7 +87,7 @@ const RichMenu = {
           },
           "action": {
             "type": "postback",
-            "text": "",
+            "text": "1",
             "data": "house_add"
           }
         }
@@ -132,13 +132,25 @@ const RichMenu = {
   }
 
 }
+//  RichMenu.DeleteRichMenu.All()
+RichMenu.GetRichMenu()
+// RichMenu.createRichLogin()
+// RichMenu.createRichAddFarm()
+// RichMenu.setDefault("richmenu-e6bad175f0078fc4ff73a56315085a85")
+// richmenu.linkRichMenuToUser("Ue58117f6252711781d1589732635e00a" , "richmenu-d6432138137a3b9e525311b848902909")
+
+
+
+
+
+
 
 // richmenu.getMessageContent("466911495637172372").then((stream)=>{
 //   console.log(stream.req)
 // }).catch(error=>{
 //   console.log({"ERROR" : error})
 // })
-// RichMenu.DeleteRichMenu.All()
+// RichMenu.DeleteRichMenuAll()
 // RichMenu.createRichLogin()
 // RichMenu.createRichAddFarm()
 

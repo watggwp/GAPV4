@@ -212,6 +212,7 @@ const House = ({liff , uid}) => {
 
             if(data.img && data.name && data.lag && data.lng) {
                 clientMo.postForm("/api/farmer/farmhouse/add" , data).then((result)=>{
+                    console.log(result)
                     if(result === "133") {
                         setText("เพิ่มโรงเรือนสำเร็จ")
                         setResult(1)

@@ -1,7 +1,7 @@
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
-module.exports = function apiAdmin (app , Database , apifunc , HOST_CHECK , dbpacket , listDB , socket , line) {
+module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB , socket , line) {
   app.post('/api/admin/check' , (req , res)=>{
     res.redirect('/api/admin/auth');
   })
@@ -53,7 +53,6 @@ module.exports = function apiAdmin (app , Database , apifunc , HOST_CHECK , dbpa
       }
 
     } catch(err) {
-      console.log(err)
       con.end()
       if(err == "not pass") {
         res.redirect('/api/logout')
@@ -65,7 +64,7 @@ module.exports = function apiAdmin (app , Database , apifunc , HOST_CHECK , dbpa
   app.post('/api/admin/doctor/get' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
-  
+    
     if(username === '' || password === '') {
       res.redirect('/api/logout')
       return 0
@@ -403,8 +402,8 @@ module.exports = function apiAdmin (app , Database , apifunc , HOST_CHECK , dbpa
   })
 
   app.post('/api/admin/data/insert' , async (req , res)=>{
-   
-    if(req.body.passwordAd && req.body.type ) {
+    if(req.body.passwordAd && req.body.type) {
+        
       let username = req.session.user_admin
       console.log ( req.session )
       let password = req.body.passwordAd
@@ -737,7 +736,7 @@ module.exports = function apiAdmin (app , Database , apifunc , HOST_CHECK , dbpa
     // เช็คการเข้าสู่ระบบจริงๆ
     let username = req.session.user_admin ?? req.body['username'] ?? '';
     let password = req.session.pass_admin ?? req.body['password'] ?? '';
-  
+    
     if(username === '' || password === '') {
       res.redirect('/api/logout')
       return 0

@@ -3,6 +3,7 @@ import {clientMo}  from "../../../assets/js/moduleClient";
 import Login from "./Login";
 import Admin from "./Admin";
 
+
 import './assets/style/main.scss'
 
 const MainAdmin = ({socket}) => {
@@ -32,7 +33,7 @@ const MainAdmin = ({socket}) => {
     return (
         <div 
             // axial={Responsive} 
-            id="rule-admin" 
+            id="role-admin" 
             style={{
                 height : "100%",
                 width : "100%"

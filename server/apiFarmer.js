@@ -7,7 +7,7 @@ const RichHouse = process.env.RICH_HOUSE
 const {Server} = require('socket.io')
 const io = new Server()
 
-module.exports = function apiFarmer (app , Database , apifunc , HOST_CHECK , dbpacket , listDB , socket = io , LINE = line) {
+module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listDB , socket = io , LINE = line) {
 
     app.post('/api/farmer/sign' , async (req , res)=>{
         if(req.session.user_doctor != undefined || req.session.pass_doctor != undefined) {
@@ -344,140 +344,137 @@ module.exports = function apiFarmer (app , Database , apifunc , HOST_CHECK , dbp
     // end farmhouse
 
     // start formplant
-    app.post('/api/farmer/formplant/select' , async (req , res)=>{
-        if(req.session.uidFarmer ) {
-            let con = Database.createConnection(listDB)
-
-            try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
-                const where = (req.body.id_formplant) ? 
-                                `and formplant.id = "${req.body.id_formplant}"` :
-                                ""
-
-                const select = (req.body.id_formplant) ? 
-                                    `formplant.*` :
-                                    `formplant.id , formplant.name_plant , formplant.state_status , 
-                                        formplant.date_plant , formplant.generation , formplant.qty , 
-                                    (
-                                        SELECT EXISTS (
-                                            SELECT id
-                                            FROM report_detail
-                                            WHERE report_detail.id_plant = formplant.id
-                                        ) 
-                                    ) as report ,
-                                    (
-                                        SELECT EXISTS (
-                                            SELECT id
-                                            FROM check_form_detail
-                                            WHERE check_form_detail.id_plant = formplant.id
-                                        ) 
-                                    ) as form , 
-                                    (
-                                        SELECT EXISTS (
-                                            SELECT id
-                                            FROM check_plant_detail
-                                            WHERE check_plant_detail.id_plant = formplant.id
-                                        ) 
-                                    ) as plant , 
-                                    (
-                                        SELECT EXISTS (
-                                            SELECT id
-                                            FROM success_detail
-                                            WHERE id_plant = formplant.id and date_of_farmer = ""
-                                        )
-                                    ) as success
-                                    `
-                con.query(`
-                            SELECT ${select} ,
-                            (
-                                SELECT type_plant 
-                                FROM plant_list 
-                                WHERE plant_list.name = formplant.name_plant and plant_list.is_use = 1
-                            ) as type_plant
-                            FROM formplant , 
-                                (
-                                    SELECT id_farm_house FROM housefarm
-                                    WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                ) as houseFarm
-                            WHERE formplant.id_farm_house = houseFarm.id_farm_house ${where}
-                            ORDER BY formplant.state_status ASC , id DESC
-                        ` , 
-                        [
-                            auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse
-                        ] , 
-                        async (err , result)=>{
-                            if (!err) {
-                                if(result[0]) {
-                                    if(req.body.id_formplant) {
-                                        const ResultEdit = await new Promise((resole , reject)=>{
-                                            con.query(
-                                                `
-                                                SELECT editform.id_edit , editform.status
-                                                FROM editform , 
-                                                (
-                                                    SELECT formplant.id
-                                                    FROM formplant , 
-                                                        (
-                                                            SELECT id_farm_house FROM housefarm
-                                                            WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                                        ) as houseFarm
-                                                    WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
-                                                ) as formplant
-                                                WHERE editform.id_form = formplant.id and type_form = "plant"
-                                                ORDER BY date DESC
-                                                ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_formplant ] ,
-                                                async (err , resultEditList) => {
-                                                    const subjectResultPass = new Map()
-                                                    for(let edit of resultEditList) {
-                                                        await new Promise((resole , reject)=>{
-                                                            con.query(
-                                                                `
-                                                                SELECT subject_form
-                                                                FROM detailedit
-                                                                WHERE id_edit = ?
-                                                                ` , [edit.id_edit] ,
-                                                                (err , resultDetail) => {
-                                                                    for(let detail of resultDetail) {
-                                                                        if(!subjectResultPass.has(detail.subject_form) && edit.status != 0) {
-                                                                            subjectResultPass.set(detail.subject_form , edit.status)
-                                                                        }
-                                                                    }
+    app.post('/api/farmer/formplant/select', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
     
-                                                                    resole("")
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
+    
+                const select = (req.body.id_formplant) ?
+                    `formplant.*` :
+                    `formplant.id, formplant.name_plant, formplant.state_status, 
+                    formplant.date_plant, formplant.generation, formplant.qty, formplant.name_varieties,
+                    (
+                        SELECT EXISTS (
+                            SELECT id
+                            FROM report_detail
+                            WHERE report_detail.id_plant = formplant.id
+                        )
+                    ) as report,
+                    (
+                        SELECT EXISTS (
+                            SELECT id
+                            FROM check_form_detail
+                            WHERE check_form_detail.id_plant = formplant.id
+                        )
+                    ) as form,
+                    (
+                        SELECT EXISTS (
+                            SELECT id
+                            FROM check_plant_detail
+                            WHERE check_plant_detail.id_plant = formplant.id
+                        )
+                    ) as plant,
+                    (
+                        SELECT EXISTS (
+                            SELECT id
+                            FROM success_detail
+                            WHERE id_plant = formplant.id and date_of_farmer = ""
+                        )
+                    ) as success`;
+    
+                con.query(`
+                    SELECT ${select},
+                    (
+                        SELECT type_plant 
+                        FROM plant_list 
+                        WHERE plant_list.name = formplant.name_plant and plant_list.is_use = 1
+                    ) as type_plant
+                    FROM formplant,
+                    (
+                        SELECT id_farm_house FROM housefarm
+                        WHERE (housefarm.uid_line = ? OR housefarm.link_user = ?) and housefarm.id_farm_house = ?
+                    ) as houseFarm
+                    WHERE formplant.id_farm_house = houseFarm.id_farm_house ${where}
+                    ORDER BY formplant.state_status ASC, id DESC
+                `,
+                [
+                    auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse
+                ],
+                async (err, result) => {
+                    if (!err) {
+                        if (result[0]) {
+                            if (req.body.id_formplant) {
+                                const ResultEdit = await new Promise((resolve, reject) => {
+                                    con.query(
+                                        `
+                                        SELECT editform.id_edit, editform.status
+                                        FROM editform,
+                                        (
+                                            SELECT formplant.id
+                                            FROM formplant,
+                                            (
+                                                SELECT id_farm_house FROM housefarm
+                                                WHERE (housefarm.uid_line = ? OR housefarm.link_user = ?) and housefarm.id_farm_house = ?
+                                            ) as houseFarm
+                                            WHERE formplant.id_farm_house = houseFarm.id_farm_house and formplant.id = ?
+                                        ) as formplant
+                                        WHERE editform.id_form = formplant.id and type_form = "plant"
+                                        ORDER BY date DESC
+                                        `, [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_formplant],
+                                        async (err, resultEditList) => {
+                                            const subjectResultPass = new Map();
+                                            for (let edit of resultEditList) {
+                                                await new Promise((resolve, reject) => {
+                                                    con.query(
+                                                        `
+                                                        SELECT subject_form
+                                                        FROM detailedit
+                                                        WHERE id_edit = ?
+                                                        `, [edit.id_edit],
+                                                        (err, resultDetail) => {
+                                                            for (let detail of resultDetail) {
+                                                                if (!subjectResultPass.has(detail.subject_form) && edit.status != 0) {
+                                                                    subjectResultPass.set(detail.subject_form, edit.status);
                                                                 }
-                                                            )
-                                                        })
-                                                    }
-                                                    resole(subjectResultPass)
-                                                }
-                                            )
-                                        })
-                                        
-                                        con.end()
-                                        result[0].subjectResult = Object.fromEntries(ResultEdit)
-                                        res.send(result)
-                                    } else {
-                                        con.end()
-                                        res.send(result)
-                                    }
-                                }
-                                else {
-                                    con.end()
-                                    if(req.body.id_formplant) res.send("not found")
-                                    else res.send(result)
-                                }
+                                                            }
+                                                            resolve("");
+                                                        }
+                                                    );
+                                                });
+                                            }
+                                            resolve(subjectResultPass);
+                                        }
+                                    );
+                                });
+    
+                                con.end();
+                                result[0].subjectResult = Object.fromEntries(ResultEdit);
+                                res.send(result);
                             } else {
-                                con.end()
-                                res.send("error auth")
+                                con.end();
+                                res.send(result);
                             }
-                        })
+                        } else {
+                            con.end();
+                            if (req.body.id_formplant) res.send("not found");
+                            else res.send(result);
+                        }
+                    } else {
+                        con.end();
+                        res.send("error auth");
+                    }
+                });
             } catch (err) {
-                con.end()
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
             }
-        } else res.send("error auth")
-    })
+        } else res.send("error auth");
+    });
+    
 
     app.post('/api/farmer/formplant/check' , async (req , res)=>{
         if(req.session.uidFarmer ) {
@@ -511,6 +508,166 @@ module.exports = function apiFarmer (app , Database , apifunc , HOST_CHECK , dbp
             }
         } else res.send("error auth")
     })
+
+// start formplant
+app.post('/api/farmer/formplant/select', async (req, res) => {
+    if (req.session.uidFarmer) {
+        let con = Database.createConnection(listDB);
+
+        try {
+            const auth = await authCheck(con, dbpacket, res, req, LINE);
+            const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
+
+            const select = (req.body.id_formplant) ? 
+                `formplant.*` :
+                `formplant.id, formplant.name_plant, formplant.state_status, 
+                formplant.date_plant, formplant.generation, formplant.qty, formplant.name_varieties,
+                (
+                    SELECT EXISTS (
+                        SELECT id
+                        FROM report_detail
+                        WHERE report_detail.id_plant = formplant.id
+                    ) 
+                ) as report,
+                (
+                    SELECT EXISTS (
+                        SELECT id
+                        FROM check_form_detail
+                        WHERE check_form_detail.id_plant = formplant.id
+                    ) 
+                ) as form, 
+                (
+                    SELECT EXISTS (
+                        SELECT id
+                        FROM check_plant_detail
+                        WHERE check_plant_detail.id_plant = formplant.id
+                    ) 
+                ) as plant, 
+                (
+                    SELECT EXISTS (
+                        SELECT id
+                        FROM success_detail
+                        WHERE id_plant = formplant.id and date_of_farmer = ""
+                    )
+                ) as success`;
+
+            con.query(`
+                SELECT ${select},
+                (
+                    SELECT type_plant 
+                    FROM plant_list 
+                    WHERE plant_list.name = formplant.name_plant and plant_list.is_use = 1
+                ) as type_plant
+                FROM formplant, 
+                (
+                    SELECT id_farm_house FROM housefarm
+                    WHERE (housefarm.uid_line = ? OR housefarm.link_user = ?) and housefarm.id_farm_house = ?
+                ) as houseFarm
+                WHERE formplant.id_farm_house = houseFarm.id_farm_house ${where}
+                ORDER BY formplant.state_status ASC, id DESC
+            `,
+            [
+                auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse
+            ],
+            async (err, result) => {
+                if (!err) {
+                    if (result[0]) {
+                        if (req.body.id_formplant) {
+                            const ResultEdit = await new Promise((resolve, reject) => {
+                                con.query(
+                                    `
+                                    SELECT editform.id_edit, editform.status
+                                    FROM editform, 
+                                    (
+                                        SELECT formplant.id
+                                        FROM formplant, 
+                                        (
+                                            SELECT id_farm_house FROM housefarm
+                                            WHERE (housefarm.uid_line = ? OR housefarm.link_user = ?) and housefarm.id_farm_house = ?
+                                        ) as houseFarm
+                                        WHERE formplant.id_farm_house = houseFarm.id_farm_house and formplant.id = ?
+                                    ) as formplant
+                                    WHERE editform.id_form = formplant.id and type_form = "plant"
+                                    ORDER BY date DESC
+                                    `,
+                                    [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_formplant],
+                                    async (err, resultEditList) => {
+                                        const subjectResultPass = new Map();
+                                        for (let edit of resultEditList) {
+                                            await new Promise((resolve, reject) => {
+                                                con.query(
+                                                    `
+                                                    SELECT subject_form
+                                                    FROM detailedit
+                                                    WHERE id_edit = ?
+                                                    `,
+                                                    [edit.id_edit],
+                                                    (err, resultDetail) => {
+                                                        for (let detail of resultDetail) {
+                                                            if (!subjectResultPass.has(detail.subject_form) && edit.status != 0) {
+                                                                subjectResultPass.set(detail.subject_form, edit.status);
+                                                            }
+                                                        }
+
+                                                        resolve("");
+                                                    }
+                                                );
+                                            });
+                                        }
+                                        resolve(subjectResultPass);
+                                    }
+                                );
+                            });
+
+                            con.end();
+                            result[0].subjectResult = Object.fromEntries(ResultEdit);
+                            res.send(result);
+                        } else {
+                            con.end();
+                            res.send(result);
+                        }
+                    } else {
+                        con.end();
+                        if (req.body.id_formplant) res.send("not found");
+                        else res.send(result);
+                    }
+                } else {
+                    con.end();
+                    res.send("error auth");
+                }
+            });
+        } catch (err) {
+            con.end();
+            if (err === "no" || err === "no account") res.send("close");
+            else res.send("error auth");
+        }
+    } else res.send("error auth");
+});
+
+app.post('/api/farmer/varieties', authCheck, (req, res) => {
+    let con = Database.createConnection(listDB);
+    const plantId = req.body.plant_id;
+    console.log('Received plant_id:', plantId);
+
+    con.query(`SELECT variety_id, plant_id, variety_name, dates FROM varieties WHERE plant_id = ?`, [plantId], (err, result) => {
+        con.end();
+        if (!err) {
+            console.log('Query result:', result);
+            res.json(result);
+        } else {
+            console.error('Query error:', err);
+            res.status(500).send("Database query error");
+        }
+    });
+});
+
+
+
+
+
+
+
+
 
     app.post('/api/farmer/plant/list' , async (req , res)=>{
         if(req.session.uidFarmer) {
@@ -581,254 +738,252 @@ module.exports = function apiFarmer (app , Database , apifunc , HOST_CHECK , dbp
         } else res.send("error auth")
     })
 
-    app.post('/api/farmer/formplant/insert' , async (req , res)=>{
-        if(req.session.uidFarmer) {
-            let con = Database.createConnection(listDB)
+    app.post('/api/farmer/formplant/insert', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
                 con.query(`
+                    SELECT id_farm_house FROM housefarm
+                    WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
+                `, [
+                    auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse
+                ], (err, result) => {
+                    if (!err) {
+                        if (result[0]) {
+                            const data = req.body;
+                            con.query(`INSERT INTO formplant 
+                                ( 
+                                    id, id_farm_house, name_plant, name_varieties,
+                                    generation, date_glow, date_plant,
+                                    posi_w, posi_h,
+                                    qty, area, unit, date_harvest, system_glow,
+                                    water, water_flow,
+                                    history, insect, qtyInsect,
+                                    seft, state_status, date_success
+                                ) VALUES (
+                                    ?, ?, ?, ?,
+                                    ?, ?, ?,
+                                    ?, ?,
+                                    ?, ?, ?, ?, ?,
+                                    ?, ?,
+                                    ?, ?, ?,
+                                    ?, 0, ""
+                                );
+                            `, [
+                                new Date().getTime(), data.id_farmhouse, data.name_plant, data.name_variety,
+                                data.generetion, data.dateGlow.indexOf("#") < 0 ? new Date(data.dateGlow) : data.dateGlow, new Date(data.datePlant),
+                                data.posiW, data.posiH,
+                                data.qty, data.area, data.unit, new Date(data.dateOut), data.system,
+                                data.water, data.waterStep,
+                                data.history, data.insect, data.qtyInsect,
+                                data.seft
+                            ], (err, insert) => {
+                                if (err) {
+                                    dbpacket.dbErrorReturn(con, err, res);
+                                    console.log("select listform");
+                                    return 0;
+                                }
+                                con.end();
+                                try {
+                                    sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`);
+                                } catch (e) {}
+                                res.send("insert");
+                            });
+                        } else {
+                            con.end();
+                            res.send("not");
+                        }
+                    } else {
+                        con.end();
+                        res.send("error auth");
+                    }
+                });
+            } catch (err) {
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
+            }
+        } else res.send("error auth");
+    });
+    
+    
+
+    app.post('/api/farmer/formplant/edit', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                con.query(`
+                    SELECT formplant.*
+                    FROM formplant, 
+                        (
                             SELECT id_farm_house FROM housefarm
                             WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                        ` , [
-                                auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse
-                            ] , 
-                        (err , result)=>{
-                            if (!err) {
-                                if(result[0]) {
-                                    const data = req.body
-                                    con.query(`INSERT INTO formplant 
-                                                ( 
-                                                    id, id_farm_house , name_plant ,
-                                                    generation , date_glow , date_plant,
-                                                    posi_w , posi_h,
-                                                    qty , area , date_harvest, system_glow ,
-                                                    water , water_flow ,
-                                                    history , insect, qtyInsect,
-                                                    seft , state_status , date_success
-                                                ) VALUES (
-                                                    ? , ? , ? , 
-                                                    ? , ? , ? , 
-                                                    ? , ? ,
-                                                    ? , ? , ? , ? ,
-                                                    ? , ? ,
-                                                    ? , ? , ? ,
-                                                    ? , 0 , ""
-                                                );
-                                                ` , 
-                                                [
-                                                    new Date().getTime() , data.id_farmhouse , data.name_plant , 
-                                                    data.generetion , data.dateGlow.indexOf("#") < 0 ? new Date(data.dateGlow) : data.dateGlow , new Date(data.datePlant) , 
-                                                    data.posiW , data.posiH ,
-                                                    data.qty , data.area , new Date(data.dateOut) , data.system ,
-                                                    data.water , data.waterStep , 
-                                                    data.history , data.insect , data.qtyInsect ,
-                                                    data.seft
-                                                ] ,
-                                                (err , insert)=>{
-                                                    if (err) {
-                                                        dbpacket.dbErrorReturn(con, err, res);
-                                                        console.log("select listform");
-                                                        return 0;
-                                                    }
-                                                    con.end()
-                                                    try {
-                                                        sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`)
-                                                    } catch (e) {}
-                                                    res.send("insert")
-                                                })
-                                }
-                                else {
-                                    con.end()
-                                    res.send("not")
-                                }
-                            } else {
-                                con.end()
-                                res.send("error auth")
-                            }
-                        })
-            } catch (err) {
-                con.end()
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
-            }
-        } else res.send("error auth")
-    })
-
-    app.post('/api/farmer/formplant/edit' , async (req , res)=>{
-        if(req.session.uidFarmer) {
-            let con = Database.createConnection(listDB)
-            try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
-                con.query(` 
-                            SELECT formplant.*
-                            FROM formplant , 
-                                (
-                                    SELECT id_farm_house FROM housefarm
-                                    WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                ) as houseFarm
-                            WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
-                        ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant] , 
-                        (err , result)=>{
-                            if (!err) {
-                                if(result[0]) {
-                                    let data = req.body
-                                    if(result[0].state_status == 0 || result[0].state_status == 1) {
-                                        con.query(
-                                            `
-                                            INSERT INTO editform 
-                                                ( id_form , id_doctor , because , note , status , type_form )
-                                                VALUES 
-                                                ( ? , ? , ? , ? , ? , "plant" )
-                                            ` , [ data.id_plant , "" , data.because , "" , 0 ] ,
-                                            (err , resultEdit) => {
-                                                if (err) {
-                                                    dbpacket.dbErrorReturn(con, err, res);
-                                                    console.log("insert editform");
-                                                    return 0;
-                                                }
-    
-                                                if(resultEdit.insertId > 0) {
-                                                    const arrUpdate = new Array
-                                                    let checkerr = false
-                                                    for(let subject in data.dataChange) {
-                                                        con.query(
-                                                            `
-                                                            INSERT INTO detailedit
-                                                                (id_edit , subject_form , old_content , new_content)
-                                                                VALUES 
-                                                                ( ? , ? , ? , ?)
-                                                            ` , [ resultEdit.insertId , subject , result[0][subject] , data.dataChange[subject] ] ,
-                                                            (err , Edit) => {
-                                                                if (err) {
-                                                                    dbpacket.dbErrorReturn(con, err, res);
-                                                                    console.log("insert detailedit");
-                                                                    return 0;
-                                                                }
-    
-                                                                if( Edit.insertId ) {
-                                                                    arrUpdate.push(`${subject}="${data.dataChange[subject]}"`)
-                                                                    if(arrUpdate.length == data.num) {
-                                                                        let strUpdate = arrUpdate.join(" , ")
-                                                                        con.query(
-                                                                            `
-                                                                            UPDATE formplant 
-                                                                            SET ${strUpdate}
-                                                                            WHERE id = ?
-                                                                            ` , [ data.id_plant ] , 
-                                                                            (err , update) => {
-                                                                                if (err) {
-                                                                                    dbpacket.dbErrorReturn(con, err, res);
-                                                                                    console.log("update form");
-                                                                                    return 0;
-                                                                                }
-                                                                                con.end()
-                                                                                try {
-                                                                                    sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`)
-                                                                                } catch (e) {}
-                                                                                res.send("133")
-                                                                            }
-                                                                        )
-                                                                    }
-                                                                } else {
-                                                                    checkerr = true
-                                                                }
-                                                            }
-                                                        )
-                                                        if(checkerr) {
-                                                            con.end()
-                                                            res.send("edit")
-                                                            break
-                                                        }
-                                                    }
-                                                } else {
-                                                    con.end()
-                                                    res.send("edit")
-                                                }
-                                            }
-                                        )
-                                    }
-                                    else {
-                                        con.end()
-                                        res.send("submit")
-                                    }
-                                }
-                                else {
-                                    con.end()
-                                    res.send("not")
-                                }
-                            } else {
-                                con.end()
-                                res.send("error auth")
-                            }
-                        })
-            } catch (err) {
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
-            }
-        } else res.send("error auth")
-    })
-
-    app.post('/api/farmer/formplant/edit/select' , async (req , res)=>{
-        if(req.session.uidFarmer) {
-            let con = Database.createConnection(listDB)
-
-            try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
-                const type = req.body.id_edit ? "*" : "id_edit" ;
-                const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "" ;
-                con.query(` 
-                            SELECT editform.${type} FROM editform , 
-                            (
-                                SELECT formplant.id
-                                FROM formplant , 
-                                    (
-                                        SELECT id_farm_house FROM housefarm
-                                        WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                    ) as houseFarm
-                                WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
-                            ) as formplant
-                            WHERE editform.id_form = formplant.id and type_form = "plant" ${where}
-                            ORDER BY date DESC
-                        ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant ] , 
-                        (err , result)=>{
-                            if (!err) {
-                                if(req.body.id_edit) {
+                        ) as houseFarm
+                    WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
+                `, [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant],
+                    (err, result) => {
+                        if (!err) {
+                            if (result[0]) {
+                                let data = req.body;
+                                if (result[0].state_status == 0 || result[0].state_status == 1) {
                                     con.query(
                                         `
-                                        SELECT * FROM detailedit
-                                        WHERE id_edit = ?
-                                        ` , [req.body.id_edit] , 
-                                        (err , detail) => {
+                                        INSERT INTO editform 
+                                            (id_form, id_doctor, because, note, status, type_form)
+                                            VALUES 
+                                            (?, ?, ?, ?, ?, "plant")
+                                        `, [data.id_plant, "", data.because, "", 0],
+                                        (err, resultEdit) => {
                                             if (err) {
                                                 dbpacket.dbErrorReturn(con, err, res);
-                                                console.log("select detailedit");
+                                                console.log("insert editform");
                                                 return 0;
                                             }
     
-                                            con.end()
-                                            res.send({
-                                                head : result[0] ,
-                                                detail : detail
-                                            })
+                                            if (resultEdit.insertId > 0) {
+                                                const arrUpdate = new Array();
+                                                let checkerr = false;
+                                                for (let subject in data.dataChange) {
+                                                    con.query(
+                                                        `
+                                                        INSERT INTO detailedit
+                                                            (id_edit, subject_form, old_content, new_content, unit)
+                                                            VALUES 
+                                                            (?, ?, ?, ?, ?)
+                                                        `, [resultEdit.insertId, subject, result[0][subject], data.dataChange[subject], data.unit || ''],
+                                                        (err, Edit) => {
+                                                            if (err) {
+                                                                dbpacket.dbErrorReturn(con, err, res);
+                                                                console.log("insert detailedit");
+                                                                return 0;
+                                                            }
+    
+                                                            if (Edit.insertId) {
+                                                                arrUpdate.push(`${subject}="${data.dataChange[subject]}"`);
+                                                                if (arrUpdate.length == data.num) {
+                                                                    let strUpdate = arrUpdate.join(" , ");
+                                                                    con.query(
+                                                                        `
+                                                                        UPDATE formplant 
+                                                                        SET ${strUpdate}, name_varieties = ?, unit = ?, plant_id = ?
+                                                                        WHERE id = ?
+                                                                        `, [data.name_varieties, data.unit, data.plant_id, data.id_plant],
+                                                                        (err, update) => {
+                                                                            if (err) {
+                                                                                dbpacket.dbErrorReturn(con, err, res);
+                                                                                console.log("update form");
+                                                                                return 0;
+                                                                            }
+                                                                            con.end();
+                                                                            try {
+                                                                                sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
+                                                                            } catch (e) { }
+                                                                            res.send("133");
+                                                                        }
+                                                                    );
+                                                                }
+                                                            } else {
+                                                                checkerr = true;
+                                                            }
+                                                        }
+                                                    );
+                                                    if (checkerr) {
+                                                        con.end();
+                                                        res.send("edit");
+                                                        break;
+                                                    }
+                                                }
+                                            } else {
+                                                con.end();
+                                                res.send("edit");
+                                            }
                                         }
-                                        )
+                                    );
                                 } else {
-                                    con.end()
-                                    res.send(result)
+                                    con.end();
+                                    res.send("submit");
                                 }
                             } else {
-                                con.end()
-                                res.send("error auth")
+                                con.end();
+                                res.send("not");
                             }
-                        })
+                        } else {
+                            con.end();
+                            res.send("error auth");
+                        }
+                    });
             } catch (err) {
-                con.end()
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
             }
-
-        } else res.send("error auth")
-    })
+        } else res.send("error auth");
+    });
+    
+    app.post('/api/farmer/formplant/edit/select', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+    
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const type = req.body.id_edit ? "*" : "id_edit";
+                const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "";
+                con.query(` 
+                    SELECT editform.${type}, formplant.name_varieties, formplant.plant_id 
+                    FROM editform, 
+                    (
+                        SELECT formplant.id, formplant.name_varieties, formplant.plant_id
+                        FROM formplant, 
+                        (
+                            SELECT id_farm_house FROM housefarm
+                            WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
+                        ) as houseFarm
+                        WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
+                    ) as formplant
+                    WHERE editform.id_form = formplant.id and type_form = "plant" ${where}
+                    ORDER BY date DESC
+                `, [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant], 
+                (err, result) => {
+                    if (!err) {
+                        if (req.body.id_edit) {
+                            con.query(
+                                `
+                                SELECT *, unit FROM detailedit
+                                WHERE id_edit = ?
+                                `, [req.body.id_edit], 
+                                (err, detail) => {
+                                    if (err) {
+                                        dbpacket.dbErrorReturn(con, err, res);
+                                        console.log("select detailedit");
+                                        return 0;
+                                    }
+    
+                                    con.end();
+                                    res.send({
+                                        head: result[0],
+                                        detail: detail
+                                    });
+                                }
+                            );
+                        } else {
+                            con.end();
+                            res.send(result);
+                        }
+                    } else {
+                        con.end();
+                        res.send("error auth");
+                    }
+                });
+            } catch (err) {
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
+            }
+        } else res.send("error auth");
+    });
+    
+    
     // end formplant
 
     // start factor
@@ -1690,6 +1845,42 @@ module.exports = function apiFarmer (app , Database , apifunc , HOST_CHECK , dbp
         })
     }
     
+    app.get('/api/farmer/farmhouse/get/all', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE); // ตรวจสอบสิทธิ์
+                con.query(
+                    `
+                    SELECT id_farm_house, name_house, img_house, 
+                    ST_X(location) as x, ST_Y(location) as y
+                    FROM housefarm
+                    WHERE uid_line = ? OR link_user = ?
+                    `,
+                    [auth.data.uid_line, auth.data.link_user],
+                    (err, result) => {
+                        con.end();
+                        if (!err) {
+                            result.forEach(house => {
+                                house.img_house = house.img_house ? house.img_house.toString() : null; // แปลงรูปภาพเป็น String
+                            });
+                            res.json(result); // ส่งข้อมูลโรงเรือนทั้งหมดกลับไป
+                        } else {
+                            res.status(500).send("error auth");
+                        }
+                    }
+                );
+            } catch (err) {
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.status(500).send("error auth");
+            }
+        } else {
+            res.status(401).send("error auth");
+        }
+    });
+    
+
 }
 
 const authCheck = (con , dbpacket , res , req , LINE) => {
@@ -1702,7 +1893,7 @@ const authCheck = (con , dbpacket , res , req , LINE) => {
                 resole(false)
             }
         })
-
+        // console.log(userLine,req.session)
         if(userLine) {
             con.connect(( err )=>{
                 if (!err) {

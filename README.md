@@ -82,6 +82,7 @@
       "resolve": "^1.20.0",
       "resolve-url-loader": "^4.0.0",
       "sass-loader": "^12.3.0",
+      "sass": "^1.71.1",
       "semver": "^7.3.5",
       "sheetjs-style": "^0.15.8",
       "socket.io": "^4.7.4",
@@ -180,3 +181,10 @@
       - SQL
    - Tool 
       - LINE Bot Designer
+
+   - Database 
+     - utf8mb4_0900_ai_ci
+       - utf8mb4 คือ รองรับ Unicode(UTF-8) พร้อมกับสัญลักษณ์ที่มีขนาด 4 byte
+       - 0900 คือ เวอร์ชั่นที่รองรับอักขระได้ซับซ้อนมากขึ้น รวมถึง ภาษาไทย
+       - ai (Accent-insensitive) คือ เปรียบเทียบแบบไม่สนใจเครื่องหมายอักขระ
+       - ci (Case-insensitive) คือ เปรียบเทียบแบบไม่สนใจตัวอักษร พิมพ์เล็ก - พิมพ์ใหญ่

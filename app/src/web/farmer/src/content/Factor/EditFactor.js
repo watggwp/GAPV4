@@ -19,11 +19,16 @@ ObjectData}) => {
     const Volume = useRef()
     const Unit = useRef()
     const Source = useRef()
+    const TypePlantInput = useRef();
+
+    
 
     // chemical
     const NameInsect = useRef()
     const Rate = useRef()
     const DateSafe = useRef()
+    const DataPlant = useRef()
+    
 
     const [DataFactor , setDataFactor] = useState([])
     const [DataSource , setSource] = useState([])

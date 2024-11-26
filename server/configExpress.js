@@ -8,6 +8,8 @@ const apifunc = require('./apifunc');
 const LINE = require("./configLine");
 const WebSocket = require('./webSocket');
 
+
+
 const express = require('express');
 const cors = require('cors')
 const helmat = require('helmet');
@@ -34,7 +36,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
 
     const listDB = dbpackage.listConfig(username , password)
     // const HOST_CHECK = (process.argv[2] == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
-    const HOST_SSL = (process.argv[2] == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : JSON.parse(fs.readFileSync(__dirname.replace("server" , "UrlServer.json"))).url.replace("https://" , "");
 
     // config server and Hot Refresh
     // if(process.argv[2] != process.env.BUILD) reactServ(app)
@@ -88,10 +89,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // router api url
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
 
-    apiAdmin(app , db , apifunc , HOST_SSL , dbpackage , listDB , io , LINE)
-    apiDoctor(app , db , apifunc , HOST_SSL , dbpackage , listDB , UrlNgrok , io , LINE)
-    apiFarmer(app , db , apifunc , HOST_SSL , dbpackage , listDB , io , LINE)
-    message(app , db , apifunc , HOST_SSL , dbpackage , listDB , UrlNgrok , io)
+    apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
+    apiDoctor(app , db , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
+    apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
+    message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
 
     // page error 404
     app.get("*" , (req, res) => {

@@ -25,7 +25,7 @@ const Login = ({setMain , socket , isClick = 0}) => {
 
     let timeoutEmply = 0
 
-    const [init , liff] = useLiff("1661049098-dorebKYg")
+    const [init , liff] = useLiff("2004738631-d421EzL4")
 
     useEffect(()=>{
         if(isClick) window.history.pushState({} , null , '/doctor')
