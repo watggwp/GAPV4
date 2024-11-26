@@ -39,7 +39,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
             setProfile(dataProfile);
             setProfileOld(dataProfile);
         } else {
-            console.log("fetchProfile");
+            console.log(fetchProfile);
         }
     };
 

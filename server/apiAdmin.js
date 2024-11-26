@@ -157,6 +157,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
       
     let username = req.session.user_admin
     let password = req.session.pass_admin
+    console.log(username)
 
     if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
         res.redirect('/api/logout')
@@ -285,11 +286,12 @@ app.post('/api/admin/profile/image/edit' , (req , res)=>{
 app.get('/api/admin/profile/get', (req, res) => {
   let username = req.session.user_admin;
   let password = req.session.pass_admin;
+  console.log(username)
 
-  if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
-      console.log("Session invalid or CSRF authentication failed.");
-      return res.redirect('/api/logout');
-  }
+  if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
+    res.redirect('/api/logout')
+    return 0
+}
 
   let con = Database.createConnection(listDB);
 
@@ -959,7 +961,9 @@ app.post('/api/admin/profile/text/edit' , (req , res)=>{
     // เช็คการเข้าสู่ระบบจริงๆ
     let username = req.session.user_admin ?? req.body['username'] ?? '';
     let password = req.session.pass_admin ?? req.body['password'] ?? '';
-  
+    console.log(username)
+    console.log(password)
+
     if(username === '' || password === '') {
       res.redirect('/api/logout')
       return 0

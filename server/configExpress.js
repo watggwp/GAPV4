@@ -45,7 +45,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure : process.argv[2] == process.env.BUILD,
+            // secure : process.argv[2] == process.env.BUILD,
             maxAge: null,
             sameSite: 'strict'
             // secure: process.argv[2] != process.env.BUILD ? false : true

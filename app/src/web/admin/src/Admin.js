@@ -36,10 +36,12 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 socket={socket}
                 auth={Auth}
                 modify={modifyMainPage}
+                eleImageCover={ImageCover} 
+                eleBody={BodyRef} setTextStatus={setTextPage} 
                 TabOn={TabOn}
                 HrefData={Href}
                 getProfile={getProfile} 
-                FetchProfile={FetchProfile}
+                // FetchProfile={FetchProfile}
             />
         );
 
@@ -58,9 +60,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         try {
             const result = await clientMo.get("/api/admin/profile/get");
             console.log(result)
-    
-            // // Log ข้อมูลที่ได้รับจาก API
-            // console.log("fetchProfile");
     
             if (result) {
                 setProfile(JSON.parse(result));

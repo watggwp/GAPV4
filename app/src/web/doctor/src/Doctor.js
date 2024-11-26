@@ -115,8 +115,10 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
         <div className="doctor"
         // onMouseDown={this.hidePopUp} onContextMenu={this.hidePopUp}
         >
-            <DesktopNev setMain={setMain} socket={socket} setSession={sessionoff} setBody={setBody} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} 
-                getProfile={getProfile} FetchProfile={FetchProfile}/>
+            <DesktopNev setMain={setMain} socket={socket} 
+            setSession={sessionoff} setBody={setBody} 
+            eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} 
+            getProfile={getProfile} FetchProfile={FetchProfile}/>
             <section ref={ImageCover} className="image-cover">
                 { Responsive > 800 ?
                     <>
