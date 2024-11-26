@@ -696,7 +696,7 @@ Ref = {
     }
  
     const ChangeDate = (day , mount , year) => {
-        RefDateValue.current.value = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`
+        RefDateValue && (RefDateValue.current.value = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`);
         methodCheckValue()
     }
  
@@ -705,7 +705,7 @@ Ref = {
         <div className="date-select">
             { getDay.length !== 0 ?
             <select className="list-date-select" defaultValue={getDefault[2] ?? ""} ref={RefDate.DayCK} onChange={(e)=>{
-                ChangeDate(e.target.value , RefDate.MountCK.current?.value , RefDate.YearCK.current?.value)
+                ChangeDate(e.target.value , RefDate.MountCK?.current?.value , RefDate.YearCK?.current?.value)
             }}>
                 <option value={""}>วันที่</option>
                 {
