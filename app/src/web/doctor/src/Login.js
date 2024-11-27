@@ -143,6 +143,29 @@ const Login = ({setMain , socket , isClick = 0}) => {
                         <img src="/logo2.png"></img>
                         <span>หมอพืช</span>
                     </div>
+                    <div class="navigation" id="tab">
+                        <ul>
+                            <li class="list active">
+                                <a href="#">
+                                    <span class="icon">🧑‍⚕️</span>
+                                    <span class="text">Doctor</span>
+                                </a>
+                            </li>
+                            <li class="list ">
+                                <a href="#">
+                                    <span class="icon">🧑‍🔬</span>
+                                    <span class="text">Analyst</span>
+                                </a>
+                            </li>
+                            <li class="list">
+                                <a href="#">
+                                    <span class="icon">🧑‍💻</span>
+                                    <span class="text">Consultant</span>
+                                </a>
+                            </li>
+                            <div class="indicator"></div>
+                        </ul>
+                    </div>
                     <label>
                         <span>
                             <svg ref={IconUser} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
@@ -170,6 +193,19 @@ const Login = ({setMain , socket , isClick = 0}) => {
         </>
     )
 }
+
+
+
+const list = document.querySelectorAll('.list');
+
+ function activeLink() {
+    list.forEach((item) =>
+        item.classList.remove('active'));
+    this.classList.add('active');
+}
+
+list.forEach((item) =>
+    item.addEventListener('click', activeLink));
 
 const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Ref , setPopup , Err}) => {
     const [ListStation , setListStation] = useState(null)

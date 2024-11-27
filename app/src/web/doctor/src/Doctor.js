@@ -156,6 +156,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     <div className="frame-image-cover">
                         <img src="/cover-2-3.png"></img>
                     </div>
+                    
                     </>
                 }
             </section>

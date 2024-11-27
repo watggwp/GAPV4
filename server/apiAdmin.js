@@ -10,6 +10,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
   app.post('/api/admin/doctor/list' , async (req , res)=>{
     const username = req.session.user_admin
     const password = req.session.pass_admin
+    const admin_role = req.session.admin_role
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
