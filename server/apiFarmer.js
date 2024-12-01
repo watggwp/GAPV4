@@ -311,6 +311,86 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
         } else res.send("error auth")
     })
 
+
+    app.get('/api/farmer/farmhouse/get/HouseList', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                con.query(
+                    `
+                    SELECT id_farm_house, name_house, img_house, location, status
+                    FROM housefarm
+                    WHERE link_user = ?
+                    `,
+                    [auth.data.link_user],
+                    (err, result) => {
+                        console.log("SQL Error:", err); // ดูข้อผิดพลาด SQL (ถ้ามี)
+                        console.log("SQL Result:", result); // ตรวจสอบข้อมูลที่ได้จาก SQL
+                        con.end();
+                        if (!err) {
+                            if (result.length > 0) {
+                                result = result.map(val => {
+                                    val.img_house = val.img_house.toString(); // แปลง Blob เป็น String
+                                    return val;
+                                });
+                                res.send(result); // ส่งข้อมูลที่มี status กลับไป
+                            } else res.send([]);
+                        } else res.send("error auth");
+                    }
+                );
+                                
+            } catch (err) {
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
+            }
+        } else res.send("error auth");
+    });
+    
+    app.post('/api/farmer/farmhouse/updateStatus', async (req, res) => {
+        const { id_farm_house, status } = req.body;
+    
+        if (!req.session.uidFarmer) {
+            return res.status(401).json({ status: "error", message: "Authentication required" });
+        }
+    
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await authCheck(con, dbpacket, res, req, LINE);
+    
+            if (!auth || !auth.data || !auth.data.link_user) {
+                return res.status(403).json({ status: "error", message: "Invalid authentication data" });
+            }
+    
+            con.query(
+                `UPDATE housefarm SET status = ? WHERE id_farm_house = ? AND link_user = ?`,
+                [status, id_farm_house, auth.data.link_user],
+                (err, result) => {
+                    con.end();
+    
+                    if (err) {
+                        return res.status(500).json({ status: "error", message: "Database error", error: err });
+                    }
+    
+                    if (result.affectedRows > 0) {
+                        res.json({ status: "success", message: `House ${id_farm_house} updated successfully` });
+                    } else {
+                        res.status(400).json({ status: "fail", message: "No rows affected" });
+                    }
+                }
+            );
+        } catch (err) {
+            con.end();
+            res.status(500).json({ status: "error", message: "Unexpected error occurred", error: err });
+        }
+    });
+    
+    
+    
+    
+
+
     app.post('/api/farmer/farmhouse/edit' , async (req , res)=>{
         if(req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
@@ -849,9 +929,9 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
                                                     con.query(
                                                         `
                                                         INSERT INTO detailedit
-                                                            (id_edit, subject_form, old_content, new_content, unit)
+                                                             (id_edit, subject_form, old_content, new_content )
                                                             VALUES 
-                                                            (?, ?, ?, ?, ?)
+                                                            (?, ?, ?, ?)
                                                         `, [resultEdit.insertId, subject, result[0][subject], data.dataChange[subject], data.unit || ''],
                                                         (err, Edit) => {
                                                             if (err) {
@@ -867,7 +947,7 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
                                                                     con.query(
                                                                         `
                                                                         UPDATE formplant 
-                                                                        SET ${strUpdate}, name_varieties = ?, unit = ?, plant_id = ?
+                                                                        SET ${strUpdate}
                                                                         WHERE id = ?
                                                                         `, [data.name_varieties, data.unit, data.plant_id, data.id_plant],
                                                                         (err, update) => {
@@ -930,10 +1010,10 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
                 const type = req.body.id_edit ? "*" : "id_edit";
                 const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "";
                 con.query(` 
-                    SELECT editform.${type}, formplant.name_varieties, formplant.plant_id 
+                    SELECT editform.${type}, formplant.name_varieties 
                     FROM editform, 
                     (
-                        SELECT formplant.id, formplant.name_varieties, formplant.plant_id
+                        SELECT formplant.id, formplant.name_varieties
                         FROM formplant, 
                         (
                             SELECT id_farm_house FROM housefarm
@@ -944,12 +1024,13 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
                     WHERE editform.id_form = formplant.id and type_form = "plant" ${where}
                     ORDER BY date DESC
                 `, [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant], 
-                (err, result) => {
+                (err, result) => { 
+                    console.log(err)
                     if (!err) {
                         if (req.body.id_edit) {
                             con.query(
                                 `
-                                SELECT *, unit FROM detailedit
+                                SELECT * FROM detailedit
                                 WHERE id_edit = ?
                                 `, [req.body.id_edit], 
                                 (err, detail) => {
@@ -976,6 +1057,7 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
                     }
                 });
             } catch (err) {
+                console.log(err)
                 con.end();
                 if (err === "no" || err === "no account") res.send("close");
                 else res.send("error auth");
@@ -1845,40 +1927,40 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
         })
     }
     
-    app.get('/api/farmer/farmhouse/get/all', async (req, res) => {
-        if (req.session.uidFarmer) {
-            let con = Database.createConnection(listDB);
-            try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE); // ตรวจสอบสิทธิ์
-                con.query(
-                    `
-                    SELECT id_farm_house, name_house, img_house, 
-                    ST_X(location) as x, ST_Y(location) as y
-                    FROM housefarm
-                    WHERE uid_line = ? OR link_user = ?
-                    `,
-                    [auth.data.uid_line, auth.data.link_user],
-                    (err, result) => {
-                        con.end();
-                        if (!err) {
-                            result.forEach(house => {
-                                house.img_house = house.img_house ? house.img_house.toString() : null; // แปลงรูปภาพเป็น String
-                            });
-                            res.json(result); // ส่งข้อมูลโรงเรือนทั้งหมดกลับไป
-                        } else {
-                            res.status(500).send("error auth");
-                        }
-                    }
-                );
-            } catch (err) {
-                con.end();
-                if (err === "no" || err === "no account") res.send("close");
-                else res.status(500).send("error auth");
-            }
-        } else {
-            res.status(401).send("error auth");
-        }
-    });
+    // app.get('/api/farmer/farmhouse/get/all', async (req, res) => {
+    //     if (req.session.uidFarmer) {
+    //         let con = Database.createConnection(listDB);
+    //         try {
+    //             const auth = await authCheck(con, dbpacket, res, req, LINE); // ตรวจสอบสิทธิ์
+    //             con.query(
+    //                 `
+    //                 SELECT id_farm_house, name_house, img_house, 
+    //                 ST_X(location) as x, ST_Y(location) as y
+    //                 FROM housefarm
+    //                 WHERE uid_line = ? OR link_user = ?
+    //                 `,
+    //                 [auth.data.uid_line, auth.data.link_user],
+    //                 (err, result) => {
+    //                     con.end();
+    //                     if (!err) {
+    //                         result.forEach(house => {
+    //                             house.img_house = house.img_house ? house.img_house.toString() : null; // แปลงรูปภาพเป็น String
+    //                         });
+    //                         res.json(result); // ส่งข้อมูลโรงเรือนทั้งหมดกลับไป
+    //                     } else {
+    //                         res.status(500).send("error auth");
+    //                     }
+    //                 }
+    //             );
+    //         } catch (err) {
+    //             con.end();
+    //             if (err === "no" || err === "no account") res.send("close");
+    //             else res.status(500).send("error auth");
+    //         }
+    //     } else {
+    //         res.status(401).send("error auth");
+    //     }
+    // });
     
 
 }

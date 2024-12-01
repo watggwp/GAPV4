@@ -49,18 +49,18 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     const Because = useRef();
     const BtConfirm = useRef();
 
-    useEffect(() => {
-        if (Data.id_plant) {
-            FetchVarieties(Data.id_plant);
-        }
-        console.log(Data.id_plant)
-    }, [Data.id_plant]);
+    // useEffect(() => {
+    //     if (Data.id_plant) {
+    //         FetchVarieties(Data.id_plant);
+    //     }
+    //     console.log(Data.id_plant)
+    // }, [Data.id_plant]);
 
-    useEffect(() => {
-        if (selectedPlantId) {
-            FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
-        }
-    }, [selectedPlantId]);
+    // useEffect(() => {
+    //     if (selectedPlantId) {
+    //         FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
+    //     }
+    // }, [selectedPlantId]);
     
     
     
@@ -127,6 +127,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
             const SelectPlant = LIST.filter(val => val.name == Data.name_plant);
             setDataPlant(LIST);
             setQtyDate(SelectPlant.length != 0 ? SelectPlant[0].qty_harvest : 0);
+            return LIST
         }
     };
     
@@ -171,7 +172,9 @@ const handlePlantChange = (event) => {
     };
 
     const EditForm = async () => {
-        await FetchPlant();
+        const plants = await FetchPlant();
+        const selectedPlant = plants.find((plant) => plant.name === Data.name_plant)
+        await FetchVarieties(selectedPlant?.id);
         DataContent.current.setAttribute("edit", "");
         setStatusEdit(true);
         document.querySelectorAll("#data-form-page *[readonly='']").forEach((val) => {
@@ -233,17 +236,17 @@ const handlePlantChange = (event) => {
     
 
     const ConfirmEdit = async () => {
-         {
-            if (!TypePlantInput.current || !VarietyInput.current || !DateGlow.current) {
-                return;
-            }
+        //  {
+        //     if (!TypePlantInput.current || !VarietyInput.current || !DateGlow.current) {
+        //         return;
+        //     }
         
-            const type = TypePlantInput.current.value || "";
-            const variety = VarietyInput.current.value || "";
-            const dateGlow = DateGlow.current.value || "";
+        //     const type = TypePlantInput.current.value || "";
+        //     const variety = VarietyInput.current.value || "";
+        //     const dateGlow = DateGlow.current.value || "";
         
-            // ตรวจสอบเงื่อนไขหรือทำงานต่อ
-        };
+        //     // ตรวจสอบเงื่อนไขหรือทำงานต่อ
+        // };
         if (BtConfirm.current.getAttribute("no") == null) {
             const type = TypePlantInput.current;
             const variety = VarietyInput.current;
@@ -358,10 +361,10 @@ const handlePlantChange = (event) => {
     };
 
     const ChangeEdit = () => {
-        if (!TypePlantInput.current || !VarietyInput.current || !Data) {
-            console.error("Ref หรือ Data ยังไม่พร้อม");
-            return;
-        }
+        // if (!TypePlantInput.current || !VarietyInput.current || !Data) {
+        //     console.error("Ref หรือ Data ยังไม่พร้อม");
+        //     return;
+        // }
 
         const type = TypePlantInput.current.value || '';
         const variety = VarietyInput.current.value || '';
@@ -485,7 +488,7 @@ const handlePlantChange = (event) => {
                                                             <select style={{ width: "100%" }} ref={VarietyInput} defaultValue={Data.name_varieties} onChange={ChangeEdit}>
                                                                 <option disabled value="">เลือกสายพันธุ์พืช</option>
                                                                 {varieties.map((variety, key) =>
-                                                                    <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
+                                                                    <option key={key} value={variety.variety_name}>{variety.variety_name}</option>
                                                                 )}
                                                             </select>
                                                             : <input readOnly value={Data.name_varieties} />
@@ -509,7 +512,7 @@ const handlePlantChange = (event) => {
                                                         StatusEdit ? 
                                                             // <input ref={DateGlow} onChange={StatusEdit ? ChangeEdit : null} type="date" 
                                                             // defaultValue={Data.date_glow.split(" ")[0]}></input> 
-                                                            <DateSelect RefDate={DateGlow} Value={Data.date_glow} methodCheckValue={ChangeEdit}/>
+                                                            <DateSelect RefDateValue={DateGlow} Value={Data.date_glow} methodCheckValue={ChangeEdit}/>
                                                             : 
                                                             <DayJSX className="w-100" DATE={Data.date_glow} TYPE="normal"/>
                                                     }

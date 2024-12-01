@@ -5,6 +5,7 @@ import MenuMain from "../src/content/mainFarmHouse";
 import House from "../src/houseFile/House";
 import Signup from "../src/singupFile/Signup"
 import { CloseAccount } from "./method";
+import HouseList from "./HouseList/HouseList";
 
 
 const MainFarmer = ({socket , idLiff , Path}) => {
@@ -37,7 +38,7 @@ const MainFarmer = ({socket , idLiff , Path}) => {
 
    const LoadPage = async (uid, liff) => {
     const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
-
+    // setBody(<HouseList liff={liff} uid={uid} />);
     if (Path === "signup" && result !== "error auth") {
         if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
         else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
