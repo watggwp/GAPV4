@@ -108,6 +108,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                 } : {}
             )
         } else {
+            setbtEditNot(true)
             return false
         }
     }
@@ -132,7 +133,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                 } else if(Edit === "password") {
                     Password.current.value = ""
                     Password.current.placeholder = "รหัสผ่านไม่ถูกต้อง"
-                    if(PasswordNew && PasswordAgain) {
+                    if (PasswordNew?.current && PasswordAgain?.current) {
                         PasswordNew.current.value = ""
                         PasswordAgain.current.value = ""
                     }

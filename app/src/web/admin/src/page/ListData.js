@@ -341,6 +341,8 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
 }
 
 const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
+    const [localType, setLocalType] = useState("default");
+    const [step, setStep] = useState(1);
     const [Open , setOpen] = useState(0)
     const [Text , setText] = useState("")
     const [Status , setStatus] = useState(0)
@@ -356,7 +358,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
     const RefData = {
         Data1 : useRef(),
         Data2 : useRef(),
-        Data3 : useRef()
+        Data3 : useRef(),
     }
     const QtyDate = useRef()
     const [stateOnBt , setstateOnBt] = useState(true)
@@ -373,6 +375,13 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                                 RefData.Data1.current.value,
                                 RefData.Data2.current.value,
                             ] : 
+
+                            type === "admin" ?
+                            [
+                                RefData.Data1.current.value,
+                                RefData.Data2.current.value,
+                            ] : 
+
                             type === "station" ? 
                             [
                                 RefData.Data1.current.value,
@@ -401,6 +410,13 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                     passwordDT : RefData.Data2.current.value,
                     passwordAd : pwAdmin.current.value
                 } : 
+
+                type === "admin" ? {
+                    id_doctor : RefData.Data1.current.value,
+                    passwordDT : RefData.Data2.current.value,
+                    passwordAd : pwAdmin.current.value
+                } : 
+
                 type === "plant" ? {
                     name : RefData.Data1.current.value,
                     type_plant : RefData.Data2.current.value,
@@ -428,6 +444,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
             if(result === "1") {
                 setText(`เพิ่ม${
                             type === "default" ? "บัญชีผู้ส่งเสริม" : 
+                            type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
                             type === "station" ? "ศูนย์ส่งเสริม" : ""
                         }สำเร็จ`)
@@ -444,6 +461,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
             } else if (result === "overflow") {
                 setText(`มี${
                             type === "default" ? "บัญชีผู้ส่งเสริม" : 
+                            type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
                             type === "station" ? "ศูนย์ส่งเสริม" : ""
                         }นี้แล้ว`)
@@ -480,6 +498,8 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
             setLng(0)
         }
 
+        setStep(1); // กลับไปยังเมนูเริ่มต้น
+        
         if(e) PageAddRef.current.toggleAttribute("show")
     }
 
@@ -505,112 +525,185 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
         }
     }
 
-    return(
-        <section ref={PageAddRef} className="page-insert">
-            <div className="Load-insert">
-                <ReportAction Open={Open} Text={Text} Status={Status}
-                    setOpen={setOpen} setStatus={setStatus} setText={setText}
-                    sizeLoad={73} BorderLoad={8} color={"white"}/>
-            </div>
-            <div className="body-page">
-                <span className="head">
-                    {   
-                        type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
-                        type === "plant" ? "เพิ่มรายการชนิดพืช" :
-                        type === "station" ? "เพิ่มรายการศูนย์" : ""
-                    }
-                </span>
-                <div className="detail-data">
-                    <label className={type === "plant" ? "two-box" : null}>
-                        <div className="field-text">
-                            <span className="head-text">
-                                { 
-                                    type === "default" ?
-                                        "รหัสประจำตัวผู้ส่งเสริ" :
-                                    type === "plant" ?
-                                        "ชื่อพืช" :
-                                    type === "station" ?
-                                        "ชื่อศูนย์ส่งเสริม" 
-                                    : <></>
-                                }
-                            </span>
-                            <input onChange={CheckEmply} ref={RefData.Data1} 
-                                    placeholder={
-                                        type === "default" ? "กรอกรหัสประจำตัว" : 
-                                        type === "plant" ? "เช่น มะเขือเทศ" :
-                                        type === "station" ? "เช่น ศูนย์โครงการหลวง" : ""
-                                    }></input>
-                        </div>
-                        { type === "plant" ?
-                            <div className="field-text">
-                                <span className="head-text">ประเภทพืช</span>
-                                <select onChange={CheckEmply} ref={RefData.Data2} defaultValue={""} style={{width : "100%"}}>
-                                    <option value={""} disabled>เลือกชนิดพืช</option>
-                                    <option value={"พืชผัก"}>พืชผัก</option>
-                                    <option value={"สมุนไพร"}>สมุนไพร</option>
-                                </select>
-                            </div>
-                            : <></>
-                        }
-                    </label>
-                    {
-                        type === "default" ?
-                            <>
-                                <label>
-                                    <div className="field-text">
-                                        <span className="head-text">รหัสผ่านบัญชีผู้ส่งเสริม</span>
-                                        {/* <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3Z"/></svg> */}
-                                        <input onChange={CheckEmply} ref={RefData.Data2} placeholder="กรอกรหัสผ่าน" type="password"></input>
-                                    </div>
-                                </label>
-                            </> :
-                        type === "plant" ?
-                            <label>
-                                <div className="field-text">
-                                    <span className="head-text">จำนวนวันที่จะเก็บเกี่ยว</span>
-                                    <input onChange={CheckEmply} ref={QtyDate} placeholder="เช่น 10 , 30" type="number"></input>
-                                </div>
-                            </label> : 
-                        type === "station" ?
-                            <>
-                                <label>
-                                    {/* <svg fill="white" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" 
-                                        width="1em" height="1em" viewBox="0 0 395.71 395.71"
-                                        >
-                                        <g>
-                                            <path d="M197.849,0C122.131,0,60.531,61.609,60.531,137.329c0,72.887,124.591,243.177,129.896,250.388l4.951,6.738
-                                                c0.579,0.792,1.501,1.255,2.471,1.255c0.985,0,1.901-0.463,2.486-1.255l4.948-6.738c5.308-7.211,129.896-177.501,129.896-250.388
-                                                C335.179,61.609,273.569,0,197.849,0z M197.849,88.138c27.13,0,49.191,22.062,49.191,49.191c0,27.115-22.062,49.191-49.191,49.191
-                                                c-27.114,0-49.191-22.076-49.191-49.191C148.658,110.2,170.734,88.138,197.849,88.138z"/>
-                                        </g>
-                                    </svg> */}
-                                    <div className="field-text">
-                                        <span className="head-text">ลิ้งค์ปักหมุดจาก Google Map</span>
-                                        <input ref={InputMap} placeholder="URL ที่ทำการปักหมุดสีแดง" type="text" onChange={CheckEmply} onInput={GenerateMap}></input>
-                                    </div>
-                                </label>
-                                <label className="station">
-                                    <div className="field-text">
-                                        <input style={{display : "none"}} readOnly ref={RefData.Data2} value={Lag}></input>
-                                        <input style={{display : "none"}} readOnly ref={RefData.Data3} value={Lng}></input>
-                                        <MapsJSX lat={Lag} lng={Lng} w={"100%"}/>
-                                        <button onClick={GenerateMapAuto}>รีโหลดพิกัด</button>
-                                    </div>
-                                </label>
-                            </> :
-                            <></>
-                    }
-                </div>
-                <label className="admin-confirm">
-                    <input ref={pwAdmin} onChange={CheckEmply} placeholder="รหัสผ่านผู้ดูแลระบบ" type="password"></input>
-                </label>
-                <div className="bt-submit">
-                    <button className="cancel" onClick={Cancel}>ยกเลิก</button>
-                    <button className="submit" onClick={ClickAdd} no={stateOnBt ? "" : null}>เพิ่มข้อมูล</button>
-                </div>
-            </div>
-        </section>
-    )
-}
 
-export default ListData
+    const handleMenuSelection = (menuType) => {
+        setLocalType(menuType); // เปลี่ยน localType
+        setStep(2); // เปลี่ยนไป Step 2
+    };
+    
+
+    return (
+        <section ref={PageAddRef} className="page-insert">
+        {step === 1 && (type === "default" || type === "admin") && (
+            <div className="menu-selection">
+                <span className="head">เพิ่มบัญชีเจ้าหน้าที่</span>
+                <div className="menu-options">
+                    <button onClick={() => handleMenuSelection("admin")}>ผู้ดูแลระบบ</button>
+                    <button onClick={() => handleMenuSelection("default")}>เจ้าหน้าที่ส่งเสริม</button>
+                    </div>
+            </div>
+        )}
+
+        {/* แสดงฟอร์มสำหรับทุกประเภท */}
+        {step === 2 && (
+            <div>
+        {/* {((step === 2 && (type === "default" || type === "admin")) ||
+            type === "plant" ||
+            type === "station") && (
+            <div> */}
+                    <div className="Load-insert">
+                        <ReportAction
+                            Open={Open}
+                            Text={Text}
+                            Status={Status}
+                            setOpen={setOpen}
+                            setStatus={setStatus}
+                            setText={setText}
+                            sizeLoad={73}
+                            BorderLoad={8}
+                            color={"white"}
+                        />
+                    </div>
+                    <div className="body-page">
+                        <span className="head">
+                            {localType === "default"? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin"? "บัญชีผู้ดูแลระบบ": type === "plant"? "เพิ่มรายการชนิดพืช": type === "station"? "เพิ่มรายการศูนย์": ""}
+                        </span>
+                        <div className="detail-data">
+                            <label className={type === "plant" ? "two-box" : null}>
+                                <div className="field-text">
+                                    <span className="head-text">
+                                        {localType === "default"? "รหัสประจำตัวผู้ส่งเสริม": localType === "admin"? "รหัสประจำตัวผู้ดูแลระบบ": type === "plant"? "ชื่อพืช": type === "station"? "ชื่อศูนย์ส่งเสริม": ""}
+                                    </span>
+                                    <input
+                                        onChange={CheckEmply}
+                                        ref={RefData.Data1}
+                                        placeholder={
+                                            localType === "default"? "กรอกรหัสประจำตัว": localType === "admin"? "กรอกรหัสประจำตัว": type === "plant"? "เช่น มะเขือเทศ": type === "station"? "เช่น ศูนย์โครงการหลวง": ""}
+                                    ></input>
+                                </div>
+                                {type === "plant" ? (
+                                    <div className="field-text">
+                                        <span className="head-text">ประเภทพืช</span>
+                                        <select
+                                            onChange={CheckEmply}
+                                            ref={RefData.Data2}
+                                            defaultValue={""}
+                                            style={{ width: "100%" }}
+                                        >
+                                            <option value={""} disabled>
+                                                เลือกชนิดพืช
+                                            </option>
+                                            <option value={"พืชผัก"}>พืชผัก</option>
+                                            <option value={"สมุนไพร"}>สมุนไพร</option>
+                                        </select>
+                                    </div>
+                                ) : null}
+                            </label>
+                            {localType === "default" ? (
+                                <label>
+                                    <div className="field-text">
+                                        <span className="head-text">
+                                            รหัสผ่านบัญชีผู้ส่งเสริม
+                                        </span>
+                                        <input
+                                            onChange={CheckEmply}
+                                            ref={RefData.Data2}
+                                            placeholder="กรอกรหัสผ่าน"
+                                            type="password"
+                                        ></input>
+                                    </div>
+                                </label>
+                            ) : localType=== "admin" ? (
+                                <label>
+                                    <div className="field-text">
+                                    <span className="head-text">
+                                            รหัสผ่านบัญชีผู้ดูแลระบบ
+                                        </span>
+                                        <input
+                                            onChange={CheckEmply}
+                                            ref={RefData.Data2}
+                                            placeholder="กรอกรหัสผ่าน"
+                                            type="password"
+                                        ></input>
+                                    </div>
+                                </label>
+                            ) : type === "plant" ? (
+                                <label>
+                                    <div className="field-text">
+                                        <span className="head-text">
+                                            จำนวนวันที่จะเก็บเกี่ยว
+                                        </span>
+                                        <input
+                                            onChange={CheckEmply}
+                                            ref={QtyDate}
+                                            placeholder="เช่น 10 , 30"
+                                            type="number"
+                                        ></input>
+                                    </div>
+                                </label>
+                            ) : type === "station" ? (
+                                <>
+                                    <label>
+                                        <div className="field-text">
+                                            <span className="head-text">
+                                                ลิ้งค์ปักหมุดจาก Google Map
+                                            </span>
+                                            <input
+                                                ref={InputMap}
+                                                placeholder="URL ที่ทำการปักหมุดสีแดง"
+                                                type="text"
+                                                onChange={CheckEmply}
+                                                onInput={GenerateMap}
+                                            ></input>
+                                        </div>
+                                    </label>
+                                    <label className="station">
+                                        <div className="field-text">
+                                            <input
+                                                style={{ display: "none" }}
+                                                readOnly
+                                                ref={RefData.Data2}
+                                                value={Lag}
+                                            ></input>
+                                            <input
+                                                style={{ display: "none" }}
+                                                readOnly
+                                                ref={RefData.Data3}
+                                                value={Lng}
+                                            ></input>
+                                            <MapsJSX lat={Lag} lng={Lng} w={"100%"} />
+                                            <button onClick={GenerateMapAuto}>
+                                                รีโหลดพิกัด
+                                            </button>
+                                        </div>
+                                    </label>
+                                </>
+                            ) : null}
+                        </div>
+                        <label className="admin-confirm">
+                            <input
+                                ref={pwAdmin}
+                                onChange={CheckEmply}
+                                placeholder="รหัสผ่านผู้ดูแลระบบ"
+                                type="password"
+                            ></input>
+                        </label>
+                        <div className="bt-submit">
+                            <button className="cancel" onClick={Cancel}>
+                                ยกเลิก
+                            </button>
+                            <button
+                                className="submit"
+                                onClick={ClickAdd}
+                                no={stateOnBt ? "" : null}
+                            >
+                                เพิ่มข้อมูล
+                           </button>
+                    </div>
+                </div>
+            </div>
+)}
+    </section>
+);
+}
+    export default ListData

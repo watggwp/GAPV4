@@ -31,6 +31,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         ChkPath(null , "web")
         setTabMenu(
             <DesktopNev
+                setSession={sessionoff}
                 setBodyFileMain={setBodyFileMain}
                 setBodyFileAdmin={setBody}
                 socket={socket}
@@ -41,7 +42,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 TabOn={TabOn}
                 HrefData={Href}
                 getProfile={getProfile} 
-                // FetchProfile={FetchProfile}
+                FetchProfile={FetchProfile}
             />
         );
 

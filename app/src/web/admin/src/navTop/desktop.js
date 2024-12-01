@@ -7,7 +7,7 @@ import "../assets/style/NevTop/Desktop.scss";
 import NavFirst from "../navFirst";
 import ProfilePage from "../page/profile/Profile";
 
-const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , setBodyFileAdmin , modify , TabOn , HrefData ,getProfile, FetchProfile , FetchNotify , setBody , eleImageCover , eleBody , setTextStatus}) => {
+const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , setBodyFileAdmin , modify , TabOn , HrefData ,getProfile, FetchProfile , eleImageCover , eleBody , setTextStatus}) => {
     let selectPage = true
     const RefMenu = useRef()
     const [BodyMenu , setBodyMenu] = useState(<></>)
@@ -38,9 +38,9 @@ const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , se
 
     const Home = (e) => {
         if(e) e.preventDefault()
-        clientMo.post('/api/doctor/check').then((context)=>{
+        clientMo.post('/api/admin/check').then((context)=>{
             if(context) 
-                setBody(<NavFirst setMain={setMain} socket={socket} setdoctor={setBody} setSession={setSession} type={1} 
+                setBodyFileAdmin(<NavFirst setMain={setMain} socket={socket} setdoctor={setBodyFileAdmin} setSession={setSession} type={1} 
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus}/>)
             else setSession()
         })
@@ -50,6 +50,27 @@ const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , se
         if(e) e.preventDefault()
             setBodyPopup(<ProfilePage RefPop={RefPopup} setPopup={setBodyPopup} session={setSession} returnToHome={Home} 
             FetchProfileReload={FetchProfile} FetchNotify={FetchNotify}/>)
+    }
+
+    const FetchNotify = async (id_focus , type) => {
+        // // function load notify
+        // // getNotifyContent check open popup notify
+        // const SelectDataOn = getNotifyContent ? type : "count"
+        // const notify = await clientMo.get(`/api/doctor/notify/get?type=${SelectDataOn}&id=${id_focus}`)
+        // if(notify) {
+        //     const notifyData = JSON.parse(notify)
+        //     setStation(notifyData.station)
+        //     if(SelectDataOn === "start") {
+        //         setNotifyList(notifyData.List)
+        //         setNotifyCount(0)
+        //     } else if (SelectDataOn === "update") {
+        //         setNotifyList((prevent)=> [...notifyData.List , ...prevent])
+        //         setNotifyCount(0)
+        //     } else if (SelectDataOn === "get") {
+        //         setNotifyList((prevent)=> [...prevent , ...notifyData.List])
+        //     } else setNotifyCount(notifyData.countUn ? notifyData.countUn : 0)
+        //     return notifyData.List
+        // } else setSession()
     }
 
     const clickMenu = async (e , OpenPage) => {

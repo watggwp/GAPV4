@@ -204,7 +204,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
 
   app.post('/api/admin/profile/text/edit' , (req , res)=>{
     let username = req.session.user_admin
-    let password = req.body.password_admin
+    let password = req.body.password
 
     if(username === '' || !apifunc.authCsurf("admin" , req , res)) {
         res.redirect('/api/logout')
@@ -214,6 +214,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
     let con = Database.createConnection(listDB)
 
     apifunc.auth(con , username , password , res , "admin").then((result)=>{
+      console.log(result)
         const SET = req.body.type === "name" ? "username = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
                         req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
@@ -223,7 +224,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
                 UPDATE admin
                 SET ${SET}
                 WHERE id = ?
-                ` , [ req.body.value , result["data"].id_table_admin ] , 
+                ` , [ req.body.value , result["data"].id ] , 
                 (err , resultEdit) => {
                     if(!err) {
                         if(req.body.type === "passwordNew") {
@@ -267,7 +268,7 @@ app.post('/api/admin/profile/image/edit' , (req , res)=>{
           UPDATE admin
           SET img_admin = ?
           WHERE id = ?
-          ` , [ req.body.img , result["data"].id_table_admin ] , 
+          ` , [ req.body.img , result["data"].id ] , 
           (err , resultEdit) => {
               con.end()
               res.send("1")
@@ -330,54 +331,6 @@ app.get('/api/admin/profile/get', (req, res) => {
       });
 });
 
-
-app.post('/api/admin/profile/text/edit' , (req , res)=>{
-  let username = req.session.user_admin
-  let password = req.body.password
-
-  if(username === '' || !apifunc.authCsurf("admin" , req , res)) {
-      res.redirect('/api/logout')
-      return 0
-  }
-
-  let con = Database.createConnection(listDB)
-
-  apifunc.auth(con , username , password , res , "admin").then((result)=>{
-      const SET = req.body.type === "name" ? "username = ?" :
-                      req.body.type === "station" ? "station_admin = ?" :
-                      req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
-      if(SET) {
-          con.query(
-              `
-              UPDATE admin
-              SET ${SET}
-              WHERE id_table_admin = ?
-              ` , [ req.body.value , result["data"].id_table_admin ] , 
-              (err , resultEdit) => {
-                  if(!err) {
-                      if(req.body.type === "passwordNew") {
-                          req.session.pass_admin = req.body.value
-                      }
-                      con.end()
-                      res.send("1")
-                  } else {
-                      con.end()
-                      res.send("")
-                  }
-              }
-          )
-      } else {
-          res.send("")
-      }
-  }).catch((err)=>{
-      if(err == "not pass") {
-          con.end()
-          res.send('password')
-      } else if( err == "connect" ) {
-          res.send("")
-      }
-  })
-})
 
   app.post('/api/admin/add' , async (req , res)=>{
     if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {
