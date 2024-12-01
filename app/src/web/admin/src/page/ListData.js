@@ -370,6 +370,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
     } , [])
 
     const CheckEmply = () => {
+        console.log(RefData,QtyDate,type,localType)
         const RefIsCheck = type === "default" ?
                             [
                                 RefData.Data1.current.value,
