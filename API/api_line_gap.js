@@ -87,7 +87,7 @@ const RichMenu = {
           },
           "action": {
             "type": "postback",
-            "text": "1",
+            "text": "5",
             "data": "house_add"
           }
         }

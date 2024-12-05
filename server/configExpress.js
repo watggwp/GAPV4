@@ -45,14 +45,28 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         name : process.env.cookieName,
         secret : process.env.KEY_SESSION ?? "",
         saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure : process.argv[2] == process.env.BUILD,
-            maxAge: null,
-            sameSite: 'strict'
-            // secure: process.argv[2] != process.env.BUILD ? false : true
-        },
-        resave : false
+    //     cookie: {
+    //         httpOnly: true,
+    //         // secure : process.argv[2] == process.env.BUILD,
+    //         secure : true,
+
+            
+    //         maxAge: null,
+    //         // sameSite: 'strict'
+    //         sameSite: 'None'
+    //         // secure: process.argv[2] != process.env.BUILD ? false : true
+    //     },
+    //     resave : false
+    // })
+
+           cookie: {
+              httpOnly: true,
+              secure : process.argv[2] == process.env.BUILD,
+              maxAge: null,
+              sameSite: 'strict'
+        // secure: process.argv[2] != process.env.BUILD ? false : true
+    },
+    resave : false
     })
 
     // protocal websocket

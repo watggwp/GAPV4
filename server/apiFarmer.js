@@ -1968,6 +1968,7 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
 const authCheck = (con , dbpacket , res , req , LINE) => {
     return new Promise( async (resole , reject)=>{
         const userLine = await new Promise( async (resole , reject)=>{
+            console.log(req.session)
             try {
                 await LINE.getLinkToken(req.session.uidFarmer)
                 resole(true)
