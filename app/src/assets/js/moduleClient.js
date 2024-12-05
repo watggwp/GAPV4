@@ -94,7 +94,7 @@
 //     "http://" + process.env.REACT_APP_API_LOCAL + ":" + process.env.REACT_APP_API_PORT :
 //     "https://" + process.env.REACT_APP_API_PUBLIC + ":" + process.env.REACT_APP_API_PORT
 
-const HOST_API = "https://a56f-2001-fb1-68-f70d-992e-d7e1-c9ff-466.ngrok-free.app"
+const HOST_API = "https://4eec-1-46-2-35.ngrok-free.app"
 
 const clientMo = {
     post : async (url = "" , data={}) => {

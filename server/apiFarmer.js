@@ -32,7 +32,6 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
 
     app.post('/api/farmer/account/check' , async (req , res)=>{
         if(req.session.uidFarmer) {
-
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con , dbpacket , res , req , LINE)
@@ -1968,7 +1967,6 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
 const authCheck = (con , dbpacket , res , req , LINE) => {
     return new Promise( async (resole , reject)=>{
         const userLine = await new Promise( async (resole , reject)=>{
-            console.log(req.session)
             try {
                 await LINE.getLinkToken(req.session.uidFarmer)
                 resole(true)
@@ -1976,7 +1974,7 @@ const authCheck = (con , dbpacket , res , req , LINE) => {
                 resole(false)
             }
         })
-        // console.log(userLine,req.session)
+
         if(userLine) {
             con.connect(( err )=>{
                 if (!err) {

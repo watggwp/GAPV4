@@ -36,26 +36,26 @@ const MainFarmer = ({socket , idLiff , Path}) => {
 
     } , [])
 
-   const LoadPage = async (uid, liff) => {
-    const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
-    // setBody(<HouseList liff={liff} uid={uid} />);
-    if (Path === "signup" && result !== "error auth") {
-        if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
-        else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
+    const LoadPage = async (uid, liff) => {
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
+        // setBody(<HouseList liff={liff} uid={uid} />);
+        if (Path === "signup" && result !== "error auth") {
+            if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
+            else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
 
-    } else if (Path === "house" && result !== "error auth") {
-        if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-        else if (result === "search") setBody(<House liff={liff} uid={uid} />);
+        } else if (Path === "house" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<House liff={liff} uid={uid} />);
 
-    } else if (Path === "form" && result !== "error auth") {
-        const auth = window.location.pathname.split("/")[3];
-        if (auth && result !== "close") {
-            setBody(<MenuMain liff={liff} uid={uid} />);
-        } else CloseAccount("not line", null, "ไม่พบบัญชี");
-    } else {
-        CloseAccount("not line", null, "พบปัญหาจากระบบ");
-    }
-};
+        } else if (Path === "form" && result !== "error auth") {
+            const auth = window.location.pathname.split("/")[3];
+            if (auth && result !== "close") {
+                setBody(<MenuMain liff={liff} uid={uid} />);
+            } else CloseAccount("not line", null, "ไม่พบบัญชี");
+        } else {
+            CloseAccount("not line", null, "พบปัญหาจากระบบ");
+        }
+    };
 
     return(
         <>

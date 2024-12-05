@@ -24,6 +24,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
 
     const app = express();
+    
+    // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
+    app.set('trust proxy', 1);
+
     const upload = multer()
     const server = 
                 (process.argv[2] == process.env.BUILD) ? https.createServer({
@@ -41,33 +45,32 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // if(process.argv[2] != process.env.BUILD) reactServ(app)
 
     // set session
+    console.log(process.argv[2])
     const sessionMiddleware = sessions({
-        name : process.env.cookieName,
-        secret : process.env.KEY_SESSION ?? "",
+        name : process.env.cookie,
+        secret : process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-    //     cookie: {
-    //         httpOnly: true,
-    //         // secure : process.argv[2] == process.env.BUILD,
-    //         secure : true,
+        cookie: {
+            httpOnly: true,
+            secure : true,
+            maxAge: null,
+            sameSite: "none"
+        },
+        resave : false
 
-            
-    //         maxAge: null,
-    //         // sameSite: 'strict'
-    //         sameSite: 'None'
-    //         // secure: process.argv[2] != process.env.BUILD ? false : true
-    //     },
-    //     resave : false
-    // })
-
-           cookie: {
-              httpOnly: true,
-              secure : process.argv[2] == process.env.BUILD,
-              maxAge: null,
-              sameSite: 'strict'
-        // secure: process.argv[2] != process.env.BUILD ? false : true
-    },
-    resave : false
+        // cookie: {
+        //     httpOnly: true,
+        //     secure : process.argv[2] == process.env.BUILD,
+        //     maxAge: null,
+        //     sameSite: 'strict'
+        //     // secure: process.argv[2] != process.env.BUILD ? false : true
+        // },
+        // resave : false
     })
+
+    app.use(express.json())
+    app.use(cookieParser())
+    app.use(sessionMiddleware)
 
     // protocal websocket
     const io = WebSocket(server , sessionMiddleware , db , listDB , apifunc)
@@ -75,20 +78,17 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     app.use(cors({
         origin : [
-            `http://${process.env.REACT_APP_API_LOCAL}:3001`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3002`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3003`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3004`, 
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`, 
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`, 
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
             ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
             `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`
         ],
         credentials: true,
     }))
-    app.use(sessionMiddleware)
-
+    
     // config environment
-    app.use(express.json())
-    app.use(cookieParser())
     app.use(upload.any())
     app.use(express.static('app/src/assets/style'))
     app.use(express.static('app/src/assets/font'))
