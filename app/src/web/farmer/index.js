@@ -22,6 +22,6 @@ const id = {
     "signup" : process.env.REACT_APP_LINE_SIGNUP ,
     "house" : process.env.REACT_APP_LINE_HOUSE ,
     "form" : process.env.REACT_APP_LINE_FORM ,
-    "houses" : process.env.REACT_APP_LINE_HOUSELISE
+    "houses" : process.env.REACT_APP_LINE_HOUSELIST
 }
 ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)

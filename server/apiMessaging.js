@@ -17,15 +17,15 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                     try {
                         con.query(`
                             SELECT id_farm_house , name_house FROM housefarm , 
-                                (
-                                    SELECT uid_line , link_user FROM acc_farmer 
-                                    WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
-                                    ORDER BY date_register DESC
-                                    LIMIT 1
-                                ) as farmer 
-                            WHERE housefarm.uid_line = farmer.uid_line || housefarm.link_user = farmer.link_user
-                            ORDER BY id_farm_house DESC
-                        ` , 
+                             (
+                               SELECT uid_line , link_user FROM acc_farmer 
+                               WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
+                               ORDER BY date_register DESC
+                               LIMIT 1
+                               ) as farmer 
+                            WHERE (housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user)
+                            AND housefarm.status = '1' -- เพิ่มเงื่อนไขสำหรับสถานะที่เปิด
+                            ORDER BY id_farm_house DESC ` , 
                         [req["body"]['events'][0]["source"]["userId"]] ,
                         (err , result)=>{
                             con.end()
@@ -42,7 +42,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                         type : "uri",
                                                         label : `${name_house.length > 12 ? `${name_house.slice(0 , 9)}..` : name_house}`,
                                                         // uri : `https://liff.line.me/1661049098-GVZzbm5q/${result[key]["id_farm_house"]}`
-                                                        uri : `https://liff.line.me/2004738631-53dZvpje/${result[key]["id_farm_dhouse"]}?date=${new Date().getTime()}`
+                                                        uri : `https://liff.line.me/2004738631-53dZvpje${result[key]["id_farm_dhouse"]}?date=${new Date().getTime()}`
                                                     }
                                                 }
                                         )

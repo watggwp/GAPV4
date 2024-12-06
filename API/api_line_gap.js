@@ -148,8 +148,8 @@ const RichMenu = {
 RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
 // RichMenu.createRichAddFarm()
-// RichMenu.setDefault("richmenu-e6bad175f0078fc4ff73a56315085a85")
-// richmenu.linkRichMenuToUser("Ue58117f6252711781d1589732635e00a" , "richmenu-d6432138137a3b9e525311b848902909")
+// RichMenu.setDefault("richmenu-5e2130a283662961b79c629176c76e47")
+// richmenu.linkRichMenuToUser("Uec52e5da629da4c89c55674831d126a8" , "richmenu-d783a040e4496034da33b006f154cbed")
 
 
 
