@@ -84,23 +84,13 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
 
     const FetchVarieties = async (plantId) => {
         try {
-            const response = await fetch(`http://localhost:3001/api/farmer/varieties`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ plant_id: plantId })
-            });
-            if (!response.ok) {
-                throw new Error('Failed to fetch varieties');
-            }
-            const data = await response.json();
+            const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
+            const data = JSON.parse(response);
             setVarieties(data);
         } catch (error) {
             console.error(error);
         }
     };
-    
 
     const handlePlantChange = (event) => {
         const plantId = event.target.value;

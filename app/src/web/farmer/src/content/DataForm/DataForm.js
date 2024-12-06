@@ -101,17 +101,8 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
 
     const FetchVarieties = async (plantId) => {
         try {
-            const response = await fetch(`http://localhost:3001/api/farmer/varieties`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ plant_id: plantId })
-            });
-            if (!response.ok) {
-                throw new Error('Failed to fetch varieties');
-            }
-            const data = await response.json();
+            const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
+            const data = JSON.parse(response);
             setVarieties(data);
             console.log(data)
         } catch (error) {

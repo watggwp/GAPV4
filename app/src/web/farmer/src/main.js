@@ -38,10 +38,13 @@ const MainFarmer = ({socket , idLiff , Path}) => {
 
     const LoadPage = async (uid, liff) => {
         const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
-        // setBody(<HouseList liff={liff} uid={uid} />);
         if (Path === "signup" && result !== "error auth") {
             if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
             else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
+
+        } else if (Path === "houses" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<HouseList liff={liff} uid={uid} />);
 
         } else if (Path === "house" && result !== "error auth") {
             if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
