@@ -26,7 +26,7 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                     liff.login()
                 }
             } else {
-                let UID = "Ue58117f6252711781d1589732635e00a"
+                let UID = "Uec52e5da629da4c89c55674831d126a8"
                 LoadPage(UID , liff)
                 // CloseAccount("not line" , null , "กรุณาเข้าผ่านไลน์แอปพลิเคชั่น")
             }

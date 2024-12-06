@@ -68,10 +68,10 @@ const RichMenu = {
       "areas": [
         {
           "bounds": {
-            "x": 0,
-            "y": 0,
-            "width": 1250,
-            "height": 843
+            "x": 25,
+            "y": 34,
+            "width": 984,
+            "height": 789
           },
           "action": {
             "type": "uri",
@@ -80,15 +80,27 @@ const RichMenu = {
         },
         {
           "bounds": {
-            "x": 1250,
-            "y": 0,
-            "width": 1250,
-            "height": 843
+            "x": 1026,
+            "y": 25,
+            "width": 967,
+            "height": 794
           },
           "action": {
             "type": "postback",
-            "text": "5",
+            "text": "เลือกโรงเรือน",
             "data": "house_add"
+          }
+        },
+        {
+          "bounds": {
+            "x": 2019,
+            "y": 17,
+            "width": 456,
+            "height": 802
+          },
+          "action": {
+            "type": "uri",
+            "uri": "https://liff.line.me/2004738631-2Je1qZ5Q"
           }
         }
       ]
