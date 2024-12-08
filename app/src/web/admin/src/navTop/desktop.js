@@ -40,7 +40,7 @@ const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , se
         if(e) e.preventDefault()
         clientMo.post('/api/admin/check').then((context)=>{
             if(context) 
-                setBodyFileAdmin(<NavFirst setMain={setMain} socket={socket} setdoctor={setBodyFileAdmin} setSession={setSession} type={1} 
+                setBodyFileAdmin(<NavFirst TabOn={TabOn} modify={modify} setBodyFileAdmin={setBodyFileAdmin} auth={auth} HrefData={HrefData} setMain={setMain} socket={socket} setSession={setSession} type={1} 
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus}/>)
             else setSession()
         })

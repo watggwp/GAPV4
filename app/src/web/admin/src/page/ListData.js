@@ -56,20 +56,30 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
         socket.removeListener("update-online")
         clearInterval(getInterval)
 
-        const ObjectData = 
-                HrefPage.get().split("?")[0] === "list" ? await clientMo.post("/api/admin/doctor/list" , {
-                    typeDelete : (status.status === "default" ? 0 : status.status === "delete" ? 1 : -1) , 
-                    limit : Limit ? Limit : 10,
-                    startRow : StartRow,
-                    textSearch : textSearch
-                }) :
-                HrefPage.get().split("?")[0] === "data" ? await clientMo.post("/api/admin/data/list" , {
-                    type : status.status,
-                    limit : Limit ? Limit : 10,
-                    startRow : StartRow,
-                    textSearch : textSearch
-                }) : null
-
+        let ObjectData ;
+        if (HrefPage.get().split("?")[0] === "list") {
+            ObjectData = await clientMo.post("/api/admin/doctor/list", {
+                typeDelete: status.status === "default" ? 0 : status.status === "delete" ? 1 : -1,
+                limit: Limit || 10,
+                startRow: StartRow,
+                textSearch: textSearch
+            });
+        } else if (HrefPage.get().split("?")[0] === "data") {
+            ObjectData = await clientMo.post("/api/admin/data/list", {
+                type: status.status,
+                limit: Limit || 10,
+                startRow: StartRow,
+                textSearch: textSearch
+            });
+        } else if (HrefPage.get().split("?")[0] === "listadmin") {
+            ObjectData = await clientMo.post("/api/admin/admin/list", {
+                typeDelete: status.status === "admin" ? 0 : status.status === "delete" ? 1 : -1,
+                limit: Limit || 10,
+                startRow: StartRow,
+                textSearch: textSearch
+            });
+        }
+    
         if(ObjectData) {
             const List = JSON.parse(ObjectData)
             let DataSocket = []
@@ -86,6 +96,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
             modify(70 , 30 , 
                 ["หน้าแรก" , 
                     (HrefPage.get().split("?")[0] === "list") ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
+                    (HrefPage.get().split("?")[0] === "listadmin") ? "บัญชีผู้ดูแลระบบ" : 
                     (HrefPage.get().split("?")[0] === "data") ? "ข้อมูลเพิ่มเติม" : "" 
                     ,
                     (HrefPage.get().indexOf("delete") >= 0) ? "บัญชีที่ถูกลบ" : 
@@ -94,38 +105,41 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                 ])
             setStateOnPage({status : status.status})
 
-            if(HrefPage.get().split("?")[0] === "list" && status.status === "default") {
-                socket.emit("connect-doctor-list")
-                socket.on("update-online" , (id_table , newTimeSocket)=>{
-                    const newList = DataSocket.map((DataList)=>{
-                        if(DataList.id_table_doctor == id_table) {
-                            DataList.time_online = isNaN(newTimeSocket) ? newTimeSocket : "offline"
-                        }
-                        return DataList
-                    })
-                    setDataFetch(newList)
-                })
-
-                // setInterval(()=>{
-                //     setDataFetch(DataSocket.map((DataList)=>{
-                //         DataList.timeStamp = new Date().getTime()
-                //         return DataList
-                //     }))
-                // } , 2000)
+            if (["list", "listadmin"].includes(HrefPage.get().split("?")[0])) {
+                const isListAdmin = HrefPage.get().split("?")[0] === "listadmin";
+                const emitEvent = isListAdmin ? "connect-admin-list" : "connect-doctor-list";
+                const idField = isListAdmin ? "id" : "id_table_doctor";
+            
+                if ((isListAdmin && status.status === "admin") || (!isListAdmin && status.status === "default")) {
+                    socket.emit(emitEvent);
+                    socket.on("update-online", (id_table, newTimeSocket) => {
+                        const newList = DataSocket.map((DataList) => {
+                            if (DataList[idField] == id_table) {
+                                DataList.time_online = isNaN(newTimeSocket) ? newTimeSocket : "offline";
+                            }
+                            return DataList;
+                        });
+                        setDataFetch(newList);
+                    });
+                    return List;
+                } else {
+                    session();
+                    return 0;
+                }
+            } else {
+                session();
+                return 0;
             }
-            return List
-        } else {
-            session()
-            return 0
-        }
+            
     }
 
     return(
         <section className="body-list-manage">
             {
-                status.status === "default" || status.status === "plant" || status.status === "station" ? 
+                status.status === "default" || status.status === "admin" || status.status === "plant" || status.status === "station" ? 
                 <InsertPage PageAddRef={PageAddRef} ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> : <></>
             }
+            {status.status}
             <div className="List-data">
                 <ManageList socket={socket} Data={DataFetch} setBecause={setBecause} ListCount={ListCount} setListCount={setListCount} 
                                     TabOn={TabOn} HrefPage={HrefPage} status={status} 
@@ -185,6 +199,14 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
         }
     }
 
+    const OpenConfirmAdmin = async (id , typeStatus) => {
+        if(await auth(true)) {
+            const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
+            setBecause(<ManageDoctorPage RefOnPage={RefBe} id_table={id} type={typeStatus} status={status} 
+                        setBecause={setBecause} TabOn={TabOn} session={session} ReloadFetch={Fetch}/>)
+        }
+    }
+
     const OpenConfirmData = async (id , typeStatus) => {
         if(await auth(true)) {
             const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
@@ -205,11 +227,18 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
         }
     }
 
+    const OpenDetailManageAdmin = async (id , typeStatus) => {
+        if(await auth(true)) {
+            setBecause(<ShowBecause RefOnPage={RefBe} id_table={id} type={typeStatus} TabOn={TabOn} setBecause={setBecause}/>)
+        }
+    }
+
     const manageList = () => {
         const doctorList = Data.map((data , key)=>
             <list-data-body key={key} 
                 id={`data-list-content-${
                     HrefPage.get().split("?")[0] === "list" ? data.id_table_doctor :
+                    HrefPage.get().split("?")[0] === "listadmin" ? data.id :
                     HrefPage.get().split("?")[0] === "data" ? data.id : ""
                 }`} 
                 status={status.status}>
@@ -253,7 +282,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                 <>
                                 <content-status because={1}>
                                     <bt-because>
-                                        <button onClick={()=>OpenDetailManage(data.id_table_doctor , "status_account")}>เหตุผล</button>
+                                        <button onClick={()=>OpenDetailManageAdmin(data.id_table_doctor , "status_account")}>เหตุผล</button>
                                     </bt-because>
                                     <bt-status onClick={()=>OpenConfirmDoctor(data.id_table_doctor , "status_account")}>
                                         <div className="frame" status={data.status_account ? "1" : "0"}>
@@ -264,13 +293,75 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                     </bt-status>
                                 </content-status>
                                 <bt-delete>
-                                    <button onClick={()=>OpenConfirmDoctor(data.id_table_doctor , "status_delete")}>ลบบัญชี</button>  
+                                    <button onClick={()=>OpenConfirmAdmin(data.id_table_doctor , "status_delete")}>ลบบัญชี</button>  
                                 </bt-delete>
                                 </> : 
                                 status.status === "delete" ?
                                 <content-status because={0} delete="">
                                     <bt-because>
-                                        <button onClick={()=>OpenDetailManage(data.id_table_doctor , "status_delete")}>เหตุผล</button>
+                                        <button onClick={()=>OpenDetailManageAdmin(data.id_table_doctor , "status_delete")}>เหตุผล</button>
+                                    </bt-because>
+                                </content-status> : <></>
+                            }
+                        </action-bt>
+                    </> :
+                    HrefPage.get().split("?")[0] === "listadmin" ?
+                    <>
+                        {
+                            status.status === "default" ? 
+                                <div className="status-online">
+                                    <div className="text-online" style={ data.time_online == "online" ? {backgroundColor : "#00ff3c"} : {}}>
+                                        {
+                                            data.time_online ? 
+                                            data.time_online == "online" ? "กำลังใช้งาน"
+                                            : data.time_online == "offline" ? "ปิดใช้งาน" 
+                                            : <TimeDiff DATE={parseInt(data.time_online)} DivInput={false} textPresent="ใช้งานเมื่อ "/>
+                                            : "ยังไม่ทำการเข้าระบบ"
+                                        }
+                                    </div>
+                                </div> : <></>
+                        }
+                        <detail-data-main>
+                            <detail-Image>
+                                <img src={data.img_admin ? data.img_admin : "/doctor-svgrepo-com.svg"}></img>
+                            </detail-Image>
+                            <detail-data>
+                                <detail-in-fullname>
+                                    <span>{data.fullname_admin ? data.fullname_admin : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}</span>
+                                </detail-in-fullname>
+                                <detail-in>
+                                    <span className="head-data">รหัสประจำตัว</span>
+                                    <div className="text-data">{data.id}</div>
+                                </detail-in>
+                                <detail-in>
+                                    <span className="head-data">ศูนย์</span>
+                                    <div className="text-data">{data.station ? data.station : "ผู้ดูแลระบบยังไม่ระบุ"}</div>
+                                </detail-in>
+                            </detail-data>
+                        </detail-data-main>
+                        <action-bt>
+                            { status.status === "default" ? 
+                                <>
+                                <content-status because={1}>
+                                    <bt-because>
+                                        <button onClick={()=>OpenDetailManageAdmin(data.id , "status_account")}>เหตุผล</button>
+                                    </bt-because>
+                                    <bt-status onClick={()=>OpenConfirmAdmin(data.id , "status_account")}>
+                                        <div className="frame" status={data.status_account ? "1" : "0"}>
+                                            <span>ON</span>
+                                            <span className="dot"></span>
+                                            <span>OFF</span>
+                                        </div>
+                                    </bt-status>
+                                </content-status>
+                                <bt-delete>
+                                    <button onClick={()=>OpenConfirmDoctor(data.id , "status_delete")}>ลบบัญชี</button>  
+                                </bt-delete>
+                                </> : 
+                                status.status === "delete" ?
+                                <content-status because={0} delete="">
+                                    <bt-because>
+                                        <button onClick={()=>OpenDetailManage(data.id , "status_delete")}>เหตุผล</button>
                                     </bt-because>
                                 </content-status> : <></>
                             }
@@ -413,7 +504,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                 } : 
 
                 type === "admin" ? {
-                    id_doctor : RefData.Data1.current.value,
+                    id : RefData.Data1.current.value,
                     passwordDT : RefData.Data2.current.value,
                     passwordAd : pwAdmin.current.value
                 } : 
@@ -441,10 +532,12 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
             setStatus(0)
             let result = 
                     type === "default" ? await clientMo.post("/api/admin/add" , Data) :
+                    type === "admin" ? await clientMo.post("/api/admin/add" , Data) :
+
                     type === "plant" || type === "station" ? await clientMo.post("/api/admin/data/insert" , Data) : ""
             if(result === "1") {
                 setText(`เพิ่ม${
-                            type === "default" ? "บัญชีผู้ส่งเสริม" : 
+                            type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
                             type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
                             type === "station" ? "ศูนย์ส่งเสริม" : ""
@@ -461,7 +554,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                 pwAdmin.current.value = ""
             } else if (result === "overflow") {
                 setText(`มี${
-                            type === "default" ? "บัญชีผู้ส่งเสริม" : 
+                            type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
                             type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
                             type === "station" ? "ศูนย์ส่งเสริม" : ""
@@ -531,6 +624,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
         setLocalType(menuType); // เปลี่ยน localType
         setStep(2); // เปลี่ยนไป Step 2
     };
+
     
 
     return (
@@ -545,7 +639,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                                         <span className="head">เพิ่มบัญชีเจ้าหน้าที่</span>
                                         <div className="menu-options">
                                             <button onClick={() => handleMenuSelection("admin")}>ผู้ดูแลระบบ</button>
-                                            <button onClick={() => handleMenuSelection("default")}>เจ้าหน้าที่ส่งเสริม</button>
+                                            <button onClick={() => handleMenuSelection("default")}>บัญชีเจ้าหน้าที่ส่งเสริม</button>
                                             </div>
                                     </div>
                                 )
@@ -624,6 +718,21 @@ const BodyDetailInsert = ({
     Cancel , 
     stateOnBt
 }) => {
+    const [checkboxState, setCheckboxState] = useState({
+        role1: false,
+        role2: false,
+        role3: false,
+        role4: false,
+    });
+
+    // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงของ checkbox
+    const handleCheckboxChange = (event) => {
+        const { name, checked } = event.target;
+        setCheckboxState((prevState) => ({
+            ...prevState,
+            [name]: checked,
+        }));
+    };
     return(
         <>
         <div className="Load-insert">
@@ -643,7 +752,7 @@ const BodyDetailInsert = ({
             <span className="head">
                 {
                     type === "default" ?
-                        (localType === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin" ? "บัญชีผู้ดูแลระบบ" : "") :
+                    (localType === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin" ? "บัญชีผู้ดูแลระบบ" : "") :
                     type === "plant" ? 
                         "เพิ่มรายการชนิดพืช" : 
                     type === "station" ? 
@@ -656,7 +765,7 @@ const BodyDetailInsert = ({
                         <span className="head-text">
                             {
                                 type === "default" ?
-                                    (localType === "default"? "รหัสประจำตัวผู้ส่งเสริม": localType === "admin" ? "รหัสประจำตัวผู้ดูแลระบบ" : "") : 
+                                (localType === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin" ? "บัญชีผู้ดูแลระบบ" : "") :
                                 type === "plant"? 
                                     "ชื่อพืช" : 
                                 type === "station"? 
@@ -668,7 +777,7 @@ const BodyDetailInsert = ({
                             ref={RefData.Data1}
                             placeholder={
                                 type === "default" ?
-                                    (localType === "default"? "กรอกรหัสประจำตัว": localType === "admin"? "กรอกรหัสประจำตัว" : "") : 
+                                (localType === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin" ? "บัญชีผู้ดูแลระบบ" : "") :
                                 type === "plant"? 
                                     "เช่น มะเขือเทศ" : 
                                 type === "station" ? 
@@ -702,18 +811,65 @@ const BodyDetailInsert = ({
                         (
                             localType === "default" ? (
                                 <label>
-                                    <div className="field-text">
-                                        <span className="head-text">
-                                            รหัสผ่านบัญชีผู้ส่งเสริม
-                                        </span>
-                                        <input
-                                            onChange={CheckEmply}
-                                            ref={RefData.Data2}
-                                            placeholder="กรอกรหัสผ่าน"
-                                            type="password"
-                                        ></input>
+                                <div className="field-text">
+                                    <span className="head-text">
+                                        รหัสผ่านบัญชีเจ้าหน้าที่ส่งเสริม
+                                    </span>
+                                    <input
+                                        onChange={CheckEmply}
+                                        ref={RefData.Data2}
+                                        placeholder="กรอกรหัสผ่าน"
+                                        type="password"
+                                    ></input>
+                                </div>
+                                <div className="field-text">
+                                    <span className="head-text">สิทธิ์การใช้งาน</span>
+                                    <div className="checkbox-group">
+                                        <label className="checkbox-item">
+                                            <span>ผู้ดูแลระบบ</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role1"
+                                                checked={checkboxState.role1}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <label className="checkbox-item">
+                                            <span>หมอพืช</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role2"
+                                                checked={checkboxState.role2}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <label className="checkbox-item">
+                                            <span>ที่ปรึกษาเกษตรกร</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role3"
+                                                checked={checkboxState.role3}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <label className="checkbox-item">
+                                            <span>นักวิเคราะห์สาร</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role4"
+                                                checked={checkboxState.role4}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <div>
+                                            <h3>Selected Roles:</h3>
+                                            <pre>{JSON.stringify(checkboxState, null, 2)}</pre>
+                                        </div>
                                     </div>
-                                </label>
+                                </div>
+
+                            </label>
+                                    
                             ) : localType === "admin" ? (
                                 <label>
                                     <div className="field-text">
@@ -727,6 +883,42 @@ const BodyDetailInsert = ({
                                             type="password"
                                         ></input>
                                     </div>
+                                    <div className="field-text">
+                                    <span className="head-text">สิทธิ์การใช้งาน</span>
+                                    <div className="checkbox-group">
+                                        <label className="checkbox-item">
+                                            <span>หมอพืช</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role2"
+                                                checked={checkboxState.role2}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <label className="checkbox-item">
+                                            <span>ที่ปรึกษาเกษตรกร</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role3"
+                                                checked={checkboxState.role3}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <label className="checkbox-item">
+                                            <span>นักวิเคราะห์สาร</span>
+                                            <input
+                                                type="checkbox"
+                                                name="role4"
+                                                checked={checkboxState.role4}
+                                                onChange={handleCheckboxChange}
+                                            />
+                                        </label>
+                                        <div>
+                                            <h3>Selected Roles:</h3>
+                                            <pre>{JSON.stringify(checkboxState, null, 2)}</pre>
+                                        </div>
+                                    </div>
+                                </div>
                                 </label>
                             ) : ""
                         ) : 
@@ -808,6 +1000,7 @@ const BodyDetailInsert = ({
         </div>
         </>
     )
+}
 }
 
 export default ListData

@@ -108,7 +108,7 @@
                 background-color: #22C7A9; /* Slightly darker green for hover */
                 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             }
-            
+        
 
             .body-page {
                 display: flex;
@@ -171,7 +171,7 @@
                                 padding-bottom: 0px;
                                 height: 28px;
                             }
-    
+
                             select {
                                 width: 80%;
                                 background-color: #52D8C0;
@@ -180,6 +180,76 @@
                             input::placeholder {
                                 color: white;
                             }
+
+                            .checkbox-group {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1rem; /* Space between rows of checkboxes */
+                                margin: 0;
+                                padding: 0;
+                                
+                            }
+                            
+                            .checkbox-item {
+                                display: flex;
+                                align-items: center; /* Align checkbox and text vertically */
+                                justify-content: flex-start; /* Ensure items align to the left */
+                                gap: 1rem; /* Minimal gap between checkbox and text */
+                                width: auto;
+                                margin: 0;
+                                padding: 0;
+                                flex-direction: row;
+                            }
+                            
+                            .checkbox-item input[type="checkbox"] {
+                                appearance: none; /* Remove default style */
+                                border: 2px solid #22C7A9; /* Border color */
+                                background-color: #f8f9fa; /* Background color */
+                                border-radius: 4px; /* Optional: Rounded corners */
+                                cursor: pointer;
+                            }
+
+                            /* Change color when checkbox is checked */
+                            .checkbox-item input[type="checkbox"]:checked {
+                                background-color: #22C7A9; /* Background color when checked */
+                                border-color: #22C7A9; /* Border color when checked */
+                            }
+
+                            .checkbox-item input[type="checkbox"]:checked::after {
+                                content: "✓"; /* Unicode for checkmark */
+                                color: #fff; /* White color */
+                                font-size: 16px;
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%); /* Center the checkmark */
+                            }
+
+
+
+
+                            
+                            .checkbox-item input {
+                                margin: 0;
+                                padding: 0;
+                                width: 20px; 
+                                height: 20px; 
+                                position: absolute;
+                            }
+                            
+                            .checkbox-item span {
+                                width: 140px;
+                                font-family: Sans-font;
+                                font-size: 14px; 
+                                font-weight: bold;
+                                margin-left: 25px; 
+                                line-height: 1.2; /* จัดข้อความให้อยู่ตรงกลางในแนวตั้ง */
+                                text-align: left; /* จัดข้อความให้อยู่ชิดซ้าย */
+                                white-space: nowrap;
+                                overflow: hidden; 
+                                text-overflow: ellipsis; /* แสดง ... ถ้าข้อความยาวเกิน */
+                            }
+                        
                         }
                     }
 
@@ -821,7 +891,7 @@
                 }
             }
         }
-    
+        
         .page-because-popup {
             display: flex;
             justify-content: center;

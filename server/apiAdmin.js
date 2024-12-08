@@ -107,6 +107,51 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
     }
   })
 
+  app.post('/api/admin/admin/get' , async (req , res)=>{
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+  
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+  
+    let con = Database.createConnection(listDB)
+  
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        let data = req.body
+        con.query(
+          `
+            SELECT 
+            (
+              SELECT name FROM station_list WHERE admin_main.station_admin=station_list.id
+            ) as station , 
+            id , fullname_admin , id , img_admin , status_account , status_delete
+            FROM admin as doctor_main
+            WHERE id = ? LIMIT 25;
+          ` 
+        , 
+        [data.id_table] ,
+        (err , result)=>{
+          if (err){
+            dbpacket.dbErrorReturn(con , err , res)
+            return 0
+          };
+  
+          con.end()
+          res.send(apifunc.convertBuffer2Img(result , 'img_admin'))
+        })
+      }
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+  })
+
   app.post('/api/admin/doctor/because/get' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -157,7 +202,6 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
       
     let username = req.session.user_admin
     let password = req.session.pass_admin
-    console.log(username)
 
     if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
         res.redirect('/api/logout')
@@ -168,7 +212,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
 
     apifunc.auth(con , username , password , res , "admin").then((result)=>{
         con.end()
-        res.send(result['data'].username)
+        res.send(result['data'].fullname_admin)
     }).catch((err)=>{
         if(err == "not pass") {
             con.end()
@@ -215,7 +259,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
 
     apifunc.auth(con , username , password , res , "admin").then((result)=>{
       console.log(result)
-        const SET = req.body.type === "name" ? "username = ?" :
+        const SET = req.body.type === "name" ? "fullname_admin = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
                         req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
         if(SET) {
@@ -333,8 +377,7 @@ app.get('/api/admin/profile/get', (req, res) => {
 
 
   app.post('/api/admin/add' , async (req , res)=>{
-    if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {
-        
+    if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {    
       let username = req.session.user_admin
       let password = req.body['passwordAd']
   

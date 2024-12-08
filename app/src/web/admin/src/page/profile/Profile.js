@@ -81,7 +81,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     const CheckEdit = () => {
         const check = 
                     StateEditName ? 
-                        getProfileOld.username !== Fullname.current.value && Fullname.current.value && Password.current.value && /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(Fullname.current.value) :
+                        getProfileOld.fullname_admin !== Fullname.current.value && Fullname.current.value && Password.current.value && /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(Fullname.current.value) :
                     StateEditStation ? 
                         getProfileOld.station_admin !== Station.current.value && Station.current.value && Password.current.value :
                     StateEditPassword ? 
