@@ -56,7 +56,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
         socket.removeListener("update-online")
         clearInterval(getInterval)
 
-        let ObjectData ;
+        let ObjectData;
         if (HrefPage.get().split("?")[0] === "list") {
             ObjectData = await clientMo.post("/api/admin/doctor/list", {
                 typeDelete: status.status === "default" ? 0 : status.status === "delete" ? 1 : -1,
@@ -129,8 +129,8 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
             } else {
                 session();
                 return 0;
-            }
-            
+            }  
+        }    
     }
 
     return(
@@ -624,9 +624,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
         setLocalType(menuType); // เปลี่ยน localType
         setStep(2); // เปลี่ยนไป Step 2
     };
-
     
-
     return (
         <section ref={PageAddRef} className="page-insert">
             {
@@ -1000,7 +998,6 @@ const BodyDetailInsert = ({
         </div>
         </>
     )
-}
 }
 
 export default ListData
