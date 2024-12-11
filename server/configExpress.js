@@ -26,7 +26,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     const app = express();
     
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
-    app.set('trust proxy', 1);
+    // app.set('trust proxy', 1);
 
     const upload = multer()
     const server = 
@@ -50,24 +50,24 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         name : process.env.cookie,
         secret : process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure : true,
-            maxAge: null,
-            sameSite: "none"
-        },
-        resave : false
-
         // cookie: {
         //     httpOnly: true,
-        //     secure : process.argv[2] == process.env.BUILD,
+        //     secure : true,
         //     maxAge: null,
-        //     sameSite: 'strict'
-        //     // secure: process.argv[2] != process.env.BUILD ? false : true
+        //     sameSite: "none"
         // },
         // resave : false
-    })
 
+        cookie: {
+            httpOnly: true,
+            secure : process.argv[2] == process.env.BUILD,
+            maxAge: null,
+            sameSite: 'strict'
+            // secure: process.argv[2] != process.env.BUILD ? false : true
+        },
+        resave : false
+    })
+   
     app.use(express.json())
     app.use(cookieParser())
     app.use(sessionMiddleware)

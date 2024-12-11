@@ -741,6 +741,54 @@ app.post('/api/farmer/varieties', authCheck, (req, res) => {
 });
 
 
+// app.post('/api/farmer/pests', authCheck, (req, res) => {
+//     let con = Database.createConnection(listDB); // สร้างการเชื่อมต่อฐานข้อมูล
+//     const varietyId = req.body.variety_id; // รับ variety_id จาก request body
+//     console.log('Received variety_id:', varietyId); // แสดงค่า variety_id ที่ได้รับ
+
+//     // ตรวจสอบว่า variety_id ถูกส่งมาหรือไม่
+//     if (!varietyId) {
+//         return res.status(400).send("variety_id is required");
+//     }
+
+//     // คำสั่ง SQL เพื่อดึงข้อมูลศัตรูพืชที่เกี่ยวข้องกับ variety_id
+//     con.query(
+//         `SELECT pest_name FROM pests WHERE variety_id = ?`,
+//         [varietyId],
+//         (err, result) => {
+//             con.end();
+//             if (!err) {
+//                 console.log('Query result:', result); // ตรวจสอบผลลัพธ์
+//                 res.json(result.map(item => item.pest_name)); // ส่งเฉพาะชื่อศัตรูพืช
+//             } else {
+//                 console.error('Query error:', err);
+//                 res.status(500).send("Database query error");
+//             }
+//         }
+//     );
+    
+// });
+
+app.post('/api/farmer/pests', authCheck, (req, res) => {
+    let con = Database.createConnection(listDB); // สร้างการเชื่อมต่อฐานข้อมูล
+
+    console.log('Fetching all pests...');
+
+    // คำสั่ง SQL เพื่อดึงข้อมูล pest_name ทั้งหมด
+    con.query(`SELECT pest_id, pest_name FROM pests`, (err, result) => {
+        con.end(); // ปิดการเชื่อมต่อฐานข้อมูล
+        if (!err) {
+            console.log('Query result:', result); // แสดงผลลัพธ์ใน console
+            res.json(result); // ส่งข้อมูลทั้งหมดกลับในรูปแบบ JSON
+        } else {
+            console.error('Query error:', err); // แสดงข้อผิดพลาดใน console
+            res.status(500).send("Database query error"); // ส่งกลับข้อผิดพลาด
+        }
+    });
+});
+
+
+
 
 
 
