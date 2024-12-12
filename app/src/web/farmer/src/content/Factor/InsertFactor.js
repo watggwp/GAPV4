@@ -7,6 +7,11 @@ import { ConvertDate, DatePickerThai, Loading } from "../../../../../assets/js/m
 const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant , type_path , ReloadData , setPage}) => {
     const DateNowOnForm = `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`
     const [getDateOut , setDateOut] = useState("")
+    const [pestChemicalData, setPestChemicalData] = useState([]);
+
+    // State สำหรับการแจ้งเตือน
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
     
     // same
     const DateUse = useRef()
@@ -64,6 +69,9 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
         }
     }
 
+
+    
+
     // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
 const FetchPests = async () => {
     setLoadPests(false);
@@ -75,6 +83,27 @@ const FetchPests = async () => {
         return LIST;
     }
 };
+
+
+
+
+// ฟังก์ชันโหลดข้อมูลจาก API
+const FetchPestChemicalData = async () => {
+    try {
+        const response = await clientMo.post("/api/farmer/pest-chemical");
+        const data = JSON.parse(response);
+        setPestChemicalData(data);
+    } catch (error) {
+        console.error('Error fetching pest-chemical data:', error);
+    }
+};
+
+// เรียกใช้ฟังก์ชันเมื่อ component โหลด
+useEffect(() => {
+    FetchPestChemicalData();
+}, []);
+
+
 
 const SearchPests = async (e) => {
     ListSearchPests.current.removeAttribute("remove");
@@ -130,6 +159,9 @@ useEffect(() => {
         }
     }
 
+
+    
+
     const ConfirmFerti = async () => {
         const dateUse = DateUse.current
         const formula_name = NameMainFactor.current
@@ -176,62 +208,90 @@ useEffect(() => {
         }
     }
 
+    // const ConfirmChemi = async () => {
+    //     const dateUse = DateUse.current
+    //     const formula_name = NameMainFactor.current
+    //     const Name = NameFactor.current
+    //     const insect = NameInsect.current
+    //     const use = Use.current
+    //     const rate = Rate.current
+    //     const volume = Volume.current
+    //     const dateSafe = DateSafe.current
+    //     const source = Source.current
+
+    //     if( dateUse.value && formula_name.value && Name.value 
+    //             && insect.value && use.value && rate.value
+    //             && volume.value && dateSafe.value && source.value
+    //         ) {
+    //             const DataInsert = {
+    //                 id_farmhouse : id_house,
+    //                 id_plant : id_form_plant,
+    //                 date : ConvertDate(dateUse.value).christDate,
+    //                 formula_name : formula_name.value,
+    //                 name : Name.value,
+    //                 insect : insect.value,
+    //                 use : use.value,
+    //                 rate : rate.value,
+    //                 volume : volume.value + " " + Unit.current.value,
+    //                 dateSafe : ConvertDate(dateSafe.value).christDate,
+    //                 source : source.value,
+    //                 type_insert : type_path
+    //             }
+
+    //             setWait(true)
+    //             const result = await clientMo.post("/api/farmer/factor/insert" , DataInsert)
+    //             if(await CloseAccount(result , setPage)) {
+    //                 cancel()
+    //                 ReloadData()
+    //                 setWait(false)
+    //             }
+    //     } else {
+    //         let RefObject = [
+    //                     dateUse ,
+    //                     formula_name ,
+    //                     Name ,
+    //                     insect,
+    //                     use ,
+    //                     rate,
+    //                     volume ,
+    //                     dateSafe,
+    //                     source ,
+    //                     // , seft
+    //                 ]
+    //         RefObject.forEach((ele)=>{
+    //             if(!ele.value && ele) ele.style.border = "2px solid red"
+    //             else if (ele.value && ele) ele.style.border = "2px solid transparent"
+    //         })
+    //     }
+    // }
+
+    // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
     const ConfirmChemi = async () => {
-        const dateUse = DateUse.current
-        const formula_name = NameMainFactor.current
-        const Name = NameFactor.current
-        const insect = NameInsect.current
-        const use = Use.current
-        const rate = Rate.current
-        const volume = Volume.current
-        const dateSafe = DateSafe.current
-        const source = Source.current
-
-        if( dateUse.value && formula_name.value && Name.value 
-                && insect.value && use.value && rate.value
-                && volume.value && dateSafe.value && source.value
-            ) {
-                const DataInsert = {
-                    id_farmhouse : id_house,
-                    id_plant : id_form_plant,
-                    date : ConvertDate(dateUse.value).christDate,
-                    formula_name : formula_name.value,
-                    name : Name.value,
-                    insect : insect.value,
-                    use : use.value,
-                    rate : rate.value,
-                    volume : volume.value + " " + Unit.current.value,
-                    dateSafe : ConvertDate(dateSafe.value).christDate,
-                    source : source.value,
-                    type_insert : type_path
-                }
-
-                setWait(true)
-                const result = await clientMo.post("/api/farmer/factor/insert" , DataInsert)
-                if(await CloseAccount(result , setPage)) {
-                    cancel()
-                    ReloadData()
-                    setWait(false)
-                }
-        } else {
-            let RefObject = [
-                        dateUse ,
-                        formula_name ,
-                        Name ,
-                        insect,
-                        use ,
-                        rate,
-                        volume ,
-                        dateSafe,
-                        source ,
-                        // , seft
-                    ]
-            RefObject.forEach((ele)=>{
-                if(!ele.value && ele) ele.style.border = "2px solid red"
-                else if (ele.value && ele) ele.style.border = "2px solid transparent"
-            })
+        const DataInsert = {
+            id_farmhouse: id_house,
+            id_plant: id_form_plant,
+            date: ConvertDate(DateUse.current.value).christDate,
+            formula_name: NameMainFactor.current.value,
+            name: NameFactor.current.value,
+            insect: NameInsect.current.value,
+            use: Use.current.value,
+            rate: Rate.current.value,
+            volume: Volume.current.value + " " + Unit.current.value,
+            dateSafe: ConvertDate(DateSafe.current.value).christDate,
+            source: Source.current.value,
+            type_insert: type_path,
+        };
+    
+        setWait(true);
+        const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
+        if (await CloseAccount(result, setPage)) {
+            cancel();
+            ReloadData();
+            setWait(false);
         }
-    }
+    };
+    
+    
 
     const cancel = () => {
         RefPop.current.removeAttribute("show")
@@ -262,6 +322,11 @@ useEffect(() => {
         }
     }
 
+
+
+
+
+    
     const ChangeChemi = (e) => {
         const dateUse = DateUse.current
         const formula_name = NameMainFactor.current
@@ -384,13 +449,36 @@ useEffect(() => {
         } catch(e) {}
     }
 
-    // off popup
-    const OutListSearch = (e) => {
-        if(e.target !== NameFactor.current && e.target !== ListSearchName.current && e.target.getAttribute("search_name") === null) 
-            ResetListNamePopup()
-        if(e.target !== NameMainFactor.current && e.target !== ListSearchFactorNameMain.current && e.target.getAttribute("search_other") === null) 
-            ResetListOtherPopup()
-    }
+    const ValidateChemicalAndPest = () => {
+        const chemicalValue = NameFactor.current.value.trim();
+        const pestValue = NameInsect.current.value.trim();
+    
+        // ตรวจสอบว่ามีการกรอกข้อมูลทั้งศัตรูพืชและสารเคมี
+        if (!chemicalValue || !pestValue) {
+            return; // ไม่แสดง Popup หากช่องว่าง
+        }
+    
+        // ค้นหาข้อมูลศัตรูพืชและสารเคมีใน pestChemicalData
+        const matchedEntry = pestChemicalData.find(
+            (entry) =>
+                entry.pest_name === pestValue && entry.chemical_name === chemicalValue
+        );
+    
+        if (!matchedEntry) {
+            setPopupMessage(
+                `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`
+            );
+            setShowPopup(true); // แสดง Popup หากข้อมูลไม่สัมพันธ์กัน
+        } else {
+            setShowPopup(false); // ซ่อน Popup หากข้อมูลถูกต้อง
+        }
+    };
+    
+    
+    
+    
+    
+    
 
     // 
     const ChangeData = (DataFilter) => {
@@ -401,8 +489,23 @@ useEffect(() => {
         return ObjectName
     }
 
+
+    
     return(
-        <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
+        // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
+        <section className="popup-content-fertilizer">
+        {/* ป๊อปอัปแจ้งเตือน */}
+        {showPopup && (
+    <div className="popup-overlay">
+        <div className="popup-content">
+        <div class="icon">⚠️</div>
+        <div class="title">การแจ้งเตือน</div>
+            <p>{popupMessage}</p>
+            <button onClick={() => setShowPopup(false)}>ปิด</button>
+        </div>
+    </div>
+)}
+
             <div className="head">แบบบันทึกเกษตรกร</div>
             <div className="form">
                 <div className="head-form">
@@ -517,7 +620,7 @@ useEffect(() => {
                                                 <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
                                                 <div className="content-colume-input">
                                                     <div className="input-select-popup">
-                                                        <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchName ? true : null}></input>
+                                                        <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchName ? true : null}  onBlur={ValidateChemicalAndPest}></input>
                                                         <div ref={ListSearchName} remove="" className="list-input-search">
                                                             {LoadSearchName ? 
                                                                 ListSelectName : 
@@ -555,9 +658,9 @@ useEffect(() => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                              <label className="frame-textbox colume">
-                                                   <span className="full">ศัตรูพืชที่พบ</span>
-                                                <div className="content-colume-input">
+                                            <label className="frame-textbox">
+                                                <span>ศัตรูพืชที่พบ</span>
+                                                <div className="input-select-other">
                                                   <div className="input-select-popup">
                                                      <input
                                                        onChange={LoadSearchPests ? SearchPests : null}
@@ -565,7 +668,7 @@ useEffect(() => {
                                                        placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
                                                        ref={NameInsect}
                                                        readOnly={!LoadSearchPests ? true : null}
-                                                       disabled={!LoadSearchPests ? true : null}
+                                                       disabled={!LoadSearchPests ? true : null} onBlur={ValidateChemicalAndPest}
                                                     ></input>
                                                   <div ref={ListSearchPests} remove="" className="list-input-search">
                                                      {LoadSearchPests ? (

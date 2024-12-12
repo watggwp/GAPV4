@@ -788,6 +788,29 @@ app.post('/api/farmer/pests', authCheck, (req, res) => {
 });
 
 
+app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
+    let con = Database.createConnection(listDB);
+
+    console.log('Fetching pest-chemical relationships...');
+
+    // ดึงข้อมูลความสัมพันธ์ระหว่างศัตรูพืชกับสารเคมี
+    con.query(
+        `SELECT pc.pest_id, pc.chemical_id, p.pest_name, c.name AS chemical_name
+         FROM pest_chemical pc
+         JOIN pests p ON pc.pest_id = p.pest_id
+         JOIN chemical_list c ON pc.chemical_id = c.id`,
+        (err, result) => {
+            con.end();
+            if (!err) {
+                console.log('Query result:', result);
+                res.json(result); // ส่งข้อมูลในรูปแบบ JSON
+            } else {
+                console.error('Query error:', err);
+                res.status(500).send('Database query error');
+            }
+        }
+    );
+});
 
 
 
@@ -1226,77 +1249,220 @@ app.post('/api/farmer/pests', authCheck, (req, res) => {
         } else res.send("error auth")
     })
 
-    app.post('/api/farmer/factor/insert' , async (req , res)=>{
-        if(req.session.uidFarmer) {
-            let con = Database.createConnection(listDB)
-            try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
-                con.query(`
-                            SELECT formplant.id , formplant.state_status
-                            FROM formplant , 
-                                (
-                                    SELECT id_farm_house FROM housefarm
-                                    WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                ) as houseFarm
-                            WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
-                        ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant ] , 
-                        (err , result)=>{
-                            if (!err) {
-                                if(result[0]) {
-                                    if(result[0].state_status == 0 || result[0].state_status == 1) {
-                                        let data = req.body
-                                        const sql = data.type_insert === "z" ? 
-                                                        `INSERT INTO formfertilizer 
-                                                        ( 
-                                                            id_plant , name , formula_name , use_is , volume , source , date
-                                                        ) VALUES (
-                                                            ? , ? , ? , ? , ? , ? , ?
-                                                        );
-                                                        ` : 
-                                                    data.type_insert === "c" ? 
-                                                        `INSERT INTO formchemical 
-                                                        ( 
-                                                            id_plant , name , formula_name , insect , use_is , rate , volume , source , date_safe , date
-                                                        ) VALUES (
-                                                            ? , ? , ? , ? , ? , ? , ? , ? , ? , ?
-                                                        );
-                                                        ` : ""
-                                        const ArrayData = data.type_insert === "z" ? 
-                                                            [ data.id_plant , data.name , data.formula_name , data.use , data.volume , data.source , new Date(data.date) ] :
-                                                        data.type_insert === "c" ? 
-                                                            [ data.id_plant , data.name , data.formula_name , data.insect , data.use , data.rate , data.volume , data.source , new Date(data.dateSafe) , new Date(data.date) ] : []
+    // app.post('/api/farmer/factor/insert' , async (req , res)=>{
+    //     if(req.session.uidFarmer) {
+    //         let con = Database.createConnection(listDB)
+    //         try {
+    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             con.query(`
+    //                         SELECT formplant.id , formplant.state_status
+    //                         FROM formplant , 
+    //                             (
+    //                                 SELECT id_farm_house FROM housefarm
+    //                                 WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
+    //                             ) as houseFarm
+    //                         WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
+    //                     ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant ] , 
+    //                     (err , result)=>{
+    //                         if (!err) {
+    //                             if(result[0]) {
+    //                                 if(result[0].state_status == 0 || result[0].state_status == 1) {
+    //                                     let data = req.body
+    //                                     const sql = data.type_insert === "z" ? 
+    //                                                     `INSERT INTO formfertilizer 
+    //                                                     ( 
+    //                                                         id_plant , name , formula_name , use_is , volume , source , date
+    //                                                     ) VALUES (
+    //                                                         ? , ? , ? , ? , ? , ? , ?
+    //                                                     );
+    //                                                     ` : 
+    //                                                 data.type_insert === "c" ? 
+    //                                                     `INSERT INTO formchemical 
+    //                                                     ( 
+    //                                                         id_plant , name , formula_name , insect , use_is , rate , volume , source , date_safe , date
+    //                                                     ) VALUES (
+    //                                                         ? , ? , ? , ? , ? , ? , ? , ? , ? , ?
+    //                                                     );
+    //                                                     ` : ""
+    //                                     const ArrayData = data.type_insert === "z" ? 
+    //                                                         [ data.id_plant , data.name , data.formula_name , data.use , data.volume , data.source , new Date(data.date) ] :
+    //                                                     data.type_insert === "c" ? 
+    //                                                         [ data.id_plant , data.name , data.formula_name , data.insect , data.use , data.rate , data.volume , data.source , new Date(data.dateSafe) , new Date(data.date) ] : []
                                         
-                                        con.query(sql , ArrayData ,
-                                                    (err , insert)=>{
-                                                        try {
-                                                            sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert == "z" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${data.id_plant}`)
-                                                        } catch (e) {}
-                                                        con.end()
-                                                        res.send("insert")
-                                                        // if(insert.affectedRows >= 1) 
-                                                        // else res.send("130")
-                                                    })
-                                    } else {
-                                        // เวลา submit แล้ว
-                                        con.end()
-                                        res.send("submit")
+    //                                     con.query(sql , ArrayData ,
+    //                                                 (err , insert)=>{
+    //                                                     try {
+    //                                                         sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert == "z" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${data.id_plant}`)
+    //                                                     } catch (e) {}
+    //                                                     con.end()
+    //                                                     res.send("insert")
+    //                                                     // if(insert.affectedRows >= 1) 
+    //                                                     // else res.send("130")
+    //                                                 })
+    //                                 } else {
+    //                                     // เวลา submit แล้ว
+    //                                     con.end()
+    //                                     res.send("submit")
+    //                                 }
+    //                             }
+    //                             else {
+    //                                 con.end()
+    //                                 res.send("not")
+    //                             }
+    //                         } else {
+    //                             con.end()
+    //                             res.send("error auth")
+    //                         }
+    //                     })
+    //         } catch (err) {
+    //             if(err === "no" || err === "no account") res.send("close")
+    //             else res.send("error auth")
+    //         }
+    //     } else res.send("error auth")
+    // })
+
+
+    app.post('/api/farmer/factor/insert', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+            try {
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                con.query(
+                    `
+                    SELECT formplant.id, formplant.state_status
+                    FROM formplant,
+                        (
+                            SELECT id_farm_house FROM housefarm
+                            WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
+                        ) AS houseFarm
+                    WHERE formplant.id_farm_house = houseFarm.id_farm_house AND formplant.id = ?
+                    `,
+                    [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant],
+                    async (err, result) => {
+                        if (!err) {
+                            if (result[0]) {
+                                if (result[0].state_status == 0 || result[0].state_status == 1) {
+                                    let data = req.body;
+                                    const sql =
+                                        data.type_insert === 'z'
+                                            ? `INSERT INTO formfertilizer 
+                                                    (id_plant, name, formula_name, use_is, volume, source, date)
+                                                VALUES (?, ?, ?, ?, ?, ?, ?);`
+                                            : data.type_insert === 'c'
+                                            ? `INSERT INTO formchemical 
+                                                    (id_plant, name, formula_name, insect, use_is, rate, volume, source, date_safe, date)
+                                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+                                            : '';
+    
+                                    const ArrayData =
+                                        data.type_insert === 'z'
+                                            ? [data.id_plant, data.name, data.formula_name, data.use, data.volume, data.source, new Date(data.date)]
+                                            : data.type_insert === 'c'
+                                            ? [
+                                                  data.id_plant,
+                                                  data.name,
+                                                  data.formula_name,
+                                                  data.insect,
+                                                  data.use,
+                                                  data.rate,
+                                                  data.volume,
+                                                  data.source,
+                                                  new Date(data.dateSafe),
+                                                  new Date(data.date),
+                                              ]
+                                            : [];
+    
+                                    // ตรวจสอบความสัมพันธ์ระหว่างศัตรูพืชและสารเคมี
+                                    if (data.type_insert === 'c') {
+                                        try {
+                                            const pestChemicalRelationValid = await checkPestChemicalRelation(data.insect, data.name, con);
+                                            if (!pestChemicalRelationValid) {
+                                                // แจ้งเตือนเมื่อข้อมูลไม่สัมพันธ์
+                                                sendNotifyToDoctor(
+                                                    auth.data.id_table,
+                                                    auth.data.station,
+                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\n เพิ่มสารเคมี "${data.name}" ไม่สัมพันธ์กับศัตรูพืช "${data.insect}"`
+                                                );
+                                                con.end();
+                                                return res.send('invalid_chemical');
+                                            }
+                                        } catch (err) {
+                                            console.error('Error checking pest-chemical relation:', err);
+                                            con.end();
+                                            return res.status(500).send('Error checking pest-chemical relation');
+                                        }
                                     }
-                                }
-                                else {
-                                    con.end()
-                                    res.send("not")
+    
+                                    // ดำเนินการบันทึกข้อมูล
+                                    con.query(sql, ArrayData, (err, insert) => {
+                                        if (!err) {
+                                            try {
+                                                // ส่งแจ้งเตือนเมื่อบันทึกสำเร็จ
+                                                sendNotifyToDoctor(
+                                                    auth.data.id_table,
+                                                    auth.data.station,
+                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert === 'z' ? 'ปัจจัยการผลิต' : 'สารเคมี'}\nที่ฟอร์มไอดี ${data.id_plant}`
+                                                );
+                                            } catch (e) {
+                                                console.error('Error notifying doctor:', e);
+                                            }
+                                            con.end();
+                                            res.send('insert');
+                                        } else {
+                                            console.error('Error inserting data:', err);
+                                            con.end();
+                                            res.send('error');
+                                        }
+                                    });
+                                } else {
+                                    con.end();
+                                    res.send('submit');
                                 }
                             } else {
-                                con.end()
-                                res.send("error auth")
+                                con.end();
+                                res.send('not');
                             }
-                        })
+                        } else {
+                            console.error('Error querying formplant:', err);
+                            con.end();
+                            res.send('error auth');
+                        }
+                    }
+                );
             } catch (err) {
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
+                console.error('Authentication error:', err);
+                if (err === 'no' || err === 'no account') res.send('close');
+                else res.send('error auth');
             }
-        } else res.send("error auth")
-    })
+        } else {
+            res.send('error auth');
+        }
+    });
+    
+    // ฟังก์ชันตรวจสอบความสัมพันธ์ระหว่างศัตรูพืชและสารเคมี
+    const checkPestChemicalRelation = (pest, chemical, con) => {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 1 
+                FROM pest_chemical 
+                JOIN pests ON pest_chemical.pest_id = pests.pest_id
+                JOIN chemical_list ON pest_chemical.chemical_id = chemical_list.id
+                WHERE pests.pest_name = ? AND chemical_list.name = ?
+            `;
+    
+            con.query(query, [pest, chemical], (err, result) => {
+                if (err) {
+                    console.error('Error checking pest-chemical relation:', err);
+                    return reject(err);
+                }
+    
+                resolve(result.length > 0); // ถ้าพบข้อมูลที่ตรงกัน ให้คืนค่า true
+            });
+        });
+    };
+    
+    
+    
 
     app.post('/api/farmer/factor/edit' , async (req , res)=>{
         if(req.session.uidFarmer) {

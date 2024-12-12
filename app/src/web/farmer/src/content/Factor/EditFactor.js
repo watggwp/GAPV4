@@ -44,6 +44,13 @@ ObjectData}) => {
     const [LoadSearchName , setLoadName] = useState(false) 
     const [LoadSearchNameMain , setLoadNameMain] = useState(false) 
 
+    // State และ Refs สำหรับศัตรูพืช
+    const [DataPests, setDataPests] = useState([]);
+    const [ListSelectPests, setListPests] = useState(<></>);
+    const ListSearchPests = useRef();
+    const [LoadSearchPests, setLoadPests] = useState(false);
+
+
     const [getWait , setWait] = useState(false)
     useEffect(()=>{
         RefPop.current.setAttribute("show" , "");
@@ -64,6 +71,24 @@ ObjectData}) => {
             return LIST
         }
     }
+
+    // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
+    const FetchPests = async () => {
+       setLoadPests(false);
+       const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
+       if (await CloseAccount(Data, setPage)) {
+           const LIST = JSON.parse(Data);
+           setDataPests(LIST);
+           setLoadPests(true);
+           return LIST;
+    }
+};
+
+useEffect(() => {
+    FetchPests();
+}, []);
+
+
 
     const FetchSource = async () => {
         const Data = await clientMo.post("/api/farmer/source/get")
@@ -381,6 +406,46 @@ ObjectData}) => {
         ListSearchFactorNameMain.current.setAttribute("remove" , "")
     }
 
+    // ฟังก์ชันค้นหาศัตรูพืช
+    const SearchPests = async (e) => {
+      ListSearchPests.current.removeAttribute("remove");
+
+       try {
+          let search = DataPests.filter((val) =>
+            val.pest_name.indexOf(e.target.value) >= 0
+          ).map((val) => val.pest_name);
+           const setSearch = ChangeData(search);
+           if (setSearch.length !== 0) {
+             setListPests(
+                setSearch.map((val, key) => (
+                    <span
+                        search_name=""
+                        onClick={() => SetTextInputPests(val)}
+                        key={key}
+                    >
+                        {val}
+                    </span>
+                ))
+            );
+        } else {
+            ResetListPestsPopup();
+        }
+    } catch (e) {}
+};
+
+// ฟังก์ชันตั้งค่า Input ของศัตรูพืช
+const SetTextInputPests = (name) => {
+    NameInsect.current.value = name;
+    ResetListPestsPopup();
+};
+
+// ฟังก์ชันรีเซ็ต Popup ของศัตรูพืช
+const ResetListPestsPopup = () => {
+    setListPests(<></>);
+    ListSearchPests.current.setAttribute("remove", "");
+};
+
+
     // change how use 
     const setHowUse = () => {
         try {
@@ -583,12 +648,38 @@ ObjectData}) => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox${ObjectData.subjectResult.insect == 2 ? " not" : ""}`}>
+                                        <label className={`frame-textbox${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
                                                 <span>ศัตรูพืชที่พบ</span>
-                                                <input onChange={ChangeChemi} 
-                                                    defaultValue={ObjectData.insect} ref={NameInsect} type="text" placeholder="ชื่อศัตรูพืช"></input>
-                                            </label>
-                                        </div>
+                                                <div className="input-select-other">
+                                                  <div className="input-select-popup">
+                                                <input
+                                                    onChange={LoadSearchPests ? SearchPests : null}
+                                                    onMouseDown={LoadSearchPests ? SearchPests : null}
+                                                    defaultValue={ObjectData.insect}
+                                                    ref={NameInsect}
+                                                    placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
+                                                    readOnly={!LoadSearchPests ? true : null}
+                                                    disabled={!LoadSearchPests ? true : null}
+                                                />
+                                        <div ref={ListSearchPests} remove="" className="list-input-search">
+                                        {LoadSearchPests ? (
+                                           ListSelectPests
+                    ) : (
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    </label>
+</div>
                                         <div className="row">
                                             <label className={`frame-textbox colume${ObjectData.subjectResult.use_is == 2 ? " not" : ""}`}>
                                                 <span className="full">วิธีการใช้</span>
