@@ -1,18 +1,18 @@
-import React, { useRef , useEffect, useState} from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import "./ListFertilizer.scss"
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import { ConvertDate, DatePickerThai, Loading } from "../../../../../assets/js/module";
 
-const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant , type_path , ReloadData , setPage}) => {
+const PopupInsertFactor = ({ setPopup, RefPop, uid, id_house, id_form_plant, type_path, ReloadData, setPage }) => {
     const DateNowOnForm = `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`
-    const [getDateOut , setDateOut] = useState("")
+    const [getDateOut, setDateOut] = useState("")
     const [pestChemicalData, setPestChemicalData] = useState([]);
 
     // State สำหรับการแจ้งเตือน
     const [popupMessage, setPopupMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
-    
+
     // same
     const DateUse = useRef()
     const NameMainFactor = useRef()
@@ -27,19 +27,19 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
     const Rate = useRef()
     const DateSafe = useRef()
 
-    const [DataFactor , setDataFactor] = useState([])
-    const [DataSource , setSource] = useState([])
+    const [DataFactor, setDataFactor] = useState([])
+    const [DataSource, setSource] = useState([])
 
     const ListSearchName = useRef()
-    const [ListSelectName , setListName] = useState(<></>)
+    const [ListSelectName, setListName] = useState(<></>)
 
     const ListSearchFactorNameMain = useRef()
-    const [ListSelectNameMain , setListOther] = useState(<></>)
+    const [ListSelectNameMain, setListOther] = useState(<></>)
 
     const BTConfirm = useRef()
 
-    const [LoadSearchName , setLoadName] = useState(false) 
-    const [LoadSearchNameMain , setLoadNameMain] = useState(false) 
+    const [LoadSearchName, setLoadName] = useState(false)
+    const [LoadSearchNameMain, setLoadNameMain] = useState(false)
 
     // State และ Refs สำหรับศัตรูพืช
     const [DataPests, setDataPests] = useState([]);
@@ -48,19 +48,35 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
     const [LoadSearchPests, setLoadPests] = useState(false);
 
 
-    const [getWait , setWait] = useState(false)
-    useEffect(()=>{
-        RefPop.current.setAttribute("show" , "");
+    const [getWait, setWait] = useState(false)
+    useEffect(() => {
+        RefPop.current.setAttribute("show", "");
         FetchFactor((type_path === "z") ? "fertilizer" : "chemical")
         FetchSource()
         // (type_path === "z") ? FetchFactor("fertilizer") : FetchFactor("chemical")
-    } , [])
+    }, [])
+
+    const hiddenSelect = useCallback(() => {
+        ListSearchName.current.setAttribute("remove", "")
+        ListSearchFactorNameMain.current.setAttribute("remove", "")
+        ListSearchPests.current.setAttribute("remove", "")
+    }, [])
+    
+    useEffect(() => {
+        window.addEventListener("click", hiddenSelect)
+
+        return (() => {
+            window.removeEventListener("click", hiddenSelect)
+        })
+    }, [
+        hiddenSelect
+    ])
 
     const FetchFactor = async (type) => {
         setLoadName(false);
         setLoadNameMain(false);
-        const Data = await clientMo.post("/api/farmer/factor/get/auto" , {type : type})
-        if(await CloseAccount(Data , setPage)) {
+        const Data = await clientMo.post("/api/farmer/factor/get/auto", { type: type })
+        if (await CloseAccount(Data, setPage)) {
             const LIST = JSON.parse(Data)
             setDataFactor(LIST)
             setLoadName(true);
@@ -70,97 +86,94 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
     }
 
 
-    
+
 
     // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
-const FetchPests = async () => {
-    setLoadPests(false);
-    const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
-    if (await CloseAccount(Data, setPage)) {
-        const LIST = JSON.parse(Data);
-        setDataPests(LIST);
-        setLoadPests(true);
-        return LIST;
-    }
-};
-
-
-
-
-// ฟังก์ชันโหลดข้อมูลจาก API
-const FetchPestChemicalData = async () => {
-    try {
-        const response = await clientMo.post("/api/farmer/pest-chemical");
-        const data = JSON.parse(response);
-        setPestChemicalData(data);
-    } catch (error) {
-        console.error('Error fetching pest-chemical data:', error);
-    }
-};
-
-// เรียกใช้ฟังก์ชันเมื่อ component โหลด
-useEffect(() => {
-    FetchPestChemicalData();
-}, []);
-
-
-
-const SearchPests = async (e) => {
-    ListSearchPests.current.removeAttribute("remove");
-
-    try {
-        let search = DataPests.filter((val) =>
-            val.pest_name.indexOf(e.target.value) >= 0
-        ).map((val) => val.pest_name);
-        const setSearch = ChangeData(search);
-        if (setSearch.length !== 0) {
-            setListPests(
-                setSearch.map((val, key) => (
-                    <span
-                        search_name=""
-                        onClick={() => SetTextInputPests(val)}
-                        key={key}
-                    >
-                        {val}
-                    </span>
-                ))
-            );
-        } else {
-            ResetListPestsPopup();
+    const FetchPests = async () => {
+        setLoadPests(false);
+        const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
+        if (await CloseAccount(Data, setPage)) {
+            const LIST = JSON.parse(Data);
+            setDataPests(LIST);
+            setLoadPests(true);
+            return LIST;
         }
-    } catch (e) {}
+    };
 
-    ChangeChemi();
-};
 
-// ฟังก์ชันตั้งค่า Input ของศัตรูพืช
-const SetTextInputPests = (name) => {
-    NameInsect.current.value = name;
-    ChangeChemi();
-    ResetListPestsPopup();
-};
 
-// ฟังก์ชันรีเซ็ต Popup ของศัตรูพืช
-const ResetListPestsPopup = () => {
-    setListPests(<></>);
-    ListSearchPests.current.setAttribute("remove", "");
-};
 
-// ใช้งาน FetchPests เมื่อโหลด component
-useEffect(() => {
-    FetchPests();
-}, []);
+    // ฟังก์ชันโหลดข้อมูลจาก API
+    const FetchPestChemicalData = async () => {
+        try {
+            const response = await clientMo.post("/api/farmer/pest-chemical");
+            const data = JSON.parse(response);
+            setPestChemicalData(data);
+        } catch (error) {
+            console.error('Error fetching pest-chemical data:', error);
+        }
+    };
+
+    // เรียกใช้ฟังก์ชันเมื่อ component โหลด
+    useEffect(() => {
+        FetchPestChemicalData();
+    }, []);
+
+
+
+    const SearchPests = async (e) => {
+        ListSearchPests.current.removeAttribute("remove");
+
+        try {
+            let search = DataPests.filter((val) =>
+                val.pest_name.indexOf(e.target.value) >= 0
+            ).map((val) => val.pest_name);
+            const setSearch = ChangeData(search);
+            if (setSearch.length !== 0) {
+                setListPests(
+                    setSearch.map((val, key) => (
+                        <span
+                            search_name=""
+                            onClick={() => SetTextInputPests(val)}
+                            key={key}
+                        >
+                            {val}
+                        </span>
+                    ))
+                );
+            } else {
+                ResetListPestsPopup();
+            }
+        } catch (e) { }
+
+        ChangeChemi();
+    };
+
+    // ฟังก์ชันตั้งค่า Input ของศัตรูพืช
+    const SetTextInputPests = (name) => {
+        NameInsect.current.value = name;
+        ChangeChemi();
+        ResetListPestsPopup();
+    };
+
+    // ฟังก์ชันรีเซ็ต Popup ของศัตรูพืช
+    const ResetListPestsPopup = () => {
+        setListPests(<></>);
+        ListSearchPests.current.setAttribute("remove", "");
+    };
+
+    // ใช้งาน FetchPests เมื่อโหลด component
+    useEffect(() => {
+        FetchPests();
+    }, []);
 
     const FetchSource = async () => {
         const Data = await clientMo.post("/api/farmer/source/get")
-        if(await CloseAccount(Data , setPage)) {
+        if (await CloseAccount(Data, setPage)) {
             const LIST = JSON.parse(Data)
             setSource(LIST)
         }
     }
-
-
-    
 
     // const ConfirmFerti = async () => {
     //     const dateUse = DateUse.current
@@ -216,7 +229,7 @@ useEffect(() => {
         const use = Use.current.value || null;
         const volume = Volume.current.value ? `${Volume.current.value} ${Unit.current.value}` : null;
         const source = Source.current.value || null;
-    
+
         const DataInsert = {
             id_farmhouse: id_house,
             id_plant: id_form_plant,
@@ -228,7 +241,7 @@ useEffect(() => {
             source: source,
             type_insert: type_path,
         };
-    
+
         setWait(true);
         try {
             const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
@@ -242,7 +255,7 @@ useEffect(() => {
             setWait(false);
         }
     };
-    
+
 
     // const ConfirmChemi = async () => {
     //     const dateUse = DateUse.current
@@ -317,7 +330,7 @@ useEffect(() => {
     //         source: Source.current.value,
     //         type_insert: type_path,
     //     };
-    
+
     //     setWait(true);
     //     const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
     //     if (await CloseAccount(result, setPage)) {
@@ -343,7 +356,7 @@ useEffect(() => {
             source: Source.current.value || null,
             type_insert: type_path,
         };
-    
+
         setWait(true);
         try {
             const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
@@ -357,15 +370,15 @@ useEffect(() => {
             setWait(false);
         }
     };
-    
-    
-    
+
+
+
 
     const cancel = () => {
         RefPop.current.removeAttribute("show")
-        setTimeout(()=>{
+        setTimeout(() => {
             setPopup(<></>)
-        } , 500)
+        }, 500)
     }
 
     const ChangeFerti = (e) => {
@@ -376,17 +389,17 @@ useEffect(() => {
         const volume = Volume.current
         const source = Source.current
 
-        if(!e) {
-            if(Name.value && formula_name.value) {
+        if (!e) {
+            if (Name.value && formula_name.value) {
                 setHowUse()
             }
         }
-        
-        if( dateUse.value && Name.value && use.value && volume.value && source.value
-            ) {
-                BTConfirm.current.removeAttribute("no")
+
+        if (dateUse.value && Name.value && use.value && volume.value && source.value
+        ) {
+            BTConfirm.current.removeAttribute("no")
         } else {
-            BTConfirm.current.setAttribute("no" , "")
+            BTConfirm.current.setAttribute("no", "")
         }
     }
 
@@ -394,7 +407,7 @@ useEffect(() => {
 
 
 
-    
+
     const ChangeChemi = (e) => {
         const dateUse = DateUse.current
         const formula_name = NameMainFactor.current
@@ -406,40 +419,40 @@ useEffect(() => {
         const dateSafe = DateSafe.current
         const source = Source.current
 
-        
-        if(!e) {
-            if(Name.value && formula_name.value) {
+
+        if (!e) {
+            if (Name.value && formula_name.value) {
                 setHowUse()
-                setDateSafe() 
+                setDateSafe()
             }
         }
 
-        if( dateUse.value && formula_name.value && Name.value 
-                && insect.value && use.value && rate.value
-                && volume.value && dateSafe.value && source.value
-            ) {
-                BTConfirm.current.removeAttribute("no")
+        if (dateUse.value && formula_name.value && Name.value
+            && insect.value && use.value && rate.value
+            && volume.value && dateSafe.value && source.value
+        ) {
+            BTConfirm.current.removeAttribute("no")
         } else {
-            BTConfirm.current.setAttribute("no" , "")
+            BTConfirm.current.setAttribute("no", "")
         }
     }
 
     // name
     const SearchNameFactor = async (e) => {
         ListSearchName.current.removeAttribute("remove")
-        
+
         try {
             let search = DataFactor
-            search = search.filter((val)=>
-                                val.name.indexOf(e.target.value) >= 0 && val.name_formula.indexOf(NameMainFactor.current.value) >= 0)
-                                    .map((val)=>val.name)
+            search = search.filter((val) =>
+                val.name.indexOf(e.target.value) >= 0 && val.name_formula.indexOf(NameMainFactor.current.value) >= 0)
+                .map((val) => val.name)
             const setSearch = ChangeData(search)
-            if(setSearch.length !== 0) 
-                setListName(setSearch.map((val , key)=>
-                    <span search_name="" onClick={()=>SetTextInputName(val)} key={key}>{val}</span>
+            if (setSearch.length !== 0)
+                setListName(setSearch.map((val, key) =>
+                    <span search_name="" onClick={() => SetTextInputName(val)} key={key}>{val}</span>
                 ));
             else ResetListNamePopup();
-        } catch(e) {};
+        } catch (e) { };
 
         (type_path === "z") ? ChangeFerti() : ChangeChemi()
     }
@@ -448,35 +461,35 @@ useEffect(() => {
         NameFactor.current.value = name;
         (type_path === "z") ? ChangeFerti() : ChangeChemi()
         ResetListNamePopup()
-        SearchFactorNameOther({target : {value : "" , selectBt : true}})
+        SearchFactorNameOther({ target: { value: "", selectBt: true } })
     }
 
     const ResetListNamePopup = () => {
         setListName(<></>)
-        ListSearchName.current.setAttribute("remove" , "")
+        ListSearchName.current.setAttribute("remove", "")
     }
 
     // other
     const SearchFactorNameOther = async (e) => {
         ListSearchFactorNameMain.current.removeAttribute("remove")
-        
+
         try {
             let search = DataFactor
-            search = search.filter((val)=>
-                                val.name_formula.indexOf(e.target.value) >= 0 && val.name.indexOf(NameFactor.current.value) >= 0)
-                                    .map((val)=>val.name_formula)
+            search = search.filter((val) =>
+                val.name_formula.indexOf(e.target.value) >= 0 && val.name.indexOf(NameFactor.current.value) >= 0)
+                .map((val) => val.name_formula)
             const setSearch = ChangeData(search)
-            if(setSearch.length !== 0) {
-                if(setSearch.length === 1 && e.target.selectBt) {
+            if (setSearch.length !== 0) {
+                if (setSearch.length === 1 && e.target.selectBt) {
                     SetTextInputOrther(setSearch[0])
                 } else {
-                    setListOther(setSearch.map((val , key)=>
-                        <span search_other="" onClick={()=>SetTextInputOrther(val)} key={key}>{val}</span>
+                    setListOther(setSearch.map((val, key) =>
+                        <span search_other="" onClick={() => SetTextInputOrther(val)} key={key}>{val}</span>
                     ))
                 }
             }
             else ResetListOtherPopup();
-        } catch(e) {}
+        } catch (e) { }
 
         (type_path === "z") ? ChangeFerti() : ChangeChemi()
     }
@@ -489,52 +502,49 @@ useEffect(() => {
 
     const ResetListOtherPopup = () => {
         setListOther(<></>)
-        ListSearchFactorNameMain.current.setAttribute("remove" , "")
+        ListSearchFactorNameMain.current.setAttribute("remove", "")
     }
 
     // change how use 
     const setHowUse = () => {
         try {
-            if(Use.current.value === "") {
-                Use.current.value = DataFactor.filter((val)=>
-                                val.name_formula === NameMainFactor.current.value && val.name === NameFactor.current.value)
-                                    .map((val)=>val.how_use)[0] ?? ""
+            if (Use.current.value === "") {
+                Use.current.value = DataFactor.filter((val) =>
+                    val.name_formula === NameMainFactor.current.value && val.name === NameFactor.current.value)
+                    .map((val) => val.how_use)[0] ?? ""
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     // math date sefe chemical
     const setDateSafe = () => {
         try {
-            const NumDay = DataFactor.filter((val)=>
-                            val.name_formula.indexOf(NameMainFactor.current.value) >= 0 && val.name.indexOf(NameFactor.current.value) >= 0)
-                                .map((val)=>val.date_safe_list)[0]
+            const NumDay = DataFactor.filter((val) =>
+                val.name_formula.indexOf(NameMainFactor.current.value) >= 0 && val.name.indexOf(NameFactor.current.value) >= 0)
+                .map((val) => val.date_safe_list)[0]
             const DateUsePut = new Date(DateUse.current.value ? ConvertDate(DateUse.current.value).christDate : "")
             DateUsePut.setDate(DateUsePut.getDate() + NumDay + 1)
             const result = DateUsePut.toISOString().split("T")[0]
             DateSafe.current.value = ConvertDate(result).buddhistDate
             setDateOut(result)
-        } catch(e) {}
+        } catch (e) { }
     }
 
     const ValidateChemicalAndPest = () => {
-        // ListSearchName.current.setAttribute("remove","")
-        // ListSearchFactorNameMain.current.setAttribute("remove","")
-        // ListSearchPests.current.setAttribute("remove","")
         const chemicalValue = NameFactor.current.value.trim();
         const pestValue = NameInsect.current.value.trim();
-    
+
         // ตรวจสอบว่ามีการกรอกข้อมูลทั้งศัตรูพืชและสารเคมี
         if (!chemicalValue || !pestValue) {
             return; // ไม่แสดง Popup หากช่องว่าง
         }
-    
+
         // ค้นหาข้อมูลศัตรูพืชและสารเคมีใน pestChemicalData
         const matchedEntry = pestChemicalData.find(
             (entry) =>
                 entry.pest_name === pestValue && entry.chemical_name === chemicalValue
         );
-    
+
         if (!matchedEntry) {
             setPopupMessage(
                 `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`
@@ -544,38 +554,38 @@ useEffect(() => {
             setShowPopup(false); // ซ่อน Popup หากข้อมูลถูกต้อง
         }
     };
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
     // 
     const ChangeData = (DataFilter) => {
         const search = DataFilter
         const setSearch = new Set(search)
         const ObjectName = new Array
-        setSearch.forEach(val=>ObjectName.push(val))
+        setSearch.forEach(val => ObjectName.push(val))
         return ObjectName
     }
 
 
-    
-    return(
+
+    return (
         // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
         <section className="popup-content-fertilizer">
-        {/* ป๊อปอัปแจ้งเตือน */}
-        {showPopup && (
-    <div className="popup-overlay">
-        <div className="popup-content">
-        <div class="icon">⚠️</div>
-        <div class="title">การแจ้งเตือน</div>
-            <p>{popupMessage}</p>
-            <button onClick={() => setShowPopup(false)}>ปิด</button>
-        </div>
-    </div>
-)}
+            {/* ป๊อปอัปแจ้งเตือน */}
+            {showPopup && (
+                <div className="popup-overlay">
+                    <div className="popup-content">
+                        <div class="icon">⚠️</div>
+                        <div class="title">การแจ้งเตือน</div>
+                        <p>{popupMessage}</p>
+                        <button onClick={() => setShowPopup(false)}>ปิด</button>
+                    </div>
+                </div>
+            )}
 
             <div className="head">แบบบันทึกเกษตรกร</div>
             <div className="form">
@@ -588,232 +598,232 @@ useEffect(() => {
                             <div className="step">
                                 <div className="num">1.</div>
                                 <div className="body">
-                                    { type_path === "z" ?
+                                    {type_path === "z" ?
                                         <>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ว/ด/ป ที่ใช้</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} refIn={DateUse} onInputIn={ChangeFerti}/>
-                                                {/* <input onChange={ChangeFerti} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                                <span className="full">ชื่อสิ่งที่ใช้ (ชื่อการค้า, ตรา)</span>
-                                                <div className="content-colume-input">
-                                                    <div className="input-select-popup">
-                                                        <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={!LoadSearchName ? "กำลังโหลด" : "กรอกชื่อปุ๋ย"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
-                                                        <div ref={ListSearchName} remove="" className="list-input-search">
-                                                            {LoadSearchName ? 
-                                                                ListSelectName : 
-                                                                <div style={{
-                                                                    display : "flex",
-                                                                    justifyContent : "center" ,
-                                                                    alignItems : "center"
-                                                                }}> 
-                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                                </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ว/ด/ป ที่ใช้</span>
+                                                    <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} refIn={DateUse} onInputIn={ChangeFerti} />
+                                                    {/* <input onChange={ChangeFerti} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">ชื่อสิ่งที่ใช้ (ชื่อการค้า, ตรา)</span>
+                                                    <div className="content-colume-input">
+                                                        <div className="input-select-popup">
+                                                            <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={!LoadSearchName ? "กำลังโหลด" : "กรอกชื่อปุ๋ย"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
+                                                            <div ref={ListSearchName} remove="" className="list-input-search">
+                                                                {LoadSearchName ?
+                                                                    ListSelectName :
+                                                                    <div style={{
+                                                                        display: "flex",
+                                                                        justifyContent: "center",
+                                                                        alignItems: "center"
+                                                                    }}>
+                                                                        <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                    </div>
                                                                 }
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ชื่อสูตรปุ๋ย</span>
-                                                <div className="input-select-other">
-                                                    <input onChange={LoadSearchNameMain ? SearchFactorNameOther : null} onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null} ref={NameMainFactor} type="text" placeholder={LoadSearchNameMain ? "กรอกสูตรปุ๋ย" : "กำลังโหลด"} readOnly={!LoadSearchNameMain ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
-                                                    <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
-                                                        {LoadSearchNameMain ? 
-                                                            ListSelectNameMain :
-                                                            <div style={{
-                                                                display : "flex",
-                                                                justifyContent : "center" ,
-                                                                alignItems : "center"
-                                                            }}> 
-                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                            </div>
-                                                        }
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ชื่อสูตรปุ๋ย</span>
+                                                    <div className="input-select-other">
+                                                        <input onChange={LoadSearchNameMain ? SearchFactorNameOther : null} onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null} ref={NameMainFactor} type="text" placeholder={LoadSearchNameMain ? "กรอกสูตรปุ๋ย" : "กำลังโหลด"} readOnly={!LoadSearchNameMain ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
+                                                        <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
+                                                            {LoadSearchNameMain ?
+                                                                ListSelectNameMain :
+                                                                <div style={{
+                                                                    display: "flex",
+                                                                    justifyContent: "center",
+                                                                    alignItems: "center"
+                                                                }}>
+                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                </div>
+                                                            }
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                                <span className="full">วิธีการใช้</span>
-                                                <textarea onChange={ChangeFerti} className="content-colume-input" style={{textAlign : "left"}} ref={Use}></textarea>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ปริมาณที่ใช้</span>
-                                                <div className="input-row">
-                                                    <input onChange={ChangeFerti} ref={Volume} type="number" placeholder="ตัวเลข"></input>
-                                                    <select onChange={ChangeFerti} ref={Unit} defaultValue={"ลิตร"}>
-                                                        <option value={"ลิตร"}>ลิตร</option>
-                                                        <option value={"ก.ก"}>ก.ก</option>
-                                                    </select>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>แหล่งที่ซื้อ</span>
-                                                {/* <input onChange={ChangeFerti} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
-                                                { DataSource ?
-                                                    <select onChange={ChangeFerti} ref={Source} defaultValue={""}>
-                                                        <option value={""} disabled>เลือก</option>
-                                                            { 
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">วิธีการใช้</span>
+                                                    <textarea onChange={ChangeFerti} className="content-colume-input" style={{ textAlign: "left" }} ref={Use}></textarea>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ปริมาณที่ใช้</span>
+                                                    <div className="input-row">
+                                                        <input onChange={ChangeFerti} ref={Volume} type="number" placeholder="ตัวเลข"></input>
+                                                        <select onChange={ChangeFerti} ref={Unit} defaultValue={"ลิตร"}>
+                                                            <option value={"ลิตร"}>ลิตร</option>
+                                                            <option value={"ก.ก"}>ก.ก</option>
+                                                        </select>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>แหล่งที่ซื้อ</span>
+                                                    {/* <input onChange={ChangeFerti} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
+                                                    {DataSource ?
+                                                        <select onChange={ChangeFerti} ref={Source} defaultValue={""}>
+                                                            <option value={""} disabled>เลือก</option>
+                                                            {
                                                                 DataSource ?
-                                                                    DataSource.map((val , key)=>
+                                                                    DataSource.map((val, key) =>
                                                                         <option value={val.name} key={val.id}>{val.name}</option>
                                                                     ) : <></>
                                                             }
-                                                    </select> :
-                                                    <select key={1} disabled defaultValue={""} ref={Source}>
-                                                        <option disabled value={""}>กำลังโหลด</option>
-                                                    </select>
-                                                }
-                                            </label>
-                                        </div>
+                                                        </select> :
+                                                        <select key={1} disabled defaultValue={""} ref={Source}>
+                                                            <option disabled value={""}>กำลังโหลด</option>
+                                                        </select>
+                                                    }
+                                                </label>
+                                            </div>
                                         </> :
                                         <>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ว/ด/ป ที่พ่นสาร</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} refIn={DateUse} onInputIn={()=>{ChangeChemi()}}/>
-                                                {/* <input onChange={ChangeChemi} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                                <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
-                                                <div className="content-colume-input">
-                                                    <div className="input-select-popup">
-                                                        <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchName ? true : null}  onBlur={ValidateChemicalAndPest}></input>
-                                                        <div ref={ListSearchName} remove="" className="list-input-search">
-                                                            {LoadSearchName ? 
-                                                                ListSelectName : 
-                                                                <div style={{
-                                                                    display : "flex",
-                                                                    justifyContent : "center" ,
-                                                                    alignItems : "center"
-                                                                }}> 
-                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                                </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ว/ด/ป ที่พ่นสาร</span>
+                                                    <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} refIn={DateUse} onInputIn={() => { ChangeChemi() }} />
+                                                    {/* <input onChange={ChangeChemi} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
+                                                    <div className="content-colume-input">
+                                                        <div className="input-select-popup">
+                                                            <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null} placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"} ref={NameFactor} readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchName ? true : null} onBlur={ValidateChemicalAndPest}></input>
+                                                            <div ref={ListSearchName} remove="" className="list-input-search">
+                                                                {LoadSearchName ?
+                                                                    ListSelectName :
+                                                                    <div style={{
+                                                                        display: "flex",
+                                                                        justifyContent: "center",
+                                                                        alignItems: "center"
+                                                                    }}>
+                                                                        <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                    </div>
                                                                 }
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ชื่อสามัญสารเคมี</span>
-                                                <div className="input-select-other">
-                                                    <input onChange={LoadSearchNameMain ? SearchFactorNameOther : null} onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null} ref={NameMainFactor} type="text" placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"} readOnly={!LoadSearchNameMain ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
-                                                    <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
-                                                        {LoadSearchNameMain ? 
-                                                            ListSelectNameMain :
-                                                            <div style={{
-                                                                display : "flex",
-                                                                justifyContent : "center" ,
-                                                                alignItems : "center"
-                                                            }}> 
-                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                            </div>
-                                                        }
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ชื่อสามัญสารเคมี</span>
+                                                    <div className="input-select-other">
+                                                        <input onChange={LoadSearchNameMain ? SearchFactorNameOther : null} onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null} ref={NameMainFactor} type="text" placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"} readOnly={!LoadSearchNameMain ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
+                                                        <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
+                                                            {LoadSearchNameMain ?
+                                                                ListSelectNameMain :
+                                                                <div style={{
+                                                                    display: "flex",
+                                                                    justifyContent: "center",
+                                                                    alignItems: "center"
+                                                                }}>
+                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                </div>
+                                                            }
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ศัตรูพืชที่พบ</span>
-                                                <div className="input-select-other">
-                                                  <div className="input-select-popup">
-                                                     <input
-                                                       onChange={LoadSearchPests ? SearchPests : null}
-                                                       onMouseDown={LoadSearchPests ? SearchPests : null}
-                                                       placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
-                                                       ref={NameInsect}
-                                                       readOnly={!LoadSearchPests ? true : null}
-                                                       disabled={!LoadSearchPests ? true : null} onBlur={ValidateChemicalAndPest}
-                                                    ></input>
-                                                  <div ref={ListSearchPests} remove="" className="list-input-search">
-                                                     {LoadSearchPests ? (
-                                                       ListSelectPests
-                                                       ) : (
-                                                  <div
-                                                    style={{
-                                                      display: "flex",
-                                                      justifyContent: "center",
-                                                      alignItems: "center",
-                                                  }}
-                                                 >
-                                               <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
-                                             </div>
-                                           )}
-                                     </div>
-                               </div>
-                           </div>
-                       </label>
-                   </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                                <span className="full">วิธีการใช้</span>
-                                                <textarea className="content-colume-input" style={{textAlign : "left"}} ref={Use}></textarea>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>อัตราที่ผสม</span>
-                                                <div className="input-row">
-                                                    <input onChange={ChangeChemi} ref={Rate} type="number" placeholder="cc."></input>
-                                                    <div className="unit">/น้ำ20ล.</div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ปริมาณที่ใช้ทั้งหมด</span>
-                                                <div className="input-row">
-                                                    <input onChange={ChangeChemi} ref={Volume} type="number" placeholder="ตัวเลข"></input>
-                                                    <select onChange={ChangeChemi} ref={Unit} defaultValue={"กรัม"}>
-                                                        <option value={"กรัม"}>กรัม</option>
-                                                        <option value={"มิลลิลิตร"}>มิลลิลิตร</option>
-                                                    </select>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>วันที่ปลอดภัย</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} refIn={DateSafe} onInputIn={ChangeChemi}/>
-                                                {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>แหล่งที่ซื้อ</span>
-                                                {/* <input onChange={ChangeChemi} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
-                                                { DataSource ?
-                                                    <select key={0} onChange={ChangeChemi} ref={Source} defaultValue={""}>
-                                                        <option value={""} disabled>เลือก</option>
-                                                        { 
-                                                            DataSource ?
-                                                                DataSource.map((val , key)=>
-                                                                    <option value={val.name} key={val.id}>{val.name}</option>
-                                                                ) : <></>
-                                                        }
-                                                    </select> :
-                                                    <select key={1} disabled defaultValue={""} ref={Source}>
-                                                        <option disabled value={""}>กำลังโหลด</option>
-                                                    </select>
-                                                }
-                                            </label>
-                                        </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ศัตรูพืชที่พบ</span>
+                                                    <div className="input-select-other">
+                                                        <div className="input-select-popup">
+                                                            <input
+                                                                onChange={LoadSearchPests ? SearchPests : null}
+                                                                onMouseDown={LoadSearchPests ? SearchPests : null}
+                                                                placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
+                                                                ref={NameInsect}
+                                                                readOnly={!LoadSearchPests ? true : null}
+                                                                disabled={!LoadSearchPests ? true : null} onBlur={ValidateChemicalAndPest}
+                                                            ></input>
+                                                            <div ref={ListSearchPests} remove="" className="list-input-search">
+                                                                {LoadSearchPests ? (
+                                                                    ListSelectPests
+                                                                ) : (
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            justifyContent: "center",
+                                                                            alignItems: "center",
+                                                                        }}
+                                                                    >
+                                                                        <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">วิธีการใช้</span>
+                                                    <textarea className="content-colume-input" style={{ textAlign: "left" }} ref={Use}></textarea>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>อัตราที่ผสม</span>
+                                                    <div className="input-row">
+                                                        <input onChange={ChangeChemi} ref={Rate} type="number" placeholder="cc."></input>
+                                                        <div className="unit">/น้ำ20ล.</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ปริมาณที่ใช้ทั้งหมด</span>
+                                                    <div className="input-row">
+                                                        <input onChange={ChangeChemi} ref={Volume} type="number" placeholder="ตัวเลข"></input>
+                                                        <select onChange={ChangeChemi} ref={Unit} defaultValue={"กรัม"}>
+                                                            <option value={"กรัม"}>กรัม</option>
+                                                            <option value={"มิลลิลิตร"}>มิลลิลิตร</option>
+                                                        </select>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>วันที่ปลอดภัย</span>
+                                                    <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} refIn={DateSafe} onInputIn={ChangeChemi} />
+                                                    {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>แหล่งที่ซื้อ</span>
+                                                    {/* <input onChange={ChangeChemi} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
+                                                    {DataSource ?
+                                                        <select key={0} onChange={ChangeChemi} ref={Source} defaultValue={""}>
+                                                            <option value={""} disabled>เลือก</option>
+                                                            {
+                                                                DataSource ?
+                                                                    DataSource.map((val, key) =>
+                                                                        <option value={val.name} key={val.id}>{val.name}</option>
+                                                                    ) : <></>
+                                                            }
+                                                        </select> :
+                                                        <select key={1} disabled defaultValue={""} ref={Source}>
+                                                            <option disabled value={""}>กำลังโหลด</option>
+                                                        </select>
+                                                    }
+                                                </label>
+                                            </div>
                                         </>
                                     }
                                 </div>
@@ -822,16 +832,16 @@ useEffect(() => {
                     </div>
                 </div>
                 <div className="bt-form">
-                    <button style={{backgroundColor : "#FF8484"}} className="bt-confirm-factor" onClick={cancel}>ยกเลิก</button>
-                    { getWait ?
+                    <button style={{ backgroundColor: "#FF8484" }} className="bt-confirm-factor" onClick={cancel}>ยกเลิก</button>
+                    {getWait ?
                         <div className="bt-confirm-factor" style={{
-                            display : "flex",
-                            justifyContent : "center",
-                            alignItems : "center",
-                            padding : "2px",
-                            height : "30.8px"
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: "2px",
+                            height: "30.8px"
                         }}>
-                            <Loading size={27} border={5} color="white" animetion={true}/>
+                            <Loading size={27} border={5} color="white" animetion={true} />
                         </div>
                         :
                         <button ref={BTConfirm} no="" className="bt-confirm-factor" onClick={type_path === "z" ? ConfirmFerti : ConfirmChemi}>ยืนยัน</button>
