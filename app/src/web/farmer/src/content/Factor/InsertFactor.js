@@ -450,6 +450,9 @@ useEffect(() => {
     }
 
     const ValidateChemicalAndPest = () => {
+        ListSearchName.current.setAttribute("remove","")
+        ListSearchFactorNameMain.current.setAttribute("remove","")
+        ListSearchPests.current.setAttribute("remove","")
         const chemicalValue = NameFactor.current.value.trim();
         const pestValue = NameInsect.current.value.trim();
     
