@@ -1376,22 +1376,21 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                     if (data.type_insert === 'c') {
                                         try {
                                             const pestChemicalRelationValid = await checkPestChemicalRelation(data.insect, data.name, con);
+                                    
                                             if (!pestChemicalRelationValid) {
-                                                // แจ้งเตือนเมื่อข้อมูลไม่สัมพันธ์
+                                                // ส่งแจ้งเตือนเกี่ยวกับความสัมพันธ์ที่ไม่ถูกต้อง แต่ยังคงบันทึกข้อมูล
                                                 sendNotifyToDoctor(
                                                     auth.data.id_table,
                                                     auth.data.station,
-                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\n เพิ่มสารเคมี "${data.name}" ไม่สัมพันธ์กับศัตรูพืช "${data.insect}"`
+                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\nแต่ข้อมูลไม่สัมพันธ์กับศัตรูพืช "${data.insect}"`
                                                 );
-                                                con.end();
-                                                return res.send('invalid_chemical');
                                             }
                                         } catch (err) {
                                             console.error('Error checking pest-chemical relation:', err);
-                                            con.end();
-                                            return res.status(500).send('Error checking pest-chemical relation');
+                                            // ไม่ยุติการบันทึก แต่แจ้งปัญหานี้ใน log
                                         }
                                     }
+                                    
     
                                     // ดำเนินการบันทึกข้อมูล
                                     con.query(sql, ArrayData, (err, insert) => {

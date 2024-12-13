@@ -162,51 +162,87 @@ useEffect(() => {
 
     
 
+    // const ConfirmFerti = async () => {
+    //     const dateUse = DateUse.current
+    //     const formula_name = NameMainFactor.current
+    //     const Name = NameFactor.current
+    //     const use = Use.current
+    //     const volume = Volume.current
+    //     const source = Source.current
+
+    //     if( dateUse.value && Name.value && use.value && volume.value && source.value
+    //         ) {
+    //             const DataInsert = {
+    //                 id_farmhouse : id_house,
+    //                 id_plant : id_form_plant,
+    //                 date : ConvertDate(dateUse.value).christDate,
+    //                 formula_name : formula_name.value,
+    //                 name : Name.value,
+    //                 use : use.value,
+    //                 volume : volume.value + " " + Unit.current.value,
+    //                 source : source.value,
+    //                 type_insert : type_path
+    //             }
+
+    //             setWait(true)
+    //             const result = await clientMo.post("/api/farmer/factor/insert" , DataInsert)
+    //             if(await CloseAccount(result , setPage)) {
+    //                 cancel()
+    //                 ReloadData()
+    //                 setWait(false)
+    //             }
+    //     } else {
+    //         let RefObject = [
+    //                     dateUse ,
+    //                     formula_name ,
+    //                     Name ,
+    //                     use ,
+    //                     volume ,
+    //                     source ,
+    //                     // , seft
+    //                 ]
+    //         RefObject.forEach((ele , index)=>{
+    //             if(!ele.value && ele) ele.style.border = "2px solid red"
+    //             else if (ele.value && ele) ele.style.border = "2px solid transparent"
+    //         })
+    //     }
+    // }
+
+
     const ConfirmFerti = async () => {
-        const dateUse = DateUse.current
-        const formula_name = NameMainFactor.current
-        const Name = NameFactor.current
-        const use = Use.current
-        const volume = Volume.current
-        const source = Source.current
-
-        if( dateUse.value && Name.value && use.value && volume.value && source.value
-            ) {
-                const DataInsert = {
-                    id_farmhouse : id_house,
-                    id_plant : id_form_plant,
-                    date : ConvertDate(dateUse.value).christDate,
-                    formula_name : formula_name.value,
-                    name : Name.value,
-                    use : use.value,
-                    volume : volume.value + " " + Unit.current.value,
-                    source : source.value,
-                    type_insert : type_path
-                }
-
-                setWait(true)
-                const result = await clientMo.post("/api/farmer/factor/insert" , DataInsert)
-                if(await CloseAccount(result , setPage)) {
-                    cancel()
-                    ReloadData()
-                    setWait(false)
-                }
-        } else {
-            let RefObject = [
-                        dateUse ,
-                        formula_name ,
-                        Name ,
-                        use ,
-                        volume ,
-                        source ,
-                        // , seft
-                    ]
-            RefObject.forEach((ele , index)=>{
-                if(!ele.value && ele) ele.style.border = "2px solid red"
-                else if (ele.value && ele) ele.style.border = "2px solid transparent"
-            })
+        const dateUse = DateUse.current.value || null;
+        const formula_name = NameMainFactor.current.value || null;
+        const Name = NameFactor.current.value || null;
+        const use = Use.current.value || null;
+        const volume = Volume.current.value ? `${Volume.current.value} ${Unit.current.value}` : null;
+        const source = Source.current.value || null;
+    
+        const DataInsert = {
+            id_farmhouse: id_house,
+            id_plant: id_form_plant,
+            date: dateUse ? ConvertDate(dateUse).christDate : null,
+            formula_name: formula_name,
+            name: Name,
+            use: use,
+            volume: volume,
+            source: source,
+            type_insert: type_path,
+        };
+    
+        setWait(true);
+        try {
+            const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
+            if (await CloseAccount(result, setPage)) {
+                cancel();
+                ReloadData();
+            }
+        } catch (error) {
+            console.error("Error saving data:", error);
+        } finally {
+            setWait(false);
         }
-    }
+    };
+    
 
     // const ConfirmChemi = async () => {
     //     const dateUse = DateUse.current
@@ -266,30 +302,62 @@ useEffect(() => {
     // }
 
     // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
+    // const ConfirmChemi = async () => {
+    //     const DataInsert = {
+    //         id_farmhouse: id_house,
+    //         id_plant: id_form_plant,
+    //         date: ConvertDate(DateUse.current.value).christDate,
+    //         formula_name: NameMainFactor.current.value,
+    //         name: NameFactor.current.value,
+    //         insect: NameInsect.current.value,
+    //         use: Use.current.value,
+    //         rate: Rate.current.value,
+    //         volume: Volume.current.value + " " + Unit.current.value,
+    //         dateSafe: ConvertDate(DateSafe.current.value).christDate,
+    //         source: Source.current.value,
+    //         type_insert: type_path,
+    //     };
+    
+    //     setWait(true);
+    //     const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
+    //     if (await CloseAccount(result, setPage)) {
+    //         cancel();
+    //         ReloadData();
+    //         setWait(false);
+    //     }
+    // };
+
+
     const ConfirmChemi = async () => {
         const DataInsert = {
             id_farmhouse: id_house,
             id_plant: id_form_plant,
-            date: ConvertDate(DateUse.current.value).christDate,
-            formula_name: NameMainFactor.current.value,
-            name: NameFactor.current.value,
-            insect: NameInsect.current.value,
-            use: Use.current.value,
-            rate: Rate.current.value,
-            volume: Volume.current.value + " " + Unit.current.value,
-            dateSafe: ConvertDate(DateSafe.current.value).christDate,
-            source: Source.current.value,
+            date: DateUse.current.value ? ConvertDate(DateUse.current.value).christDate : null,
+            formula_name: NameMainFactor.current.value || null,
+            name: NameFactor.current.value || null,
+            insect: NameInsect.current.value || null,
+            use: Use.current.value || null,
+            rate: Rate.current.value || null,
+            volume: Volume.current.value ? `${Volume.current.value} ${Unit.current.value}` : null,
+            dateSafe: DateSafe.current.value ? ConvertDate(DateSafe.current.value).christDate : null,
+            source: Source.current.value || null,
             type_insert: type_path,
         };
     
         setWait(true);
-        const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
-        if (await CloseAccount(result, setPage)) {
-            cancel();
-            ReloadData();
+        try {
+            const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
+            if (await CloseAccount(result, setPage)) {
+                cancel();
+                ReloadData();
+            }
+        } catch (error) {
+            console.error("Error saving data:", error);
+        } finally {
             setWait(false);
         }
     };
+    
     
     
 
@@ -450,9 +518,9 @@ useEffect(() => {
     }
 
     const ValidateChemicalAndPest = () => {
-        ListSearchName.current.setAttribute("remove","")
-        ListSearchFactorNameMain.current.setAttribute("remove","")
-        ListSearchPests.current.setAttribute("remove","")
+        // ListSearchName.current.setAttribute("remove","")
+        // ListSearchFactorNameMain.current.setAttribute("remove","")
+        // ListSearchPests.current.setAttribute("remove","")
         const chemicalValue = NameFactor.current.value.trim();
         const pestValue = NameInsect.current.value.trim();
     
