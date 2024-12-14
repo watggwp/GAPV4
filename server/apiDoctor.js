@@ -56,7 +56,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
             con.query(
                 `
-                SELECT name
+                SELECT name,id_station
                 FROM station_list
                 WHERE id = ?
                 ` , [result['data'].station_doctor] , 
@@ -65,7 +65,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     result['data'].img_doctor = result['data'].img_doctor.toString()
                     res.send({
                         ...result['data'] ,
-                        name_station : station[0].name
+                        name_station : station[0].name,
+                        id_station : station[0].id_station
                     })
                 }
             )
@@ -245,7 +246,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
         let username = req.session.user_doctor ?? req.body['username'] ?? '';
         let password = req.session.pass_doctor ?? req.body['password'] ?? '';
-    
+        let role = req.session.role_doctor ?? req.body['role'] ?? '';
+
         if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
             res.redirect('/api/logout')
             return 0
@@ -254,7 +256,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB)
         // Database.resume()
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+        apifunc.auth(con , username , password , res , "acc_doctor" , role).then((result)=>{
             if(result['result'] === "pass") {
                 if (result['data']['status_account'] == 0
                         || result['data']['status_delete'] == 1) {
@@ -267,7 +269,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password
-
+                    req.session.role_doctor = role
+                    
                     if(req.body.uid_line) {
                         con.query(
                             `
@@ -311,7 +314,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 return 0;
             }
 
-            con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+            con.query(`SELECT id, name, id_station FROM station_list WHERE is_use = 1` , (err , result)=>{
                 if (err) {
                     dbpacket.dbErrorReturn(con, err, res);
                     console.log("query");
