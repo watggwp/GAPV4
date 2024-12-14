@@ -149,6 +149,46 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
+                
+            } else if (query.indexOf("group") === 0) {
+                Href.set(`data?group${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
+            
+        } else if (query.indexOf("chemical") === 0) {
+            Href.set(`data?chemical${type}`);
+            setBody(
+                <PageTemplate
+                    session={sessionoff}
+                    TabOn={TabOn}
+                    socket={socket}
+                    modify={modifyMainPage}
+                    auth={Auth}
+                    HrefData={Href}
+                />
+            );
+        
+
+        } else if (query.indexOf("pest") === 0) {
+                    Href.set(`data?pest${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
                 }
             }
         } else {

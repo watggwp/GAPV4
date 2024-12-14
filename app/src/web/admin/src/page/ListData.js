@@ -78,6 +78,14 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                 startRow: StartRow,
                 textSearch: textSearch
             });
+        // } else if (HrefPage.get().split("?")[0] === "group") {
+        //     ObjectData = await clientMo.post("/api/admin/group/list", {
+        //         typeDelete: status.status === "admin" ? 0 : status.status === "delete" ? 1 : -1,
+        //         limit: Limit || 10,
+        //         startRow: StartRow,
+        //         textSearch: textSearch
+        //     });
+
         }
     
         if(ObjectData) {
@@ -99,12 +107,16 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                     (HrefPage.get().split("?")[0] === "listadmin") ? "บัญชีผู้ดูแลระบบ" : 
                     (HrefPage.get().split("?")[0] === "data") ? "ข้อมูลเพิ่มเติม" : "" 
                     ,
-                    (HrefPage.get().indexOf("delete") >= 0) ? "บัญชีที่ถูกลบ" : 
+                    (HrefPage.get().indexOf("delete") >= 0) ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" : 
+                    (HrefPage.get().indexOf("deleteAdmin") >= 0) ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : 
                     (HrefPage.get().indexOf("plant") >= 0) ? "ชนิดพืช" :
-                    (HrefPage.get().indexOf("station") >= 0) ? "ศูนย์ส่งเสริม" : ""
+                    (HrefPage.get().indexOf("station") >= 0) ? "ศูนย์ส่งเสริม" : 
+                    (HrefPage.get().indexOf("group") >= 0) ? "จัดกลุ่มข้อมูล" : 
+                    (HrefPage.get().indexOf("chemical") >= 0) ? "สารเคมี" : 
+                    (HrefPage.get().indexOf("pest") >= 0) ? "ศัตรูพืช" : ""
                 ])
             setStateOnPage({status : status.status})
-
+                console.log(status.status)
             if (["list", "listadmin"].includes(HrefPage.get().split("?")[0])) {
                 const isListAdmin = HrefPage.get().split("?")[0] === "listadmin";
                 const emitEvent = isListAdmin ? "connect-admin-list" : "connect-doctor-list";
@@ -127,7 +139,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                     return 0;
                 }
             } else {
-                session();
+                // session();
                 return 0;
             }  
         }    
@@ -136,10 +148,9 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
     return(
         <section className="body-list-manage">
             {
-                status.status === "default" || status.status === "admin" || status.status === "plant" || status.status === "station" ? 
+                status.status === "default" || status.status === "admin" || status.status === "plant" || status.status === "station" || status.status === "group" || status.status === "chemical" || status.status === "pest" ?
                 <InsertPage PageAddRef={PageAddRef} ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> : <></>
             }
-            {status.status}
             <div className="List-data">
                 <ManageList socket={socket} Data={DataFetch} setBecause={setBecause} ListCount={ListCount} setListCount={setListCount} 
                                     TabOn={TabOn} HrefPage={HrefPage} status={status} 
@@ -215,6 +226,13 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
     }
 
     const OpenEditData = async (id , typeStatus) => {
+        if(await auth(true)) {
+            const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
+            setBecause(<EditPage RefOnPage={RefBe} id_table={id} type={typeStatus} setBecause={setBecause} TabOn={TabOn} session={session} ReloadData={Fetch}/>)
+        }
+    }
+
+    const OpenEditDataAdmin = async (id , typeStatus) => {
         if(await auth(true)) {
             const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
             setBecause(<EditPage RefOnPage={RefBe} id_table={id} type={typeStatus} setBecause={setBecause} TabOn={TabOn} session={session} ReloadData={Fetch}/>)
@@ -308,7 +326,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                     HrefPage.get().split("?")[0] === "listadmin" ?
                     <>
                         {
-                            status.status === "default" ? 
+                            status.status === "admin" ? 
                                 <div className="status-online">
                                     <div className="text-online" style={ data.time_online == "online" ? {backgroundColor : "#00ff3c"} : {}}>
                                         {
@@ -323,7 +341,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                         }
                         <detail-data-main>
                             <detail-Image>
-                                <img src={data.img_admin ? data.img_admin : "/doctor-svgrepo-com.svg"}></img>
+                                <img src={data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"}></img>
                             </detail-Image>
                             <detail-data>
                                 <detail-in-fullname>
@@ -497,17 +515,19 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                     type : type,
                     passwordAd : pwAdmin.current.value
                 } : 
-                type === "default" ? {
+                type === "default" || type === "admin"  ? (
+                    localType == "default" ? {
                     id_doctor : RefData.Data1.current.value,
                     passwordDT : RefData.Data2.current.value,
                     passwordAd : pwAdmin.current.value
-                } : 
 
-                type === "admin" ? {
+                }:localType == "admin" ?
+                {
                     id : RefData.Data1.current.value,
-                    passwordDT : RefData.Data2.current.value,
+                    passwordAdNew : RefData.Data2.current.value,
                     passwordAd : pwAdmin.current.value
-                } : 
+
+                }:{}) : 
 
                 type === "plant" ? {
                     name : RefData.Data1.current.value,
@@ -540,7 +560,11 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                             type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
                             type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
-                            type === "station" ? "ศูนย์ส่งเสริม" : ""
+                            type === "station" ? "ศูนย์ส่งเสริม" : 
+                            type === "gruop" ? "จัดกลุ่มข้อมูล" : 
+                            type === "chemical" ? "สารเคมี" : 
+                            type === "pest" ? "ศัตรูพืช" : 
+                            ""
                         }สำเร็จ`)
                 setStatus(1)
                 Cancel()
@@ -557,7 +581,10 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                             type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
                             type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
                             type === "plant" ? "ชนิดพืช" : 
-                            type === "station" ? "ศูนย์ส่งเสริม" : ""
+                            type === "station" ? "ศูนย์ส่งเสริม" :
+                            type === "gruop" ? "จัดกลุ่มข้อมูล" : 
+                            type === "chemical" ? "สารเคมี" : 
+                            type === "pest" ? "จัดกลุ่มข้อมูล" : ""
                         }นี้แล้ว`)
                 setStatus(2)
                 Cancel()
@@ -670,7 +697,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                         }
                     }))()
                     :
-                type === "plant" || type === "station" ?
+                type === "plant" || type === "station" || type === "group" || type === "chemical" || type === "pest"  ?
                     (
                         <BodyDetailInsert
                             type={type}
@@ -754,7 +781,13 @@ const BodyDetailInsert = ({
                     type === "plant" ? 
                         "เพิ่มรายการชนิดพืช" : 
                     type === "station" ? 
-                        "เพิ่มรายการศูนย์": ""
+                        "เพิ่มรายการศูนย์": 
+                    type === "chemical" ? 
+                        "เพิ่มรายการสารเคมี": 
+                    type === "pest" ? 
+                        "เพิ่มรายการโรคพืช": 
+                    type === "gruop" ? 
+                        "เพิ่มรายการจัดกลุ่มข้อมูล": ""
                 }
             </span>
             <div className="detail-data">
@@ -767,7 +800,11 @@ const BodyDetailInsert = ({
                                 type === "plant"? 
                                     "ชื่อพืช" : 
                                 type === "station"? 
-                                    "ชื่อศูนย์ส่งเสริม" : ""
+                                    "ชื่อศูนย์ส่งเสริม" : 
+                                type === "chemical"? 
+                                    "ชื่อสารเคมี" :  
+                                type === "pest"? 
+                                    "ชื่อศัตรูพืช" : ""
                             }
                         </span>
                         <input
@@ -779,13 +816,56 @@ const BodyDetailInsert = ({
                                 type === "plant"? 
                                     "เช่น มะเขือเทศ" : 
                                 type === "station" ? 
-                                    "เช่น ศูนย์โครงการหลวง" 
-                                    : ""
+                                    "เช่น ศูนย์โครงการหลวง" :
+                                type === "chemical"? 
+                                    "เช่น พรีวาธอน" : 
+                                type === "pest" ? 
+                                    "เช่น หนอนใบจุด" : ""
                             }
                         ></input>
                     </div>
                     {
                         type === "plant" && (
+                            <div className="field-text">
+                                <span className="head-text">ประเภทพืช</span>
+                                <select
+                                    onChange={CheckEmply}
+                                    ref={RefData.Data2}
+                                    defaultValue={""}
+                                    style={{ width: "100%" }}
+                                >
+                                    <option value={""} disabled>
+                                        เลือกชนิดพืช
+                                    </option>
+                                    <option value={"พืชผัก"}>พืชผัก</option>
+                                    <option value={"สมุนไพร"}>สมุนไพร</option>
+                                </select>
+                            </div>
+                        )
+                    }
+
+                    {
+                        type === "chemical" && (
+                            <div className="field-text">
+                                <span className="head-text">ประเภทพืช</span>
+                                <select
+                                    onChange={CheckEmply}
+                                    ref={RefData.Data2}
+                                    defaultValue={""}
+                                    style={{ width: "100%" }}
+                                >
+                                    <option value={""} disabled>
+                                        เลือกชนิดพืช
+                                    </option>
+                                    <option value={"พืชผัก"}>พืชผัก</option>
+                                    <option value={"สมุนไพร"}>สมุนไพร</option>
+                                </select>
+                            </div>
+                        )
+                    }
+
+                    {
+                        type === "pest" && (
                             <div className="field-text">
                                 <span className="head-text">ประเภทพืช</span>
                                 <select
@@ -859,10 +939,6 @@ const BodyDetailInsert = ({
                                                 onChange={handleCheckboxChange}
                                             />
                                         </label>
-                                        <div>
-                                            <h3>Selected Roles:</h3>
-                                            <pre>{JSON.stringify(checkboxState, null, 2)}</pre>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -911,16 +987,42 @@ const BodyDetailInsert = ({
                                                 onChange={handleCheckboxChange}
                                             />
                                         </label>
-                                        <div>
-                                            <h3>Selected Roles:</h3>
-                                            <pre>{JSON.stringify(checkboxState, null, 2)}</pre>
-                                        </div>
                                     </div>
                                 </div>
                                 </label>
                             ) : ""
                         ) : 
                     type === "plant" ? (
+                            <label>
+                                <div className="field-text">
+                                    <span className="head-text">
+                                        จำนวนวันที่จะเก็บเกี่ยว
+                                    </span>
+                                    <input
+                                        onChange={CheckEmply}
+                                        ref={QtyDate}
+                                        placeholder="เช่น 10 , 30"
+                                        type="number"
+                                    ></input>
+                                </div>
+                            </label>
+                        ) : 
+                        type === "chemical" ? (
+                            <label>
+                                <div className="field-text">
+                                    <span className="head-text">
+                                        จำนวนวันที่จะเก็บเกี่ยว
+                                    </span>
+                                    <input
+                                        onChange={CheckEmply}
+                                        ref={QtyDate}
+                                        placeholder="เช่น 10 , 30"
+                                        type="number"
+                                    ></input>
+                                </div>
+                            </label>
+                        ) : 
+                        type === "pest" ? (
                             <label>
                                 <div className="field-text">
                                     <span className="head-text">

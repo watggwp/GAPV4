@@ -62,6 +62,62 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
     
   })
 
+
+  // admin page
+  app.post('/api/admin/admin/list' , async (req , res)=>{
+    const username = req.session.user_admin
+    const password = req.session.pass_admin
+  
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+  
+    let con = Database.createConnection(listDB)
+  
+    try {
+
+      const result = await apifunc.auth(con , username , password , res , "admin")
+      if(result['result'] === "pass") {
+        let data = req.body
+        let select = data.typeDelete === 0 ? ", status_account , time_online" : ""
+        const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit)
+        const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow)
+        con.query(
+          `
+            SELECT 
+            (
+              SELECT name FROM station_list WHERE admin.station_admin=station_list.id
+            ) as station
+            , id , fullname_admin, img_admin ${select}
+            FROM admin
+            WHERE status_delete = ? AND ( INSTR( id , ? ) OR INSTR( fullname_admin , ? ) )
+            ORDER BY status_account DESC , id DESC
+            LIMIT ${Limit} OFFSET ${StartRow};
+          ` 
+        , 
+        [data.typeDelete , data.textSearch , data.textSearch] ,
+        (err , result)=>{
+          con.end()
+          if (!err){
+            result.map(val=>{
+              val.img_admin = val.img_admin.toString()
+              return val
+            })
+            res.send(result)
+          } else res.send("");
+        })
+      }
+
+    } catch(err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+    
+  })
+
   app.post('/api/admin/doctor/get' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -128,12 +184,12 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             (
               SELECT name FROM station_list WHERE admin_main.station_admin=station_list.id
             ) as station , 
-            id , fullname_admin , id , img_admin , status_account , status_delete
-            FROM admin as doctor_main
+            id , username , img_admin , status_account , status_delete
+            FROM admin as admin_main
             WHERE id = ? LIMIT 25;
           ` 
         , 
-        [data.id_table] ,
+        [data.id] ,
         (err , result)=>{
           if (err){
             dbpacket.dbErrorReturn(con , err , res)
@@ -179,6 +235,52 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             ` 
           , 
           [data.id_table] ,
+          (err , result)=>{
+            if (err){
+              dbpacket.dbErrorReturn(con , err , res)
+              return 0
+            };
+    
+            con.end()
+            res.send(result)
+          })
+        }
+      }
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+  })
+
+  app.post('/api/admin/because/get' , async (req , res)=>{
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+  
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+  
+    let con = Database.createConnection(listDB)
+  
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        let data = req.body
+        const type_status = data.type_status === "status_account" ? "status" : 
+                              data.type_status === "status_delete" ? "delete" : "";
+        if(type_status && data.id) {
+          con.query(
+            `
+              SELECT * 
+              FROM because_${type_status}
+              WHERE id=?
+              ORDER BY date DESC;
+            ` 
+          , 
+          [data.id] ,
           (err , result)=>{
             if (err){
               dbpacket.dbErrorReturn(con , err , res)
@@ -377,7 +479,8 @@ app.get('/api/admin/profile/get', (req, res) => {
 
 
   app.post('/api/admin/add' , async (req , res)=>{
-    if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {    
+    console.log(req.body)
+    if(req.body['id'] && req.body['passwordAdNew'] && req.body['passwordAd']) {    
       let username = req.session.user_admin
       let password = req.body['passwordAd']
   
@@ -392,16 +495,16 @@ app.get('/api/admin/profile/get', (req, res) => {
         let auth = await apifunc.auth(con , username , password , res , "admin")
         if(auth['result'] === "pass") {
           con.query(`
-                    SELECT id_table_doctor
-                    FROM acc_doctor 
-                    WHERE id_doctor = ? and status_delete = 0
+                    SELECT id
+                    FROM admin 
+                    WHERE id = ? and status_delete = 0
                     ` , 
-          [req.body['id_doctor']] , 
+          [req.body['id']] , 
           (err , account)=>{
 
             if(err) {
               dbpacket.dbErrorReturn(con , err , res)
-              console.log("check doctor")
+              console.log("check admin")
               return 0
             }
 
@@ -409,24 +512,22 @@ app.get('/api/admin/profile/get', (req, res) => {
               con.end()
               res.send("overflow")
             } else {
-              con.query(`INSERT INTO acc_doctor
+              con.query(`INSERT INTO admin
                             (
-                              fullname_doctor , 
-                              id_doctor , 
-                              uid_line_doctor , 
-                              password_doctor , 
-                              img_doctor , 
-                              station_doctor , 
+                              username , 
+                              password , 
+                              img_admin , 
+                              station_admin , 
                               status_account , 
                               status_delete ,
                               time_online
                             ) 
-                            VALUES ('',?,'',SHA2(?,256),'','',1,0,"")` , 
-                [req.body['id_doctor'],req.body['passwordDT']] , 
+                            VALUES (?,SHA2(?,256),'','',1,0,"")` , 
+                [req.body['id'],req.body['passwordAdNew']] , 
                 (err , result)=>{
                   if(err) {
                     dbpacket.dbErrorReturn(con , err , res)
-                    console.log("insert doctor")
+                    console.log("insert admin")
                     return 0
                   }
                   con.end()
@@ -501,6 +602,94 @@ app.get('/api/admin/profile/get', (req, res) => {
                             SET ${req.body['type_status']} = ? 
                             WHERE id_table_doctor = ? ${type_status === "delete" ? "and status_delete = 0" : ""};` , 
                           [req.body['status'] , req.body['id_table']] , 
+                          (err,result)=>{
+                            if(err) {
+                              dbpacket.dbErrorReturn(con , err , res)
+                              console.log(`UPDATE ${type_status} err`)
+                              return 0
+                            }
+
+                            con.end()
+                            res.send("133")
+                          })
+                      } else {
+                        con.end()
+                        res.send("because")
+                      }
+                    }
+                  )
+                }
+                else res.send("delete")
+              }
+            )
+          }
+        } else {
+          con.end()
+          res.send('error ID or status')
+        }
+      }
+    } catch(err) {
+      con.end()
+      if(err == "not pass") {
+        res.send("password")
+      }
+    }
+  })
+
+  app.post('/api/admin/manage/admin' , async (req,res)=>{
+    let username = req.session.user_admin
+    let password = req.body['password']
+  
+    if(username === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+  
+    let con = Database.createConnection(listDB)
+  
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        if(req.body['id'] != undefined && (req.body['status'] === 1 || req.body['status'] === 0) && req.body['type_status']) {
+          const type_status = req.body['type_status'] === "status_account" ? "status" : 
+                              req.body['type_status'] === "status_delete" ? "delete" : "";
+          if(type_status) {
+            con.query(
+              `
+              SELECT id
+              FROM admin 
+              WHERE id = ? and status_delete = 0
+              `
+              , [ req.body['id'] ] , (err , deleteResult) => {
+                if(err) {
+                  dbpacket.dbErrorReturn(con , err , res)
+                  console.log(`select check err`)
+                  return 0
+                }
+
+                if(deleteResult.length) {
+                  const params = type_status === "status" ? 
+                                  [ req.body['id'] , username , req.body['because'] , new Date() , req.body['status'] ] : 
+                                  [ req.body['id'] , username , req.body['because'] , new Date() ]
+
+                  con.query(
+                    `
+                      INSERT INTO because_${type_status} 
+                      (id , id_admin , because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (? , ? , ? , ? ${type_status === "status" ? `, ?` : ""});
+                    ` , params ,
+                    (err , resultBecause) => {
+                      if(err) {
+                        dbpacket.dbErrorReturn(con , err , res)
+                        console.log("insert change status admin")
+                        return 0
+                      }
+                      if(resultBecause.affectedRows) {
+                        con.query(`
+                            UPDATE admin 
+                            SET ${req.body['type_status']} = ? 
+                            WHERE id = ? ${type_status === "delete" ? "and status_delete = 0" : ""};` , 
+                          [req.body['status'] , req.body['id']] , 
                           (err,result)=>{
                             if(err) {
                               dbpacket.dbErrorReturn(con , err , res)

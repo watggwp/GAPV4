@@ -17,7 +17,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     const PasswordRef = useRef()
 
     const [Profile , setProfile] = useState({
-        id_table : "", 
+        // id_table : "", 
         id : "" ,
         fullname : "",
         img : "",
@@ -41,13 +41,13 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     } , [])
 
     const FecthProfile = async () => {
-        let profile = await clientMo.post("/api/admin/admin/get" , {id_table : id_table})
+        let profile = await clientMo.post("/api/admin/admin/get" , {id : id})
         profile = JSON.parse(profile).map((val)=>val)[0]
         setProfile({
-            id_table : profile.id,
+            // id_table : profile.id,
             id : profile.id,
-            fullname : profile.fullname_admin,
-            img :  profile.img_admin !== "" ? profile.img_admin : "/doctor-svgrepo-com.svg",
+            username : profile.username,
+            img :  profile.img_admin !== "" ? profile.img_admin : "/admin-svgrepo-com.svg",
             station : profile.station,
             isdelete : profile.status_delete
         })
@@ -69,7 +69,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     const Submit = async () => {
         if(BecauseRef.current.value && PasswordRef.current.value) {
             const data = {
-                id_table : Profile.id_table,
+                id : profile.id,
                 type_status : type,
                 status : type === "status_account" ? status ? 0 : 1 : 1,
                 because : BecauseRef.current.value,
@@ -139,7 +139,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
                 {LoadingStatus ? 
                     <div className="Loading">
                         <Loading size={4/100 * ScreenW >= 41 ? 4/100 * ScreenW : 41} border={0.5/100 * ScreenW >= 5 ? 0.5/100 * ScreenW : 5} color="#1CFFF1" animetion={LoadingStatus}/>
-                        <span>กำลังโหลดข้อมูลผู้ส่งเสริม</span>
+                        <span>กำลังโหลดข้อมูลผู้ดูแลระบบ</span>
                     </div>
                     : <></>
                 }
@@ -166,7 +166,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
                                     </div>
                                     <div className="text-preview">
                                         <span className="head-data">ศูนย์</span> 
-                                        <div>{Profile.station ? Profile.station : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุ"}</div>
+                                        <div>{Profile.station ? Profile.station : "ผู้ดูแลระบบยังไม่ระบุ"}</div>
                                     </div>
                                 </div>
                             </> 
@@ -184,7 +184,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
                     }
                 </label>
                 <label className="column">
-                    <span>รหัสผ่านผู้ดูแล</span>
+                    <span>รหัสผ่านผู้ดูแลระบบ</span>
                     { Profile.isdelete ? 
                         <input placeholder="กรอกรหัสผ่าน" readOnly ref={PasswordRef} type="password" className="input-text input-pw"></input>
                         : 

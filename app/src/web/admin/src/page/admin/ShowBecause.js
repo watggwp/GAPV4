@@ -25,7 +25,7 @@ const ShowBecause = ({RefOnPage , id_table , type , TabOn , setBecause}) => {
     } , [])
 
     const FetchData = async () => {
-        const data = await clientMo.post("/api/admin/because/get" , {id_table : id_table , type_status : type})
+        const data = await clientMo.post("/api/admin/because/get" , {id : id , type_status : type})
         const List = JSON.parse(data).map((value , key)=>
             <tr key={key}>
                 { type === "status_account" ?
