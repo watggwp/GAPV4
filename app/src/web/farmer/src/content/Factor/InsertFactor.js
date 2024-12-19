@@ -8,6 +8,9 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
     const DateNowOnForm = `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`
     const [getDateOut , setDateOut] = useState("")
     const [pestChemicalData, setPestChemicalData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [currentFormId, setCurrentFormId] = useState(null);
+
 
     // State สำหรับการแจ้งเตือน
     const [popupMessage, setPopupMessage] = useState("");
@@ -48,6 +51,12 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
     const [LoadSearchPests, setLoadPests] = useState(false);
 
 
+    
+    const [formId, setFormId] = useState(""); // สำหรับ formId
+    const [currentPlantVarietyName, setCurrentPlantVarietyName] = useState(""); // ชื่อสายพันธุ์พืช
+    const [error, setError] = useState(null); // สำหรับข้อความแสดงข้อผิดพลาด
+    
+
     const [getWait , setWait] = useState(false)
     useEffect(()=>{
         RefPop.current.setAttribute("show" , "");
@@ -55,6 +64,12 @@ const PopupInsertFactor = ({setPopup , RefPop , uid , id_house , id_form_plant ,
         FetchSource()
         // (type_path === "z") ? FetchFactor("fertilizer") : FetchFactor("chemical")
     } , [])
+
+
+    useEffect(() => {
+        console.log("Pest Chemical Data Updated:", pestChemicalData);
+    }, [pestChemicalData]);
+    
 
     const FetchFactor = async (type) => {
         setLoadName(false);
@@ -86,22 +101,110 @@ const FetchPests = async () => {
 
 
 
-
 // ฟังก์ชันโหลดข้อมูลจาก API
 const FetchPestChemicalData = async () => {
+    setLoading(true);
     try {
-        const response = await clientMo.post("/api/farmer/pest-chemical");
-        const data = JSON.parse(response);
-        setPestChemicalData(data);
+        const Data = await clientMo.post("/api/farmer/pest-chemical", { id_form_plant: formId }); // เรียก API
+
+        console.log("Full API Response:", JSON.stringify(Data, null, 2));
+
+        // ตรวจสอบว่า CloseAccount ผ่านหรือไม่
+        if (await CloseAccount(Data, setPage)) {
+            const response = JSON.parse(Data); // แปลงข้อมูล JSON
+
+            console.log("Parsed Response Data:", response);
+
+            // ตรวจสอบโครงสร้างข้อมูล
+            if (response?.variety_name && Array.isArray(response.data)) {
+                const { variety_name, data } = response; // Destructure ข้อมูล
+                console.log("Variety Name:", variety_name);
+                console.log("Extracted Data:", data);
+
+                if (data.length > 0) {
+                    setPestChemicalData(data);
+                    setCurrentPlantVarietyName(variety_name);
+                } else {
+                    console.warn("No pest-chemical data found:", data);
+                    setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
+                    setShowPopup(true);
+                }
+            } else {
+                console.error("Invalid response structure or missing required fields");
+                setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
+                setShowPopup(true);
+            }
+        } else {
+            console.error("CloseAccount validation failed");
+            setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+            setShowPopup(true);
+        }
     } catch (error) {
-        console.error('Error fetching pest-chemical data:', error);
+        console.error("Error fetching pest-chemical data:", error.message || error);
+        setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+        setShowPopup(true);
+    } finally {
+        setLoading(false);
     }
 };
 
-// เรียกใช้ฟังก์ชันเมื่อ component โหลด
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // ฟังก์ชันโหลดข้อมูลจาก API
+// const FetchPestChemicalData = async () => {
+//     try {
+//         const response = await clientMo.post("/api/farmer/pest-chemical");
+//         const data = JSON.parse(response);
+//         setPestChemicalData(data);
+//     } catch (error) {
+//         console.error('Error fetching pest-chemical data:', error);
+//     }
+// };
+
 useEffect(() => {
-    FetchPestChemicalData();
-}, []);
+    if (formId) {
+        console.log("Fetching data for formId:", formId);
+        FetchPestChemicalData();
+    }
+}, [formId]);
+
+
+useEffect(() => {
+    if (id_form_plant) {
+        setFormId(id_form_plant);
+    } else {
+        console.error("id_form_plant is undefined");
+        FetchPestChemicalData();
+    }
+}, [id_form_plant]);
+
+
+
+
 
 
 
@@ -449,35 +552,98 @@ useEffect(() => {
         } catch(e) {}
     }
 
-    const ValidateChemicalAndPest = () => {
-        // ListSearchName.current.setAttribute("remove","")
-        // ListSearchFactorNameMain.current.setAttribute("remove","")
-        // ListSearchPests.current.setAttribute("remove","")
-        const chemicalValue = NameFactor.current.value.trim();
-        const pestValue = NameInsect.current.value.trim();
+    // const ValidateChemicalAndPest = () => {
+    //     // ListSearchName.current.setAttribute("remove","")
+    //     // ListSearchFactorNameMain.current.setAttribute("remove","")
+    //     // ListSearchPests.current.setAttribute("remove","")
+    //     const chemicalValue = NameFactor.current.value.trim();
+    //     const pestValue = NameInsect.current.value.trim();
     
-        // ตรวจสอบว่ามีการกรอกข้อมูลทั้งศัตรูพืชและสารเคมี
-        if (!chemicalValue || !pestValue) {
-            return; // ไม่แสดง Popup หากช่องว่าง
+    //     // ตรวจสอบว่ามีการกรอกข้อมูลทั้งศัตรูพืชและสารเคมี
+    //     if (!chemicalValue || !pestValue) {
+    //         return; // ไม่แสดง Popup หากช่องว่าง
+    //     }
+    
+    //     // ค้นหาข้อมูลศัตรูพืชและสารเคมีใน pestChemicalData
+    //     const matchedEntry = pestChemicalData.find(
+    //         (entry) =>
+    //             entry.pest_name === pestValue && entry.chemical_name === chemicalValue
+    //     );
+    
+    //     if (!matchedEntry) {
+    //         setPopupMessage(
+    //             `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`
+    //         );
+    //         setShowPopup(true); // แสดง Popup หากข้อมูลไม่สัมพันธ์กัน
+    //     } else {
+    //         setShowPopup(false); // ซ่อน Popup หากข้อมูลถูกต้อง
+    //     }
+    // };
+    
+    
+    // const ValidateChemicalAndPest = () => {
+    //     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
+    //     const pestValue = NameInsect.current?.value.trim();
+    //     const varietyValue = currentPlantVarietyName?.trim();
+    
+    //     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
+    //     if (!chemicalValue || !pestValue || !varietyValue) {
+    //         console.warn("Missing required inputs:", { chemicalValue, pestValue, varietyValue });
+    //         return;
+    //     }
+    
+    //     // ตรวจสอบความสัมพันธ์ใน pestChemicalData
+    //     const matchedEntry = pestChemicalData.find(
+    //         (entry) =>
+    //             entry.pest_name === pestValue &&
+    //             entry.chemical_name === chemicalValue
+    //     );
+    
+    //     if (!matchedEntry) {
+    //         console.warn("No match found in pestChemicalData for:", {
+    //             pestValue,
+    //             chemicalValue,
+    //         });
+    //         setPopupMessage( `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`);
+    //         setShowPopup(true);
+    //     } else {
+    //         console.log("Matched entry:", matchedEntry);
+    //     }
+    // };
+    
+    const ValidateChemicalAndPest = () => {
+        const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
+        const pestValue = NameInsect.current?.value.trim();
+        const varietyValue = currentPlantVarietyName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
+    
+        // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
+        if (!chemicalValue || !pestValue || !varietyValue) {
+            console.warn("Missing required inputs:", { chemicalValue, pestValue, varietyValue });
+            return;
         }
     
-        // ค้นหาข้อมูลศัตรูพืชและสารเคมีใน pestChemicalData
+        // ตรวจสอบความสัมพันธ์ใน pestChemicalData
         const matchedEntry = pestChemicalData.find(
             (entry) =>
-                entry.pest_name === pestValue && entry.chemical_name === chemicalValue
+                entry.pest_name === pestValue &&
+                entry.chemical_name === chemicalValue 
+                
         );
     
         if (!matchedEntry) {
+            console.warn("No match found in pestChemicalData for:", {
+                pestValue,
+                chemicalValue,
+                varietyValue,
+            });
             setPopupMessage(
-                `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`
+                `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
             );
-            setShowPopup(true); // แสดง Popup หากข้อมูลไม่สัมพันธ์กัน
+            setShowPopup(true);
         } else {
-            setShowPopup(false); // ซ่อน Popup หากข้อมูลถูกต้อง
+            console.log("Matched entry:", matchedEntry);
         }
     };
-    
-    
     
     
     
@@ -501,8 +667,8 @@ useEffect(() => {
         {showPopup && (
     <div className="popup-overlay">
         <div className="popup-content">
-        <div class="icon">⚠️</div>
-        <div class="title">การแจ้งเตือน</div>
+        <div className="icon">⚠️</div>
+        <div className="title">การแจ้งเตือน</div>
             <p>{popupMessage}</p>
             <button onClick={() => setShowPopup(false)}>ปิด</button>
         </div>

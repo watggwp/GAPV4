@@ -788,29 +788,108 @@ app.post('/api/farmer/pests', authCheck, (req, res) => {
 });
 
 
+// app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
+//     let con = Database.createConnection(listDB);
+
+//     console.log('Fetching pest-chemical relationships...');
+
+//     // ดึงข้อมูลความสัมพันธ์ระหว่างศัตรูพืชกับสารเคมี
+//     con.query(
+//         `SELECT pc.pest_id, pc.chemical_id, p.pest_name, c.name AS chemical_name
+//          FROM pest_chemical pc
+//          JOIN pests p ON pc.pest_id = p.pest_id
+//          JOIN chemical_list c ON pc.chemical_id = c.id`,
+//         (err, result) => {
+//             con.end();
+//             if (!err) {
+//                 console.log('Query result:', result);
+//                 res.json(result); // ส่งข้อมูลในรูปแบบ JSON
+//             } else {
+//                 console.error('Query error:', err);
+//                 res.status(500).send('Database query error');
+//             }
+//         }
+//     );
+// });
+
 app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
-    let con = Database.createConnection(listDB);
+    const con = Database.createConnection(listDB);
+    const formId = req.body.id_form_plant;
 
-    console.log('Fetching pest-chemical relationships...');
+    console.log("Received formId:", formId);
 
-    // ดึงข้อมูลความสัมพันธ์ระหว่างศัตรูพืชกับสารเคมี
-    con.query(
-        `SELECT pc.pest_id, pc.chemical_id, p.pest_name, c.name AS chemical_name
-         FROM pest_chemical pc
-         JOIN pests p ON pc.pest_id = p.pest_id
-         JOIN chemical_list c ON pc.chemical_id = c.id`,
-        (err, result) => {
+    const queryFormplant = `SELECT name_varieties FROM formplant WHERE id = ?;`;
+    con.query(queryFormplant, [formId], (err, formResult) => {
+        if (err) {
+            console.error("Error in queryFormplant:", err);
             con.end();
-            if (!err) {
-                console.log('Query result:', result);
-                res.json(result); // ส่งข้อมูลในรูปแบบ JSON
-            } else {
-                console.error('Query error:', err);
-                res.status(500).send('Database query error');
-            }
+            return res.status(500).send("Error fetching formplant data");
         }
-    );
+
+        if (formResult.length === 0) {
+            console.warn("No formplant data found");
+            con.end();
+            return res.status(404).send("Formplant not found");
+        }
+
+        const nameVarieties = formResult[0].name_varieties;
+        console.log("name_varieties:", nameVarieties);
+
+        const queryVarieties = `SELECT variety_id FROM varieties WHERE variety_name = ?;`;
+        con.query(queryVarieties, [nameVarieties], (err, varietyResult) => {
+            if (err) {
+                console.error("Error in queryVarieties:", err);
+                con.end();
+                return res.status(500).send("Error fetching varieties data");
+            }
+
+            if (varietyResult.length === 0) {
+                console.warn("No varieties data found");
+                con.end();
+                return res.status(404).send("Varieties not found");
+            }
+
+            const varietyId = varietyResult[0].variety_id;
+            console.log("variety_id:", varietyId);
+
+            const queryPestChemical = `
+                SELECT 
+                    pc.pest_id, p.pest_name, 
+                    pc.chemical_id, cl.name AS chemical_name
+                FROM pest_chemical pc
+                JOIN pests p ON pc.pest_id = p.pest_id
+                JOIN chemical_list cl ON pc.chemical_id = cl.id
+                WHERE pc.variety_id = ?;
+            `;
+            con.query(queryPestChemical, [varietyId], (err, pestChemicalResult) => {
+                con.end();
+
+                if (err) {
+                    console.error("Error in queryPestChemical:", err);
+                    return res.status(500).send("Error fetching pest-chemical data");
+                }
+
+                console.log("Pest-Chemical Data:", pestChemicalResult);
+
+                if (pestChemicalResult.length === 0) {
+                    return res.status(200).json({ 
+                        message: "No data found", 
+                        data: [] 
+                    });
+                }
+
+                res.status(200).json({
+                    variety_name: nameVarieties,
+                    variety_id: varietyId,
+                    data: pestChemicalResult
+                });
+            });
+        });
+    });
 });
+
+
+
 
 
 
@@ -1134,7 +1213,6 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
             }
         } else res.send("error auth");
     });
-    
     
     // end formplant
 
