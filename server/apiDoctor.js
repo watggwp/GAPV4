@@ -2947,9 +2947,12 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 if(err) console.log(err)
         
                                 if(!data[0].checkData) {
-                                    const Key = Object.entries(req.body.data).map(val=>val[0])
-                                    const InsertArray = Object.entries(req.body.data).map(val=> val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?")
-                                    const dataInsert = Object.entries(req.body.data).map(val=>val[1])
+                                    const {
+                                        varietie , ...body
+                                    }= req.body.data
+                                    const Key = Object.entries(body).map(val=>val[0])
+                                    const InsertArray = Object.entries(body).map(val=> val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?")
+                                    const dataInsert = Object.entries(body).map(val=>val[1])
                                     try {
                                         con.query(
                                             `
@@ -2958,12 +2961,35 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                 VALUES 
                                                 ( ${InsertArray.join(",")} )
                                             ` , dataInsert , (err , result)=>{
+
                                                 if(err){
                                                     con.end()
                                                     res.send("error")
                                                 } else {
                                                     con.end()
-                                                    res.send("insert")
+                                                    if(req.body.type == "plant"){
+                                                        const insertId = result.insertId
+                                                        const {
+                                                            name , qty_harvest 
+                                                        } = varietie
+                                                        con.query(
+                                        
+                                                            `INSERT INTO varieties
+                                                            ( plant_id , variety_name , dates ) 
+                                                            VALUES ( ? , ? , ?)`
+                                                         , [insertId , name , qty_harvest ] , (err , result) => {
+                                                            if(err){
+                                                                con.end()
+                                                                res.send("error")
+                                                            }
+                
+                                                            con.end()
+                                                            res.send("insert")
+                                                        }
+                                                    )
+                                                    } else {
+                                                      res.send("insert")
+                                                    }
                                                 }
                                             }
                                         )

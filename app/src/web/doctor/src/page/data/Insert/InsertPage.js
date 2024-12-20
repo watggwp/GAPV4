@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GetLinkUrlOfSearch, MapsJSX } from "../../../../../../assets/js/module";
 
-const InsertPlant = ({nameInsert , typeInsert , DateQtyInsert , ErrReport , CheckInsert , stateOn}) => {
+const InsertPlant = ({nameInsert , typeInsert , speciesInsert , DateQtyInsert , ErrReport , CheckInsert , stateOn}) => {
     useEffect(()=>{
         nameInsert.current.value = ""
         typeInsert.current.value = ""
+        speciesInsert.current.value = ""
         DateQtyInsert.current.value = ""
     } , [stateOn])
     
@@ -27,6 +28,20 @@ const InsertPlant = ({nameInsert , typeInsert , DateQtyInsert , ErrReport , Chec
                     onKeyDown={(e)=>InputKeyDownNext(e , typeInsert.current)}
                     placeholder="เช่น เมล่อน"></input>
             </label>
+
+            <label className="field-select">
+                <span>
+                    <span className="important">ชื่อสายพันธุ์พืช</span>
+                    { ErrReport ? 
+                        <span className="err-text-overlape">พืชซ้ำ</span>
+                        : <></>
+                    }
+                </span>
+                <input ref={speciesInsert} onChange={CheckInsert} 
+                    onKeyDown={(e)=>InputKeyDownNext(e , typeInsert.current)}
+                    placeholder="เช่น เมล่อนแสนหวาน"></input>
+            </label>
+
             <label className="field-select">
                 <span className="important">ประเภท</span>
                 <select ref={typeInsert} onChange={()=>{

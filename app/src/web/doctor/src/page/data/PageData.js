@@ -37,6 +37,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const nameInsert = useRef()
     const typeInsert = useRef()
+    const speciesInsert = useRef()
     const DateQtyInsert = useRef()
 
     const formulaFertilizer = [useRef() , useRef() , useRef()]
@@ -100,7 +101,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
     // insert
     const CheckInsert = () => {
         const value = DataProcess.get("type") === "plant"  ? 
-                            [ nameInsert.current.value , typeInsert.current.value , DateQtyInsert.current.value ] :
+                            [ nameInsert.current.value , typeInsert.current.value , DateQtyInsert.current.value , speciesInsert.current.value ] :
                         DataProcess.get("type") === "fertilizer"  ? 
                             [ 
                                 nameInsert.current.value , 
@@ -130,6 +131,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                         {
                             name : nameInsert.current.value ,
                             type_plant : typeInsert.current.value , 
+                            varietie : {
+                                name : speciesInsert.current.value,
+                                qty_harvest : parseInt(DateQtyInsert.current.value)
+                            } ,
                             qty_harvest : parseInt(DateQtyInsert.current.value)
                         },
                         check : {name : nameInsert.current.value},
@@ -228,7 +233,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                     searchList(e.target , e.target.value , "type")
                                     e.target.value = SelectType.current.value
                                 }} ref={SelectType} value={DataProcess.get("type")}>
-                                    <option value={"plant"}>ขนิดพืช</option>
+                                    <option value={"plant"}>ชนิดพืช</option>
                                     <option value={"fertilizer"}>ปัจจัยการผลิต</option>
                                     <option value={"chemical"}>สารเคมี</option>
                                     <option value={"source"}>แหล่งที่ซื้อ</option>
@@ -275,7 +280,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 </span>
                                 { 
                                     DataProcess.get("type") === "plant" ?
-                                        <InsertPlant nameInsert={nameInsert} typeInsert={typeInsert} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                        <InsertPlant nameInsert={nameInsert} typeInsert={typeInsert} speciesInsert={speciesInsert} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
                                     : 
                                     DataProcess.get("type") === "fertilizer" ?
                                         <InsertFertilizer nameInsert={nameInsert} formulaFertilizer={formulaFertilizer} UseText={UseText} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
