@@ -827,9 +827,9 @@ useEffect(() => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ศัตรูพืชที่พบ</span>
-                                                <div className="input-select-other">
+                                           <label className="frame-textbox colume">
+                                           <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
+                                           <div className="content-colume-input">
                                                   <div className="input-select-popup">
                                                      <input
                                                        onChange={LoadSearchPests ? SearchPests : null}

@@ -648,9 +648,9 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                        <label className={`frame-textbox${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
-                                                <span>ศัตรูพืชที่พบ</span>
-                                                <div className="input-select-other">
+                                        <label className={`frame-textbox colume${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
+                                              <span className="full">ศัตรูพืชหรือโรคพืชที่พบ</span>
+                                              <div className="content-colume-input">
                                                   <div className="input-select-popup">
                                                 <input
                                                     onChange={LoadSearchPests ? SearchPests : null}

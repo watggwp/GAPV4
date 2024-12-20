@@ -100,10 +100,14 @@ const DetailFactor = ({setPopup , RefPop , type_path , ReloadData , ObjectData})
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox${ObjectData.subjectResult.insect == 2 ? " not" : ""}`}>
-                                                <span>ศัตรูพืชที่พบ</span>
+                                            <label className={`frame-textbox colume${ObjectData.subjectResult.insect == 2 ? " not" : ""}`}>
+                                            <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
+                                                <div className="content-colume-input">
+                                                <div className="input-select-popup">
                                                 <input readOnly 
                                                     defaultValue={ObjectData.insect} type="text"></input>
+                                            </div>
+                                                </div>
                                             </label>
                                         </div>
                                         <div className="row">
