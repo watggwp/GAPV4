@@ -124,6 +124,34 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         />
                     );
                 }
+            }
+            else if (seconPath[0] === "listadmin") {
+                if (query.indexOf("admin") === 0) {
+                Href.set(`istadmin?admin${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
+            }
+            else if (query.indexOf("deleteAdmin") === 0) {
+                Href.set(`listadmin?deleteAdmin${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
+            }
             } else if (seconPath[0] === "data") {
                 if (query.indexOf("plant") === 0) {
                     Href.set(`data?plant${type}`);
@@ -191,6 +219,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             }
+            
         } else {
             setBody(
                 <NavFirst

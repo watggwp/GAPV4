@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DayJSX, Loading } from "../../../../../assets/js/module";
 
-import "../../assets/style/page/admin/Because.scss"
+import "../../assets/style/page/doctor/Because.scss"
 const ShowBecause = ({RefOnPage , id_table , type , TabOn , setBecause}) => {
     const [LoadingState , setLoading] = useState(false)
     const [ListBecause , setList] = useState(<></>)
@@ -25,7 +25,7 @@ const ShowBecause = ({RefOnPage , id_table , type , TabOn , setBecause}) => {
     } , [])
 
     const FetchData = async () => {
-        const data = await clientMo.post("/api/admin/because/get" , {id : id , type_status : type})
+        const data = await clientMo.post("/api/admin/because/get" , {id : id_table , type_status : type})
         const List = JSON.parse(data).map((value , key)=>
             <tr key={key}>
                 { type === "status_account" ?

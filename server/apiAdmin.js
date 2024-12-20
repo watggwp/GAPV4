@@ -89,9 +89,9 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             (
               SELECT name FROM station_list WHERE admin.station_admin=station_list.id
             ) as station
-            , id , fullname_admin, img_admin ${select}
+            , id , username, img_admin ${select}
             FROM admin
-            WHERE status_delete = ? AND ( INSTR( id , ? ) OR INSTR( fullname_admin , ? ) )
+            WHERE status_delete = ? AND ( INSTR( id , ? ) OR INSTR( username , ? ) )
             ORDER BY status_account DESC , id DESC
             LIMIT ${Limit} OFFSET ${StartRow};
           ` 
@@ -276,7 +276,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             `
               SELECT * 
               FROM because_${type_status}
-              WHERE id=?
+              WHERE id_table_admin=?
               ORDER BY date DESC;
             ` 
           , 
@@ -361,7 +361,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
 
     apifunc.auth(con , username , password , res , "admin").then((result)=>{
       console.log(result)
-        const SET = req.body.type === "name" ? "fullname_admin = ?" :
+        const SET = req.body.type === "name" ? "username = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
                         req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
         if(SET) {
@@ -646,7 +646,7 @@ app.get('/api/admin/profile/get', (req, res) => {
     }
   
     let con = Database.createConnection(listDB)
-  
+    console.log(req.body)
     try {
       const auth = await apifunc.auth(con , username , password , res , "admin")
       if(auth['result'] === "pass") {
@@ -675,7 +675,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                   con.query(
                     `
                       INSERT INTO because_${type_status} 
-                      (id , id_admin , because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (id_table_admin ,id_admin, because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
                       (? , ? , ? , ? ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
@@ -739,7 +739,7 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const type_data = data.type === "plant" ? data.type : "station";
+        const type_data = data.type === "plant" ? data.type : "station" ? data.type : "chemical" ? data.type : "pest";
         const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
         const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
         con.query(
@@ -783,7 +783,7 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : false;
+        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : data.type === "chemical" ? "plant" : data.type === "pest" ? "plant" : false;
         if(From) {
           con.query(
             `
@@ -1092,52 +1092,52 @@ app.get('/api/admin/profile/get', (req, res) => {
     }
 })
   
-  // app.post('/api/admin/delete' , (req , res)=>{
-  //   let timeoutSession = 20
-  //   if(req.body['ID'] &&
-  //       req.session.checkDelete['value'] === process.env.KEY_SESSION + "delete" && 
-  //       new Date().getTime() - req.session.checkDelete['time'] <= timeoutSession &&
-  //       (req.hostname == HOST_CHECK || !HOST_CHECK)) {
+  app.post('/api/admin/delete' , (req , res)=>{
+    let timeoutSession = 20
+    if(req.body['ID'] &&
+        req.session.checkDelete['value'] === process.env.KEY_SESSION + "delete" && 
+        new Date().getTime() - req.session.checkDelete['time'] <= timeoutSession &&
+        (req.hostname == HOST_CHECK || !HOST_CHECK)) {
       
-  //     delete req.session.checkDelete
+      delete req.session.checkDelete
   
-  //     let username = req.session.user_admin
-  //     let password = req.session.pass_admin
+      let username = req.session.user_admin
+      let password = req.session.pass_admin
   
-  //     if(username === '' || password === '') {
-  //       res.redirect('/api/logout')
-  //       return 0
-  //     }
+      if(username === '' || password === '') {
+        res.redirect('/api/logout')
+        return 0
+      }
   
-  //     let con = Database.createConnection(listDB)
+      let con = Database.createConnection(listDB)
   
-  //     apifunc.auth(con , username , password , res , "admin").then((result)=>{
-  //       if(result['result'] === "pass") {
-  //         con.query(`UPDATE acc_doctor SET status_delete = 1 WHERE id_doctor=?` , [req.body['ID']] , (err , result)=>{
-  //           if(err) {
-  //             dbpacket.dbErrorReturn(con , err , res)
-  //             return 0
-  //           }
+      apifunc.auth(con , username , password , res , "admin").then((result)=>{
+        if(result['result'] === "pass") {
+          con.query(`UPDATE admin SET status_delete = 1 WHERE id=?` , [req.body['ID']] , (err , result)=>{
+            if(err) {
+              dbpacket.dbErrorReturn(con , err , res)
+              return 0
+            }
       
-  //           con.end()
-  //           res.send('1')
-  //         })
-  //       }
+            con.end()
+            res.send('1')
+          })
+        }
   
-  //     }).catch((err)=>{
-  //       con.end()
-  //       if(err == "not pass") {
-  //         res.redirect('/api/logout')
-  //       }
-  //     })
-  //   }
+      }).catch((err)=>{
+        con.end()
+        if(err == "not pass") {
+          res.redirect('/api/logout')
+        }
+      })
+    }
     
-  //   else {
-  //     delete req.session.checkDelete
-  //     res.send('error session')
-  //   }
+    else {
+      delete req.session.checkDelete
+      res.send('error session')
+    }
   
-  // })
+  })
 
   // check Login
   app.all('/api/admin/auth' , async (req , res)=>{

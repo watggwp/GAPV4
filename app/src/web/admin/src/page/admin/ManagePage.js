@@ -41,7 +41,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     } , [])
 
     const FecthProfile = async () => {
-        let profile = await clientMo.post("/api/admin/admin/get" , {id : id})
+        let profile = await clientMo.post("/api/admin/admin/get" , {id : id_table})
         profile = JSON.parse(profile).map((val)=>val)[0]
         setProfile({
             // id_table : profile.id,
@@ -69,7 +69,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     const Submit = async () => {
         if(BecauseRef.current.value && PasswordRef.current.value) {
             const data = {
-                id : profile.id,
+                id : Profile.id,
                 type_status : type,
                 status : type === "status_account" ? status ? 0 : 1 : 1,
                 because : BecauseRef.current.value,

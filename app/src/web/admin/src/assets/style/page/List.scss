@@ -1,3 +1,4 @@
+@import '~bootstrap/scss/bootstrap';
 #role-admin {
     .body-list-manage {
         display: flex;
@@ -139,6 +140,7 @@
                         align-items: start;
                         justify-content: center;
                         margin: 4px 0px;
+                        flex-wrap: wrap;
     
                         // svg {
                         //     font-size: 1.953vw;
@@ -278,8 +280,9 @@
                     }
 
                     label.two-box {
-                        flex-direction: row;
+                        // flex-direction: row;
                         justify-content: space-between;
+                        width: 200%;
 
                         .field-text {
                             width: 48%;
@@ -362,6 +365,10 @@
         .page-insert[show=""]{
             transform: translateX(-100%);
         }
+        .page-insert.modal-content {
+            
+        }
+        
     
         // input {
         //     width: 13.437vw;
@@ -548,6 +555,23 @@
                             }
                         }
 
+                        .variety_name {
+                            display: flex;
+                            width: 50%;
+                            span {
+                                font-weight: 900;
+                                font-size: 18px;
+                                font-family: Sans-font;
+                            }
+
+                            .text-data {
+                                font-family: Sans-font;
+                                font-size: 18px;
+                                margin-left: 5px;
+                            }
+                        }
+
+
                         .location {
                             display: flex;
                             justify-content: center;
@@ -559,6 +583,8 @@
                         }
                     }
                 }
+
+                .modal-content
 
                 detail-data-main[column=""] {
                     flex-direction: column;

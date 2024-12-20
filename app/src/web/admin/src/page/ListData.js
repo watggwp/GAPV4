@@ -4,10 +4,14 @@ import { clientMo } from "../../../../assets/js/moduleClient";
 import { GetLinkUrlOfSearch, LoadOtherOffset, MapsJSX, ReportAction, TimeDiff } from "../../../../assets/js/module";
 
 import ShowBecause from "./doctor/ShowBecause";
+import ShowBecauseAdmin from "./admin/ShowBecause";
 
 import EditPage from "./data/EditPage";
 import ManageDataPage from "./data/ManagePage";
 import ManageDoctorPage from "./doctor/ManagePage";
+import ManageAdminPage from "./admin/ManagePage";
+import { Modal } from 'react-bootstrap';
+
 
 const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefPage , setStateOnPage , modify , textSearch}) => {
     // const [Body , setBody] = useState(<></>)
@@ -55,15 +59,53 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
         socket.emit("unconnect-doctor-list")
         socket.removeListener("update-online")
         clearInterval(getInterval)
+        console.log(status.status)
 
         let ObjectData;
-        if (HrefPage.get().split("?")[0] === "list") {
-            ObjectData = await clientMo.post("/api/admin/doctor/list", {
-                typeDelete: status.status === "default" ? 0 : status.status === "delete" ? 1 : -1,
-                limit: Limit || 10,
-                startRow: StartRow,
-                textSearch: textSearch
-            });
+        if (HrefPage.get().split("?")[0] === "list") 
+            { 
+                switch (
+                    status.status
+                ){
+                   case "default" :{
+                    ObjectData = await clientMo.post("/api/admin/doctor/list", {
+                        typeDelete: status.status === "default" ? 0 : status.status === "delete" ? 1 : -1,
+                        limit: Limit || 10,
+                        startRow: StartRow,
+                        textSearch: textSearch
+                    });
+                    break 
+                   
+                   } 
+                   case "admin" :{
+                    ObjectData = await clientMo.post("/api/admin/admin/list", {
+                        typeDelete: status.status === "admin" ? 0 : status.status === "deleteAdmin" ? 1 : -1,
+                        limit: Limit || 10,
+                        startRow: StartRow,
+                        textSearch: textSearch
+                    });
+                    break
+                   }
+                   case "delete" :{
+                    ObjectData = await clientMo.post("/api/admin/doctor/list", {
+                        typeDelete: status.status === "delete" ? 1 : -1,
+                        limit: Limit || 10,
+                        startRow: StartRow,
+                        textSearch: textSearch
+                    });
+                    break 
+                   }
+                   case "deleteAdmin":{
+                   ObjectData = await clientMo.post("/api/admin/admin/list", {
+                    typeDelete: status.status === "admin" ? 0 : status.status === "deleteAdmin" ? 1 : -1,
+                    limit: Limit || 10,
+                    startRow: StartRow,
+                    textSearch: textSearch
+                });
+                break
+                }
+            }
+
         } else if (HrefPage.get().split("?")[0] === "data") {
             ObjectData = await clientMo.post("/api/admin/data/list", {
                 type: status.status,
@@ -71,20 +113,6 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                 startRow: StartRow,
                 textSearch: textSearch
             });
-        } else if (HrefPage.get().split("?")[0] === "listadmin") {
-            ObjectData = await clientMo.post("/api/admin/admin/list", {
-                typeDelete: status.status === "admin" ? 0 : status.status === "delete" ? 1 : -1,
-                limit: Limit || 10,
-                startRow: StartRow,
-                textSearch: textSearch
-            });
-        // } else if (HrefPage.get().split("?")[0] === "group") {
-        //     ObjectData = await clientMo.post("/api/admin/group/list", {
-        //         typeDelete: status.status === "admin" ? 0 : status.status === "delete" ? 1 : -1,
-        //         limit: Limit || 10,
-        //         startRow: StartRow,
-        //         textSearch: textSearch
-        //     });
 
         }
     
@@ -113,7 +141,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                     (HrefPage.get().indexOf("station") >= 0) ? "ศูนย์ส่งเสริม" : 
                     (HrefPage.get().indexOf("group") >= 0) ? "จัดกลุ่มข้อมูล" : 
                     (HrefPage.get().indexOf("chemical") >= 0) ? "สารเคมี" : 
-                    (HrefPage.get().indexOf("pest") >= 0) ? "ศัตรูพืช" : ""
+                    (HrefPage.get().indexOf("pest") >= 0) ? "โรคพืช / ศัตรูพืช" : ""
                 ])
             setStateOnPage({status : status.status})
                 console.log(status.status)
@@ -135,7 +163,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
                     });
                     return List;
                 } else {
-                    session();
+                    // session();
                     return 0;
                 }
             } else {
@@ -149,7 +177,8 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
         <section className="body-list-manage">
             {
                 status.status === "default" || status.status === "admin" || status.status === "plant" || status.status === "station" || status.status === "group" || status.status === "chemical" || status.status === "pest" ?
-                <InsertPage PageAddRef={PageAddRef} ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> : <></>
+                <InsertPage PageAddRef={PageAddRef} ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> 
+                : <></>
             }
             <div className="List-data">
                 <ManageList socket={socket} Data={DataFetch} setBecause={setBecause} ListCount={ListCount} setListCount={setListCount} 
@@ -213,7 +242,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
     const OpenConfirmAdmin = async (id , typeStatus) => {
         if(await auth(true)) {
             const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
-            setBecause(<ManageDoctorPage RefOnPage={RefBe} id_table={id} type={typeStatus} status={status} 
+            setBecause(<ManageAdminPage RefOnPage={RefBe} id_table={id} type={typeStatus} status={status} 
                         setBecause={setBecause} TabOn={TabOn} session={session} ReloadFetch={Fetch}/>)
         }
     }
@@ -232,12 +261,6 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
         }
     }
 
-    const OpenEditDataAdmin = async (id , typeStatus) => {
-        if(await auth(true)) {
-            const status = parseInt(document.querySelector(`#data-list-content-${id} action-bt bt-status .frame`).getAttribute("status"))
-            setBecause(<EditPage RefOnPage={RefBe} id_table={id} type={typeStatus} setBecause={setBecause} TabOn={TabOn} session={session} ReloadData={Fetch}/>)
-        }
-    }
 
     const OpenDetailManage = async (id_table_doctor , typeStatus) => {
         if(await auth(true)) {
@@ -247,7 +270,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
 
     const OpenDetailManageAdmin = async (id , typeStatus) => {
         if(await auth(true)) {
-            setBecause(<ShowBecause RefOnPage={RefBe} id_table={id} type={typeStatus} TabOn={TabOn} setBecause={setBecause}/>)
+            setBecause(<ShowBecauseAdmin RefOnPage={RefBe} id_table={id} type={typeStatus} TabOn={TabOn} setBecause={setBecause}/>)
         }
     }
 
@@ -255,13 +278,16 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
         const doctorList = Data.map((data , key)=>
             <list-data-body key={key} 
                 id={`data-list-content-${
-                    HrefPage.get().split("?")[0] === "list" ? data.id_table_doctor :
-                    HrefPage.get().split("?")[0] === "listadmin" ? data.id :
+                    HrefPage.get().split("?")[0] === "list" ? 
+                        (status.status == "default" ?
+                        data.id_table_doctor : 
+                        status.status == "admin"? data.id : ''):
                     HrefPage.get().split("?")[0] === "data" ? data.id : ""
                 }`} 
                 status={status.status}>
                 {
                     HrefPage.get().split("?")[0] === "list" ?
+(                    status.status === "default" ? 
                     <>
                         {
                             status.status === "default" ? 
@@ -300,7 +326,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                 <>
                                 <content-status because={1}>
                                     <bt-because>
-                                        <button onClick={()=>OpenDetailManageAdmin(data.id_table_doctor , "status_account")}>เหตุผล</button>
+                                        <button onClick={()=>OpenDetailManage(data.id_table_doctor , "status_account")}>เหตุผล</button>
                                     </bt-because>
                                     <bt-status onClick={()=>OpenConfirmDoctor(data.id_table_doctor , "status_account")}>
                                         <div className="frame" status={data.status_account ? "1" : "0"}>
@@ -311,19 +337,20 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                     </bt-status>
                                 </content-status>
                                 <bt-delete>
-                                    <button onClick={()=>OpenConfirmAdmin(data.id_table_doctor , "status_delete")}>ลบบัญชี</button>  
+                                    <button onClick={()=>OpenConfirmDoctor(data.id_table_doctor , "status_delete")}>ลบบัญชี</button>  
                                 </bt-delete>
                                 </> : 
                                 status.status === "delete" ?
                                 <content-status because={0} delete="">
                                     <bt-because>
-                                        <button onClick={()=>OpenDetailManageAdmin(data.id_table_doctor , "status_delete")}>เหตุผล</button>
+                                        <button onClick={()=>OpenDetailManage(data.id_table_doctor , "status_delete")}>เหตุผล</button>
                                     </bt-because>
                                 </content-status> : <></>
                             }
                         </action-bt>
                     </> :
-                    HrefPage.get().split("?")[0] === "listadmin" ?
+                    status.status === "admin" || status.status === "deleteAdmin" ? 
+                    
                     <>
                         {
                             status.status === "admin" ? 
@@ -344,12 +371,12 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                 <img src={data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"}></img>
                             </detail-Image>
                             <detail-data>
-                                <detail-in-fullname>
-                                    <span>{data.fullname_admin ? data.fullname_admin : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}</span>
-                                </detail-in-fullname>
+                                <detail-in-fullname_admin	>
+                                    <span>{data.username ? data.fullname_admin	 : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}</span>
+                                </detail-in-fullname_admin>
                                 <detail-in>
                                     <span className="head-data">รหัสประจำตัว</span>
-                                    <div className="text-data">{data.id}</div>
+                                    <div className="text-data">{data.username}</div>
                                 </detail-in>
                                 <detail-in>
                                     <span className="head-data">ศูนย์</span>
@@ -358,7 +385,7 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                             </detail-data>
                         </detail-data-main>
                         <action-bt>
-                            { status.status === "default" ? 
+                            { status.status === "admin" ? 
                                 <>
                                 <content-status because={1}>
                                     <bt-because>
@@ -373,18 +400,18 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                     </bt-status>
                                 </content-status>
                                 <bt-delete>
-                                    <button onClick={()=>OpenConfirmDoctor(data.id , "status_delete")}>ลบบัญชี</button>  
+                                    <button onClick={()=>OpenConfirmAdmin(data.id , "status_delete")}>ลบบัญชี</button>  
                                 </bt-delete>
                                 </> : 
-                                status.status === "delete" ?
+                                status.status === "deleteAdmin" ?
                                 <content-status because={0} delete="">
                                     <bt-because>
-                                        <button onClick={()=>OpenDetailManage(data.id , "status_delete")}>เหตุผล</button>
+                                        <button onClick={()=>OpenDetailManageAdmin(data.id , "status_delete")}>เหตุผล</button>
                                     </bt-because>
                                 </content-status> : <></>
                             }
                         </action-bt>
-                    </> :
+                    </> :undefined):
                     HrefPage.get().split("?")[0] === "data" ?
                     <>
                         <detail-data-main column="">
@@ -402,10 +429,24 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
                                     }
                                     {
                                         status.status === "plant" ? <div className="text-data">{data.type_plant}</div> :
+
                                         status.status === "station" ? 
                                             <MapsJSX lat={data.location.x} lng={data.location.y} w={"300vw"} h={"100vw"}/> : ""
                                     }
                                 </div>
+
+                                <div className={status.status === "plant" ? "variety_name" : "location"}>
+                                    {
+                                        status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>
+                                    }
+                                    {
+                                        status.status === "plant" ? <div className="text-data">{data.variety_name}</div> :
+
+                                        status.status === "station" ? 
+                                            <MapsJSX lat={data.location.x} lng={data.location.y} w={"300vw"} h={"100vw"}/> : ""
+                                    }
+                                </div>
+                                
                             </detail-data>
                             { status.status === "plant" ?
                                 <detail-data maxsize="">
@@ -554,7 +595,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                     type === "default" ? await clientMo.post("/api/admin/add" , Data) :
                     type === "admin" ? await clientMo.post("/api/admin/add" , Data) :
 
-                    type === "plant" || type === "station" ? await clientMo.post("/api/admin/data/insert" , Data) : ""
+                    type === "plant" || type === "station" || type === "chemical" || type === "pest" ? await clientMo.post("/api/admin/data/insert" , Data) : ""
             if(result === "1") {
                 setText(`เพิ่ม${
                             type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
@@ -584,7 +625,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                             type === "station" ? "ศูนย์ส่งเสริม" :
                             type === "gruop" ? "จัดกลุ่มข้อมูล" : 
                             type === "chemical" ? "สารเคมี" : 
-                            type === "pest" ? "จัดกลุ่มข้อมูล" : ""
+                            type === "pest" ? "ศัตรูพืช" : ""
                         }นี้แล้ว`)
                 setStatus(2)
                 Cancel()
@@ -651,24 +692,24 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
         setLocalType(menuType); // เปลี่ยน localType
         setStep(2); // เปลี่ยนไป Step 2
     };
-    
+    console.log(type)
     return (
         <section ref={PageAddRef} className="page-insert">
             {
-                type === "default" || type === "admin" ?
-                    ((() => {
-                        switch(step) {
-                            case 1 :
+                (type === "default" || type === "admin") ? (
+                    (() => {
+                        switch (step) {
+                            case 1:
                                 return (
                                     <div className="menu-selection">
                                         <span className="head">เพิ่มบัญชีเจ้าหน้าที่</span>
                                         <div className="menu-options">
                                             <button onClick={() => handleMenuSelection("admin")}>ผู้ดูแลระบบ</button>
                                             <button onClick={() => handleMenuSelection("default")}>บัญชีเจ้าหน้าที่ส่งเสริม</button>
-                                            </div>
+                                        </div>
                                     </div>
-                                )
-                            case 2 :
+                                );
+                            case 2:
                                 return (
                                     <BodyDetailInsert
                                         type={type}
@@ -686,19 +727,97 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                                         InputMap={InputMap}
                                         GenerateMap={GenerateMap}
                                         GenerateMapAuto={GenerateMapAuto}
-                                        Lag={Lag} Lng={Lng}
+                                        Lag={Lag}
+                                        Lng={Lng}
                                         pwAdmin={pwAdmin}
                                         Cancel={Cancel}
                                         stateOnBt={stateOnBt}
                                     />
-                                )
-                            default :
-                                return (<></>)
+                                );
+                            default:
+                                return (<></>);
                         }
-                    }))()
-                    :
-                type === "plant" || type === "station" || type === "group" || type === "chemical" || type === "pest"  ?
-                    (
+                    })()
+                ) : type === "group" ? (
+                <Modal
+                    show={true}
+                    // onClose={() => setOpen(true)}
+                    aria-labelledby="modal-title"
+                    aria-describedby="modal-description"
+                >
+                    <div className="modal-content">
+                        <h2 id="modal-title">เพิ่มรายการจัดกลุ่มข้อมูล</h2>
+                        <div className="modal-body">
+                            {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
+                            <div className="table-section">
+                                <span className="table-title">โรคพืช / ศัตรูพืช</span>
+                                <select onChange={CheckEmply} ref={RefData.Data1}>
+                                    <option value="">กรุณาเลือก</option>
+                                    <option value="โรคพืช">โรคพืช</option>
+                                    <option value="ศัตรูพืช">ศัตรูพืช</option>
+                                </select>
+                            </div>
+
+                            {/* ตารางที่ 2: สารเคมี */}
+                            <div className="table-section">
+                                <span className="table-title">สารเคมี</span>
+                                <select onChange={CheckEmply} ref={RefData.Data2}>
+                                    <option value="">กรุณาเลือก</option>
+                                    <option value="สารเคมี A">สารเคมี A</option>
+                                    <option value="สารเคมี B">สารเคมี B</option>
+                                    <option value="สารเคมี C">สารเคมี C</option>
+                                </select>
+                            </div>
+
+                            {/* ตารางที่ 3: พืช */}
+                            <div className="table-section">
+                                <span className="table-title">พืช</span>
+                                <select onChange={CheckEmply} ref={RefData.Data3}>
+                                    <option value="">กรุณาเลือกชนิดพืช</option>
+                                    <option value="พืชผัก">พืชผัก</option>
+                                    <option value="สมุนไพร">สมุนไพร</option>
+                                </select>
+                                <div className="checkbox-group">
+                                    <span>เลือกสายพันธุ์พืช:</span>
+                                    <label>
+                                        <input type="checkbox" name="สายพันธุ์ A" /> สายพันธุ์ A
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="สายพันธุ์ B" /> สายพันธุ์ B
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" name="สายพันธุ์ C" /> สายพันธุ์ C
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* ปุ่มยืนยันและยกเลิก */}
+                            <div className="bt-submit">
+                                <button className="cancel" onClick={Cancel}>
+                                    ยกเลิก
+                                </button>
+                                <button
+                                    className="submit"
+                                    onClick={ClickAdd}
+                                    no={stateOnBt ? "" : null}
+                                >
+                                    เพิ่มข้อมูล
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+    //             <Modal show>
+    //     <Modal.Header closeButton>
+    //       <Modal.Title>Modal heading</Modal.Title>
+    //     </Modal.Header>
+    //     <Modal.Body>Woohoo, you are reading this text in a modal!</Modal.Body>
+    //     <Modal.Footer>
+
+    //     </Modal.Footer>
+    //   </Modal>
+                ) : (
+                    (type === "plant"  || type === "station" || type === "chemical" || type === "pest" ) && (
                         <BodyDetailInsert
                             type={type}
                             Open={Open}
@@ -715,16 +834,17 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                             InputMap={InputMap}
                             GenerateMap={GenerateMap}
                             GenerateMapAuto={GenerateMapAuto}
-                            Lag={Lag} Lng={Lng}
+                            Lag={Lag}
+                            Lng={Lng}
                             pwAdmin={pwAdmin}
                             Cancel={Cancel}
                             stateOnBt={stateOnBt}
                         />
                     )
-                : <></>
+                )
             }
         </section>
-    );
+    );    
 }
 
 const BodyDetailInsert = ({
@@ -750,7 +870,7 @@ const BodyDetailInsert = ({
         role4: false,
     });
 
-    // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงของ checkbox
+    
     const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
         setCheckboxState((prevState) => ({
@@ -785,7 +905,7 @@ const BodyDetailInsert = ({
                     type === "chemical" ? 
                         "เพิ่มรายการสารเคมี": 
                     type === "pest" ? 
-                        "เพิ่มรายการโรคพืช": 
+                        "เพิ่มรายการโรคพืช / ศัตรูพืช": 
                     type === "gruop" ? 
                         "เพิ่มรายการจัดกลุ่มข้อมูล": ""
                 }
@@ -804,25 +924,44 @@ const BodyDetailInsert = ({
                                 type === "chemical"? 
                                     "ชื่อสารเคมี" :  
                                 type === "pest"? 
-                                    "ชื่อศัตรูพืช" : ""
+                                    "โรคพืช / ศัตรูพืช" : ""
                             }
                         </span>
-                        <input
-                            onChange={CheckEmply}
-                            ref={RefData.Data1}
-                            placeholder={
-                                type === "default" ?
-                                (localType === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม": localType === "admin" ? "บัญชีผู้ดูแลระบบ" : "") :
-                                type === "plant"? 
-                                    "เช่น มะเขือเทศ" : 
-                                type === "station" ? 
-                                    "เช่น ศูนย์โครงการหลวง" :
-                                type === "chemical"? 
-                                    "เช่น พรีวาธอน" : 
-                                type === "pest" ? 
-                                    "เช่น หนอนใบจุด" : ""
-                            }
-                        ></input>
+                        {type === "pest" ? (
+                            <select
+                                onChange={CheckEmply}
+                                ref={RefData.Data2}
+                                defaultValue={""}
+                                style={{ width: "100%" }}
+                            >
+                                <option value={""} disabled>
+                                    เลือก
+                                </option>
+                                <option value={"โรคพืช"}>โรคพืช</option>
+                                <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
+                            </select>
+                        ) : (
+                            <input
+                                onChange={CheckEmply}
+                                ref={RefData.Data1}
+                                placeholder={
+                                    type === "default"
+                                        ? localType === "default"
+                                            ? "บัญชีเจ้าหน้าที่ส่งเสริม"
+                                            : localType === "admin"
+                                            ? "บัญชีผู้ดูแลระบบ"
+                                            : ""
+                                        : type === "plant"
+                                        ? "เช่น มะเขือเทศ"
+                                        : type === "station"
+                                        ? "เช่น ศูนย์โครงการหลวง"
+                                        : type === "chemical"
+                                        ? "เช่น พรีวาธอน"
+                                        : ""
+                                }
+                            />
+                        )}
+
                     </div>
                     {
                         type === "plant" && (
@@ -845,21 +984,31 @@ const BodyDetailInsert = ({
                     }
 
                     {
+                        type === "plant" && (
+                            <div className="field-text">
+                                <span className="head-text">สายพันธุ์พืช</span>
+                                <input placeholder="เช่น เชอร์รี่แดง">
+                                </input>
+                            </div>
+                        )
+                    }
+
+                    {
                         type === "chemical" && (
                             <div className="field-text">
-                                <span className="head-text">ประเภทพืช</span>
-                                <select
-                                    onChange={CheckEmply}
-                                    ref={RefData.Data2}
-                                    defaultValue={""}
-                                    style={{ width: "100%" }}
-                                >
-                                    <option value={""} disabled>
-                                        เลือกชนิดพืช
-                                    </option>
-                                    <option value={"พืชผัก"}>พืชผัก</option>
-                                    <option value={"สมุนไพร"}>สมุนไพร</option>
-                                </select>
+                                <span className="head-text">ชื่อสามัญสารเคมี</span>
+                                <input placeholder="เช่น เเมนโคเซบ">
+                                </input>
+                            </div>
+                        )
+                    }
+
+{
+                        type === "chemical" && (
+                            <div className="field-text">
+                                <span className="head-text">วิธีการใช้</span>
+                                <input placeholder="เช่น ฉีดพ่น">
+                                </input>
                             </div>
                         )
                     }
@@ -867,19 +1016,9 @@ const BodyDetailInsert = ({
                     {
                         type === "pest" && (
                             <div className="field-text">
-                                <span className="head-text">ประเภทพืช</span>
-                                <select
-                                    onChange={CheckEmply}
-                                    ref={RefData.Data2}
-                                    defaultValue={""}
-                                    style={{ width: "100%" }}
-                                >
-                                    <option value={""} disabled>
-                                        เลือกชนิดพืช
-                                    </option>
-                                    <option value={"พืชผัก"}>พืชผัก</option>
-                                    <option value={"สมุนไพร"}>สมุนไพร</option>
-                                </select>
+                                <span className="head-text">ชื่อโรคพืช / ศัตรูพืช</span>
+                                <input placeholder="เช่น หนอนใบจุด">
+                                </input>
                             </div>
                         )
                     }
@@ -1011,7 +1150,7 @@ const BodyDetailInsert = ({
                             <label>
                                 <div className="field-text">
                                     <span className="head-text">
-                                        จำนวนวันที่จะเก็บเกี่ยว
+                                        จำนวนวันปลอดภัย
                                     </span>
                                     <input
                                         onChange={CheckEmply}
@@ -1022,21 +1161,7 @@ const BodyDetailInsert = ({
                                 </div>
                             </label>
                         ) : 
-                        type === "pest" ? (
-                            <label>
-                                <div className="field-text">
-                                    <span className="head-text">
-                                        จำนวนวันที่จะเก็บเกี่ยว
-                                    </span>
-                                    <input
-                                        onChange={CheckEmply}
-                                        ref={QtyDate}
-                                        placeholder="เช่น 10 , 30"
-                                        type="number"
-                                    ></input>
-                                </div>
-                            </label>
-                        ) : 
+
                     type === "station" ? (
                             <>
                                 <label>

@@ -149,7 +149,8 @@ export default class NavAdmin extends Component {
                         </bot-gap-nav-icon>
                         <bot-gap-string>
                             <bot-string>เพิ่มบัญชี</bot-string>
-                            <bot-string>เจ้าหน้าที่ส่งเสริม</bot-string>    
+                            <bot-string>เจ้าหน้าที่ส่งเสริม</bot-string> 
+                            <bot-string>ผู้ดูแลระบบ</bot-string>   
                         </bot-gap-string>
                     </bot-bt-nav>
                 </a>

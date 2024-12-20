@@ -7,18 +7,26 @@ import ListData from "./ListData";
 const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , session , TabOn}) => {
     const [StatusPage , setStatus] = useState({
         status :    HrefData.get() === "list?default" ? "default" : 
-                    HrefData.get() === "list?delete" ? "delete" : 
+                    HrefData.get() === "list?delete" ? "delete" :
+                    HrefData.get() === "listadmin?admin=pop" ? "admin" : 
+                    HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
                     HrefData.get() === "data?plant" ? "plant" : 
                     HrefData.get() === "data?station" ? "station" : 
+                    HrefData.get() === "data?chemical" ? "chemical" : 
+                    HrefData.get() === "data?pest" ? "pest" : 
                     HrefData.get() === "group?default" ? "group" : "",
         changePath : addHref
     }) 
 
     const [StateOnPage , setStateOnPage] = useState({
         status :    HrefData.get() === "list?default" ? "default" : 
-                    HrefData.get() === "list?delete" ? "delete" : 
+                    HrefData.get() === "list?delete" ? "delete" :
+                    HrefData.get() === "listadmin?admin=pop" ? "admin" : 
+                    HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
                     HrefData.get() === "data?plant" ? "plant" : 
                     HrefData.get() === "data?station" ? "station" :
+                    HrefData.get() === "data?chemical" ? "chemical" : 
+                    HrefData.get() === "data?pest" ? "pest" : 
                     HrefData.get() === "group?default" ? "group" :  "",
     })
 
@@ -47,8 +55,12 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const state = () => {
         const status =  HrefData.get() === "list?default=pop" ? "default" : 
                         HrefData.get() === "list?delete=pop" ? "delete" : 
+                        HrefData.get() === "listadmin?admin=pop" ? "admin" : 
+                        HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
                         HrefData.get() === "data?plant=pop" ? "plant" : 
                         HrefData.get() === "data?station=pop" ? "station" : 
+                        HrefData.get() === "data?chemical" ? "chemical" : 
+                        HrefData.get() === "data?pest" ? "pest" : 
                         HrefData.get() === "group?default=pop" ? "group" : "";
         setStatus({
             status : status, //ใช้ภายในหน้าได้
@@ -69,7 +81,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     return (
         <section className="page-manage">
             <div className="menu-page">
-                {StateOnPage.status === "default" || StateOnPage.status === "plant" || StateOnPage.status === "station" || StateOnPage.status === "group"  || StateOnPage.status === "chemical"  || StateOnPage.status === "pest" ?
+                {StateOnPage.status === "default" || StateOnPage.status === "admin" || StateOnPage.status === "plant" || StateOnPage.status === "station" || StateOnPage.status === "group"  || StateOnPage.status === "chemical"  || StateOnPage.status === "pest" ?
                 <div className="bt-add">
                     <svg onClick={()=>PageAddRef.current.toggleAttribute("show")} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                 </div>
@@ -77,14 +89,18 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                 }
                 {
                 StateOnPage.status === "default" ? 
-                    <button className="bt-delete" onClick={()=>ChangeStatus("delete")}>แสดงบัญชีที่ถูกลบ</button> : 
+                    <button className="bt-delete" onClick={()=>ChangeStatus("delete")}>แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</button> : 
                 StateOnPage.status === "delete" ? 
-                    <button className="bt-default" onClick={()=>ChangeStatus("default")}>แสดงบัญชีที่ยังไม่ถูกลบ</button> :
+                    <button className="bt-admin" onClick={()=>ChangeStatus("admin")}>แสดงบัญชีผู้ดูแลระบบที่ยังไม่ถูกลบ</button> :
+                    StateOnPage.status === "admin" ? 
+                    <button className="bt-deleteAdmin" onClick={()=>ChangeStatus("deleteAdmin")}>แสดงบัญชีผู้ดูแลระบบที่ถูกลบ</button> :
+                StateOnPage.status === "deleteAdmin" ? 
+                    <button className="bt-default" onClick={()=>ChangeStatus("default")}>แสดงบัญชีผู้ส่งเสริมที่ยังไม่ถูกลบ</button> :
                 
                 StateOnPage.status === "plant" ? 
                     <button className="bt-chemical" onClick={() => ChangeStatus("chemical")}>แสดงรายการสารเคมี</button> :
                 StateOnPage.status === "chemical" ? 
-                    <button className="bt-pest" onClick={() => ChangeStatus("pest")}>แสดงรายการศัตรูพืช</button> :
+                    <button className="bt-pest" onClick={() => ChangeStatus("pest")}>แสดงรายการโรคพืช / ศัตรูพืช</button> :
                 StateOnPage.status === "pest" ? 
                     <button className="bt-station" onClick={() => ChangeStatus("station")}>แสดงรายการศูนย์ส่งเสริม</button> :
                 StateOnPage.status === "station" ? 

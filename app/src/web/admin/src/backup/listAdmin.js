@@ -31,9 +31,9 @@ export default class List extends Component {
     ShowDetailInput = (e = document.getElementById(''), text) => {
         // check user login
         
-        let show = document.getElementById('popup-detail-doctor')
+        let show = document.getElementById('popup-detail-admin')
         show.setAttribute('show' , '')
-        document.getElementById('popup-detail-doctor').setAttribute(
+        document.getElementById('popup-detail-admin').setAttribute(
             'style' 
             , `max-width:${window.innerWidth * 0.8}px; 
                 transform: translate(${e.offsetWidth + show.offsetWidth}px, ${e.offsetHeight - show.offsetHeight}px);`)
@@ -49,7 +49,7 @@ export default class List extends Component {
 
         this.LoadDetailInput()
 
-        document.getElementById('popup-detail-doctor').setAttribute('style' , `max-width:${window.innerWidth * 0.8}px`)
+        document.getElementById('popup-detail-admin').setAttribute('style' , `max-width:${window.innerWidth * 0.8}px`)
 
         const resizeObserver = new ResizeObserver((entries) => {
             entries.forEach((entry) => {
@@ -60,17 +60,17 @@ export default class List extends Component {
 
         this.setState({
             body : JSON.parse(this.props.list).map((listDT , index) =>
-                        <div key={index} className="container-doctor" id={`list-${index}`}>
-                            <div className="doctor-detail">
+                        <div key={index} className="container-admin" id={`list-${index}`}>
+                            <div className="admin-detail">
                                 <img className="img-admin" src={(listDT['img_admin']['data'] != '') ? listDT['img_admin']['data'] : '/doctor-svgrepo-com.svg'}></img>
                                 <div className="content-detail">
                                     <div className="detail-box">
                                         <div className="detail">
                                             <div className="head-detail">ชื่อ - นามสกุล</div>
                                             <div className="indetail">
-                                                <input checktext={(listDT['fullname_admin']) ? 1 : 0} readOnly className="text-detail" value={(listDT['fullname_admin']) ? listDT['fullname_admin'] : 'ยังไม่ระบุ'}></input>
+                                                <input checktext={(listDT['username']) ? 1 : 0} readOnly className="text-detail" value={(listDT['username']) ? listDT['username'] : 'ยังไม่ระบุ'}></input>
                                                 <span className="bt-showDetail">
-                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['fullname_admin'])}></img>
+                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['username'])}></img>
                                                 </span>
                                             </div>
                                         </div>
@@ -81,7 +81,7 @@ export default class List extends Component {
                                             <div className="indetail">
                                                 <input readOnly className="text-detail" value={listDT['id']}></input>
                                                 <span className="bt-showDetail">
-                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['fullname_admin'])}></img>
+                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['username'])}></img>
                                                 </span>
                                             </div>
                                         </div>
@@ -92,7 +92,7 @@ export default class List extends Component {
                                             <div className="indetail">
                                                 <input readOnly className="text-detail" value={(listDT['station_admin']) ? listDT['station_admin'] : "ยังไม่ระบุ"}></input>
                                                 <span className="bt-showDetail">
-                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['fullname_admin'])}></img>
+                                                    <img className="img-icon" src="/user-card-id-svgrepo-com.svg" onClick={e => this.ShowDetailInput(e.target , listDT['username'])}></img>
                                                 </span>
                                             </div>
                                         </div>
