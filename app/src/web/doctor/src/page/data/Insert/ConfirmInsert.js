@@ -76,7 +76,10 @@ const PopupConfirm = ({Ref , setPopup , session , Data , RowPresent , setLimit ,
                                         Data.type === "chemical" ? "สารเคมี" :
                                         Data.type === "source" ? "แหล่งที่ซื้อ" : ""
                                     }` : 
-                                    val[0] === "type_plant" ? "ประเภท" : 
+                                    val[0] === "type_plant" ? "ประเภท" :
+
+                                    val[0] === "varietie" ? "สายพันธุ์" :
+
                                     val[0] === "qty_harvest" ? "วันที่คาดว่าจะเก็บเกี่ยว" :
                                     val[0] === "name_formula" ? Data.type === "fertilizer" ? "สูตรปุ๋ย" : "ชื่อสามัญสารเคมี" :
                                     val[0] === "how_use" ? "วิธีการใช้" :
@@ -87,10 +90,18 @@ const PopupConfirm = ({Ref , setPopup , session , Data , RowPresent , setLimit ,
                         const Location = (HEAD === "map") ? val[1] ? val[1].slice(6 , val[1].length - 1).split(" ") : 1 :"";
                         return(
                             (Location) ?
-                                val[1] ?
+                                (
+                                    val[1] ?
+                                        <div className="row" key={key}>
+                                            <MapsJSX lat={Location[0]} lng={Location[1]}/>
+                                        </div> : 
+                                        <div key={key} hidden></div>
+                                ) :
+                            val[0] === "varietie" ?
                                 <div className="row" key={key}>
-                                    <MapsJSX lat={Location[0]} lng={Location[1]}/>
-                                </div> : <div key={key} hidden></div>
+                                    <span>{HEAD}</span>
+                                    <div className="data">{val[1]["name"]}</div>
+                                </div>
                             :
                                 <div className="row" key={key}>
                                     <span>{HEAD}</span>
