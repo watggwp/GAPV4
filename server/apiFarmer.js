@@ -1543,14 +1543,15 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
     //         try {
     //             const auth = await authCheck(con , dbpacket , res , req , LINE)
     //             con.query(`
-    //                         SELECT formplant.id , formplant.state_status
-    //                         FROM formplant , 
-    //                             (
-    //                                 SELECT id_farm_house FROM housefarm
-    //                                 WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
-    //                             ) as houseFarm
-    //                         WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
-    //                     ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant ] , 
+    //                          SELECT formplant.id, formplant.state_status
+    //                 FROM formplant,
+    //                     (
+    //                         SELECT id_farm_house FROM housefarm
+    //                         WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
+    //                     ) AS houseFarm
+    //               WHERE formplant.id_farm_house = houseFarm.id_farm_house AND formplant.id = ?
+    //                  `,
+    //                  [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant],
     //                     (err , result)=>{
     //                         if (!err) {
     //                             if(result[0]) {
@@ -1661,35 +1662,30 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                             : [];
     
                                     // ตรวจสอบความสัมพันธ์ระหว่างศัตรูพืชและสารเคมี
+                                    let notificationMessage = '';
                                     if (data.type_insert === 'c') {
                                         try {
-                                            const pestChemicalRelationValid = await checkPestChemicalRelation(data.insect, data.name, con);
-                                    
+                                            const pestChemicalRelationValid = await checkPestChemicalRelation(data.insect, data.name, data.id_plant, con);
+    
                                             if (!pestChemicalRelationValid) {
-                                                // ส่งแจ้งเตือนเกี่ยวกับความสัมพันธ์ที่ไม่ถูกต้อง แต่ยังคงบันทึกข้อมูล
-                                                sendNotifyToDoctor(
-                                                    auth.data.id_table,
-                                                    auth.data.station,
-                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\nแต่ข้อมูลไม่สัมพันธ์กับศัตรูพืช "${data.insect}"`
-                                                );
+                                                notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\nแต่ข้อมูลไม่สัมพันธ์กับศัตรูพืช "${data.insect}"`;
+                                            } else {
+                                                notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}`;
                                             }
                                         } catch (err) {
                                             console.error('Error checking pest-chemical relation:', err);
-                                            // ไม่ยุติการบันทึก แต่แจ้งปัญหานี้ใน log
+                                            notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\nไม่สามารถตรวจสอบความสัมพันธ์กับศัตรูพืชได้`;
                                         }
+                                    } else {
+                                        notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert === 'z' ? 'ปัจจัยการผลิต' : 'สารเคมี'}\nที่ฟอร์มไอดี ${data.id_plant}`;
                                     }
-                                    
     
                                     // ดำเนินการบันทึกข้อมูล
                                     con.query(sql, ArrayData, (err, insert) => {
                                         if (!err) {
                                             try {
-                                                // ส่งแจ้งเตือนเมื่อบันทึกสำเร็จ
-                                                sendNotifyToDoctor(
-                                                    auth.data.id_table,
-                                                    auth.data.station,
-                                                    `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert === 'z' ? 'ปัจจัยการผลิต' : 'สารเคมี'}\nที่ฟอร์มไอดี ${data.id_plant}`
-                                                );
+                                                // ส่งแจ้งเตือนครั้งเดียว
+                                                sendNotifyToDoctor(auth.data.id_table, auth.data.station, notificationMessage);
                                             } catch (e) {
                                                 console.error('Error notifying doctor:', e);
                                             }
@@ -1726,27 +1722,62 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
         }
     });
     
-    // ฟังก์ชันตรวจสอบความสัมพันธ์ระหว่างศัตรูพืชและสารเคมี
-    const checkPestChemicalRelation = (pest, chemical, con) => {
+    const checkPestChemicalRelation = (pest, chemical, formId, con) => {
         return new Promise((resolve, reject) => {
-            const query = `
-                SELECT 1 
-                FROM pest_chemical 
-                JOIN pests ON pest_chemical.pest_id = pests.pest_id
-                JOIN chemical_list ON pest_chemical.chemical_id = chemical_list.id
-                WHERE pests.pest_name = ? AND chemical_list.name = ?
-            `;
-    
-            con.query(query, [pest, chemical], (err, result) => {
+            // ดึงสายพันธุ์จาก formplant
+            const queryFormplant = `SELECT name_varieties FROM formplant WHERE id = ?;`;
+            con.query(queryFormplant, [formId], (err, formResult) => {
                 if (err) {
-                    console.error('Error checking pest-chemical relation:', err);
-                    return reject(err);
+                    console.error("Error in queryFormplant:", err);
+                    return reject("Error fetching formplant data");
                 }
     
-                resolve(result.length > 0); // ถ้าพบข้อมูลที่ตรงกัน ให้คืนค่า true
+                if (formResult.length === 0) {
+                    console.warn("No formplant data found");
+                    return resolve(false); // ไม่มีข้อมูลสายพันธุ์
+                }
+    
+                const nameVarieties = formResult[0].name_varieties;
+    
+                // ดึง variety_id จาก varieties
+                const queryVarieties = `SELECT variety_id FROM varieties WHERE variety_name = ?;`;
+                con.query(queryVarieties, [nameVarieties], (err, varietyResult) => {
+                    if (err) {
+                        console.error("Error in queryVarieties:", err);
+                        return reject("Error fetching varieties data");
+                    }
+    
+                    if (varietyResult.length === 0) {
+                        console.warn("No varieties data found");
+                        return resolve(false); // ไม่มีข้อมูล variety
+                    }
+    
+                    const varietyId = varietyResult[0].variety_id;
+    
+                    // ตรวจสอบความสัมพันธ์ศัตรูพืชและสารเคมีตามสายพันธุ์
+                    const queryPestChemical = `
+                        SELECT 
+                            pc.pest_id, p.pest_name, 
+                            pc.chemical_id, cl.name AS chemical_name
+                        FROM pest_chemical pc
+                        JOIN pests p ON pc.pest_id = p.pest_id
+                        JOIN chemical_list cl ON pc.chemical_id = cl.id
+                        WHERE pc.variety_id = ? AND p.pest_name = ? AND cl.name = ?;
+                    `;
+                    con.query(queryPestChemical, [varietyId, pest, chemical], (err, result) => {
+                        if (err) {
+                            console.error("Error in queryPestChemical:", err);
+                            return reject("Error fetching pest-chemical data");
+                        }
+    
+                        resolve(result.length > 0); // ถ้าพบข้อมูลที่สัมพันธ์กัน คืนค่า true
+                    });
+                });
             });
         });
     };
+    
+    
     
     
     
