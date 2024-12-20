@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../assets/js/moduleClient";
 
 import { GetLinkUrlOfSearch, LoadOtherOffset, MapsJSX, ReportAction, TimeDiff } from "../../../../assets/js/module";
@@ -11,11 +11,14 @@ import ManageDataPage from "./data/ManagePage";
 import ManageDoctorPage from "./doctor/ManagePage";
 import ManageAdminPage from "./admin/ManagePage";
 import { Modal } from 'react-bootstrap';
+import { PageTemplateContext } from "./PageTemplate";
 
 
-const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefPage , setStateOnPage , modify , textSearch}) => {
+const ListData = ({socket , status , auth , session , TabOn , HrefPage , setStateOnPage , modify , textSearch}) => {
     // const [Body , setBody] = useState(<></>)
     // const [List , setList] = useState(<></>)
+
+    const { openInsert , setOpenInsert } = useContext(PageTemplateContext)
 
     const [DataFetch , setDataFetch] = useState([])
     const [Because , setBecause] = useState(<></>)
@@ -177,7 +180,7 @@ const ListData = ({socket , status , PageAddRef , auth , session , TabOn , HrefP
         <section className="body-list-manage">
             {
                 status.status === "default" || status.status === "admin" || status.status === "plant" || status.status === "station" || status.status === "group" || status.status === "chemical" || status.status === "pest" ?
-                <InsertPage PageAddRef={PageAddRef} ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> 
+                <InsertPage ReloadAccount={()=>fetchDataList(0 , DataFetch.length)} type={status.status}/> 
                 : <></>
             }
             <div className="List-data">
@@ -490,7 +493,9 @@ const ManageList = ({socket , Data , setBecause , ListCount , setListCount , Tab
     return (List)
 }
 
-const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
+const InsertPage = ({ReloadAccount , type}) => {
+    const { openInsert , setOpenInsert } = useContext(PageTemplateContext)
+
     const [localType, setLocalType] = useState("default");
     const [step, setStep] = useState(1);
     const [Open , setOpen] = useState(0)
@@ -514,8 +519,6 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
     const [stateOnBt , setstateOnBt] = useState(true)
 
     useEffect(()=>{
-        // setSize(PageAddRef.current.clientHeight * 0.3)
-
         if(type === "station") GenerateMapAuto()
     } , [])
 
@@ -662,7 +665,7 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
 
         setStep(1); // กลับไปยังเมนูเริ่มต้น
         
-        if(e) PageAddRef.current.toggleAttribute("show")
+        if(e) setOpenInsert(false)
     }
 
     const GenerateMap = async (e) => {
@@ -692,9 +695,9 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
         setLocalType(menuType); // เปลี่ยน localType
         setStep(2); // เปลี่ยนไป Step 2
     };
-    console.log(type)
+
     return (
-        <section ref={PageAddRef} className="page-insert">
+        <section className="page-insert" show={openInsert}>
             {
                 (type === "default" || type === "admin") ? (
                     (() => {
@@ -740,8 +743,8 @@ const InsertPage = ({PageAddRef , ReloadAccount , type}) => {
                     })()
                 ) : type === "group" ? (
                 <Modal
-                    show={true}
-                    // onClose={() => setOpen(true)}
+                    show={openInsert}
+                    onHide={() => setOpenInsert(false)}
                     aria-labelledby="modal-title"
                     aria-describedby="modal-description"
                 >
