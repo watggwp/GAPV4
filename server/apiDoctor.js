@@ -2966,7 +2966,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     con.end()
                                                     res.send("error")
                                                 } else {
-                                                    con.end()
+                                                    
                                                     if(req.body.type == "plant"){
                                                         const insertId = result.insertId
                                                         const {
