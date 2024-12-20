@@ -697,7 +697,7 @@ const InsertPage = ({ReloadAccount , type}) => {
     };
 
     return (
-        <section className="page-insert" show={openInsert}>
+        <section className="page-insert" show={openInsert && ""}>
             {
                 (type === "default" || type === "admin") ? (
                     (() => {
