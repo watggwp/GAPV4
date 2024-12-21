@@ -638,12 +638,16 @@ const PopupInsertFactor = ({
 
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !varietyValue) {
-      console.warn("Missing required inputs:", {
-        chemicalValue,
-        pestValue,
-        varietyValue
-      });
-      return;
+        console.warn("Missing required inputs:", {
+            chemicalValue,
+            pestValue,
+            varietyValue
+        });
+
+        ListSearchName.current.setAttribute("remove","")
+        ListSearchFactorNameMain.current.setAttribute("remove","")
+        ListSearchPests.current.setAttribute("remove","")
+        return;
     }
 
     // ตรวจสอบความสัมพันธ์ใน pestChemicalData
@@ -665,7 +669,6 @@ const PopupInsertFactor = ({
     } else {
       console.log("Matched entry:", matchedEntry);
     }
-    alert("set remove")
     ListSearchName.current.setAttribute("remove","")
     ListSearchFactorNameMain.current.setAttribute("remove","")
     ListSearchPests.current.setAttribute("remove","")
