@@ -880,8 +880,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                       ${
                         data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
                         data.type === "station" ? ", location" : 
-                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list" :
-                        data.type === "pest" ? ", variety_id" 
+                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list"
                         : ""
                       }
                     ) 
@@ -892,15 +891,14 @@ app.get('/api/admin/profile/get', (req, res) => {
                       ${
                         data.type === "plant" ? `, ? , ? , ?` :
                         data.type === "station" ? `, POINT(?,?)` :
-                        data.type === "chemical" ? ", ? , ? , ?" :
-                        data.type === "pest" ? ", ?" 
+                        data.type === "chemical" ? ", ? , ? , ?"
                         : ""
                       }
                     )` , 
                     data.type === "plant" ? [ data.name , data.type_plant , data.qtyDate , data.variety_name] :
                     data.type === "station" ? [ data.name , data.lat , data.lng] :
                     data.type === "chemical" ? [ data.name , data.name_formula , data.how_use , data.date_safe] :
-                    data.type === "pest" ? [ data.name , 0] : []
+                    data.type === "pest" ? [ data.name ] : []
                   , (err , insert)=>{
                     if(err) {
                       dbpacket.dbErrorReturn(con , err , res)
