@@ -739,23 +739,31 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const type_data = 
+        const type_data = (
           data.type === "plant" ? "plant_list" : 
           data.type === "station" ? "station_list" :
           data.type === "chemical" ? "chemical_list" :
           data.type === "pest" ? "pests" : 
-          "";
+          ""
+        );
         const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
         const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
         if(!type_data) {
           res.send([])
         }
 
+        const columnName = (
+          data.type === "plant" ? "name" : 
+          data.type === "station" ? "name" :
+          data.type === "chemical" ? "name" :
+          data.type === "pest" ? "pest_name" : 
+          ""
+        )
         con.query(
           `
           SELECT * FROM ${type_data}
-          WHERE INSTR( name , ? )
-          ORDER BY is_use DESC , name ASC
+          WHERE INSTR( ${columnName} , ? )
+          ORDER BY is_use DESC , ${columnName} ASC
           LIMIT ${Limit} OFFSET ${StartRow}
           ` , [data.textSearch]
           , (err , result)=>{
