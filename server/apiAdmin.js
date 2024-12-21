@@ -739,17 +739,26 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const type_data = data.type === "plant" ? data.type : "station" ? data.type : "chemical" ? data.type : "pest";
+        const type_data = 
+          data.type === "plant" ? "plant_list" : 
+          data.type === "station" ? "station_list" :
+          data.type === "chemical" ? "chemical_list" :
+          data.type === "pest" ? "pests" : 
+          "";
         const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
         const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
+        if(!type_data) {
+          res.send([])
+        }
+
         con.query(
           `
-          SELECT * FROM ${type_data}_list
+          SELECT * FROM ${type_data}
           WHERE INSTR( name , ? )
           ORDER BY is_use DESC , name ASC
           LIMIT ${Limit} OFFSET ${StartRow}
           ` , [data.textSearch]
-         , (err , result)=>{
+          , (err , result)=>{
           if(err) {
             dbpacket.dbErrorReturn(con , err , res)
             console.log(`select ${type_data} err`)
@@ -757,7 +766,7 @@ app.get('/api/admin/profile/get', (req, res) => {
           }
           con.end()
           res.send(result)
-         })
+        })
       }
     } catch (err) {
       con.end()
@@ -783,11 +792,17 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : data.type === "chemical" ? "chemical" : data.type === "pest" ? "pest" : false;
+        const From = (
+          data.type === "station" ? "station_list" : 
+          data.type === "plant" ? "plant_list" : 
+          data.type === "chemical" ? "chemical_list" : 
+          data.type === "pest" ? "pests" : 
+          false
+        );
         if(From) {
           con.query(
             `
-              SELECT * FROM ${From}_list WHERE id=?
+              SELECT * FROM ${From} WHERE id=?
             ` 
           , 
           [data.id] ,
