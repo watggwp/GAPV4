@@ -783,7 +783,7 @@ app.get('/api/admin/profile/get', (req, res) => {
       if(auth['result'] === "pass") {
         let data = req.body
 
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : data.type === "chemical" ? "plant" : data.type === "pest" ? "plant" : false;
+        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : data.type === "chemical" ? "chemical" : data.type === "pest" ? "pest" : false;
         if(From) {
           con.query(
             `
@@ -845,7 +845,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                       name , 
                       is_use 
                       ${
-                        data.type === "plant" ? ", type_plant , qty_harvest" : 
+                        data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
                         data.type === "station" ? ", location" : ""
                       }
                     ) 
@@ -854,7 +854,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                       ? , 
                       1 
                       ${
-                        data.type === "plant" ? `, '${data.type_plant}' , '${data.qtyDate}'` :
+                        data.type === "plant" ? `, '${data.type_plant}' , '${data.qtyDate}' , '${data.variety_name}'` :
                         data.type === "station" ? `, POINT(${data.lat},${data.lng})` : ""
                       }
                     )` , 

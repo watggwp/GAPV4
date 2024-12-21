@@ -547,6 +547,7 @@ const InsertPage = ({ReloadAccount , type}) => {
                                 QtyDate.current.value,
                                 RefData.Data1.current.value,
                                 RefData.Data2.current.value,
+                                RefData.Data3.current.value,
                             ] : []
 
         if(RefIsCheck.filter(val=>!val).length == 0 && pwAdmin.current.value) {
@@ -576,6 +577,7 @@ const InsertPage = ({ReloadAccount , type}) => {
                 type === "plant" ? {
                     name : RefData.Data1.current.value,
                     type_plant : RefData.Data2.current.value,
+                    variety_name : RefData.Data3.current.value,
                     qtyDate : QtyDate.current.value,
                     type : type ,
                     passwordAd : pwAdmin.current.value
@@ -742,74 +744,80 @@ const InsertPage = ({ReloadAccount , type}) => {
                         }
                     })()
                 ) : type === "group" ? (
-                <Modal
+                    <Modal
                     show={openInsert}
                     onHide={() => setOpenInsert(false)}
                     aria-labelledby="modal-title"
                     aria-describedby="modal-description"
-                >
+                    centered
+                    size="lg"
+                  >
                     <div className="modal-content">
+                      <div className="modal-header">
                         <h2 id="modal-title">เพิ่มรายการจัดกลุ่มข้อมูล</h2>
-                        <div className="modal-body">
-                            {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
-                            <div className="table-section">
-                                <span className="table-title">โรคพืช / ศัตรูพืช</span>
-                                <select onChange={CheckEmply} ref={RefData.Data1}>
-                                    <option value="">กรุณาเลือก</option>
-                                    <option value="โรคพืช">โรคพืช</option>
-                                    <option value="ศัตรูพืช">ศัตรูพืช</option>
-                                </select>
-                            </div>
-
-                            {/* ตารางที่ 2: สารเคมี */}
-                            <div className="table-section">
-                                <span className="table-title">สารเคมี</span>
-                                <select onChange={CheckEmply} ref={RefData.Data2}>
-                                    <option value="">กรุณาเลือก</option>
-                                    <option value="สารเคมี A">สารเคมี A</option>
-                                    <option value="สารเคมี B">สารเคมี B</option>
-                                    <option value="สารเคมี C">สารเคมี C</option>
-                                </select>
-                            </div>
-
-                            {/* ตารางที่ 3: พืช */}
-                            <div className="table-section">
-                                <span className="table-title">พืช</span>
-                                <select onChange={CheckEmply} ref={RefData.Data3}>
-                                    <option value="">กรุณาเลือกชนิดพืช</option>
-                                    <option value="พืชผัก">พืชผัก</option>
-                                    <option value="สมุนไพร">สมุนไพร</option>
-                                </select>
-                                <div className="checkbox-group">
-                                    <span>เลือกสายพันธุ์พืช:</span>
-                                    <label>
-                                        <input type="checkbox" name="สายพันธุ์ A" /> สายพันธุ์ A
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" name="สายพันธุ์ B" /> สายพันธุ์ B
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" name="สายพันธุ์ C" /> สายพันธุ์ C
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* ปุ่มยืนยันและยกเลิก */}
-                            <div className="bt-submit">
-                                <button className="cancel" onClick={Cancel}>
-                                    ยกเลิก
-                                </button>
-                                <button
-                                    className="submit"
-                                    onClick={ClickAdd}
-                                    no={stateOnBt ? "" : null}
-                                >
-                                    เพิ่มข้อมูล
-                                </button>
-                            </div>
+                        <button
+                          type="button"
+                          className="btn-close"
+                          onClick={() => setOpenInsert(false)}
+                          aria-label="Close"
+                        />
+                      </div>
+                      <div className="modal-body">
+                        {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
+                        <div className="table-section">
+                          <span className="table-title">โรคพืช / ศัตรูพืช</span>
+                          <select onChange={CheckEmply} ref={RefData.Data1}>
+                            <option value="">กรุณาเลือก</option>
+                            <option value="โรคพืช">โรคพืช</option>
+                            <option value="ศัตรูพืช">ศัตรูพืช</option>
+                          </select>
                         </div>
+              
+                        {/* ตารางที่ 2: สารเคมี */}
+                        <div className="table-section">
+                          <span className="table-title">สารเคมี</span>
+                          <select onChange={CheckEmply} ref={RefData.Data2}>
+                            <option value="">กรุณาเลือก</option>
+                            <option value="สารเคมี A">สารเคมี A</option>
+                            <option value="สารเคมี B">สารเคมี B</option>
+                            <option value="สารเคมี C">สารเคมี C</option>
+                          </select>
+                        </div>
+              
+                        {/* ตารางที่ 3: พืช */}
+                        <div className="table-section">
+                          <span className="table-title">พืช</span>
+                          <select onChange={CheckEmply} ref={RefData.Data3}>
+                            <option value="">กรุณาเลือกชนิดพืช</option>
+                            <option value="พืชผัก">พืชผัก</option>
+                            <option value="สมุนไพร">สมุนไพร</option>
+                          </select>
+                          <div className="checkbox-group">
+                            <span>เลือกสายพันธุ์พืช:</span>
+                            {["สายพันธุ์ A", "สายพันธุ์ B", "สายพันธุ์ C"].map((item, index) => (
+                              <label key={index}>
+                                <input type="checkbox" name={item} /> {item}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+              
+                        {/* ปุ่มยืนยันและยกเลิก */}
+                        <div className="bt-submitgroup">
+                          <button className="cancel" onClick={Cancel}>
+                            ยกเลิก
+                          </button>
+                          <button
+                            className="submit"
+                            onClick={ClickAdd}
+                            disabled={!stateOnBt}
+                          >
+                            เพิ่มข้อมูล
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                </Modal>
+                  </Modal>
     //             <Modal show>
     //     <Modal.Header closeButton>
     //       <Modal.Title>Modal heading</Modal.Title>

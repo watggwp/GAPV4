@@ -54,7 +54,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant : type === "station" ? data.location : ""
+            dataOther : type === "plant" ? data.type_plant :type === "plant" ? data.variety_name : type === "station" ? data.location : ""
         })
 
         if(type === "station") {
@@ -192,7 +192,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                             {type === "plant" ? <span className={type}>ชื่อพืช</span> : <span className={type}>ชื่อศูนย์</span>}
                             <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input>
                         </div>
-                        <div className={type === "plant" ? "type_plant" : "location column"}>
+                        <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
                             }

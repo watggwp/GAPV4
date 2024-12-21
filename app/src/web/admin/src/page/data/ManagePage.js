@@ -42,7 +42,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant : type === "station" ? data.location : ""
+            dataOther : type === "plant" ? data.type_plant : type === "plant" ? data.variety_name : type === "station" ? data.location : ""
         })
         setLoading(false)
     }
@@ -138,6 +138,17 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                         <div className={type === "plant" ? "type_plant" : "location"}>
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
+                            }
+                            {
+                                type === "plant" ? <div>{Data.dataOther}</div> :
+                                Data.dataOther ? 
+                                    <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
+                                    ""
+                            }
+                        </div>
+                        <div className={type === "plant" ? "variety_name" : "location"}>
+                            {
+                                type === "plant" ? <span>สายพันธุ์พืช</span> : <></>
                             }
                             {
                                 type === "plant" ? <div>{Data.dataOther}</div> :

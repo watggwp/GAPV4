@@ -252,6 +252,23 @@
                         }
                     }
 
+                    .variety_name {
+                        display: flex;
+                        span {
+                            font-weight: 900;
+                            font-size: 18px;
+                            font-family: Sans-font;
+                        }
+
+                        div {
+                            display: flex;
+                            font-family: Sans-font;
+                            font-size: 18px;
+                            align-items: center;
+                            margin-left: 5px;
+                        }
+                    }
+
                     .location {
                         display: flex;
                         justify-content: center;
