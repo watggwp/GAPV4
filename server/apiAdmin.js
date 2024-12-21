@@ -752,18 +752,20 @@ app.get('/api/admin/profile/get', (req, res) => {
           res.send([])
         }
 
+
+
         const columnName = (
-          data.type === "plant" ? "name" : 
-          data.type === "station" ? "name" :
-          data.type === "chemical" ? "name" :
-          data.type === "pest" ? "pest_name" : 
-          ""
+          data.type === "pest" ? "pest_name" : "name"
+        )
+
+        const orderBy = (
+          data.type === "pest" ? "pest_name ASC" : "is_use DESC , name ASC"
         )
         con.query(
           `
           SELECT * FROM ${type_data}
           WHERE INSTR( ${columnName} , ? )
-          ORDER BY is_use DESC , ${columnName} ASC
+          ORDER BY ${orderBy}
           LIMIT ${Limit} OFFSET ${StartRow}
           ` , [data.textSearch]
           , (err , result)=>{
