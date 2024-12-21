@@ -631,12 +631,11 @@ const PopupInsertFactor = ({
   //     }
   // };
 
-  const ValidateChemicalAndPest = (e) => {
+  const ValidateChemicalAndPest = () => {
     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
     const pestValue = NameInsect.current?.value.trim();
     const varietyValue = currentPlantVarietyName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
 
-    const targetEvent = e.target
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !varietyValue) {
         console.warn("Missing required inputs:", {
@@ -644,10 +643,6 @@ const PopupInsertFactor = ({
             pestValue,
             varietyValue
         });
-
-        containsHidePopup(ListSearchName.current , targetEvent)
-        containsHidePopup(ListSearchFactorNameMain.current , targetEvent)
-        containsHidePopup(ListSearchPests.current , targetEvent)
         return;
     }
 
@@ -670,16 +665,10 @@ const PopupInsertFactor = ({
     } else {
       console.log("Matched entry:", matchedEntry);
     }
-    
-    containsHidePopup(ListSearchName.current , targetEvent)
-    containsHidePopup(ListSearchFactorNameMain.current , targetEvent)
-    containsHidePopup(ListSearchPests.current , targetEvent)
   };
 
   const containsHidePopup = useCallback((element , target) => {
-    setTimeout(() => {
-        !element.contains(target) && element.setAttribute("remove","")
-    }, 100);
+    !element.contains(target) && element.setAttribute("remove","")
   } , [])
 
   //
@@ -944,7 +933,10 @@ const PopupInsertFactor = ({
                                 ref={NameFactor}
                                 readOnly={!LoadSearchName ? true : null}
                                 disabled={!LoadSearchName ? true : null}
-                                onBlur={ValidateChemicalAndPest}
+                                onBlur={(e) => {
+                                    ValidateChemicalAndPest()
+                                    containsHidePopup(ListSearchName.current , e.target)
+                                }}
                               ></input>
                               <div
                                 ref={ListSearchName}
@@ -1044,7 +1036,10 @@ const PopupInsertFactor = ({
                                 ref={NameInsect}
                                 readOnly={!LoadSearchPests ? true : null}
                                 disabled={!LoadSearchPests ? true : null}
-                                onBlur={ValidateChemicalAndPest}
+                                onBlur={(e) => {
+                                    ValidateChemicalAndPest()
+                                    containsHidePopup(ListSearchPests.current , e.target)
+                                }}
                               ></input>
                               <div
                                 ref={ListSearchPests}
