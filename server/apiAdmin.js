@@ -758,14 +758,11 @@ app.get('/api/admin/profile/get', (req, res) => {
           data.type === "pest" ? "pest_name" : "name"
         )
 
-        const orderBy = (
-          data.type === "pest" ? "pest_name ASC" : "is_use DESC , name ASC"
-        )
         con.query(
           `
           SELECT * FROM ${type_data}
           WHERE INSTR( ${columnName} , ? )
-          ORDER BY ${orderBy}
+          ORDER BY is_use DESC , ${columnName} ASC
           LIMIT ${Limit} OFFSET ${StartRow}
           ` , [data.textSearch]
           , (err , result)=>{
@@ -855,23 +852,37 @@ app.get('/api/admin/profile/get', (req, res) => {
         const auth = await apifunc.auth(con , username , password , res , "admin")
         if(auth['result'] === "pass") {
           const data = req.body
-          const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : "";
+          const From = (
+            data.type === "station" ? "station_list" : 
+            data.type === "plant" ? "plant_list" :
+            data.type === "chemical" ? "chemical_list" :
+            data.type === "pest" ? "pests"
+            : ""
+          );
+
+          const columnName = (
+            data.type === "pest" ? "pest_name" : "name"
+          )
+
           con.query(
             `
-            SELECT * FROM ${From}_list WHERE name=? and is_use = 1;
+            SELECT * FROM ${From} WHERE ${columnName} = ? and is_use = 1;
             `
             ,[ data.name ], (err , result)=>{
             if(!err) {
               if(!result.length) {
                 if(From) {
                   con.query(`
-                    INSERT INTO ${From}_list 
+                    INSERT INTO ${From} 
                     (
-                      name , 
+                      ${columnName} , 
                       is_use 
                       ${
                         data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
-                        data.type === "station" ? ", location" : ""
+                        data.type === "station" ? ", location" : 
+                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list" :
+                        data.type === "pest" ? ", variety_id" 
+                        : ""
                       }
                     ) 
                     VALUES 
@@ -879,11 +890,18 @@ app.get('/api/admin/profile/get', (req, res) => {
                       ? , 
                       1 
                       ${
-                        data.type === "plant" ? `, '${data.type_plant}' , '${data.qtyDate}' , '${data.variety_name}'` :
-                        data.type === "station" ? `, POINT(${data.lat},${data.lng})` : ""
+                        data.type === "plant" ? `, ? , ? , ?` :
+                        data.type === "station" ? `, POINT(?,?)` :
+                        data.type === "chemical" ? ", ? , ? , ?" :
+                        data.type === "pest" ? ", ? , ?" 
+                        : ""
                       }
                     )` , 
-                  [ data.name ] , (err , insert)=>{
+                    data.type === "plant" ? [ data.name , data.type_plant , data.qtyDate , data.variety_name] :
+                    data.type === "station" ? [ data.name , data.lat , data.lng] :
+                    data.type === "chemical" ? [ data.name , data.name_formula , data.how_use , data.date_safe] :
+                    data.type === "pest" ? [ data.name , 0] : []
+                  , (err , insert)=>{
                     if(err) {
                       dbpacket.dbErrorReturn(con , err , res)
                       console.log(`insert ${data.type} err`)
