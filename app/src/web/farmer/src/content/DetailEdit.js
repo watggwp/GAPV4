@@ -265,11 +265,14 @@ const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
                                     onClick={(e) => SelectHead(val.id_edit, e)}
                                     select={key === 0 ? "" : undefined}
                                 >
-                                    {key === 0
-                                        ? "ล่าสุด"
-                                        : val.fullname_doctor
-                                        ? `หมอพืช (${key + 1})`
-                                        : `${key + 1}`}
+                                    {key === 0 ? (
+                                        "ล่าสุด"
+                                    ) : (
+                                        <>
+                                            <div className="number">{key + 1}</div>
+                                            {val.fullname_doctor ? `หมอพืช` : ""}
+                                        </>
+                                    )}
                                 </span>
                                 ))}
                             </div>
