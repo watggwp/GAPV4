@@ -577,7 +577,7 @@ const PopupInsertFactor = ({
     const list_search_name = ListSearchName.current
     const list_search_factor_name = ListSearchFactorNameMain.current
     const list_search_pests = ListSearchPests.current
-    if( list_search_name.getAttribute("remove") || list_search_factor_name.getAttribute("remove") || list_search_pests.getAttribute("remove") ) {
+    if( !list_search_name.getAttribute("remove") || !list_search_factor_name.getAttribute("remove") || !list_search_pests.getAttribute("remove") ) {
         list_search_name.setAttribute("remove","")
         list_search_factor_name.current.setAttribute("remove","")
         list_search_pests.current.setAttribute("remove","")
@@ -585,9 +585,9 @@ const PopupInsertFactor = ({
   } , [])
 
   useEffect(() => {
-    window.addEventListener("keyup" , removePopup)
+    window.addEventListener("click" , removePopup)
     return(() => {
-        window.removeEventListener("keyup" , removePopup)
+        window.removeEventListener("click" , removePopup)
     })
   } , [removePopup])
 
