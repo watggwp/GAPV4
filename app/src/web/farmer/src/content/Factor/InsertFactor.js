@@ -677,7 +677,9 @@ const PopupInsertFactor = ({
   };
 
   const containsHidePopup = useCallback((element , target) => {
-    !element.contains(target) && element.setAttribute("remove","")
+    setTimeout(() => {
+        !element.contains(target) && element.setAttribute("remove","")
+    }, 100);
   } , [])
 
   //
