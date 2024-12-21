@@ -631,11 +631,12 @@ const PopupInsertFactor = ({
   //     }
   // };
 
-  const ValidateChemicalAndPest = () => {
+  const ValidateChemicalAndPest = (e) => {
     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
     const pestValue = NameInsect.current?.value.trim();
     const varietyValue = currentPlantVarietyName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
 
+    const targetEvent = e.target
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !varietyValue) {
         console.warn("Missing required inputs:", {
@@ -644,9 +645,9 @@ const PopupInsertFactor = ({
             varietyValue
         });
 
-        ListSearchName.current.setAttribute("remove","")
-        ListSearchFactorNameMain.current.setAttribute("remove","")
-        ListSearchPests.current.setAttribute("remove","")
+        containsHidePopup(ListSearchName.current , targetEvent)
+        containsHidePopup(ListSearchFactorNameMain.current , targetEvent)
+        containsHidePopup(ListSearchPests.current , targetEvent)
         return;
     }
 
@@ -669,10 +670,15 @@ const PopupInsertFactor = ({
     } else {
       console.log("Matched entry:", matchedEntry);
     }
-    ListSearchName.current.setAttribute("remove","")
-    ListSearchFactorNameMain.current.setAttribute("remove","")
-    ListSearchPests.current.setAttribute("remove","")
+    
+    containsHidePopup(ListSearchName.current , targetEvent)
+    containsHidePopup(ListSearchFactorNameMain.current , targetEvent)
+    containsHidePopup(ListSearchPests.current , targetEvent)
   };
+
+  const containsHidePopup = useCallback((element , target) => {
+    !element.contains(target) && element.setAttribute("remove","")
+  } , [])
 
   //
   const ChangeData = (DataFilter) => {
