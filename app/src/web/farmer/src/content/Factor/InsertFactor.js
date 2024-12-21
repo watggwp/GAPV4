@@ -579,8 +579,8 @@ const PopupInsertFactor = ({
     const list_search_pests = ListSearchPests.current
     if( !list_search_name.getAttribute("remove") || !list_search_factor_name.getAttribute("remove") || !list_search_pests.getAttribute("remove") ) {
         list_search_name.setAttribute("remove","")
-        list_search_factor_name.current.setAttribute("remove","")
-        list_search_pests.current.setAttribute("remove","")
+        list_search_factor_name.setAttribute("remove","")
+        list_search_pests.setAttribute("remove","")
     }
   } , [])
 
