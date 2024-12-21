@@ -921,7 +921,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             passwordAd: pwAdmin.current.value
         }
         : type === "pest" ? {
-            name: RefData.Data1.current.value,
+            name: RefData.Data2.current.value,
             type: type,
             passwordAd: pwAdmin.current.value
         }

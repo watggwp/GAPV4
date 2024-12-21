@@ -893,7 +893,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                         data.type === "plant" ? `, ? , ? , ?` :
                         data.type === "station" ? `, POINT(?,?)` :
                         data.type === "chemical" ? ", ? , ? , ?" :
-                        data.type === "pest" ? ", ? , ?" 
+                        data.type === "pest" ? ", ?" 
                         : ""
                       }
                     )` , 
