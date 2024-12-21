@@ -662,13 +662,12 @@ const PopupInsertFactor = ({
         `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
       );
       setShowPopup(true);
-
-        ListSearchName.current.setAttribute("remove","")
-        ListSearchFactorNameMain.current.setAttribute("remove","")
-        ListSearchPests.current.setAttribute("remove","")
     } else {
       console.log("Matched entry:", matchedEntry);
     }
+    ListSearchName.current.setAttribute("remove","")
+    ListSearchFactorNameMain.current.setAttribute("remove","")
+    ListSearchPests.current.setAttribute("remove","")
   };
 
   //
