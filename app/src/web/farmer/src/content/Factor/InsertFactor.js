@@ -573,24 +573,6 @@ const PopupInsertFactor = ({
     } catch (e) {}
   };
 
-  const removePopup = useCallback(() => {
-    const list_search_name = ListSearchName.current
-    const list_search_factor_name = ListSearchFactorNameMain.current
-    const list_search_pests = ListSearchPests.current
-    if( !list_search_name.getAttribute("remove") || !list_search_factor_name.getAttribute("remove") || !list_search_pests.getAttribute("remove") ) {
-        list_search_name.setAttribute("remove","")
-        list_search_factor_name.setAttribute("remove","")
-        list_search_pests.setAttribute("remove","")
-    }
-  } , [])
-
-  useEffect(() => {
-    window.addEventListener("click" , removePopup)
-    return(() => {
-        window.removeEventListener("click" , removePopup)
-    })
-  } , [removePopup])
-
   // const ValidateChemicalAndPest = () => {
   //     // ListSearchName.current.setAttribute("remove","")
   //     // ListSearchFactorNameMain.current.setAttribute("remove","")
@@ -680,6 +662,10 @@ const PopupInsertFactor = ({
         `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
       );
       setShowPopup(true);
+
+        ListSearchName.current.setAttribute("remove","")
+        ListSearchFactorNameMain.current.setAttribute("remove","")
+        ListSearchPests.current.setAttribute("remove","")
     } else {
       console.log("Matched entry:", matchedEntry);
     }
