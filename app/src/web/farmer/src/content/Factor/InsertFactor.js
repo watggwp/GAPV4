@@ -665,6 +665,7 @@ const PopupInsertFactor = ({
     } else {
       console.log("Matched entry:", matchedEntry);
     }
+    alert("set remove")
     ListSearchName.current.setAttribute("remove","")
     ListSearchFactorNameMain.current.setAttribute("remove","")
     ListSearchPests.current.setAttribute("remove","")
