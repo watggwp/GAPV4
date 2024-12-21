@@ -993,7 +993,7 @@ const PopupInsertFactor = ({
                               readOnly={!LoadSearchNameMain ? true : null}
                               disabled={!LoadSearchNameMain ? true : null}
                               onBlur={(e) => {
-                                containsHidePopup(LoadSearchNameMain.current , e.target)
+                                containsHidePopup(ListSearchFactorNameMain.current , e.target)
                               }}
                             ></input>
                             <div
