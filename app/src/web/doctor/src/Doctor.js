@@ -12,6 +12,7 @@ import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
+import Pagegroup from "./page/group/group";
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
@@ -77,6 +78,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     else if(path[2] === "not") {
                         setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`not:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
                     }
+                    
                 } else if(path[1] === "data") {
                     const search = window.location.search.replaceAll("?" , "").split("&").map(val=>{
                         const Split = val.split("=")
@@ -84,6 +86,8 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     })
                     setBody(<PageData setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`${search[0]}:${type}:${new Date().getTime()}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
                 }
+
+            
                 
             } else {
                 setBody(<div>เกิดปัญหา</div>)

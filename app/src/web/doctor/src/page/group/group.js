@@ -3,13 +3,13 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/TemplantList.scss"
 import "../../assets/style/page/data/PageData.scss"
 import { DayJSX , LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, PopupDom } from "../../../../../assets/js/module";
-import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource } from "./Insert/InsertPage";
-import { SearchChemical, SearchFertilizer, SearchPlant } from "./search/SearchPage";
-import PopupConfirm from "./Insert/ConfirmInsert";
-import ManageData from "./ManageData";
+// import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource } from "./Insert/InsertPage";
+// import { SearchChemical, SearchFertilizer, SearchPlant } from "./search/SearchPage";
+// import PopupConfirm from "./Insert/ConfirmInsert";
+// import ManageData from "./ManageData";
 
 const MaxLimit = 5
-const PageData = ({setMain , session , socket , type = false , eleImageCover , LoadType , eleBody , setTextStatus}) => {
+const Pagegroup = ({setMain , session , socket , type = false , eleImageCover , LoadType , eleBody , setTextStatus}) => {
     // const [Body , setBody] = useState(<></>)
     const [Loading , setLoading] = useState(false)
     // const [statusPage , setStatus] = useState({
@@ -234,7 +234,6 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                     e.target.value = SelectType.current.value
                                 }} ref={SelectType} value={DataProcess.get("type")}>
                                     <option value={"plant"}>ชนิดพืช</option>
-                                    <option value={"pest"}>โรคพืช / ศัตรูพืช</option>
                                     <option value={"fertilizer"}>ปัจจัยการผลิต</option>
                                     <option value={"chemical"}>สารเคมี</option>
                                     <option value={"source"}>แหล่งที่ซื้อ</option>
@@ -537,4 +536,4 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
     )
 } 
 
-export default PageData
+export default Pagegroup

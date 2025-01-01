@@ -79,6 +79,20 @@
             box-shadow: 0px 4px 4px #307569;
         }
 
+        .bt-menu-frame.group {
+            background: linear-gradient(180deg , #C2FAF0 , white);
+        }
+        .bt-menu-frame.group:hover {
+            box-shadow: 0px 4px 4px #307569;
+        }
+
+        .bt-menu-frame.report {
+            background: linear-gradient(180deg , #C2FAF0 , white);
+        }
+        .bt-menu-frame.report:hover {
+            box-shadow: 0px 4px 4px #307569;
+        }
+
         .bt-menu-frame.exportData {
             background: linear-gradient(180deg , #F9B0FF , white);
         }

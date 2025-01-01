@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { GetLinkUrlOfSearch, MapsJSX } from "../../../../../../assets/js/module";
+// import { Modal } from "react-bootstrap";
 
 const InsertPlant = ({nameInsert , typeInsert , speciesInsert , DateQtyInsert , ErrReport , CheckInsert , stateOn}) => {
     useEffect(()=>{
@@ -116,6 +117,7 @@ const InsertFertilizer = ({nameInsert , formulaFertilizer , UseText , ErrReport 
                     placeholder="เช่น กระต่าย"></input>
             </label>
         </div>
+        
         <div className="row">
             <label className="field-select">
                 <span className="important">สูตรปุ๋ย</span>
