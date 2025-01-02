@@ -1526,10 +1526,10 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                             if(indexFind >= 0) {
                                                 prev[indexFind]["farmersCount"] += curr["farmersCount"]
                                             } else {
-                                                prev[indexFind] = {
+                                                prev.push({
                                                     plantName : curr["plantName"],
                                                     farmersCount : curr["farmersCount"]
-                                                }
+                                                })
                                             }
 
                                             return prev
