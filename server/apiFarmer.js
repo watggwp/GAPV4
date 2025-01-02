@@ -1484,7 +1484,7 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                             GROUP BY id_farm_house , formplant.name_plant
                         ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
                         WHERE acc_farmer.station = ?
-                        GROUP BY acc_farmer.station;
+                        GROUP BY subquery.name_plant acc_farmer.station;
                     `;
     
                     con.query(farmerQuery, [station], (err, farmerStatistics) => {
