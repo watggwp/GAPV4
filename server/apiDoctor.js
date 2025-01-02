@@ -2801,7 +2801,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 const From = req.body.type == "plant" ? "plant_list" : 
                                 req.body.type == "fertilizer" ? "fertilizer_list" : 
                                 req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                                req.body.type == "source" ? "source_list" : 
+                                req.body.type == "pest" ? "pests" : ""
                 
                 const QuerySearch = Object.entries(req.body.check).map((Data)=>{
                     // Data[0] = Key ของ column ในแต่ละ table ซึ่ง table ก็มี plant fertilizer chemical source , Data[1] ข้อมูลที่ต้องการค้นหา

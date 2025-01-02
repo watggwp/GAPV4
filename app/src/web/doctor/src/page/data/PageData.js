@@ -304,7 +304,13 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                 </div>
             </div>
             <div className="data-list-content">
-                <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
+                {
+                    DataProcess.get("type")=="group"?
+                    <></>:
+                    DataProcess.get("type")=="report"?
+                    <></>:
+                    <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
+                }
                 {
                     TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={2}/> : <></>
                 }
