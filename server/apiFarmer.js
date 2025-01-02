@@ -1421,6 +1421,125 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
         }
     });
     
+    app.get('/api/farmer/statistics', (req, res) => {
+        const con = Database.createConnection(listDB);
+    
+        try {
+            const uidFarmer = req.session?.uidFarmer;
+            console.log(`Received UID_Farmer from session: ${uidFarmer}`);
+    
+            if (!uidFarmer) {
+                console.error('UID_Farmer ไม่พบใน session');
+                res.status(400).json({ status: "error", message: "UID_Farmer ไม่พบใน session" });
+                return;
+            }
+    
+            console.log(`Using UID_Farmer: ${uidFarmer}`);
+    
+            // ดึงข้อมูล station จาก uidFarmer
+            con.query(
+                `SELECT station FROM acc_farmer WHERE uid_line = ?;`,
+                [uidFarmer],
+                (err, stations) => {
+                    if (err) {
+                        console.error('Error fetching stations:', err);
+                        res.status(500).json({ status: "error", message: "Database query error" });
+                        return;
+                    }
+    
+                    if (stations.length === 0) {
+                        res.status(404).json({ status: "error", message: "ไม่พบ station สำหรับ UID_Farmer นี้" });
+                        return;
+                    }
+    
+                    const station = stations[0]?.station;
+                    console.log(`Using Station: ${station}`);
+    
+                    // ดึงข้อมูลเกษตรกรและพืชใน station
+                    const farmerQuery = `
+                        SELECT 
+                            acc_farmer.station,
+                            COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                            COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                            GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                            CONCAT(
+                                '[', 
+                                GROUP_CONCAT(
+                                    DISTINCT CONCAT(
+                                        '{"plantName":"', subquery.name_plant, '",',
+                                        '"farmersCount":', subquery.total_qty, '}'
+                                    )
+                                ),
+                                ']'
+                            ) AS plantDetails
+                        FROM acc_farmer
+                        LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                        LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                        LEFT JOIN (
+                            SELECT 
+                                formplant.name_plant,
+                                count( formplant.name_plant ) AS total_qty,id_farm_house
+                            FROM formplant
+                            GROUP BY formplant.name_plant
+                        ) AS subquery ON formplant.name_plant = subquery.name_plant
+                        WHERE acc_farmer.station = ?
+                        GROUP BY acc_farmer.station;
+                    `;
+    
+                    con.query(farmerQuery, [station], (err, farmerStatistics) => {
+                        if (err) {
+                            console.error('Error fetching farmer statistics:', err);
+                            res.status(500).json({ status: "error", message: "Database query error" });
+                            return;
+                        }
+    
+                        console.log('Farmer Statistics:', farmerStatistics);
+    
+                        // ดึงรายชื่อหมอพืชสำหรับ station นี้
+                        const doctorQuery = `
+                            SELECT id_doctor, fullname_doctor, station_doctor
+                            FROM acc_doctor
+                            WHERE station_doctor = ?;
+                        `;
+    
+                        con.query(doctorQuery, [station], (err, doctors) => {
+                            if (err) {
+                                console.error('Error fetching doctor data:', err);
+                                res.status(500).json({ status: "error", message: "Database query error" });
+                                return;
+                            }
+    
+                            console.log('Doctors:', doctors);
+    
+                            // ส่งผลลัพธ์กลับไป
+                            res.status(200).json({
+                                status: "success",
+                                data: {
+                                    farmerStatistics: farmerStatistics.map((stat) => ({
+                                        station: stat.station,
+                                        totalFarmers: stat.total_farmers,
+                                        totalPlants: stat.total_plants,
+                                        plants: stat.plants,
+                                        plantDetails: JSON.parse(stat.plantDetails || "[]"),
+                                    })),
+                                    doctors,
+                                },
+                            });
+                        });
+                    });
+                }
+            );
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            res.status(500).json({ status: "error", message: "Internal Server Error" });
+        }
+    });
+    
+    
+
+    
+    
+    
     
     
     
@@ -2791,3 +2910,4 @@ const authCheck = (con , dbpacket , res , req , LINE) => {
 //             })
 //     )
 // }
+
