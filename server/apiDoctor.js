@@ -2819,12 +2819,15 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 const StartRow = !isNaN(req.body.StartRow) ? req.body.StartRow : 0
                 const Limit = !isNaN(req.body.Limit) ? req.body.Limit : 0
                 if(From && QuerySearch.filter(val => val == null).length === 0) {
+                    const columnName = (
+                        req.body.type == "pest" ? "pest_name" : "name"
+                    )
                     con.query(
                         `
                         SELECT * 
                         FROM ${From}
                         ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ").replaceAll(";" , "")}` : ""}
-                        ORDER BY is_use DESC , name ASC
+                        ORDER BY is_use DESC , ${columnName} ASC
                         LIMIT ${Limit} OFFSET ${StartRow}
                         ` , 
                         (err , list) => {
