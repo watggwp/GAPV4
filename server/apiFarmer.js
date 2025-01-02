@@ -1478,10 +1478,11 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                         LEFT JOIN (
                             SELECT 
                                 formplant.name_plant,
-                                count( formplant.name_plant ) AS total_qty,id_farm_house
+                                COUNT(formplant.name_plant) AS total_qty,
+                                id_farm_house
                             FROM formplant
-                            GROUP BY formplant.name_plant
-                        ) AS subquery ON formplant.name_plant = subquery.name_plant
+                            GROUP BY id_farm_house , formplant.name_plant
+                        ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
                         WHERE acc_farmer.station = ?
                         GROUP BY acc_farmer.station;
                     `;
@@ -1520,7 +1521,19 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                         totalFarmers: stat.total_farmers,
                                         totalPlants: stat.total_plants,
                                         plants: stat.plants,
-                                        plantDetails: JSON.parse(stat.plantDetails || "[]"),
+                                        plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev , curr) => {
+                                            const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"])
+                                            if(indexFind >= 0) {
+                                                prev[indexFind]["farmersCount"] += curr["farmersCount"]
+                                            } else {
+                                                prev[indexFind] = {
+                                                    plantName : curr["plantName"],
+                                                    farmersCount : curr["farmersCount"]
+                                                }
+                                            }
+
+                                            return prev
+                                        } , []),
                                     })),
                                     doctors,
                                 },
