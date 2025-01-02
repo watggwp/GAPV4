@@ -1466,7 +1466,8 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                 '[', 
                                 GROUP_CONCAT(
                                     DISTINCT CONCAT(
-                                        '{"plantName":"', subquery.name_plant, '",',
+                                        '{"plantName":"', subquery.name_plant, '",' ,
+                                        '"id":', subquery.id, '",' ,
                                         '"farmersCount":', subquery.total_qty, '}'
                                     )
                                 ),
@@ -1477,6 +1478,7 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                         LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
                         LEFT JOIN (
                             SELECT 
+                                formplant.id,
                                 formplant.name_plant,
                                 COUNT(formplant.name_plant) AS total_qty,
                                 id_farm_house
@@ -1484,7 +1486,7 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                             GROUP BY id_farm_house , formplant.name_plant
                         ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
                         WHERE acc_farmer.station = ?
-                        GROUP BY subquery.name_plant acc_farmer.station;
+                        GROUP BY acc_farmer.station;
                     `;
     
                     con.query(farmerQuery, [station], (err, farmerStatistics) => {
