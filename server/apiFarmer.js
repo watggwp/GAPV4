@@ -1467,7 +1467,7 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                 GROUP_CONCAT(
                                     DISTINCT CONCAT(
                                         '{"plantName":"', subquery.name_plant, '",' ,
-                                        '"id":', subquery.id, '",' ,
+                                        '"id":"', subquery.id, '",' ,
                                         '"farmersCount":', subquery.total_qty, '}'
                                     )
                                 ),
