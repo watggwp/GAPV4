@@ -39,52 +39,44 @@ const InformationReport = ({ setPage }) => {
 
     const ensureColors = (existingColors, requiredCount) => {
         const colors = [...existingColors];
+        const hueStep = 360 / requiredCount; // เว้นระยะระหว่างสีด้วย Hue
+    
         while (colors.length < requiredCount) {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            colors.push(`rgb(${r}, ${g}, ${b})`);
+            const hue = (colors.length * hueStep) % 360; // กระจายเฉดสี
+            const saturation = 70 + Math.random() * 30; // ความเข้มของสี (70%-100%)
+            const lightness = 50 + Math.random() * 20; // ความสว่างของสี (50%-70%)
+    
+            colors.push(`hsl(${Math.floor(hue)}, ${Math.floor(saturation)}%, ${Math.floor(lightness)}%)`);
         }
         return colors;
     };
+    
 
     const pieData = {
-        labels: [
-            "จำนวนเกษตรกร",
-            ...(statistics?.farmerStatistics?.[0]?.plantDetails
-                ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.plantName)
-                : []),
-        ],
+        labels: statistics?.farmerStatistics?.[0]?.plantDetails
+            ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.plantName)
+            : [],
         datasets: [
             {
                 label: "ข้อมูลพื้นฐาน",
-                data: [
-                    statistics?.farmerStatistics?.[0]?.totalFarmers || 0, // ตรวจสอบ totalFarmers
-                    ...(statistics?.farmerStatistics?.[0]?.plantDetails
-                        ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.farmersCount)
-                        : []),
-                ],
+                data: statistics?.farmerStatistics?.[0]?.plantDetails
+                    ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.farmersCount)
+                    : [],
                 backgroundColor: ensureColors(
                     existingColors,
-                    1 + (statistics?.farmerStatistics?.[0]?.plantDetails?.length || 0)
+                    statistics?.farmerStatistics?.[0]?.plantDetails?.length || 0
                 ),
             },
         ],
     };
-    
-    
 
     const options = {
         plugins: {
             tooltip: {
                 callbacks: {
                     label: function (context) {
-                        if (context.dataIndex === 0) {
-                            return `จำนวนเกษตรกร: ${context.raw}`;
-                        } else {
-                            const plant = statistics?.farmerStatistics?.[0]?.plantDetails?.[context.dataIndex - 1];
-                            return `${plant.plantName}: ${plant.farmersCount}`;
-                        }
+                        const plant = statistics?.farmerStatistics?.[0]?.plantDetails?.[context.dataIndex];
+                        return `${plant.plantName}: ${plant.farmersCount}`;
                     },
                 },
             },
@@ -123,22 +115,23 @@ const InformationReport = ({ setPage }) => {
                                 </div>
                                 <h3>ข้อมูลเพิ่มเติม</h3>
                                 <ul>
-                                
-    <li>
-        <strong>จำนวนเกษตรกร:</strong>{" "}
-        {statistics?.farmerStatistics?.[0]?.totalFarmers || 0}
-    </li>
-    <li>
-        <strong>ชนิดพืช:</strong>{" "}
-        {statistics?.farmerStatistics?.[0]?.plantDetails?.map((plant, index) => (
-            <span key={index}>
-                {plant.plantName} ({plant.farmersCount}){index !== statistics.farmerStatistics[0].plantDetails.length - 1 ? ", " : ""}
-            </span>
-        ))}
-    </li>
-</ul>
-
-
+                                    <li>
+                                        <strong>จำนวนเกษตรกร:</strong>{" "}
+                                        {statistics?.farmerStatistics?.[0]?.totalFarmers || 0}
+                                    </li>
+                                    <li>
+                                        <strong>ชนิดพืช:</strong>{" "}
+                                        {statistics?.farmerStatistics?.[0]?.plantDetails?.map((plant, index) => (
+                                            <span key={index}>
+                                                {plant.plantName} ({plant.farmersCount})
+                                                {index !==
+                                                statistics.farmerStatistics[0].plantDetails.length - 1
+                                                    ? ", "
+                                                    : ""}
+                                            </span>
+                                        ))}
+                                    </li>
+                                </ul>
                             </div>
                         )}
                         {view === "doctors" && statistics?.doctors?.length > 0 && (

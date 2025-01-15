@@ -64,10 +64,10 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
                             <span>ชนิดพืช :</span>
                             <div>{val.name_plant}</div>
                         </div>
-                        <div className="content">
+                        {/* <div className="content">
                             <span>สายพันธุ์พืช :</span>
                             <div>{val.name_varieties}</div>
-                        </div>
+                        </div> */}
                     </div>
                     <div className="bottom">
                         {/* <div className="content">

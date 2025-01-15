@@ -65,7 +65,7 @@ const PopupInsertFactor = ({
   const [LoadSearchPests, setLoadPests] = useState(false);
 
   const [formId, setFormId] = useState(""); // สำหรับ formId
-  const [currentPlantVarietyName, setCurrentPlantVarietyName] = useState(""); // ชื่อสายพันธุ์พืช
+  const [currentPlantPlantName, setCurrentPlantName] = useState(""); // ชื่อสายพันธุ์พืช
   const [error, setError] = useState(null); // สำหรับข้อความแสดงข้อผิดพลาด
 
   const [getWait, setWait] = useState(false);
@@ -124,14 +124,14 @@ const PopupInsertFactor = ({
         console.log("Parsed Response Data:", response);
 
         // ตรวจสอบโครงสร้างข้อมูล
-        if (response?.variety_name && Array.isArray(response.data)) {
-          const { variety_name, data } = response; // Destructure ข้อมูล
-          console.log("Variety Name:", variety_name);
+        if (response?.plant_name && Array.isArray(response.data)) {
+          const { plant_name, data } = response; // Destructure ข้อมูล
+          console.log("Plant Name:", plant_name);
           console.log("Extracted Data:", data);
 
           if (data.length > 0) {
             setPestChemicalData(data);
-            setCurrentPlantVarietyName(variety_name);
+            setCurrentPlantName(plant_name);
           } else {
             console.warn("No pest-chemical data found:", data);
             setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
@@ -634,14 +634,14 @@ const PopupInsertFactor = ({
   const ValidateChemicalAndPest = () => {
     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
     const pestValue = NameInsect.current?.value.trim();
-    const varietyValue = currentPlantVarietyName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
+    const plantNameValue = currentPlantPlantName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
 
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
-    if (!chemicalValue || !pestValue || !varietyValue) {
+    if (!chemicalValue || !pestValue || !plantNameValue) {
         console.warn("Missing required inputs:", {
             chemicalValue,
             pestValue,
-            varietyValue
+            plantNameValue
         });
         return;
     }
@@ -656,7 +656,7 @@ const PopupInsertFactor = ({
       console.warn("No match found in pestChemicalData for:", {
         pestValue,
         chemicalValue,
-        varietyValue
+        plantNameValue
       });
       setPopupMessage(
         `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `

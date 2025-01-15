@@ -9,7 +9,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [DateNowOnForm , setDateNowOnForm] = useState(`${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`)
     const [getDateOut , setDateOut] = useState("")
     const [DateHarvest , setDateHarvest] = useState("")
-    const [varieties, setVarieties] = useState([]);
+    // const [varieties, setVarieties] = useState([]);
     const [selectedPlant, setSelectedPlant] = useState("")
     const [placeholder, setPlaceholder] = useState('')
     const [unit, setUnit] = useState("")
@@ -17,7 +17,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
 
     
     const FormContent = useRef()
-    const TypevarietiesInput = useRef()
+    // const TypevarietiesInput = useRef()
     const TypePlantInput = useRef()
     const Generation = useRef()
     const DateGlow = useRef()
@@ -72,30 +72,30 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     //     FetchVarieties(selectedPlant);
     //   }, [selectedPlant]);
 
-    useEffect(() => {
-        if (selectedPlant) {
-            FetchVarieties(selectedPlant);
-        }
-    }, [selectedPlant]);
+    // useEffect(() => {
+    //     if (selectedPlant) {
+    //         FetchVarieties(selectedPlant);
+    //     }
+    // }, [selectedPlant]);
     
     useEffect(()=>{
         clearTimeout(getTimeOut)
     } , [getHistoryPlantLoad])
 
-    const FetchVarieties = async (plantId) => {
-        try {
-            const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
-            const data = JSON.parse(response);
-            setVarieties(data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    // const FetchVarieties = async (plantId) => {
+    //     try {
+    //         const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
+    //         const data = JSON.parse(response);
+    //         setVarieties(data);
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // };
 
     const handlePlantChange = (event) => {
         const plantId = event.target.value;
         setSelectedPlant(plantId);
-        FetchVarieties(!!plantId);
+        // FetchVarieties(!!plantId);
     };
 
     // const handleVarietyChange = (event) => {
@@ -106,18 +106,19 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     //     setDateHarvest(harvestDays);
     //     MathDateHarvest(DateNowOnForm, harvestDays);
     //   };
-    const handleVarietyChange = (event) => {
-        const varietyId = event.target.value;
-        const selectedVariety = varieties.find((variety) => variety.variety_id === parseInt(varietyId));
-        const harvestDays = selectedVariety ? parseInt(selectedVariety.dates) : 0;
+
+    // const handleVarietyChange = (event) => {
+    //     const varietyId = event.target.value;
+    //     // const selectedVariety = varieties.find((variety) => variety.variety_id === parseInt(varietyId));
+    //     // const harvestDays = selectedVariety ? parseInt(selectedVariety.dates) : 0;
     
-        if (DatePlant.current.value) {
-            const plantDate = DatePlant.current.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
-            MathDateHarvest(plantDate, harvestDays);
-        }
+    //     if (DatePlant.current.value) {
+    //         const plantDate = DatePlant.current.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
+    //         MathDateHarvest(plantDate, harvestDays);
+    //     }
     
-        setDateHarvest(harvestDays); // เก็บจำนวนวันที่ต้องการเพิ่ม
-    };
+    //     setDateHarvest(harvestDays); // เก็บจำนวนวันที่ต้องการเพิ่ม
+    // };
     
 
   
@@ -156,13 +157,23 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     
     
     
+    // const FetchPlant = async () => {
+    //     const Data = await clientMo.post("/api/farmer/plant/list")
+    //     if(await CloseAccount(Data , setPage)) {
+    //         const LIST = JSON.parse(Data)
+    //         setDataPlant(LIST)
+    //     }
+    // }
+
     const FetchPlant = async () => {
         const Data = await clientMo.post("/api/farmer/plant/list")
+        YearOut.current.classList.add("report-not")
         if(await CloseAccount(Data , setPage)) {
             const LIST = JSON.parse(Data)
             setDataPlant(LIST)
         }
     }
+
 
     const FetchDataForm = async (name_plant_list) => {
         setHistory(true);
@@ -207,7 +218,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
 
     const Confirm = async () => {
         const type = TypePlantInput.current;
-        const varietiesInput = TypevarietiesInput.current;
+        // const varietiesInput = TypevarietiesInput.current;
         const generetion = Generation.current;
         const dateGlow = DateGlow.current;
         const datePlant = DatePlant.current;
@@ -228,16 +239,16 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
             water.value && waterStep.value) {
     
-            const selectedPlant = DataPlant.find(plant => plant.id == type.value);
-            const selectedVariety = Array.isArray(varieties) ? varieties.find(variety => variety.variety_id == varietiesInput.value) : null;
+            // const selectedPlant = DataPlant.find(plant => plant.id == type.value);
+            // // const selectedVariety = Array.isArray(varieties) ? varieties.find(variety => variety.variety_id == varietiesInput.value) : null;
     
-            const selectedPlantName = selectedPlant ? selectedPlant.name : "";
-            const selectedVarietyName = selectedVariety ? selectedVariety.variety_name : "";
+            // const selectedPlantName = selectedPlant ? selectedPlant.name : "";
+            // // const selectedVarietyName = selectedVariety ? selectedVariety.variety_name : "";
     
             const data = {
                 id_farmhouse: id_house,
-                name_plant: selectedPlantName,
-                name_variety: selectedVarietyName,
+                name_plant : type.value,
+                // name_variety: selectedVarietyName,
                 generetion: generetion.value,
                 dateGlow: dateGlow.value,
                 datePlant: datePlant.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-"),
@@ -286,7 +297,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const ChangeCHK = () => {
         
         const type = TypePlantInput.current
-        const varieties = TypevarietiesInput.current
+        // const varieties = TypevarietiesInput.current
         const generetion = Generation.current
         const dateGlow = DateGlow.current
         const datePlant = DatePlant.current
@@ -352,37 +363,37 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     }
 
 
-    // const MathDateHarvest = (DatePlant , DateQty) => {
-    //     try {
-    //         const DatePlantQty = new Date(DatePlant)
-    //         DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(DateQty))
-    //         DateOut.current.value = DatePlantQty.toISOString().split("T")[0].split("-").map((val , key)=> key==0 ? parseInt(val) + 543 : val).reverse().join("-")
-    //         setDateOut(DatePlantQty.toISOString().split("T")[0])
-    //     } catch(e) {}
-    // }
-
-    const MathDateHarvest = (plantDate, harvestDays) => {
+    const MathDateHarvest = (DatePlant , DateQty) => {
         try {
-            // คำนวณวันที่เก็บเกี่ยว
-            const date = new Date(plantDate);
-            date.setDate(date.getDate() + harvestDays);
+            const DatePlantQty = new Date(DatePlant)
+            DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(DateQty))
+            DateOut.current.value = DatePlantQty.toISOString().split("T")[0].split("-").map((val , key)=> key==0 ? parseInt(val) + 543 : val).reverse().join("-")
+            setDateOut(DatePlantQty.toISOString().split("T")[0])
+        } catch(e) {}
+    }
+
+    // const MathDateHarvest = (plantDate, harvestDays) => {
+    //     try {
+    //         // คำนวณวันที่เก็บเกี่ยว
+    //         const date = new Date(plantDate);
+    //         date.setDate(date.getDate() + harvestDays);
     
-            // แปลงวันที่ให้อยู่ในรูปแบบ DD-MM-YYYY โดยเพิ่ม 543 ให้ปี
-            const formattedDate = date
-                .toISOString()
-                .split("T")[0]
-                .split("-")
-                .map((val, idx) => (idx === 0 ? parseInt(val) + 543 : val)) // เพิ่ม 543 เฉพาะปี
-                .reverse() // กลับลำดับเป็น DD-MM-YYYY
-                .join("-");
+    //         // แปลงวันที่ให้อยู่ในรูปแบบ DD-MM-YYYY โดยเพิ่ม 543 ให้ปี
+    //         const formattedDate = date
+    //             .toISOString()
+    //             .split("T")[0]
+    //             .split("-")
+    //             .map((val, idx) => (idx === 0 ? parseInt(val) + 543 : val)) // เพิ่ม 543 เฉพาะปี
+    //             .reverse() // กลับลำดับเป็น DD-MM-YYYY
+    //             .join("-");
     
-            // อัปเดตค่าในฟิลด์ DateOut
-            DateOut.current.value = formattedDate;
-            setDateOut(date.toISOString().split("T")[0]);
-        } catch (error) {
-            console.error("Error calculating harvest date:", error);
-        }
-    };
+    //         // อัปเดตค่าในฟิลด์ DateOut
+    //         DateOut.current.value = formattedDate;
+    //         setDateOut(date.toISOString().split("T")[0]);
+    //     } catch (error) {
+    //         console.error("Error calculating harvest date:", error);
+    //     }
+    // };
     
     
     
@@ -409,34 +420,35 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     <div className="row">
                         <label className="frame-textbox">
                         <span>ชนิดพืช</span>
-                            <select className="report-not" onChange={combinedFunction} ref={TypePlantInput} defaultValue="">
+                            <select className="report-not" onChange={SetTextOnOther} ref={TypePlantInput} defaultValue="">
                                 <option disabled value="">เลือกพืช</option>
                                 {DataPlant.map((plant, key) => (
-                                    <option key={key} value={plant.id}>{plant.name}</option>
+                                    <option key={key} value={plant.name}>{plant.name}</option>
                                 ))}
                             </select>
                         </label>
                     </div>
-                    <div className="row">
+                    {/* <div className="row">
                        <label className="frame-textbox">
-                        <span>สายพันธุ์พืช</span>
+                        <span>สายพันธุ์พืช</span> */}
                                             {/* <select className="report-not" onChange={handleVarietyChange} ref={TypevarietiesInput} defaultValue="">
                                                 <option disabled value="">เลือกสายพันธุ์พืช</option>
                                                 {varieties.map((variety, key) => (
                                                     <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
                                                 ))}
-                    </select> */}
-                    <select
-    className="report-not"
-    onChange={handleVarietyChange}
-    ref={TypevarietiesInput}
-    defaultValue=""
->
-    <option disabled value="">เลือกสายพันธุ์พืช</option>
-    {varieties.map((variety, key) => (
-        <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
-    ))}
-</select>
+                                             </select> */}
+
+                           {/* <select
+                               className="report-not"
+                               onChange={handleVarietyChange}
+                               ref={TypevarietiesInput}
+                               defaultValue=""
+                            >
+                                 <option disabled value="">เลือกสายพันธุ์พืช</option>
+                                    {varieties.map((variety, key) => (
+                                 <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
+                           ))}
+                           </select> */}
 
                                            
                                             {/* <div className="input-select-popup">
@@ -445,9 +457,10 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                                     {ListSelect}
                                                 </div>
                                             </div> */}
-                                        </label>
+
+                                        {/* </label>
                                         <span className="dot-required">*</span>
-                                    </div>
+                                    </div> */}
                                     <div className="row">
                                         { getHistoryPlantLoad ? 
                                             <div className="block-wait"></div>
@@ -490,16 +503,16 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             /> */}
                                             <DatePickerThai
    
-    classNameMain="input-date"
-    defaultDate={DateNowOnForm}
-    offsetQtyDate={DateHarvest}
-    refIn={DatePlant}
-    onInputIn={(e) => {
-        const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
-        setDateNowOnForm(plantDate);
-        MathDateHarvest(plantDate, DateHarvest);
-    }}
-/>
+                                           classNameMain="input-date"
+                                           defaultDate={DateNowOnForm}
+                                           offsetQtyDate={DateHarvest}
+                                           refIn={DatePlant}
+                                           onInputIn={(e) => {
+                                           const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
+                                          setDateNowOnForm(plantDate);
+                                          MathDateHarvest(plantDate, DateHarvest);
+                                          }}
+                                        />
 
 
                                             {/* <input onInput={(e)=>{
