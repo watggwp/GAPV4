@@ -377,6 +377,7 @@ const handlePlantChange = (event) => {
         const seft = Seft.current ? Seft.current.value : '';
         const because = Because.current ? Because.current.value : '';
 
+        console.log(dateGlow , Data.date_glow?.split(" ")[0])
         const CheckChange = [
             type !== Data.name_plant,
             // variety !== Data.name_varieties,
