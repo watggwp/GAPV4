@@ -265,7 +265,7 @@ const handlePlantChange = (event) => {
                 type.value != Data.name_plant,
                 // variety.value != Data.name_varieties,
                 generetion.value != Data.generation,
-                dateGlow.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_glow.split(" ")[0],
+                dateGlow.value?.split(" ")[0] != Data.date_glow.split(" ")[0],
                 datePlant.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_plant.split(" ")[0],
                 posiW.value != Data.posi_w,
                 posiH.value != Data.posi_h,
@@ -377,12 +377,11 @@ const handlePlantChange = (event) => {
         const seft = Seft.current ? Seft.current.value : '';
         const because = Because.current ? Because.current.value : '';
 
-        console.log(dateGlow , Data.date_glow?.split(" ")[0])
         const CheckChange = [
             type !== Data.name_plant,
             // variety !== Data.name_varieties,
             generetion !== Data.generation,
-            dateGlow !== Data.date_glow?.split(" ")[0],
+            dateGlow?.split(" ")[0] !== Data.date_glow?.split(" ")[0],
             ConvertDate(datePlant).christDate !== Data.date_plant?.split(" ")[0],
             posiW !== Data.posi_w,
             posiH !== Data.posi_h,
