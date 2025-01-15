@@ -3,8 +3,8 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/TemplantList.scss"
 import "../../assets/style/page/data/PageData.scss"
 import { DayJSX , LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, PopupDom } from "../../../../../assets/js/module";
-import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource } from "./Insert/InsertPage";
-import { SearchChemical, SearchFertilizer, SearchPlant } from "./search/SearchPage";
+import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource , InsertPest } from "./Insert/InsertPage";
+import { SearchChemical, SearchFertilizer, SearchPlant , SearchPest } from "./search/SearchPage";
 import PopupConfirm from "./Insert/ConfirmInsert";
 import ManageData from "./ManageData";
 
@@ -246,6 +246,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 <span className="head">
                                 ค้นหา{
                                     DataProcess.get("type") === "plant" ? "พืช" : 
+                                    DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" : 
                                     DataProcess.get("type") === "fertilizer" ? "ปัจจัยการผลิต" : 
                                     DataProcess.get("type") === "chemical" ? "สารเคมี" :
                                     DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
@@ -253,6 +254,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 <div className="row">
                                     <input onChange={(e)=>searchList(e.target , e.target.value , "name")} type="search" ref={SearchInput} placeholder={
                                                 DataProcess.get("type") === "plant" ? "ชื่อพืช เช่น เมล่อน" : 
+                                                DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" :
                                                 DataProcess.get("type") === "fertilizer" ? "ชื่อปุ๋ย/ตรา เช่น กระต่าย" : 
                                                 DataProcess.get("type") === "chemical" ? "ชื่อสารเคมี เช่น พรีวาธอน" :
                                                 DataProcess.get("type") === "source" ? "แหล่งที่ซื่อ เช่น สหกรณ์แม่เตียน" : ""
@@ -260,7 +262,11 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 </div>
                                 { 
                                     DataProcess.get("type") === "plant" ?
-                                        <SearchPlant searchList={searchList} DataProcess={DataProcess}/> :
+                                        <SearchPlant searchList={searchList} DataProcess={DataProcess}/> 
+                                    :
+                                    DataProcess.get("type") === "pest" ?
+                                        <SearchPest searchList={searchList} DataProcess={DataProcess}/> 
+                                    :
                                     DataProcess.get("type") === "fertilizer" ? 
                                         <SearchFertilizer searchList={searchList} DataProcess={DataProcess}/>
                                     :
@@ -274,6 +280,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 <span className="head">
                                 เพิ่ม{
                                     DataProcess.get("type") === "plant" ? "ชนิดพืช" : 
+                                    DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" : 
                                     DataProcess.get("type") === "fertilizer" ? "ปัจจัยการผลิต" : 
                                     DataProcess.get("type") === "chemical" ? "สารเคมี" :
                                     DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
@@ -283,6 +290,9 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                     DataProcess.get("type") === "plant" ?
                                         <InsertPlant nameInsert={nameInsert} typeInsert={typeInsert} speciesInsert={speciesInsert} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
                                     : 
+                                    DataProcess.get("type") === "pest" ?
+                                        <InsertPest nameInsert={nameInsert} typeInsert={typeInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                    :
                                     DataProcess.get("type") === "fertilizer" ?
                                         <InsertFertilizer nameInsert={nameInsert} formulaFertilizer={formulaFertilizer} UseText={UseText} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
                                     : 
@@ -365,7 +375,8 @@ const List = ({ session , socket , DataFillter , setTextStatus , StartData , set
                 DataFillter.get("type") === "plant" ? "รายการชนิดพืช" : 
                 DataFillter.get("type") === "fertilizer" ? "รายการปุ๋ย" : 
                 DataFillter.get("type") === "chemical" ? "รายการสารเคมี" :
-                DataFillter.get("type") === "source" ? "รายการแหล่งที่ซื้อ" : ""
+                DataFillter.get("type") === "source" ? "รายการแหล่งที่ซื้อ" : 
+                DataFillter.get("type") === "pest" ? "รายการโรคพืช / ศัตรูพืช" : ""
             ])
             return data
         } catch(e) {

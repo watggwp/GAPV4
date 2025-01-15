@@ -68,6 +68,39 @@ const InsertPlant = ({nameInsert , typeInsert , speciesInsert , DateQtyInsert , 
     )
 }
 
+const InsertPest = ({nameInsert , typeInsert , UseText ,ErrReport , CheckInsert , stateOn}) => {
+    useEffect(()=>{
+        nameInsert.current.value = ""
+        typeInsert.current.value = ""
+    } , [stateOn])
+    
+    const SelectElementNext = (next = false) => {
+        if(next) next.focus()
+    }
+
+    return (
+        <>
+        <div className="row">
+            <label className="field-select">
+                <span>
+                    <span className="important">โรคพืช / ศัตรูพืช</span>
+                    { ErrReport ? 
+                        <span className="err-text-overlape">โรคพืช / ศัตรูพืช ซ้ำ</span>
+                        : <></>
+                    }
+                </span>
+            </label>
+            <div className="row">
+            <label className="field-select">
+                <span className="important">ชื่อโรคพืช / ศัตรูพืช </span>
+                <input ref={UseText} onChange={CheckInsert} placeholder="เช่น หนอนเจาะใบ"></input>
+            </label>
+        </div> 
+        </div>
+        </>
+    )
+}
+
 const InsertFertilizer = ({nameInsert , formulaFertilizer , UseText , ErrReport , CheckInsert , stateOn}) => {
     useEffect(()=>{
         nameInsert.current.value  = "" 
@@ -284,4 +317,4 @@ const InputKeyDownNext = (e , next = false , previous = false) => {
     }
 }
 
-export {InsertFertilizer , InsertChemical , InsertSource , InsertPlant}
+export {InsertFertilizer , InsertChemical , InsertSource , InsertPlant , InsertPest}
