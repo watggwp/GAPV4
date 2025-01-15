@@ -120,6 +120,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                         DataProcess.get("type") === "source"  ? 
                             [
                                 nameInsert.current.value
+                            ] : 
+                        DataProcess.get("type") === "pest"  ? 
+                            [
+                                nameInsert.current.value
                             ] : []
 
         if(value.filter(val=>!val).length == 0) {
@@ -180,6 +184,18 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                         name : nameInsert.current.value
                     },
                     type : "source"
+                } : 
+                DataProcess.get("type") === "pest"  ? 
+                {
+                    data : 
+                    {
+                        name : nameInsert.current.value,
+                        
+                    },
+                    check : {
+                        name : nameInsert.current.value
+                    },
+                    type : "pest"
                 } : []
             )
         } else {
