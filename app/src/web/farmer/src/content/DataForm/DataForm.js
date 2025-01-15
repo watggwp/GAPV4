@@ -265,7 +265,7 @@ const handlePlantChange = (event) => {
                 type.value != Data.name_plant,
                 // variety.value != Data.name_varieties,
                 generetion.value != Data.generation,
-                dateGlow.value != Data.date_glow.split(" ")[0],
+                dateGlow.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_glow.split(" ")[0],
                 datePlant.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_plant.split(" ")[0],
                 posiW.value != Data.posi_w,
                 posiH.value != Data.posi_h,
