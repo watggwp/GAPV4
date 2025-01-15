@@ -2869,22 +2869,28 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : 
-                                req.body.type == "pest" ? "pests" : ""
+                const From = (
+                    req.body.type == "plant" ? "plant_list" : 
+                    req.body.type == "fertilizer" ? "fertilizer_list" : 
+                    req.body.type == "chemical" ? "chemical_list" :
+                    req.body.type == "source" ? "source_list" : 
+                    req.body.type == "pest" ? "pests" : ""
+                )
                 if(From) {
                     try {
                         const where = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
                             return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
                         }).join(" and ")
+
+                        const id = (
+                            req.body.type == "pest" ? "pest_id" : "id"
+                        )
                         con.query(
                             `
                             SELECT (
                                 SELECT EXISTS (
-                                    SELECT id 
+                                    SELECT ${id} 
                                     FROM ${From}
                                     WHERE ${where} and is_use = 1
                                 )
@@ -2928,22 +2934,27 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : 
-                                req.body.type == "pest" ? "pests" : ""
+                const From = (
+                    req.body.type == "plant" ? "plant_list" : 
+                    req.body.type == "fertilizer" ? "fertilizer_list" : 
+                    req.body.type == "chemical" ? "chemical_list" :
+                    req.body.type == "source" ? "source_list" : 
+                    req.body.type == "pest" ? "pests" : ""
+                )
                 if(From) {
                     try {
                         const where = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
                             return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
                         }).join(" and ")
+                        const id = (
+                            req.body.type == "pest" ? "pest_id" : "id"
+                        )
                         con.query(
                             `
                             SELECT (
                                 SELECT EXISTS (
-                                    SELECT id 
+                                    SELECT ${id} 
                                     FROM ${From}
                                     WHERE ${where}
                                 )
