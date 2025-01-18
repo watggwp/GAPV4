@@ -32,10 +32,10 @@ const InsertGraph = () => {
 
   // ข้อมูลสำหรับกราฟวงกลม
   const chartData = {
-    labels: plantData.map((plant) => plant.name_plant), // ชื่อพืช
+    labels: plantData.map((plant) => plant.plantName), // ชื่อพืช
     datasets: [
       {
-        data: plantData.map((plant) => plant.count), // จำนวนพืชแต่ละชนิด
+        data: plantData.map((plant) => plant.farmersCount), // จำนวนพืชแต่ละชนิด
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"], // สีในกราฟ
         hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
       },
@@ -47,11 +47,13 @@ const InsertGraph = () => {
       {/* แสดงกราฟวงกลม */}
       <div style={{ width: "50%", margin: "auto" }}>
         <h3 style={{ textAlign: "center" }}>กราฟแสดงพืชที่เพาะปลูกในพื้นที่</h3>
-        {plantData.length ? (
-          <Pie data={chartData} />
-        ) : (
-          <p style={{ textAlign: "center" }}>ไม่พบข้อมูลสำหรับกราฟวงกลม</p>
-        )}
+        {
+          plantData.length ? (
+            <Pie data={chartData} />
+          ) : (
+            <p style={{ textAlign: "center" }}>ไม่พบข้อมูลสำหรับกราฟวงกลม</p>
+          )
+        }
       </div>
 
       {/* แสดงกล่องเพิ่มเติมสำหรับรายชื่อพืช */}
@@ -66,23 +68,25 @@ const InsertGraph = () => {
       >
         <h4 style={{ textAlign: "center" }}>รายชื่อพืชและจำนวนพืช</h4>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          {plantData.map((plant, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "10px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                backgroundColor: "#fff",
-                width: "calc(50% - 10px)",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                textAlign: "center",
-              }}
-            >
-              <h5>{plant.name_plant}</h5>
-              <p>จำนวนพืช: {plant.count}</p>
-            </div>
-          ))}
+          {
+            plantData.map((plant, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: "10px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  backgroundColor: "#fff",
+                  width: "calc(50% - 10px)",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  textAlign: "center",
+                }}
+              >
+                <h5>{plant.plantName}</h5>
+                <p>จำนวนพืช: {plant.farmersCount}</p>
+              </div>
+            ))
+          }
         </div>
       </div>
 
