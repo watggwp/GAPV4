@@ -65,8 +65,6 @@ const NavFirst = ({setBodyFileAdmin , auth , session , socket , modify , type = 
         }
     }
 
-
-
     return (
         <section className="nav-first">
             <div className="head">

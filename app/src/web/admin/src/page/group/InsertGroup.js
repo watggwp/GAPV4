@@ -65,6 +65,17 @@ const InsertGroup = () => {
             try {
                 const result = await clientMo.post("/api/admin/group/insert", Data);
                 console.log("Result:", result);
+
+                const { status } = JSON.parse(result)
+                switch(status) {
+                    case 200 :
+                        alert("เพิ่มการจัดกลุ่มสำเร็จ")
+                        Cancel()
+                        break;
+                    default :
+                        alert("พบปัญหาการ เพิ่มการจัดกลุ่ม")
+                        break;
+                }
                 // จัดการหลังการเพิ่มข้อมูลสำเร็จ
             } catch (error) {
                 console.error("Error adding data:", error);

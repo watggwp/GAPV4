@@ -8,6 +8,10 @@ import DesktopNev from "./navTop/desktop";
 import PageTemplate from "./page/PageTemplate";
 import SessionOut from "./sesionOut";
 
+export const AdminContext = React.createContext({
+    TabOn : undefined
+})
+
 const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const [body, setBody] = useState(<div></div>);
     const [TabMenuTop, setTabMenu] = useState(<></>);
@@ -305,60 +309,66 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     };
 
     return (
-        <div
-            onLoad={clientMo.unLoadingPage}
-            className="admin"
+        <AdminContext.Provider
+            values={{
+                TabOn : TabOn
+            }}
         >
-            {TabMenuTop}
-            <div className="status-loadPage">
-                <div ref={Tabbar} className="tab-load"></div>
+            <div
+                onLoad={clientMo.unLoadingPage}
+                className="admin"
+            >
+                {TabMenuTop}
+                <div className="status-loadPage">
+                    <div ref={Tabbar} className="tab-load"></div>
+                </div>
+                <section ref={ImageCover} className="image-cover">
+                    {Responsive > 800 ? (
+                        <>
+                            <div className="text-cover">
+                                <div className="icon">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <img src="/Logo-white.png" alt="Logo" />
+                                </div>
+                                <div className="status">
+                                    {TextPage.map((val, index) => (
+                                        <div className="box-status" key={index}>
+                                            <span>{val}</span>
+                                            {TextPage.length - 1 > index ? <img src="/arrow.png" alt="arrow" /> : <></>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="frame">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-icon-cover">
+                                <div className="text">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <span style={{ fontWeight: 900 }}>ผู้ดูแลระบบ</span>
+                                </div>
+                            </div>
+                            <div className="frame-image-cover">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    )}
+                </section>
+                <section ref={BodyRef} className="container-body-admin">
+                    <bot-main>
+                        <bot-content>
+                            {body}
+                        </bot-content>
+                    </bot-main>
+                </section>
+                <section ref={sessionRef} id="session">
+                    {session}
+                </section>
             </div>
-            <section ref={ImageCover} className="image-cover">
-                {Responsive > 800 ? (
-                    <>
-                        <div className="text-cover">
-                            <div className="icon">
-                                <span>ยินดีต้อนรับ</span>
-                                <img src="/Logo-white.png" alt="Logo" />
-                            </div>
-                            <div className="status">
-                                {TextPage.map((val, index) => (
-                                    <div className="box-status" key={index}>
-                                        <span>{val}</span>
-                                        {TextPage.length - 1 > index ? <img src="/arrow.png" alt="arrow" /> : <></>}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="frame">
-                            <img src="/ดอย.jpg" alt="cover" />
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="text-icon-cover">
-                            <div className="text">
-                                <span>ยินดีต้อนรับ</span>
-                                <span style={{ fontWeight: 900 }}>ผู้ดูแลระบบ</span>
-                            </div>
-                        </div>
-                        <div className="frame-image-cover">
-                            <img src="/ดอย.jpg" alt="cover" />
-                        </div>
-                    </>
-                )}
-            </section>
-            <section ref={BodyRef} className="container-body-admin">
-                <bot-main>
-                    <bot-content>
-                        {body}
-                    </bot-content>
-                </bot-main>
-            </section>
-            <section ref={sessionRef} id="session">
-                {session}
-            </section>
-        </div>
+        </AdminContext.Provider>
     );
 };
 

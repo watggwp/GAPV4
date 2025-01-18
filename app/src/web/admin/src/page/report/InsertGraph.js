@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
+import { AdminContext } from "../../Admin";
 
 const InsertGraph = () => {
+  const { TabOn } = useContext(AdminContext)
   const [plantData, setPlantData] = useState([]);
   const [farmerCount, setFarmerCount] = useState(0);
 
@@ -18,6 +20,7 @@ const InsertGraph = () => {
         const [ { plantDetails , totalFarmers } ] = result.data.farmerStatistics || [ { plantDetails : [] , totalFarmers : 0 } ]
         setPlantData(plantDetails); // ดึงข้อมูลพืช
         setFarmerCount(totalFarmers); // ดึงจำนวนเกษตรกร
+        TabOn.addTimeOut(TabOn.end())
       } else {
         console.error("ไม่มีข้อมูลจาก API");
       }

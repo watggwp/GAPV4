@@ -1,8 +1,10 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { PageTemplateContext } from "../PageTemplate";
+import { AdminContext } from "../../Admin";
 
 const InsertReport = () => {
+  const { TabOn } = useContext(AdminContext)
   const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
   const [locations, setLocations] = useState([]);
 
@@ -11,10 +13,11 @@ const InsertReport = () => {
       const listlocation = await clientMo.get("/api/admin/report/list");
       const parsedList = JSON.parse(listlocation); 
       setLocations(parsedList.data.doctors);
+      TabOn.addTimeOut(TabOn.end())
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }, []);
+  }, [TabOn]);
 
   useEffect(() => {
     ListReport();
