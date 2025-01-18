@@ -84,6 +84,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const ChangeStatus = async (statusClick) => {
         if(statusClick != StatusPage.status) {
             if(auth(true)) {
+                console.log(statusClick)
                 setStatus({status : statusClick , changePath : true})
                 HrefData.set(`${HrefData.get().split("?")[0]}?${statusClick}=c`)
                 TextSearchRef.current.value = ""
@@ -127,7 +128,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     StateOnPage.status === "group" ? 
                         <button className="bt-group" onClick={()=>ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button> :
                     
-                     StateOnPage.status === "listlocation" ? 
+                    StateOnPage.status === "listlocation" ? 
                         <button className="bt-graph" onClick={() => ChangeStatus("graph")}>แสดงกราฟจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</button> :
                     StateOnPage.status === "graph" ? 
                         <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
