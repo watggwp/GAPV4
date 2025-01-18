@@ -265,7 +265,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 }
                 else if(result['data']['fullname_doctor'] 
                         && result['data']['station_doctor']) {
-                      
+                        
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password

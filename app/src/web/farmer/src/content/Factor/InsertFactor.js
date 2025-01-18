@@ -634,7 +634,7 @@ const PopupInsertFactor = ({
   const ValidateChemicalAndPest = () => {
     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
     const pestValue = NameInsect.current?.value.trim();
-    const plantNameValue = currentPlantPlantName?.trim(); // สายพันธุ์พืชที่ได้จากไอดีฟอร์ม
+    const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
 
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !plantNameValue) {

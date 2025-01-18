@@ -854,12 +854,14 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
 
             const queryPestChemical = `
                 SELECT 
-                    pc.pest_id, p.pest_name, 
-                    pc.chemical_id, cl.name AS chemical_name
+                 pc.pest_id, p.pest_name, 
+                 pc.chemical_id, cl.name AS chemical_name,
+                 pc.safe_days
                 FROM pest_chemical pc
                 JOIN pests p ON pc.pest_id = p.pest_id
                 JOIN chemical_list cl ON pc.chemical_id = cl.id
                 WHERE pc.plant_id = ?;
+
             `;
             con.query(queryPestChemical, [plantId], (err, pestChemicalResult) => {
                 con.end();
@@ -887,6 +889,9 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
         });
     });
 });
+
+
+
 
 
 
