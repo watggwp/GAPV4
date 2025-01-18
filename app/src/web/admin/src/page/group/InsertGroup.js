@@ -8,7 +8,12 @@ const InsertGroup = () => {
     const [chemicals, setChemicals] = useState([]);
     const [pests, setPests] = useState([]);
     const [plants, setPlants] = useState([]);
-    const [text, setText] = useState("");
+
+    const [ chemical , setChemical ] = useState("")
+    const [ pest , setPest ] = useState("")
+    const [ plant , setPlant ] = useState("")
+    const [ safeDays , setSafeDays ] = useState(0)
+
     const [status, setStatus] = useState(0);
     const [stateOnBt, setStateOnBt] = useState(true);
 
@@ -39,20 +44,23 @@ const InsertGroup = () => {
     const CheckEmply = () => {
         // ตรวจสอบข้อมูลว่าง
         // เพิ่มฟังก์ชันเพื่อตรวจสอบข้อมูลก่อนส่ง
-        return {
-            chemical: chemicals,
-            pest: pests,
-            plant:plants,
-            text,
-        };
+
+        if(chemical && pest && plant && safeDays) {
+            return {
+                pest_id : chemical, 
+                chemical_id : pest, 
+                plant_id : plant,
+                safe_days : safeDays
+            }
+        } else {
+            return false
+        }
     };
 
     const ClickAdd = async (e) => {
         const Data = CheckEmply();
         if (Data) {
             setOpenInsert(1);
-            setText("");
-            setStatus(0);
 
             try {
                 const result = await clientMo.post("/api/admin/group/insert", Data);
@@ -92,40 +100,51 @@ const InsertGroup = () => {
                     {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
                     <div className="table-section">
                         <span className="table-title">โรคพืช / ศัตรูพืช</span>
-                        <select>
+                        <select onChange={(e) => setPest(e.target.value)}>
                             <option value="">กรุณาเลือก</option>
-                            {pests.map((pest, index) => (
-                                <option key={index} value={pest.id}>
-                                    {pest.pest_name}
-                                </option>
-                            ))}
+                            {
+                                pests.map((pest, index) => (
+                                    <option key={index} value={pest.id}>
+                                        {pest.pest_name}
+                                    </option>
+                                ))
+                            }
                         </select>
                     </div>
 
                     {/* ตารางที่ 2: สารเคมี */}
                     <div className="table-section">
                         <span className="table-title">สารเคมี</span>
-                        <select>
+                        <select onChange={(e) => setChemical(e.target.value)}>
                             <option value="">กรุณาเลือก</option>
-                            {chemicals.map((chemical, index) => (
-                                <option key={index} value={chemical.id}>
-                                    {chemical.name}
-                                </option>
-                            ))}
+                            {
+                                chemicals.map((chemical, index) => (
+                                    <option key={index} value={chemical.id}>
+                                        {chemical.name}
+                                    </option>
+                                ))
+                            }
                         </select>
                     </div>
 
                     {/* ตารางที่ 3: พืช */}
                     <div className="table-section">
                         <span className="table-title">ชนิดพืช</span>
-                        <select>
+                        <select onChange={(e) => setPlant(e.target.value)}>
                             <option value="">กรุณาเลือก</option>
-                            {plants.map((plant, index) => (
-                                <option key={index} value={plant.id}>
-                                    {plant.name}
-                                </option>
-                            ))}
+                            {
+                                plants.map((plant, index) => (
+                                    <option key={index} value={plant.id}>
+                                        {plant.name}
+                                    </option>
+                                ))
+                            }
                         </select>
+                    </div>
+
+                    <div className="table-section">
+                        <span className="table-title">วันที่ปลอดภัย</span>
+                        <input onChange={(e) => setSafeDays(e.target.value)} type="number"/>
                     </div>
 
                     <div className="bt-submitgroup">

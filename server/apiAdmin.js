@@ -725,101 +725,61 @@ app.get('/api/admin/profile/get', (req, res) => {
   })
 
   // group page
+  // group page
   app.post('/api/admin/group/insert' , async (req , res)=>{
-    if(req.body.passwordAd && req.body.type) {
-        
-      let username = req.session.user_admin
-      let password = req.body.passwordAd
-  
-      if(username === '') {
-        res.redirect('/api/logout')
-        return 0
-      }
-  
-      let con = Database.createConnection(listDB)
-  
-      try {
-        const auth = await apifunc.auth(con , username , password , res , "admin")
-        if(auth['result'] === "pass") {
-          const data = req.body
-          const From = (
-            data.type === "station" ? "station_list" : 
-            data.type === "plant" ? "plant_list" :
-            data.type === "chemical" ? "chemical_list" :
-            data.type === "pest" ? "pests"
-            : ""
-          );
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
 
-          const columnName = (
-            data.type === "pest" ? "pest_name" : "name"
-          )
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+    let con = Database.createConnection(listDB)
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        const pest_id = req.body.pest_id
+        const chemical_id = req.body.chemical_id
+        const plant_id = req.body.plant_id
+        const safe_days = req.body.safe_days
 
+        if(pest_id && chemical_id && plant_id && safe_days) {
           con.query(
             `
-            SELECT * FROM ${From} WHERE ${columnName} = ? and is_use = 1;
+            INSERT INTO pest_chemical 
+              ( pest_id , chemical_id , plant_id , safe_days )
+            SELECT ? , ? , ? , ?
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM pest_chemical
+                WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
+            )
             `
-            ,[ data.name ], (err , result)=>{
-            if(!err) {
-              if(!result.length) {
-                if(From) {
-                  con.query(`
-                    INSERT INTO ${From} 
-                    (
-                      ${columnName} , 
-                      is_use 
-                      ${
-                        data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
-                        data.type === "station" ? ", location" : 
-                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list"
-                        : ""
-                      }
-                    ) 
-                    VALUES 
-                    (
-                      ? , 
-                      1 
-                      ${
-                        data.type === "plant" ? `, ? , ? , ?` :
-                        data.type === "station" ? `, POINT(?,?)` :
-                        data.type === "chemical" ? ", ? , ? , ?"
-                        : ""
-                      }
-                    )` , 
-                    data.type === "plant" ? [ data.name , data.type_plant , data.qtyDate , data.variety_name] :
-                    data.type === "station" ? [ data.name , data.lat , data.lng] :
-                    data.type === "chemical" ? [ data.name , data.name_formula , data.how_use , data.date_safe] :
-                    data.type === "pest" ? [ data.name ] : []
-                  , (err , insert)=>{
-                    if(err) {
-                      dbpacket.dbErrorReturn(con , err , res)
-                      console.log(`insert ${data.type} err`)
-                      return 0
-                    }
-                    
-                    con.end()
-                    res.send(insert.affectedRows.toString())
-                  })
-                }
-              } else {
-                con.end()
-                res.send("overflow")
+            , [ 
+                pest_id , chemical_id , plant_id , safe_days ,
+                pest_id , chemical_id , plant_id
+              ] , (err , dataInsert) => {
+              if(err) {
+                console.log(err)
+                res.send({
+                  status : 403,
+                  result : "err insert"
+                })
               }
-            } else {
-              con.end()
-              res.send('error session')
-              console.log(`select ${From} err`)
+  
+              res.send({
+                status : 200,
+                result : "insert group"
+              })
             }
-          })
-        }
-      } catch (err) {
-        if(err == "not pass") {
-          con.end()
-          res.send("incorrect")
+          )
         }
       }
-    }
-    else {
-      res.send('error session')
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
     }
   })
 
