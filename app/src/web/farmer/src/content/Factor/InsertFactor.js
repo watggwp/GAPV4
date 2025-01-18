@@ -630,7 +630,11 @@ const PopupInsertFactor = ({
     const pestValue = NameInsect.current?.value.trim();
     const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
 
-    setDateSafe(pestChemicalData[0].safe_days)
+    const matchedDateSafe = pestChemicalData.find(
+      (entry) => entry.chemical_name === chemicalValue
+    );
+    setDateSafe(matchedDateSafe[0].safe_days)
+    
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !plantNameValue) {
         console.warn("Missing required inputs:", {
