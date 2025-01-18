@@ -89,7 +89,6 @@ const ListData = ({
     socket.emit("unconnect-doctor-list");
     socket.removeListener("update-online");
     clearInterval(getInterval);
-    console.log(status.status);
 
     let ObjectData;
     if (HrefPage.get().split("?")[0] === "list") {
@@ -210,8 +209,6 @@ const ListData = ({
           ? "สถิติโรคพืช"
           : ""
       ]);
-      setStateOnPage({ status: status.status });
-      console.log(status.status);
       if (["list", "listadmin"].includes(HrefPage.get().split("?")[0])) {
         const isListAdmin = HrefPage.get().split("?")[0] === "listadmin";
         const emitEvent = isListAdmin
@@ -245,6 +242,8 @@ const ListData = ({
         return 0;
       }
     }
+
+    setStateOnPage({ status: status?.status })
   };
 
   return (
