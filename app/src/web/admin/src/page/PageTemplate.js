@@ -18,7 +18,10 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     HrefData.get() === "data?station" ? "station" : 
                     HrefData.get() === "data?chemical" ? "chemical" : 
                     HrefData.get() === "data?pest" ? "pest" : 
-                    HrefData.get() === "group?default" ? "group" : "",
+                    HrefData.get() === "group?default" ? "group" : 
+                    HrefData.get() === "report?listlocation" ? "listlocation" : 
+                    HrefData.get() === "report?graph" ? "graph" : 
+                    HrefData.get() === "report?statistics" ? "statistics" :  "",
         changePath : addHref
     }) 
 
@@ -31,7 +34,10 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     HrefData.get() === "data?station" ? "station" :
                     HrefData.get() === "data?chemical" ? "chemical" : 
                     HrefData.get() === "data?pest" ? "pest" : 
-                    HrefData.get() === "group?default" ? "group" :  "",
+                    HrefData.get() === "group?default" ? "group" :  
+                    HrefData.get() === "report?listlocation" ? "listlocation" : 
+                    HrefData.get() === "report?graph" ? "graph" : 
+                    HrefData.get() === "report?statistics" ? "statistics" :  "",
     })
 
     const [getTimeOut , setTimeOut] = useState(0)
@@ -65,7 +71,10 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         HrefData.get() === "data?station=pop" ? "station" : 
                         HrefData.get() === "data?chemical" ? "chemical" : 
                         HrefData.get() === "data?pest" ? "pest" : 
-                        HrefData.get() === "group?default=pop" ? "group" : "";
+                        HrefData.get() === "group?default=pop" ? "group" : 
+                        HrefData.get() === "report?listlocation=pop" ? "listlocation" : 
+                        HrefData.get() === "report?graph=pop" ? "graph" : 
+                        HrefData.get() === "report?statistics=pop" ? "statistics" :  "";
         setStatus({
             status : status, //ใช้ภายในหน้าได้
             changePath : false
@@ -90,7 +99,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
         >
             <section className="page-manage">
                 <div className="menu-page">
-                    {StateOnPage.status === "default" || StateOnPage.status === "admin" || StateOnPage.status === "plant" || StateOnPage.status === "station" || StateOnPage.status === "group"  || StateOnPage.status === "chemical"  || StateOnPage.status === "pest" ?
+                    {StateOnPage.status === "default" || StateOnPage.status === "admin" || StateOnPage.status === "plant" || StateOnPage.status === "station" || StateOnPage.status === "group"  || StateOnPage.status === "chemical"  || StateOnPage.status === "pest" || StateOnPage.status === "report" ?
                     <div className="bt-add">
                         <svg onClick={()=>setOpenInsert(true)} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                     </div>
@@ -117,6 +126,13 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
 
                     StateOnPage.status === "group" ? 
                         <button className="bt-group" onClick={()=>ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button> :
+                    
+                     StateOnPage.status === "listlocation" ? 
+                        <button className="bt-graph" onClick={() => ChangeStatus("graph")}>แสดงกราฟจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</button> :
+                    StateOnPage.status === "graph" ? 
+                        <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
+                    StateOnPage.status === "statistics" ? 
+                        <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button> :
                     <></>
                     }
                     <div className="search">

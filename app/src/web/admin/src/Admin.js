@@ -190,6 +190,45 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         HrefData={Href}
                     />
                 );
+
+            } else if (query.indexOf("statistics") === 0) {
+                    Href.set(`report?statistics${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+
+            } else if (query.indexOf("listlocation") === 0) {
+                        Href.set(`report?listlocation${type}`);
+                        setBody(
+                            <PageTemplate
+                                session={sessionoff}
+                                TabOn={TabOn}
+                                socket={socket}
+                                modify={modifyMainPage}
+                                auth={Auth}
+                                HrefData={Href}
+                            />
+                        );
+
+            } else if (query.indexOf("graph") === 0) {
+                            Href.set(`report?graph${type}`);
+                            setBody(
+                                <PageTemplate
+                                    session={sessionoff}
+                                    TabOn={TabOn}
+                                    socket={socket}
+                                    modify={modifyMainPage}
+                                    auth={Auth}
+                                    HrefData={Href}
+                                />
+                            );
             
         } else if (query.indexOf("chemical") === 0) {
             Href.set(`data?chemical${type}`);
@@ -217,7 +256,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                }
+                } 
             }
             
         } else {

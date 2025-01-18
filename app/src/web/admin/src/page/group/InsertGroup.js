@@ -1,0 +1,145 @@
+import { useCallback, useContext, useEffect, useState } from "react";
+import { clientMo } from "../../../../../assets/js/moduleClient";
+import { PageTemplateContext } from "../PageTemplate";
+
+const InsertGroup = () => {
+
+    const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
+    const [chemicals, setChemicals] = useState([]);
+    const [pests, setPests] = useState([]);
+    const [text, setText] = useState("");
+    const [status, setStatus] = useState(0);
+    const [stateOnBt, setStateOnBt] = useState(true);
+
+    const ListGroup = useCallback(async () => {
+        const listchemical = await clientMo.post("/api/admin/data/list", {
+            type: "chemical", limit: 100, startRow: 0, textSearch: ""
+        });
+        const Listchemical = JSON.parse(listchemical);
+        setChemicals(Listchemical);
+    }, []);
+
+    const Listpest = useCallback(async () => {
+        const listchemical = await clientMo.post("/api/admin/data/list", {
+            type: "pest", limit: 100, startRow: 0, textSearch: ""
+        });
+        const Listpest = JSON.parse(listchemical);
+        setPests(Listpest);
+    }, []);
+
+    const CheckEmply = () => {
+        // ตรวจสอบข้อมูลว่าง
+        // เพิ่มฟังก์ชันเพื่อตรวจสอบข้อมูลก่อนส่ง
+        return {
+            chemical: chemicals,
+            pest: pests,
+            text,
+        };
+    };
+
+    const ClickAdd = async (e) => {
+        const Data = CheckEmply();
+        if (Data) {
+            setOpenInsert(1);
+            setText("");
+            setStatus(0);
+
+            try {
+                const result = await clientMo.post("/api/admin/group/insert", Data);
+                console.log("Result:", result);
+                // จัดการหลังการเพิ่มข้อมูลสำเร็จ
+            } catch (error) {
+                console.error("Error adding data:", error);
+                // จัดการข้อผิดพลาด
+            }
+        }
+    };
+
+    const Cancel = () => {
+        setOpenInsert(false);
+        // เพิ่มการกระทำเพิ่มเติมถ้าจำเป็น
+    };
+
+    useEffect(() => {
+        ListGroup();
+        Listpest();
+    }, [ListGroup, Listpest]);
+
+    return (
+        <>
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2 id="modal-title">เพิ่มรายการจัดกลุ่มข้อมูล</h2>
+                    <button
+                        type="button"
+                        className="btn-close"
+                        onClick={() => setOpenInsert(false)}
+                        aria-label="Close"
+                    />
+                </div>
+                <div className="modal-body">
+                    {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
+                    <div className="table-section">
+                        <span className="table-title">โรคพืช / ศัตรูพืช</span>
+                        <select>
+                            <option value="">กรุณาเลือก</option>
+                            {pests.map((pest, index) => (
+                                <option key={index} value={pest.id}>
+                                    {pest.pest_name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* ตารางที่ 2: สารเคมี */}
+                    <div className="table-section">
+                        <span className="table-title">สารเคมี</span>
+                        <select>
+                            <option value="">กรุณาเลือก</option>
+                            {chemicals.map((chemical, index) => (
+                                <option key={index} value={chemical.id}>
+                                    {chemical.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* ตารางที่ 3: พืช */}
+                    <div className="table-section">
+                        <span className="table-title">พืช</span>
+                        <select >
+                            <option value="">กรุณาเลือกชนิดพืช</option>
+                            <option value="มะเขือเทศ">มะเขือเทศ</option>
+                            <option value="มะเขือ">มะเขือ</option>
+                        </select>
+                        <div className="checkbox-group">
+                            <span>เลือกสายพันธุ์พืช:</span>
+                            {["สายพันธุ์ A", "สายพันธุ์ B"].map(
+                                (item, index) => (
+                                    <label key={index}>
+                                        <input type="checkbox" name={item} /> {item}
+                                    </label>
+                                )
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bt-submitgroup">
+                        <button className="cancel" onClick={Cancel}>
+                            ยกเลิก
+                        </button>
+                        <button
+                            className="submit"
+                            onClick={ClickAdd}
+                            disabled={!stateOnBt}
+                        >
+                            เพิ่มข้อมูล
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default InsertGroup;

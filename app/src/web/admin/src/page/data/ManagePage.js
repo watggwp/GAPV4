@@ -72,10 +72,10 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
             setOpen(1)
             const result = await clientMo.post("/api/admin/data/change" , data)
             if(result === "133") {
-                setText(`${status == 1 ? "ปิด" : "เปิด"}${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}สำเร็จ`)
+                setText(`${status == 1 ? "ปิด" : "เปิด"}${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}สำเร็จ`)
                 setStatus(1)
             } else if(result === "over") {
-                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}ใช้งานอยู่`)
+                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}ใช้งานอยู่`)
                 setStatus(3)
             } else if(result === "because") {
                 setText("เกิดปัญหาทางเซิร์ฟเวอร์")
@@ -119,13 +119,13 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                         color="#1CFFF1" action={AfterConfirm}/>
         <div className="manage-page">
             <div className="head-page">
-                {`ยืนยันการ${status == 1 ? "ปิด" : "เปิด"}${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}`}
+                {`ยืนยันการ${status == 1 ? "ปิด" : "เปิด"}${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" :  type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}`}
             </div>
             <div className="detail-content">
                 {LoadingStatus ? 
                     <div className="Loading">
                         <Loading size={4/100 * ScreenW >= 41 ? 4/100 * ScreenW : 41} border={0.5/100 * ScreenW >= 5 ? 0.5/100 * ScreenW : 5} color="#1CFFF1" animetion={LoadingStatus}/>
-                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}</span>
+                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" :   type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}</span>
                     </div>
                     : <></>
                 }
@@ -158,7 +158,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                             }
                         </div>
                     </div>
-                </div>
+                </div>   
             </div>
             <div className="form-manage">
                 <label className="column">

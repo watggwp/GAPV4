@@ -9,9 +9,15 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [DateNowOnForm , setDateNowOnForm] = useState(`${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`)
     const [getDateOut , setDateOut] = useState("")
     const [DateHarvest , setDateHarvest] = useState("")
+    // const [varieties, setVarieties] = useState([]);
+    const [selectedPlant, setSelectedPlant] = useState("")
+    const [placeholder, setPlaceholder] = useState('')
+    const [unit, setUnit] = useState("")
 
+
+    
     const FormContent = useRef()
-
+    // const TypevarietiesInput = useRef()
     const TypePlantInput = useRef()
     const Generation = useRef()
     const DateGlow = useRef()
@@ -53,14 +59,111 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     } , [])
 
     useEffect(()=>{
+        if(YearOut.current) YearOut.current.classList.add("report-not")
+    } , [YearOut.current])
+
+    useEffect(()=>{
         return() => {
             clearTimeout(getTimeOut)
         }
     } , [getTimeOut])
+    
+    // useEffect(() => {
+    //     FetchVarieties(selectedPlant);
+    //   }, [selectedPlant]);
 
-    // useEffect(()=>{
-    //     clearTimeout(getTimeOut)
-    // } , [getHistoryPlantLoad])
+    // useEffect(() => {
+    //     if (selectedPlant) {
+    //         FetchVarieties(selectedPlant);
+    //     }
+    // }, [selectedPlant]);
+    
+    useEffect(()=>{
+        clearTimeout(getTimeOut)
+    } , [getHistoryPlantLoad])
+
+    // const FetchVarieties = async (plantId) => {
+    //     try {
+    //         const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
+    //         const data = JSON.parse(response);
+    //         setVarieties(data);
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // };
+
+    const handlePlantChange = (event) => {
+        const plantId = event.target.value;
+        setSelectedPlant(plantId);
+        // FetchVarieties(!!plantId);
+    };
+
+    // const handleVarietyChange = (event) => {
+    //     const varietyId = event.target.value;
+    //     console.log("Selected variety ID:", varietyId);
+    //     const selectedVariety = varieties.find((variety) => variety.variety_id === varietyId);
+    //     const harvestDays = selectedVariety ? parseInt(selectedVariety.dates) : 0;
+    //     setDateHarvest(harvestDays);
+    //     MathDateHarvest(DateNowOnForm, harvestDays);
+    //   };
+
+    // const handleVarietyChange = (event) => {
+    //     const varietyId = event.target.value;
+    //     // const selectedVariety = varieties.find((variety) => variety.variety_id === parseInt(varietyId));
+    //     // const harvestDays = selectedVariety ? parseInt(selectedVariety.dates) : 0;
+    
+    //     if (DatePlant.current.value) {
+    //         const plantDate = DatePlant.current.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
+    //         MathDateHarvest(plantDate, harvestDays);
+    //     }
+    
+    //     setDateHarvest(harvestDays); // เก็บจำนวนวันที่ต้องการเพิ่ม
+    // };
+    
+
+  
+
+    
+      
+    
+
+    const combinedFunction = (event) => {
+        handlePlantChange(event);
+        SetTextOnOther(event);
+    };
+    
+    const Change = (event) => {
+        const value = event.target.value;
+        let placeholderText = '';
+    
+        switch (value) {
+            case 'โรงเรือน':
+                placeholderText = 'จำนวนโรงเรือน';
+                break;
+            case 'ไร่':
+                placeholderText = 'จำนวนไร่';
+                break;
+            case 'ตารางเมตร':
+                placeholderText = 'จำนวนตารางเมตร';
+                break;
+            default:
+                placeholderText = 'หน่วยพื้นที่';
+        }
+    
+        setPlaceholder(placeholderText);
+        setUnit(value); 
+    };
+    
+    
+    
+    
+    // const FetchPlant = async () => {
+    //     const Data = await clientMo.post("/api/farmer/plant/list")
+    //     if(await CloseAccount(Data , setPage)) {
+    //         const LIST = JSON.parse(Data)
+    //         setDataPlant(LIST)
+    //     }
+    // }
 
     const FetchPlant = async () => {
         const Data = await clientMo.post("/api/farmer/plant/list")
@@ -71,99 +174,118 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         }
     }
 
+
     const FetchDataForm = async (name_plant_list) => {
-        setHistory(true)
-        FormContent.current.setAttribute("over" , "")
-        setTimeOut(setTimeout( async ()=>{
-            const Data = await clientMo.post("/api/farmer/formplant/history" , {id_farmhouse : id_house , name_plant_list : name_plant_list})
-            if(await CloseAccount(Data , setPage)) {
+        setHistory(true);
+        FormContent.current.setAttribute("over", "");
+        setTimeOut(setTimeout(async () => {
+            const Data = await clientMo.post("/api/farmer/formplant/history", { id_farmhouse: id_house, name_plant_list: name_plant_list });
+            if (await CloseAccount(Data, setPage)) {
                 try {
-                    const Object = JSON.parse(Data)
-                    if(Object.qtyDate.length != 0) {
-                        MathDateHarvest(DateNowOnForm , Object.qtyDate[0].qty_harvest)
-                        setDateHarvest(Object.qtyDate[0].qty_harvest)
+                    const Object = JSON.parse(Data);
+                    if (Object.qtyDate.length !== 0) {
+                        const qtyHarvest = parseInt(Object.qtyDate[0].qty_harvest);
+                        MathDateHarvest(DateNowOnForm, qtyHarvest);
+                        setDateHarvest(qtyHarvest);
                     }
-
-                    if(Object.FromHistory.length !== 0) {
-                        Generation.current.value = parseInt(Object.FromHistory[0].generation) + 1
-                        // DateGlow.current.value = Object.FromHistory[0].date_glow
-                        // DatePlant.current.value = Object.FromHistory[0].date_plant
-                        PositionW.current.value = Object.FromHistory[0].posi_w
-                        PositionH.current.value = Object.FromHistory[0].posi_h
-                        Qty.current.value = Object.FromHistory[0].qty
-                        Area.current.value = Object.FromHistory[0].area
-                        System.current.value = Object.FromHistory[0].system_glow
-                        Water.current.value = Object.FromHistory[0].water
-                        WaterStep.current.value = Object.FromHistory[0].water_flow
-                        History.current.value = Object.FromHistory[0].history
-                        Insect.current.value = Object.FromHistory[0].insect
-                        QtyInsect.current.value = Object.FromHistory[0].qtyInsect
-                        Seft.current.value = Object.FromHistory[0].seft
+    
+                    if (Object.FromHistory.length !== 0) {
+                        Generation.current.value = parseInt(Object.FromHistory[0].generation) + 1;
+                        PositionW.current.value = Object.FromHistory[0].posi_w;
+                        PositionH.current.value = Object.FromHistory[0].posi_h;
+                        Qty.current.value = Object.FromHistory[0].qty;
+                        Area.current.value = Object.FromHistory[0].area;
+                        System.current.value = Object.FromHistory[0].system_glow;
+                        Water.current.value = Object.FromHistory[0].water;
+                        WaterStep.current.value = Object.FromHistory[0].water_flow;
+                        History.current.value = Object.FromHistory[0].history;
+                        Insect.current.value = Object.FromHistory[0].insect;
+                        QtyInsect.current.value = Object.FromHistory[0].qtyInsect;
+                        Seft.current.value = Object.FromHistory[0].seft;
                     }
-                } catch (err) {}
+                } catch (err) {
+                    console.error(err);
+                }
             }
-            if(name_plant_list !== "") {
-                FormContent.current.removeAttribute("over")
-                setHistory(false)
+            if (name_plant_list !== "") {
+                FormContent.current.removeAttribute("over");
+                setHistory(false);
             }
-
-            ChangeCHK()
-        } , 1500))
-    }
+    
+            ChangeCHK();
+        }, 1500));
+    };
 
     const Confirm = async () => {
-
-        const type = TypePlantInput.current
-        const generetion = Generation.current
-        const dateGlow = DateGlow.current
-        const datePlant = DatePlant.current
-        const posiW = PositionW.current
-        const posiH = PositionH.current
-        const qty = Qty.current
-        const area = Area.current
-        const dateOut = DateOut.current
-        const system = System.current
-        const water = Water.current
-        const waterStep = WaterStep.current
-        const history = History.current
-        const insect = Insect.current
-        const qtyInsect = QtyInsect.current
-        const seft = Seft.current
-        
-        if(type.value && generetion.value && dateGlow.value.split("-")[0] && datePlant.value && 
+        const type = TypePlantInput.current;
+        // const varietiesInput = TypevarietiesInput.current;
+        const generetion = Generation.current;
+        const dateGlow = DateGlow.current;
+        const datePlant = DatePlant.current;
+        const posiW = PositionW.current;
+        const posiH = PositionH.current;
+        const qty = Qty.current;
+        const area = Area.current;
+        const dateOut = DateOut.current;
+        const system = System.current;
+        const water = Water.current;
+        const waterStep = WaterStep.current;
+        const history = History.current;
+        const insect = Insect.current;
+        const qtyInsect = QtyInsect.current;
+        const seft = Seft.current;
+    
+        if (type.value && generetion.value && dateGlow.value.split("-")[0] && datePlant.value &&
             posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
-            water.value && waterStep.value
-            // && seft.value
-            ) {
-                const data = {
-                    id_farmhouse : id_house,
-                    name_plant : type.value,
-                    generetion : generetion.value,
-                    dateGlow : dateGlow.value,
-                    datePlant : datePlant.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-"),
-                    posiW : posiW.value,
-                    posiH : posiH.value,
-                    qty : qty.value,
-                    area : area.value,
-                    dateOut : dateOut.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-"),
-                    system : system.value,
-                    water : water.value,
-                    waterStep : waterStep.value,
-                    history : history.value,
-                    insect : insect.value,
-                    qtyInsect : qtyInsect.value,
-                    seft : seft.value
-                }
-
-                setWait(true)
-                const Data = await clientMo.post("/api/farmer/formplant/insert" , data)
-                if(await CloseAccount(Data , setPage)) {
-                    cancel()
-                    ReloadData()
-                    setWait(false)
-                }
+            water.value && waterStep.value) {
+    
+            // const selectedPlant = DataPlant.find(plant => plant.id == type.value);
+            // // const selectedVariety = Array.isArray(varieties) ? varieties.find(variety => variety.variety_id == varietiesInput.value) : null;
+    
+            // const selectedPlantName = selectedPlant ? selectedPlant.name : "";
+            // // const selectedVarietyName = selectedVariety ? selectedVariety.variety_name : "";
+    
+            const data = {
+                id_farmhouse: id_house,
+                name_plant : type.value,
+                // name_variety: selectedVarietyName,
+                generetion: generetion.value,
+                dateGlow: dateGlow.value,
+                datePlant: datePlant.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-"),
+                posiW: posiW.value,
+                posiH: posiH.value,
+                qty: qty.value,
+                area: area.value,
+                unit: unit, 
+                dateOut: dateOut.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-"),
+                system: system.value,
+                water: water.value,
+                waterStep: waterStep.value,
+                history: history.value,
+                insect: insect.value,
+                qtyInsect: qtyInsect.value,
+                seft: seft.value
+            };
+    
+            console.log("Data to be sent:", data); 
+    
+            setWait(true);
+            const response = await clientMo.post("/api/farmer/formplant/insert", data);
+            if (await CloseAccount(response, setPage)) {
+                cancel();
+                ReloadData();
+                setWait(false);
+            } else {
+                console.error("Failed to insert data:", response);
+            }
+        } else {
+            console.error("Missing required fields");
         }
-    }
+    };
+    
+    
+    
+    
 
     const cancel = () => {
         RefPop.current.removeAttribute("show")
@@ -173,7 +295,9 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     }
 
     const ChangeCHK = () => {
+        
         const type = TypePlantInput.current
+        // const varieties = TypevarietiesInput.current
         const generetion = Generation.current
         const dateGlow = DateGlow.current
         const datePlant = DatePlant.current
@@ -204,17 +328,20 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         ]
 
         ListCheck.forEach(current=>{
-            if(current.value != "") {
-                if(current == DateGlow.current) {
-                    YearOut.current.classList.remove("report-not")
+            console.log(current)
+            if(current) {
+                if(current.value != "") {
+                    if(current == DateGlow.current) {
+                        YearOut.current.classList.remove("report-not")
+                    }
+                    else current.classList.remove("report-not")
                 }
-                else current.classList.remove("report-not")
-            }
-            else {
-                if(current == DateGlow.current) {
-                    YearOut.current.classList.add("report-not")
+                else {
+                    if(current == DateGlow.current) {
+                        YearOut.current.classList.add("report-not")
+                    }
+                    else current.classList.add("report-not")
                 }
-                else current.classList.add("report-not")
             }
         })
         
@@ -228,23 +355,13 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         }
     }
 
-    // const OpenPopupPlant = async (e) => {
-    //     ResetListPopup()
-    //     await FetchDataForm(e.target.value)
-    //     ListSearch.current.removeAttribute("remove")
-    //     const search = DataPlant.filter((val , key)=>val.name.indexOf(TypePlantInput.current.value) >= 0)
-    //     if(search.length !== 0) setListOther(search.map((val , key)=> <span onClick={(e)=>SetTextOnOther(val.name , e)} key={key}>{val.name}</span>))
-    //     else ResetListPopup()
 
-    //     ChangeCHK()
-    // }
 
     const SetTextOnOther = async (e) => {
-        // TypePlantInput.current.value = name
         await FetchDataForm(e.target.value)
         ChangeCHK()
-        // ResetListPopup()
     }
+
 
     const MathDateHarvest = (DatePlant , DateQty) => {
         try {
@@ -254,6 +371,33 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             setDateOut(DatePlantQty.toISOString().split("T")[0])
         } catch(e) {}
     }
+
+    // const MathDateHarvest = (plantDate, harvestDays) => {
+    //     try {
+    //         // คำนวณวันที่เก็บเกี่ยว
+    //         const date = new Date(plantDate);
+    //         date.setDate(date.getDate() + harvestDays);
+    
+    //         // แปลงวันที่ให้อยู่ในรูปแบบ DD-MM-YYYY โดยเพิ่ม 543 ให้ปี
+    //         const formattedDate = date
+    //             .toISOString()
+    //             .split("T")[0]
+    //             .split("-")
+    //             .map((val, idx) => (idx === 0 ? parseInt(val) + 543 : val)) // เพิ่ม 543 เฉพาะปี
+    //             .reverse() // กลับลำดับเป็น DD-MM-YYYY
+    //             .join("-");
+    
+    //         // อัปเดตค่าในฟิลด์ DateOut
+    //         DateOut.current.value = formattedDate;
+    //         setDateOut(date.toISOString().split("T")[0]);
+    //     } catch (error) {
+    //         console.error("Error calculating harvest date:", error);
+    //     }
+    // };
+    
+    
+    
+
 
     // const ResetListPopup = () => {
     //     setListOther(<></>)
@@ -268,31 +412,55 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     <span>การปลูกของฉัน</span>
                 </div>
                 <div className="body-content">
-                    <div ref={FormContent} className="frame-content" over="">
-                        <div className="content">
-                            <div className="step">
-                                <div className="num">1.</div>
-                                <div className="body">
-                                    <div className="row">
-                                        <label className="frame-textbox">
-                                            <span>ชนิดพืช</span>
-                                            <select className="report-not" onChange={SetTextOnOther} ref={TypePlantInput} defaultValue={""}>
-                                                <option disabled value={""}>เลือกพืช</option>
-                                                { 
-                                                    DataPlant.map((plant , key)=>
-                                                        <option key={key} value={plant.name}>{plant.name}</option>
-                                                    )
-                                                }
-                                            </select>
+    <div ref={FormContent} className="frame-content" over="">
+        <div className="content">
+            <div className="step">
+                <div className="num">1.</div>
+                <div className="body">
+                    <div className="row">
+                        <label className="frame-textbox">
+                        <span>ชนิดพืช</span>
+                            <select className="report-not" onChange={SetTextOnOther} ref={TypePlantInput} defaultValue="">
+                                <option disabled value="">เลือกพืช</option>
+                                {DataPlant.map((plant, key) => (
+                                    <option key={key} value={plant.name}>{plant.name}</option>
+                                ))}
+                            </select>
+                        </label>
+                    </div>
+                    {/* <div className="row">
+                       <label className="frame-textbox">
+                        <span>สายพันธุ์พืช</span> */}
+                                            {/* <select className="report-not" onChange={handleVarietyChange} ref={TypevarietiesInput} defaultValue="">
+                                                <option disabled value="">เลือกสายพันธุ์พืช</option>
+                                                {varieties.map((variety, key) => (
+                                                    <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
+                                                ))}
+                                             </select> */}
+
+                           {/* <select
+                               className="report-not"
+                               onChange={handleVarietyChange}
+                               ref={TypevarietiesInput}
+                               defaultValue=""
+                            >
+                                 <option disabled value="">เลือกสายพันธุ์พืช</option>
+                                    {varieties.map((variety, key) => (
+                                 <option key={key} value={variety.variety_id}>{variety.variety_name}</option>
+                           ))}
+                           </select> */}
+
+                                           
                                             {/* <div className="input-select-popup">
                                                 <input onChange={OpenPopupPlant} onTouchStart={OpenPopupPlant} placeholder="กรอกชื่อพืช" ref={TypePlantInput}></input>
                                                 <div ref={ListSearch} remove="" className="list-input-search">
                                                     {ListSelect}
                                                 </div>
                                             </div> */}
-                                        </label>
+
+                                        {/* </label>
                                         <span className="dot-required">*</span>
-                                    </div>
+                                    </div> */}
                                     <div className="row">
                                         { getHistoryPlantLoad ? 
                                             <div className="block-wait"></div>
@@ -310,7 +478,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                         }
                                         <label className="frame-textbox">
                                             <span>วันที่เพาะกล้า (เฉพาะปีได้)</span>
-                                            <DateSelect RefDate={DateGlow} methodCheckValue={ChangeCHK} Ref={{
+                                            <DateSelect RefDateValue={DateGlow} methodCheckValue={ChangeCHK} Ref={{
                                                 DayCK : DayOut,
                                                 MountCK : MountOut,
                                                 YearCK : YearOut
@@ -325,14 +493,28 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                         }
                                         <label className="frame-textbox">
                                             <span>วันที่ปลูก</span>
-                                            <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} offsetQtyDate={DateHarvest} refIn={DatePlant}
+                                            {/* <DatePickerThai classNameMain="input-date" defaultDate={DateNowOnForm} offsetQtyDate={DateHarvest} refIn={DatePlant}
                                                 onInputIn={(e , offset)=>{
                                                     ChangeCHK()
                                                     const DateChis = e.target.value.split("-").reverse().map((val , key)=> key==0 ? parseInt(val) - 543 : val).join("-")
                                                     setDateNowOnForm(DateChis)
                                                     MathDateHarvest(DateChis , offset)
                                                 }}
-                                            />
+                                            /> */}
+                                            <DatePickerThai
+   
+                                           classNameMain="input-date"
+                                           defaultDate={DateNowOnForm}
+                                           offsetQtyDate={DateHarvest}
+                                           refIn={DatePlant}
+                                           onInputIn={(e) => {
+                                           const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
+                                          setDateNowOnForm(plantDate);
+                                          MathDateHarvest(plantDate, DateHarvest);
+                                          }}
+                                        />
+
+
                                             {/* <input onInput={(e)=>{
                                                 ChangeCHK()
                                                 setDateNowOnForm(e.target.value)
@@ -375,21 +557,29 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             <div className="block-wait"></div>
                                             : <span className="dot-required">*</span>
                                         }
-                                        <label className="frame-textbox">
-                                            <span>พื้นที่</span>
-                                            <input className="report-not" onInput={ChangeCHK} ref={Area} type="number" placeholder="ตารางเมตร"></input>
-                                        </label>
+                                    <label className="frame-textbox">
+                                    <span>พื้นที่</span>
+                                        <select className="report-not" onChange={Change} ref={System} defaultValue={""}>
+                                        <option disabled value="">เลือก</option>
+                                        <option value={"โรงเรือน"}>โรงเรือน</option>
+                                        <option value={"ไร่"}>ไร่</option>
+                                        <option value={"ตารางเมตร"}>ตารางเมตร</option>
+                                    </select>
+                                       <input className="report-not" onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder}></input>
+                                     </label>
                                     </div>
                                     <div className="row">
                                         { getHistoryPlantLoad ? 
                                             <div className="block-wait"></div>
                                             : <span className="dot-required">*</span>
                                         }
-                                        <label className="frame-textbox">
-                                            <span>วันที่คาดว่า <br></br>จะเก็บเกี่ยว</span>
+                                       <label className="frame-textbox">
+                                       <span>วันที่คาดว่า <br></br>จะเก็บเกี่ยว</span>
                                             <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} onInputIn={ChangeCHK} refIn={DateOut} className="report-not"/>
                                             {/* <input className="report-not" onInput={ChangeCHK} ref={DateOut} type="date"></input> */}
                                         </label>
+
+
                                     </div>
                                 </div>
                             </div>

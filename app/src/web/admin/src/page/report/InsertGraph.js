@@ -1,0 +1,108 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { Pie } from "react-chartjs-2";
+import "chart.js/auto";
+
+const InsertGraph = () => {
+  const [plantData, setPlantData] = useState([]);
+  const [farmerCount, setFarmerCount] = useState(0);
+
+  // ฟังก์ชันดึงข้อมูลจาก API
+  const ListGraph = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/report/list", {
+        method: "GET",
+      });
+      const result = await response.json();
+
+      if (result.data) {
+        setPlantData(result.data.plantStatistics || []); // ดึงข้อมูลพืช
+        setFarmerCount(result.data.totalFarmers || 0); // ดึงจำนวนเกษตรกร
+      } else {
+        console.error("ไม่มีข้อมูลจาก API");
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    ListGraph();
+  }, [ListGraph]);
+
+  // ข้อมูลสำหรับกราฟวงกลม
+  const chartData = {
+    labels: plantData.map((plant) => plant.name_plant), // ชื่อพืช
+    datasets: [
+      {
+        data: plantData.map((plant) => plant.count), // จำนวนพืชแต่ละชนิด
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"], // สีในกราฟ
+        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+      },
+    ],
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      {/* แสดงกราฟวงกลม */}
+      <div style={{ width: "50%", margin: "auto" }}>
+        <h3 style={{ textAlign: "center" }}>กราฟแสดงพืชที่เพาะปลูกในพื้นที่</h3>
+        {plantData.length ? (
+          <Pie data={chartData} />
+        ) : (
+          <p style={{ textAlign: "center" }}>ไม่พบข้อมูลสำหรับกราฟวงกลม</p>
+        )}
+      </div>
+
+      {/* แสดงกล่องเพิ่มเติมสำหรับรายชื่อพืช */}
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "20px",
+          backgroundColor: "#f9f9f9",
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+        }}
+      >
+        <h4 style={{ textAlign: "center" }}>รายชื่อพืชและจำนวนพืช</h4>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          {plantData.map((plant, index) => (
+            <div
+              key={index}
+              style={{
+                padding: "10px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                backgroundColor: "#fff",
+                width: "calc(50% - 10px)",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                textAlign: "center",
+              }}
+            >
+              <h5>{plant.name_plant}</h5>
+              <p>จำนวนพืช: {plant.count}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* แสดงจำนวนเกษตรกร */}
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "20px",
+          backgroundColor: "#f4f4f4",
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          textAlign: "center",
+        }}
+      >
+        <h4>จำนวนเกษตรกรในพื้นที่</h4>
+        <p style={{ fontSize: "24px", fontWeight: "bold", color: "#333" }}>
+          {farmerCount} คน
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default InsertGraph;

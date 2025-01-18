@@ -1,0 +1,122 @@
+.House-List {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5; /* สีพื้นหลังที่ดูอ่อนโยน */
+    min-height: 100vh; /* เปลี่ยนความสูงให้พอดีกับเนื้อหา */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .title {
+        font-size: 28px; /* ขนาดตัวอักษร */
+        font-family: TH-font;
+        font-weight: bold;
+        text-align: center;
+        color: #000;
+        background-color: rgb(115, 213, 115); /* สีพื้นหลังเขียว */
+        width: 100%;
+        max-width: 470px;
+        padding: 10px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px; /* ระยะห่างจากเนื้อหาด้านล่าง */
+    }
+
+    .house-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* ลดความกว้างขั้นต่ำของการ์ด */
+        gap: 15px; /* เพิ่มระยะห่างระหว่างการ์ด */
+        width: 90%; /* ลดความกว้างของคอนเทนเนอร์ */
+        max-width: 400px; /* จำกัดความกว้างของคอนเทนเนอร์ให้เล็กลง */
+        margin: 0 auto; /* จัดให้อยู่ตรงกลาง */
+    }
+
+    
+    .no-houses {
+        font-size: 24px;
+        font-family: "TH-font";
+        font-weight: bold;
+        text-align: center;
+        color: #555;
+        margin-top: 0; 
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+
+
+    .house-card {
+        background-color: #DEF7E1;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+
+        &.closed {
+            background-color: #f9a49b;
+        }
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 30px;
+            font-family: TH-font;
+            color: #007BFF;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 20px;
+            font-family: TH-font;
+            color: #555;
+            margin: 5px 0 10px 0;
+        }
+
+        .toggle-btn {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 8px 15px;
+            font-size: 20px;
+            font-family: TH-font;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            transition: background-color 0.3s ease;
+
+            &.active {
+                background-color: #28a745;
+            }
+
+            &.inactive {
+                background-color: #dc3545;
+            }
+
+            &:hover {
+                opacity: 0.9;
+                transform: scale(1.05);
+            }
+
+            &:focus {
+                outline: none;
+                box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+            }
+        }
+    }
+}

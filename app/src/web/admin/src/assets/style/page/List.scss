@@ -397,7 +397,7 @@
                 box-shadow: 0px 4px 4px rgba(128, 128, 128, 0.489);
                 width: 95%;
                 height: auto;
-                max-width: 440px;
+                max-width: 540px;
                 overflow: hidden;
                 border-radius: 8px;
                 opacity: 1;
@@ -489,6 +489,12 @@
                     detail-data[flex="plant"]{
                         flex-direction: row;
                     }
+                    detail-data[flex="chemical"]{
+                        flex-direction: row;
+                    }
+                    detail-data[flex="pest"]{
+                        flex-direction: row;
+                    }
 
                     detail-data[maxsize=""] {
                         width: 100%;
@@ -499,7 +505,7 @@
                             width: 100%;
                         }
                         .name[w="plant"] {
-                            width: 50%;
+                            // width: 50%;
                         }
                         .name {
                             display: flex;
@@ -847,6 +853,7 @@
                 }
             }
         }
+        
 
         @media only screen and (max-width : 360px) {
             .List-data {
@@ -933,6 +940,29 @@
         .page-because-popup::-webkit-scrollbar {
             width: 0;
         }
+
+        .table-container {
+            margin: 20px 0;
+            overflow-x: auto;
+          }
+          
+          .user-table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          
+          .user-table th, .user-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          
+          .user-table th {
+            background-color: #f2f2f2;
+          }
+
+          
+
     }
     
     // @media screen and (max-width: 860px) {
@@ -1025,9 +1055,19 @@
     top: 10px;
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 30px;
     cursor: pointer;
+    color: black; 
+    font-family: Arial, sans-serif; 
+    font-weight: bold; 
+    line-height: 1; 
 }
+
+.modal-header .btn-close::before {
+    content: "×"; /* ใช้กากบาท */
+    display: block;
+}
+
 
 
 .modal-body {
@@ -1042,7 +1082,7 @@
     padding: 15px;
     background-color: #ffffff;
     text-align: center;
-    min-width: 250px; 
+    min-width: 25px; 
     border: 2px solid #22C7A9
 }
 
@@ -1149,3 +1189,4 @@
         color: rgb(206, 206, 206);
     }
 }
+

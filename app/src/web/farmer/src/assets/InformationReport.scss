@@ -1,0 +1,84 @@
+.Information-Report {
+    width: 100vw; /* ขยายความกว้างเต็มหน้าจอ */
+    height: 100vh; /* ขยายความสูงเต็มหน้าจอ */
+    box-sizing: border-box; /* รวม padding และ border ในขนาดของ element */
+    padding: 0; /* ลบระยะ Padding ทั้งหมด */
+    margin: 0; /* ลบระยะ Margin ทั้งหมด */
+    overflow: auto; /* เพิ่ม Scroll หากเนื้อหาเกิน */
+}
+
+.button-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.option-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #6dca6d;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #46c246;
+    }
+}
+
+.result-display {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.chart-container {
+    margin: 20px 0;
+}
+
+.chart-heading {
+    width: 100%; /* ขยายความกว้างเต็มหน้าจอ */
+    margin: 0; /* ลบระยะห่างด้านนอกทั้งหมด */
+    padding: 15px 0; /* เพิ่ม Padding ด้านบนและล่าง */
+    text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+    font-size: 22px; /* เพิ่มขนาดข้อความ */
+    font-weight: bold; /* ทำตัวหนา */
+    background-color: #6dca6d; /* สีพื้นหลัง */
+    color: #fff; /* สีข้อความ */
+    box-sizing: border-box; /* รวม Padding ในขนาดของ element */
+}
+
+.back-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #218838;
+    }
+}
+
+.error-text {
+    color: red;
+    font-size: 16px;
+    text-align: center;
+}
+
+.header-text {
+    font-size: 18px; /* ขนาดข้อความ */
+    font-weight: bold; /* ทำตัวหนา */
+    color: #000; /* สีข้อความ */
+    margin: 0; /* ลบ Margin ทั้งหมด */
+    padding: 0; /* ลบ Padding ทั้งหมด */
+}

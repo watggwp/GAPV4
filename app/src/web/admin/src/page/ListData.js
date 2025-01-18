@@ -18,6 +18,9 @@ import ManageDoctorPage from "./doctor/ManagePage";
 import ManageAdminPage from "./admin/ManagePage";
 import { Modal } from "react-bootstrap";
 import { PageTemplateContext } from "./PageTemplate";
+import InsertGroup from "./group/InsertGroup";
+import InsertReport from "./report/InsertReport";
+import InsertGraph from "./report/InsertGraph";
 
 const ListData = ({
   socket,
@@ -148,6 +151,13 @@ const ListData = ({
         startRow: StartRow,
         textSearch: textSearch
       });
+    } else if (HrefPage.get().split("?")[0] === "group") {
+      ObjectData = await clientMo.post("/api/admin/group/list", {
+        type: status.status,
+        limit: Limit || 10,
+        startRow: StartRow,
+        textSearch: textSearch
+      });
     }
 
     if (ObjectData) {
@@ -171,6 +181,10 @@ const ListData = ({
           ? "บัญชีผู้ดูแลระบบ"
           : HrefPage.get().split("?")[0] === "data"
           ? "ข้อมูลเพิ่มเติม"
+          : HrefPage.get().split("?")[0] === "group"
+          ? "จัดกลุ่มข้อมูล"
+          : HrefPage.get().split("?")[0] === "report"
+          ? "รายงานข้อมูล"
           : "",
         HrefPage.get().indexOf("delete") >= 0
           ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ"
@@ -186,6 +200,12 @@ const ListData = ({
           ? "สารเคมี"
           : HrefPage.get().indexOf("pest") >= 0
           ? "โรคพืช / ศัตรูพืช"
+          : HrefPage.get().indexOf("listlocation") >= 0
+          ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
+          : HrefPage.get().indexOf("graph") >= 0
+          ? "กราฟจำนวนเกษตรกรและพืชที่เพาะปลูก"
+          : HrefPage.get().indexOf("statistics") >= 0
+          ? "สถิติโรคพืช"
           : ""
       ]);
       setStateOnPage({ status: status.status });
@@ -233,7 +253,10 @@ const ListData = ({
       status.status === "station" ||
       status.status === "group" ||
       status.status === "chemical" ||
-      status.status === "pest" ? (
+      status.status === "pest" ||
+      status.status === "listlocation" ||
+      status.status === "graph" ||
+      status.status === "statistics" ? (
         <InsertPage
           ReloadAccount={() => fetchDataList(0, DataFetch.length)}
           type={status.status}
@@ -242,7 +265,14 @@ const ListData = ({
         <></>
       )}
       <div className="List-data">
-        <ManageList
+        {
+          status.status == "group" ? 
+          <> </> : 
+          status.status == "listlocation" ? 
+          <><InsertReport></InsertReport></> :
+          status.status == "graph" ? 
+          <><InsertGraph></InsertGraph></> : 
+          <ManageList
           socket={socket}
           Data={DataFetch}
           setBecause={setBecause}
@@ -256,6 +286,7 @@ const ListData = ({
           RefBe={RefBe}
           Fetch={() => fetchDataList(0, DataFetch.length)}
         />
+        }
       </div>
       <div
         className="load-other"
@@ -443,381 +474,468 @@ const ManageList = ({
   };
 
   const manageList = () => {
-    const doctorList = Data.map((data, key) => (
-      <list-data-body
-        key={key}
-        id={`data-list-content-${
-          HrefPage.get().split("?")[0] === "list"
-            ? status.status == "default"
-              ? data.id_table_doctor
-              : status.status == "admin"
-              ? data.id
-              : ""
-            : HrefPage.get().split("?")[0] === "data"
-            ? data.id
-            : ""
-        }`}
-        status={status.status}
-      >
-        {HrefPage.get().split("?")[0] === "list" ? (
-          status.status === "default" ? (
-            <>
-              {status.status === "default" ? (
-                <div className="status-online">
-                  <div
-                    className="text-online"
-                    style={
-                      data.time_online == "online"
-                        ? { backgroundColor: "#00ff3c" }
-                        : {}
+    console.log(Data)
+      const doctorList = Data.map((data, key) => (
+  <list-data-body
+    key={key}
+    id={`data-list-content-${
+      HrefPage.get().split("?")[0] === "list"
+        ? status.status == "default"
+          ? data.id_table_doctor
+          : status.status == "admin"
+          ? data.id
+          : ""
+        : HrefPage.get().split("?")[0] === "data"
+        ? data.id
+        : ""
+    }`}
+    status={status.status}
+  >
+    {HrefPage.get().split("?")[0] === "list" ? (
+      status.status === "default" ? (
+        <>
+          {status.status === "default" ? (
+            <div className="status-online">
+              <div
+                className="text-online"
+                style={
+                  data.time_online == "online"
+                    ? { backgroundColor: "#00ff3c" }
+                    : {}
+                }
+              >
+                {data.time_online ? (
+                  data.time_online == "online" ? (
+                    "กำลังใช้งาน"
+                  ) : data.time_online == "offline" ? (
+                    "ปิดใช้งาน"
+                  ) : (
+                    <TimeDiff
+                      DATE={parseInt(data.time_online)}
+                      DivInput={false}
+                      textPresent="ใช้งานเมื่อ "
+                    />
+                  )
+                ) : (
+                  "ยังไม่ทำการเข้าระบบ"
+                )}
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+          <detail-data-main>
+            <detail-Image>
+              <img
+                src={
+                  data.img_doctor
+                    ? data.img_doctor
+                    : "/doctor-svgrepo-com.svg"
+                }
+              ></img>
+            </detail-Image>
+            <detail-data>
+              <detail-in-fullname>
+                <span>
+                  {data.fullname_doctor
+                    ? data.fullname_doctor
+                    : "เจ้าหน้าที่ส่งเสริมยังไม่ทำการระบุชื่อ"}
+                </span>
+              </detail-in-fullname>
+              <detail-in>
+                <span className="head-data">รหัสประจำตัว</span>
+                <div className="text-data">{data.id_doctor}</div>
+              </detail-in>
+              <detail-in>
+                <span className="head-data">ศูนย์</span>
+                <div className="text-data">
+                  {data.station
+                    ? data.station
+                    : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุ"}
+                </div>
+              </detail-in>
+            </detail-data>
+          </detail-data-main>
+          <action-bt>
+            {status.status === "default" ? (
+              <>
+                <content-status because={1}>
+                  <bt-because>
+                    <button
+                      onClick={() =>
+                        OpenDetailManage(
+                          data.id_table_doctor,
+                          "status_account"
+                        )
+                      }
+                    >
+                      เหตุผล
+                    </button>
+                  </bt-because>
+                  <bt-status
+                    onClick={() =>
+                      OpenConfirmDoctor(
+                        data.id_table_doctor,
+                        "status_account"
+                      )
                     }
                   >
-                    {data.time_online ? (
-                      data.time_online == "online" ? (
-                        "กำลังใช้งาน"
-                      ) : data.time_online == "offline" ? (
-                        "ปิดใช้งาน"
-                      ) : (
-                        <TimeDiff
-                          DATE={parseInt(data.time_online)}
-                          DivInput={false}
-                          textPresent="ใช้งานเมื่อ "
-                        />
-                      )
-                    ) : (
-                      "ยังไม่ทำการเข้าระบบ"
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <></>
-              )}
-              <detail-data-main>
-                <detail-Image>
-                  <img
-                    src={
-                      data.img_doctor
-                        ? data.img_doctor
-                        : "/doctor-svgrepo-com.svg"
-                    }
-                  ></img>
-                </detail-Image>
-                <detail-data>
-                  <detail-in-fullname>
-                    <span>
-                      {data.fullname_doctor
-                        ? data.fullname_doctor
-                        : "เจ้าหน้าที่ส่งเสริมยังไม่ทำการระบุชื่อ"}
-                    </span>
-                  </detail-in-fullname>
-                  <detail-in>
-                    <span className="head-data">รหัสประจำตัว</span>
-                    <div className="text-data">{data.id_doctor}</div>
-                  </detail-in>
-                  <detail-in>
-                    <span className="head-data">ศูนย์</span>
-                    <div className="text-data">
-                      {data.station
-                        ? data.station
-                        : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุ"}
-                    </div>
-                  </detail-in>
-                </detail-data>
-              </detail-data-main>
-              <action-bt>
-                {status.status === "default" ? (
-                  <>
-                    <content-status because={1}>
-                      <bt-because>
-                        <button
-                          onClick={() =>
-                            OpenDetailManage(
-                              data.id_table_doctor,
-                              "status_account"
-                            )
-                          }
-                        >
-                          เหตุผล
-                        </button>
-                      </bt-because>
-                      <bt-status
-                        onClick={() =>
-                          OpenConfirmDoctor(
-                            data.id_table_doctor,
-                            "status_account"
-                          )
-                        }
-                      >
-                        <div
-                          className="frame"
-                          status={data.status_account ? "1" : "0"}
-                        >
-                          <span>ON</span>
-                          <span className="dot"></span>
-                          <span>OFF</span>
-                        </div>
-                      </bt-status>
-                    </content-status>
-                    <bt-delete>
-                      <button
-                        onClick={() =>
-                          OpenConfirmDoctor(
-                            data.id_table_doctor,
-                            "status_delete"
-                          )
-                        }
-                      >
-                        ลบบัญชี
-                      </button>
-                    </bt-delete>
-                  </>
-                ) : status.status === "delete" ? (
-                  <content-status because={0} delete="">
-                    <bt-because>
-                      <button
-                        onClick={() =>
-                          OpenDetailManage(
-                            data.id_table_doctor,
-                            "status_delete"
-                          )
-                        }
-                      >
-                        เหตุผล
-                      </button>
-                    </bt-because>
-                  </content-status>
-                ) : (
-                  <></>
-                )}
-              </action-bt>
-            </>
-          ) : status.status === "admin" || status.status === "deleteAdmin" ? (
-            <>
-              {status.status === "admin" ? (
-                <div className="status-online">
-                  <div
-                    className="text-online"
-                    style={
-                      data.time_online == "online"
-                        ? { backgroundColor: "#00ff3c" }
-                        : {}
-                    }
-                  >
-                    {data.time_online ? (
-                      data.time_online == "online" ? (
-                        "กำลังใช้งาน"
-                      ) : data.time_online == "offline" ? (
-                        "ปิดใช้งาน"
-                      ) : (
-                        <TimeDiff
-                          DATE={parseInt(data.time_online)}
-                          DivInput={false}
-                          textPresent="ใช้งานเมื่อ "
-                        />
-                      )
-                    ) : (
-                      "ยังไม่ทำการเข้าระบบ"
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <></>
-              )}
-              <detail-data-main>
-                <detail-Image>
-                  <img
-                    src={
-                      data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"
-                    }
-                  ></img>
-                </detail-Image>
-                <detail-data>
-                  <detail-in-fullname_admin>
-                    <span>
-                      {data.username
-                        ? data.fullname_admin
-                        : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}
-                    </span>
-                  </detail-in-fullname_admin>
-                  <detail-in>
-                    <span className="head-data">รหัสประจำตัว</span>
-                    <div className="text-data">{data.username}</div>
-                  </detail-in>
-                  <detail-in>
-                    <span className="head-data">ศูนย์</span>
-                    <div className="text-data">
-                      {data.station ? data.station : "ผู้ดูแลระบบยังไม่ระบุ"}
-                    </div>
-                  </detail-in>
-                </detail-data>
-              </detail-data-main>
-              <action-bt>
-                {status.status === "admin" ? (
-                  <>
-                    <content-status because={1}>
-                      <bt-because>
-                        <button
-                          onClick={() =>
-                            OpenDetailManageAdmin(data.id, "status_account")
-                          }
-                        >
-                          เหตุผล
-                        </button>
-                      </bt-because>
-                      <bt-status
-                        onClick={() =>
-                          OpenConfirmAdmin(data.id, "status_account")
-                        }
-                      >
-                        <div
-                          className="frame"
-                          status={data.status_account ? "1" : "0"}
-                        >
-                          <span>ON</span>
-                          <span className="dot"></span>
-                          <span>OFF</span>
-                        </div>
-                      </bt-status>
-                    </content-status>
-                    <bt-delete>
-                      <button
-                        onClick={() =>
-                          OpenConfirmAdmin(data.id, "status_delete")
-                        }
-                      >
-                        ลบบัญชี
-                      </button>
-                    </bt-delete>
-                  </>
-                ) : status.status === "deleteAdmin" ? (
-                  <content-status because={0} delete="">
-                    <bt-because>
-                      <button
-                        onClick={() =>
-                          OpenDetailManageAdmin(data.id, "status_delete")
-                        }
-                      >
-                        เหตุผล
-                      </button>
-                    </bt-because>
-                  </content-status>
-                ) : (
-                  <></>
-                )}
-              </action-bt>
-            </>
-          ) : undefined
-        ) : HrefPage.get().split("?")[0] === "data" ? (
-          <>
-            <detail-data-main column="">
-              <detail-data maxsize="" flex={status.status}>
-                <div className="name" w={status.status}>
-                  {status.status === "plant" ? (
-                    <span className={status.status}>ชื่อพืช</span>
-                  ) : (
-                    <></>
-                  )}
-                  <div className={`text-data ${status.status}`}>
-                    {data.name}
-                  </div>
-                </div>
-                <div
-                  className={
-                    status.status === "plant" ? "type_plant" : "location"
-                  }
-                >
-                  {status.status === "plant" ? <span>ประเภท</span> : <></>}
-                  {status.status === "plant" ? (
-                    <div className="text-data">{data.type_plant}</div>
-                  ) : status.status === "station" ? (
-                    <MapsJSX
-                      lat={data.location.x}
-                      lng={data.location.y}
-                      w={"300vw"}
-                      h={"100vw"}
-                    />
-                  ) : (
-                    ""
-                  )}
-                </div>
-
-                <div
-                  className={
-                    status.status === "plant" ? "variety_name" : "location"
-                  }
-                >
-                  {status.status === "plant" ? (
-                    <span>สายพันธุ์พืช</span>
-                  ) : (
-                    <></>
-                  )}
-                  {status.status === "plant" ? (
-                    <div className="text-data">{data.variety_name}</div>
-                  ) : status.status === "station" ? (
-                    <MapsJSX
-                      lat={data.location.x}
-                      lng={data.location.y}
-                      w={"300vw"}
-                      h={"100vw"}
-                    />
-                  ) : (
-                    ""
-                  )}
-                </div>
-              </detail-data>
-              {status.status === "plant" ? (
-                <detail-data maxsize="">
-                  <div className="name">
-                    <span className={status.status}>
-                      จำนวนวันที่จะเก็บเกี่ยว
-                    </span>
                     <div
-                      className={`text-data`}
-                    >{`${data.qty_harvest} วัน`}</div>
-                  </div>
-                </detail-data>
+                      className="frame"
+                      status={data.status_account ? "1" : "0"}
+                    >
+                      <span>ON</span>
+                      <span className="dot"></span>
+                      <span>OFF</span>
+                    </div>
+                  </bt-status>
+                </content-status>
+                <bt-delete>
+                  <button
+                    onClick={() =>
+                      OpenConfirmDoctor(
+                        data.id_table_doctor,
+                        "status_delete"
+                      )
+                    }
+                  >
+                    ลบบัญชี
+                  </button>
+                </bt-delete>
+              </>
+            ) : status.status === "delete" ? (
+              <content-status because={0} delete="">
+                <bt-because>
+                  <button
+                    onClick={() =>
+                      OpenDetailManage(
+                        data.id_table_doctor,
+                        "status_delete"
+                      )
+                    }
+                  >
+                    เหตุผล
+                  </button>
+                </bt-because>
+              </content-status>
+            ) : (
+              <></>
+            )}
+          </action-bt>
+        </>
+      ) : status.status === "admin" || status.status === "deleteAdmin" ? (
+        <>
+          {status.status === "admin" ? (
+            <div className="status-online">
+              <div
+                className="text-online"
+                style={
+                  data.time_online == "online"
+                    ? { backgroundColor: "#00ff3c" }
+                    : {}
+                }
+              >
+                {data.time_online ? (
+                  data.time_online == "online" ? (
+                    "กำลังใช้งาน"
+                  ) : data.time_online == "offline" ? (
+                    "ปิดใช้งาน"
+                  ) : (
+                    <TimeDiff
+                      DATE={parseInt(data.time_online)}
+                      DivInput={false}
+                      textPresent="ใช้งานเมื่อ "
+                    />
+                  )
+                ) : (
+                  "ยังไม่ทำการเข้าระบบ"
+                )}
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+          <detail-data-main>
+            <detail-Image>
+              <img
+                src={
+                  data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"
+                }
+              ></img>
+            </detail-Image>
+            <detail-data>
+              <detail-in-fullname_admin>
+                <span>
+                  {data.username
+                    ? data.fullname_admin
+                    : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}
+                </span>
+              </detail-in-fullname_admin>
+              <detail-in>
+                <span className="head-data">รหัสประจำตัว</span>
+                <div className="text-data">{data.username}</div>
+              </detail-in>
+              <detail-in>
+                <span className="head-data">ศูนย์</span>
+                <div className="text-data">
+                  {data.station ? data.station : "ผู้ดูแลระบบยังไม่ระบุ"}
+                </div>
+              </detail-in>
+            </detail-data>
+          </detail-data-main>
+          <action-bt>
+            {status.status === "admin" ? (
+              <>
+                <content-status because={1}>
+                  <bt-because>
+                    <button
+                      onClick={() =>
+                        OpenDetailManageAdmin(data.id, "status_account")
+                      }
+                    >
+                      เหตุผล
+                    </button>
+                  </bt-because>
+                  <bt-status
+                    onClick={() =>
+                      OpenConfirmAdmin(data.id, "status_account")
+                    }
+                  >
+                    <div
+                      className="frame"
+                      status={data.status_account ? "1" : "0"}
+                    >
+                      <span>ON</span>
+                      <span className="dot"></span>
+                      <span>OFF</span>
+                    </div>
+                  </bt-status>
+                </content-status>
+                <bt-delete>
+                  <button
+                    onClick={() =>
+                      OpenConfirmAdmin(data.id, "status_delete")
+                    }
+                  >
+                    ลบบัญชี
+                  </button>
+                </bt-delete>
+              </>
+            ) : status.status === "deleteAdmin" ? (
+              <content-status because={0} delete="">
+                <bt-because>
+                  <button
+                    onClick={() =>
+                      OpenDetailManageAdmin(data.id, "status_delete")
+                    }
+                  >
+                    เหตุผล
+                  </button>
+                </bt-because>
+              </content-status>
+            ) : (
+              <></>
+            )}
+          </action-bt>
+        </>
+      ) : undefined
+    ) : HrefPage.get().split("?")[0] === "data" ? (
+      <>
+        <detail-data-main column="">
+          <detail-data maxsize="" flex={status.status}>
+            <div className="name" w={status.status}>
+              {status.status === "plant" ? (
+                <span className={status.status}>ชื่อพืช</span>
               ) : (
                 <></>
               )}
-            </detail-data-main>
-            <action-bt>
-              <content-status because={0}>
-                {status.status === "station" ? (
-                  <div
-                    className="edit-bt"
-                    onClick={() => OpenEditData(data.id, status.status)}
-                  >
-                    แก้ไข
-                  </div>
-                ) : (
-                  <></>
-                )}
-                <bt-status
-                  onClick={() => OpenConfirmData(data.id, status.status)}
-                >
-                  <div className="frame" status={data.is_use}>
-                    <span>ON</span>
-                    <span className="dot"></span>
-                    <span>OFF</span>
-                  </div>
-                </bt-status>
-              </content-status>
-            </action-bt>
-          </>
-        ) : (
-          <></>
-        )}
-      </list-data-body>
-    ));
+              <div className={`text-data ${status.status}`}>
+                {data.name}
+              </div>
+            </div>
+            <div
+              className={
+                status.status === "plant" ? "type_plant" : "location"
+              }
+            >
+              {status.status === "plant" ? <span>ประเภท</span> : <></>}
+              {status.status === "plant" ? (
+                <div className="text-data">{data.type_plant}</div>
+              ) : status.status === "station" ? (
+                <MapsJSX
+                  lat={data.location.x}
+                  lng={data.location.y}
+                  w={"300vw"}
+                  h={"100vw"}
+                />
+              ) : (
+                ""
+              )}
+            </div>
+            <div
+              className={
+                status.status === "plant" ? "variety_name" : ""
+              }
+            >
+              {status.status === "plant" ? (
+                <span>สายพันธุ์พืช</span>
+              ) : (
+                <></>
+              )}
+              {/* {status.status === "plant" ? (
+                <div className="text-data">{data.variety_name}</div>
+              ) : status.status === "station" ? (
+                <MapsJSX
+                  lat={data.location.x}
+                  lng={data.location.y}
+                  w={"300vw"}
+                  h={"100vw"}
+                />
+              ) : (
+                ""
+              )} */}
+            </div>
 
-    TabOn.addTimeOut(TabOn.end());
-    setList(
-      doctorList.length ? (
-        doctorList
-      ) : (
-        <div style={{ font: "900 18px Sans-font" }}>ไม่พบข้อมูล</div>
-      )
-    );
+            <div className="name" w={status.status}>
+              {status.status === "chemical" ? (
+                <span className={status.status}>ชื่อสารเคมี</span>
+              ) : (
+                <></>
+              )}
+              <div className={`text-data ${status.status}`}>
+                {data.name}
+              </div>
+            </div>
+            <div
+              className={
+                status.status === "chemical" ? "name_formula	" : ""
+              }
+            >
+              {status.status === "chemical" ? <span>ชื่อสามัญสารเคมี</span> : <></>}
+              {/* {status.status === "chemical" ? (
+                <div className="text-data">{data.name_formula}</div>
+              ) : status.status === "station" ? (
+                <MapsJSX
+                  lat={data.location.x}
+                  lng={data.location.y}
+                  w={"300vw"}
+                  h={"100vw"}
+                />
+              ) : (
+                ""
+              )} */}
+            </div>
+
+            <div
+              className={
+                status.status === "chemical" ? "how_use" : ""
+              }
+            >
+              {status.status === "chemical" ? (
+                <span>วิธีการใช้</span>
+              ) : (
+                <></>
+              )}
+              {/* {status.status === "chemical" ? (
+                <div className="text-data">{data.how_use}</div>
+              ) : status.status === "station" ? (
+                <MapsJSX
+                  lat={data.location.x}
+                  lng={data.location.y}
+                  w={"300vw"}
+                  h={"100vw"}
+                />
+              ) : (
+                ""
+              )} */}
+            </div>
+
+            <div className="name" w={status.status}>
+              {status.status === "pest" ? (
+                <span className={status.status}>ชื่อโรคพืช / ศัตรูพืช</span>
+              ) : (
+                <></>
+              )}
+              <div className={`text-data ${status.status}`}>
+                {data.pest_name}
+              </div>
+            </div> 
+          </detail-data>
+
+          {status.status === "plant" ? (
+            <detail-data maxsize="">
+              <div className="name">
+                <span className={status.status}>
+                  จำนวนวันที่จะเก็บเกี่ยว
+                </span>
+                <div
+                  className={`text-data`}
+                >{`${data.qty_harvest} วัน`}</div>
+              </div>
+            </detail-data>
+          ) : (
+            <></>
+          )}
+
+          {status.status === "chemical" ? (
+            <detail-data maxsize="">
+              <div className="name">
+                <span className={status.status}>
+                  จำนวนวันที่ปลอดภัย
+                </span>
+                <div
+                  className={`text-data`}
+                >{`${data.date_safe_list} วัน`}</div>
+              </div>
+            </detail-data>
+          ) : (
+            <></>
+          )}
+
+        </detail-data-main>
+        <action-bt>
+          <content-status because={0}>
+            {status.status === "station" ? (
+              <div
+                className="edit-bt"
+                onClick={() => OpenEditData(data.id, status.status)}
+              >
+                แก้ไข
+              </div>
+            ) : (
+              <></>
+            )}
+            <bt-status
+              onClick={() => OpenConfirmData(data.id, status.status)}
+            >
+              <div className="frame" status={data.is_use}>
+                <span>ON</span>
+                <span className="dot"></span>
+                <span>OFF</span>
+              </div>
+            </bt-status>
+          </content-status>
+        </action-bt>
+      </>
+    ) : (
+
+      <>hoo</>
+    )}
+  </list-data-body>
+));
+
+TabOn.addTimeOut(TabOn.end());
+setList(
+  doctorList.length ? (
+    doctorList
+  ) : (
+    <div style={{ font: "900 18px Sans-font" }}>ไม่พบข้อมูล</div>
+  )
+);
+
+    
+
+    
   };
 
   return List;
@@ -840,6 +958,8 @@ const InsertPage = ({ ReloadAccount, type }) => {
   const [Lng, setLng] = useState(0);
   const InputMap = useRef();
 
+
+
   const RefData = {
     Data1: useRef(),
     Data2: useRef(),
@@ -851,6 +971,9 @@ const InsertPage = ({ ReloadAccount, type }) => {
   useEffect(() => {
     if (type === "station") GenerateMapAuto();
   }, []);
+
+
+  
 
   const CheckEmply = () => {
     const RefIsCheck =
@@ -876,7 +999,11 @@ const InsertPage = ({ ReloadAccount, type }) => {
         type === "pest" ? [
             RefData.Data1.current.value,
             RefData.Data2.current.value,
-        ]
+        ] :
+        type === "group" ? [
+          RefData.Data1.current.value,
+          RefData.Data2.current.value,
+      ]
         : [];
 
     if (RefIsCheck.filter((val) => !val).length == 0 && pwAdmin.current.value) {
@@ -925,6 +1052,14 @@ const InsertPage = ({ ReloadAccount, type }) => {
             type: type,
             passwordAd: pwAdmin.current.value
         }
+        : type === "group" ? {
+          name: RefData.Data1.current.value,
+          pest_name: RefData.Data2.current.value,
+          type: type,
+          passwordAd: pwAdmin.current.value
+      }
+
+
         : {};
     } else {
       setstateOnBt(true);
@@ -939,7 +1074,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
       setText("");
       setStatus(0);
       let result =
-        type === "default"
+            type === "default"
           ? await clientMo.post("/api/admin/add", Data)
           : type === "admin"
           ? await clientMo.post("/api/admin/add", Data)
@@ -948,6 +1083,11 @@ const InsertPage = ({ ReloadAccount, type }) => {
             type === "chemical" ||
             type === "pest"
           ? await clientMo.post("/api/admin/data/insert", Data)
+          : type === "group"
+          ? await clientMo.post("/api/admin/group/insert", Data)
+          : type === "report"
+          ? await clientMo.post("/api/admin/report/insert", Data)
+
           : "";
       if (result === "1") {
         setText(
@@ -966,6 +1106,12 @@ const InsertPage = ({ ReloadAccount, type }) => {
               ? "สารเคมี"
               : type === "pest"
               ? "ศัตรูพืช"
+              : type === "listlocation"
+              ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
+              : type === "graph"
+              ? "กราฟจำนวนเกษตรกรและพืช"
+              : type === "statistics"
+              ? "สถิติโรคพืช / ศัตรูพืช"
               : ""
           }สำเร็จ`
         );
@@ -995,6 +1141,12 @@ const InsertPage = ({ ReloadAccount, type }) => {
               ? "สารเคมี"
               : type === "pest"
               ? "ศัตรูพืช"
+              : type === "listlocation"
+              ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
+              : type === "graph"
+              ? "กราฟจำนวนเกษตรกรและพืช"
+              : type === "statistics"
+              ? "สถิติโรคพืช / ศัตรูพืช"
               : ""
           }นี้แล้ว`
         );
@@ -1056,6 +1208,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
     }
   };
 
+
   const handleMenuSelection = (menuType) => {
     setLocalType(menuType); // เปลี่ยน localType
     setStep(2); // เปลี่ยนไป Step 2
@@ -1103,6 +1256,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
                   pwAdmin={pwAdmin}
                   Cancel={Cancel}
                   stateOnBt={stateOnBt}
+
                 />
               );
             default:
@@ -1118,84 +1272,10 @@ const InsertPage = ({ ReloadAccount, type }) => {
           centered
           size="lg"
         >
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 id="modal-title">เพิ่มรายการจัดกลุ่มข้อมูล</h2>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setOpenInsert(false)}
-                aria-label="Close"
-              />
-            </div>
-            <div className="modal-body">
-              {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
-              <div className="table-section">
-                <span className="table-title">โรคพืช / ศัตรูพืช</span>
-                <select onChange={CheckEmply} ref={RefData.Data1}>
-                  <option value="">กรุณาเลือก</option>
-                  <option value="โรคพืช">โรคพืช</option>
-                  <option value="ศัตรูพืช">ศัตรูพืช</option>
-                </select>
-              </div>
-
-              {/* ตารางที่ 2: สารเคมี */}
-              <div className="table-section">
-                <span className="table-title">สารเคมี</span>
-                <select onChange={CheckEmply} ref={RefData.Data2}>
-                  <option value="">กรุณาเลือก</option>
-                  <option value="สารเคมี A">สารเคมี A</option>
-                  <option value="สารเคมี B">สารเคมี B</option>
-                  <option value="สารเคมี C">สารเคมี C</option>
-                </select>
-              </div>
-
-              {/* ตารางที่ 3: พืช */}
-              <div className="table-section">
-                <span className="table-title">พืช</span>
-                <select onChange={CheckEmply} ref={RefData.Data3}>
-                  <option value="">กรุณาเลือกชนิดพืช</option>
-                  <option value="พืชผัก">พืชผัก</option>
-                  <option value="สมุนไพร">สมุนไพร</option>
-                </select>
-                <div className="checkbox-group">
-                  <span>เลือกสายพันธุ์พืช:</span>
-                  {["สายพันธุ์ A", "สายพันธุ์ B", "สายพันธุ์ C"].map(
-                    (item, index) => (
-                      <label key={index}>
-                        <input type="checkbox" name={item} /> {item}
-                      </label>
-                    )
-                  )}
-                </div>
-              </div>
-
-              {/* ปุ่มยืนยันและยกเลิก */}
-              <div className="bt-submitgroup">
-                <button className="cancel" onClick={Cancel}>
-                  ยกเลิก
-                </button>
-                <button
-                  className="submit"
-                  onClick={ClickAdd}
-                  disabled={!stateOnBt}
-                >
-                  เพิ่มข้อมูล
-                </button>
-              </div>
-            </div>
-          </div>
+         <InsertGroup/>
         </Modal>
       ) : (
-        //             <Modal show>
-        //     <Modal.Header closeButton>
-        //       <Modal.Title>Modal heading</Modal.Title>
-        //     </Modal.Header>
-        //     <Modal.Body>Woohoo, you are reading this text in a modal!</Modal.Body>
-        //     <Modal.Footer>
-
-        //     </Modal.Footer>
-        //   </Modal>
+       
         (type === "plant" ||
           type === "station" ||
           type === "chemical" ||
@@ -1221,6 +1301,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             pwAdmin={pwAdmin}
             Cancel={Cancel}
             stateOnBt={stateOnBt}
+
           />
         )
       )}
@@ -1248,7 +1329,8 @@ const BodyDetailInsert = ({
   Lng,
   pwAdmin,
   Cancel,
-  stateOnBt
+  stateOnBt,
+
 }) => {
   const [checkboxState, setCheckboxState] = useState({
     role1: false,

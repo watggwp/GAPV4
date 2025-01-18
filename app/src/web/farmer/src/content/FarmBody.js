@@ -11,6 +11,9 @@ import House from "./House/House";
 import DataForm from "./DataForm/DataForm";
 import Success from "./Success/Success";
 import Report from "./Report/Report";
+import InformationReport from "./InformationReport";
+
+
 
 const FarmBody = ({liff , uid , id_farmhouse}) => {
     const [Body , setBody] = useState(<></>)
@@ -112,6 +115,14 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
             }
         }
 
+        else if (GetPath().length === 2 && GetPath()[1] === "basicreport") {
+            const result = await clientMo.post("/api/farmer/account/check");
+            if (await CloseAccount(result, setPage)) {
+                setBody(<InformationReport setPage={setPage} />);
+            }
+        }
+        
+
         // else if(GetPath().length === 3 && path.has("f") && path.has("p"))
         //     clientMo.post("/api/farmer/account/check").then((result)=>{
         //         if(result === "search") {
@@ -174,6 +185,17 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
                                 </svg>
                                 <span>แก้ไขโรงเรือน</span>
                             </div>
+                            <div className="menu-list" onClick={() => {
+                                 setPage("BASIC_REPORT");
+                                 setBody(<InformationReport setPage={setPage} />);
+                                }}>
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 2L2 22h20L12 2z" stroke="#22C7A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                <span>รายงานข้อมูลพื้นฐาน</span>
+                             </div>
+
+
                         </div>
                     </div>
                 </div>

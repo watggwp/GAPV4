@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {clientMo}  from "../../../assets/js/moduleClient";
 import {useLiff} from "../../../assets/js/module";
-
 import MenuMain from "../src/content/mainFarmHouse";
-
 import House from "../src/houseFile/House";
 import Signup from "../src/singupFile/Signup"
 import { CloseAccount } from "./method";
+import HouseList from "./HouseList/HouseList";
+
 
 const MainFarmer = ({socket , idLiff , Path}) => {
     const [body , setBody] = useState(<></>)
@@ -26,9 +26,9 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                     liff.login()
                 }
             } else {
-                // let UID = "Uceb5937bcd2edc0de5341022f8d59e9f"
-                // LoadPage(UID , liff)
-                CloseAccount("not line" , null , "กรุณาเข้าผ่านไลน์แอปพลิเคชั่น")
+                let UID = "Uec52e5da629da4c89c55674831d126a8"
+                LoadPage(UID , liff)
+                // CloseAccount("not line" , null , "กรุณาเข้าผ่านไลน์แอปพลิเคชั่น")
             }
         }).catch(err=>{
             CloseAccount("not line" , null , "พบปัญหาจากระบบ")
@@ -36,26 +36,29 @@ const MainFarmer = ({socket , idLiff , Path}) => {
 
     } , [])
 
-    const LoadPage = async (uid , liff) => {
-        const result = await clientMo.post("/api/farmer/sign" , {uid:uid , page : Path})
-        if(Path === "signup" && result !== "error auth") {
-            if(result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid}/>)
-            else if (result === "search") CloseAccount("not line" , null , "บัญชีลงทะเบียนแล้ว")
+    const LoadPage = async (uid, liff) => {
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
+        if (Path === "signup" && result !== "error auth") {
+            if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
+            else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
+
+        } else if (Path === "houses" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<HouseList liff={liff} uid={uid} />);
 
         } else if (Path === "house" && result !== "error auth") {
-            if(result === "close" || result === "no account") CloseAccount("not line" , null , "ไม่พบบัญชี")
-            else if (result === "search") setBody(<House liff={liff} uid={uid}/>)
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<House liff={liff} uid={uid} />);
 
         } else if (Path === "form" && result !== "error auth") {
-            const auth = window.location.pathname.split("/")[3]
-            if(auth && result !== "close") {
-                setBody(<MenuMain liff={liff} uid={uid}/>)
-            } else CloseAccount("not line" , null , "ไม่พบบัญชี")
+            const auth = window.location.pathname.split("/")[3];
+            if (auth && result !== "close") {
+                setBody(<MenuMain liff={liff} uid={uid} />);
+            } else CloseAccount("not line", null, "ไม่พบบัญชี");
+        } else {
+            CloseAccount("not line", null, "พบปัญหาจากระบบ");
         }
-        // else if (result === "error auth") CloseAccount("not line" , null , "พบปัญหาจากระบบ")
-        else 
-            CloseAccount("not line" , null , "พบปัญหาจากระบบ")
-    }
+    };
 
     return(
         <>

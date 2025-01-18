@@ -361,7 +361,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
 
     apifunc.auth(con , username , password , res , "admin").then((result)=>{
       console.log(result)
-        const SET = req.body.type === "name" ? "username = ?" :
+        const SET = req.body.type === "name" ? "fullname_admin = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
                         req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
         if(SET) {
@@ -723,6 +723,161 @@ app.get('/api/admin/profile/get', (req, res) => {
       }
     }
   })
+
+  // group page
+  app.post('/api/admin/group/insert' , async (req , res)=>{
+    if(req.body.passwordAd && req.body.type) {
+        
+      let username = req.session.user_admin
+      let password = req.body.passwordAd
+  
+      if(username === '') {
+        res.redirect('/api/logout')
+        return 0
+      }
+  
+      let con = Database.createConnection(listDB)
+  
+      try {
+        const auth = await apifunc.auth(con , username , password , res , "admin")
+        if(auth['result'] === "pass") {
+          const data = req.body
+          const From = (
+            data.type === "station" ? "station_list" : 
+            data.type === "plant" ? "plant_list" :
+            data.type === "chemical" ? "chemical_list" :
+            data.type === "pest" ? "pests"
+            : ""
+          );
+
+          const columnName = (
+            data.type === "pest" ? "pest_name" : "name"
+          )
+
+          con.query(
+            `
+            SELECT * FROM ${From} WHERE ${columnName} = ? and is_use = 1;
+            `
+            ,[ data.name ], (err , result)=>{
+            if(!err) {
+              if(!result.length) {
+                if(From) {
+                  con.query(`
+                    INSERT INTO ${From} 
+                    (
+                      ${columnName} , 
+                      is_use 
+                      ${
+                        data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
+                        data.type === "station" ? ", location" : 
+                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list"
+                        : ""
+                      }
+                    ) 
+                    VALUES 
+                    (
+                      ? , 
+                      1 
+                      ${
+                        data.type === "plant" ? `, ? , ? , ?` :
+                        data.type === "station" ? `, POINT(?,?)` :
+                        data.type === "chemical" ? ", ? , ? , ?"
+                        : ""
+                      }
+                    )` , 
+                    data.type === "plant" ? [ data.name , data.type_plant , data.qtyDate , data.variety_name] :
+                    data.type === "station" ? [ data.name , data.lat , data.lng] :
+                    data.type === "chemical" ? [ data.name , data.name_formula , data.how_use , data.date_safe] :
+                    data.type === "pest" ? [ data.name ] : []
+                  , (err , insert)=>{
+                    if(err) {
+                      dbpacket.dbErrorReturn(con , err , res)
+                      console.log(`insert ${data.type} err`)
+                      return 0
+                    }
+                    
+                    con.end()
+                    res.send(insert.affectedRows.toString())
+                  })
+                }
+              } else {
+                con.end()
+                res.send("overflow")
+              }
+            } else {
+              con.end()
+              res.send('error session')
+              console.log(`select ${From} err`)
+            }
+          })
+        }
+      } catch (err) {
+        if(err == "not pass") {
+          con.end()
+          res.send("incorrect")
+        }
+      }
+    }
+    else {
+      res.send('error session')
+    }
+  })
+
+
+
+  // report page
+  app.post('/api/admin/report/insert', async (req, res) => {
+    if (req.body.passwordAd && req.body.type) {
+      let username = req.session.user_admin;
+      let password = req.body.passwordAd;
+  
+      if (username === '') {
+        res.redirect('/api/logout');
+        return;
+      }
+  
+      let con = Database.createConnection(listDB);
+  
+      try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] === "pass") {
+          const data = req.body;
+  
+          if (data.type === "listlocation") {
+            con.query(
+              `
+              SELECT id_doctor, fullname_doctor 
+              FROM acc_doctor 
+              WHERE is_use = 1;
+              `,
+              (err, result) => {
+                if (!err) {
+                  res.send(result); // ส่งข้อมูล id_doctor และ fullname_doctor กลับไป
+                } else {
+                  con.end();
+                  res.send("error session");
+                  console.log("select acc_doctor err");
+                }
+              }
+            );
+            return;
+          }
+  
+          // หากไม่ใช่ type "listlocation" ให้ส่งข้อความ error กลับไป
+          res.send("invalid type");
+        }
+      } catch (err) {
+        if (err == "not pass") {
+          con.end();
+          res.send("incorrect");
+        }
+      }
+    } else {
+      res.send('error session');
+    }
+  });
+  
+  
 
 // data page
   app.post('/api/admin/data/list' , async (req , res)=>{
@@ -1219,6 +1374,120 @@ app.get('/api/admin/profile/get', (req, res) => {
     res.send('')
   })
 
+  app.get('/api/admin/report/list', async(req, res) => {
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+
+    let con = Database.createConnection(listDB)
+
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        const station = auth['data']['station_admin']
+
+      // ดึงข้อมูลเกษตรกรและพืชใน station
+      const farmerQuery = `
+         SELECT
+    acc_farmer.station,
+    COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+    COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+    GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+    CONCAT(
+        '[',
+        GROUP_CONCAT(
+            DISTINCT CONCAT(
+                '{"plantName":"', subquery.name_plant, '",' ,
+                '"id":"', subquery.id, '",' ,
+                '"farmersCount":', subquery.total_qty, ',' ,
+                '"duplicateCount":', subquery.duplicate_count, '}'
+            )
+        ),
+        ']'
+    ) AS plantDetails
+      FROM acc_farmer
+      LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+      LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+      LEFT JOIN (
+          SELECT
+              formplant.id,
+              formplant.name_plant,
+              COUNT(formplant.name_plant) AS total_qty,
+              id_farm_house,
+              SUM(CASE WHEN COUNT(formplant.name_plant) > 1 THEN 1 ELSE 0 END) OVER (PARTITION BY formplant.name_plant) AS duplicate_count
+          FROM formplant
+          GROUP BY id_farm_house, formplant.name_plant
+      ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+      WHERE acc_farmer.station = ?
+      GROUP BY acc_farmer.station;
+
+      `;
+
+      con.query(farmerQuery, [station], (err, farmerStatistics) => {
+          if (err) {
+              console.error('Error fetching farmer statistics:', err);
+              res.status(500).json({ status: "error", message: "Database query error" });
+              return;
+          }
+
+          console.log('Farmer Statistics:', farmerStatistics);
+
+          // ดึงรายชื่อหมอพืชสำหรับ station นี้
+          const doctorQuery = `
+              SELECT id_doctor, fullname_doctor, station_doctor
+              FROM acc_doctor
+              WHERE station_doctor = ?;
+          `;
+
+          con.query(doctorQuery, [station], (err, doctors) => {
+              if (err) {
+                  console.error('Error fetching doctor data:', err);
+                  res.status(500).json({ status: "error", message: "Database query error" });
+                  return;
+              }
+
+              console.log('Doctors:', doctors);
+
+              // ส่งผลลัพธ์กลับไป
+              res.status(200).json({
+                  status: "success",
+                  data: {
+                      farmerStatistics: farmerStatistics.map((stat) => ({
+                          station: stat.station,
+                          totalFarmers: stat.total_farmers,
+                          totalPlants: stat.total_plants,
+                          plants: stat.plants,
+                          plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev , curr) => {
+                              const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"])
+                              if(indexFind >= 0) {
+                                  prev[indexFind]["farmersCount"] += curr["farmersCount"]
+                              } else {
+                                  prev.push({
+                                      plantName : curr["plantName"],
+                                      farmersCount : curr["farmersCount"]
+                                  })
+                              }
+
+                              return prev
+                          } , []),
+                      })),
+                      doctors,
+                  },
+              });
+          });
+      });
+      }
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+});
 
   const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
     let con = Database.createConnection(listDB)
