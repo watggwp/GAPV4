@@ -37,21 +37,23 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
             const JsonData = {}
             JsonData.check = {}
             JsonData.data = {}
+
+            // revise code
             const check = (
                 Type === "plant" ? ["name"] : 
                 Type === "fertilizer" ? ["name" , "name_formula"] :
                 Type === "chemical" ? ["name" , "name_formula"] :
-                Type === "pest" ? ["name"] :
+                Type === "pest" ? ["pest_name"] :
                 Type === "source" ? ["name"] : []
             )
 
-            Array.from(DataEdit).forEach(val=>{
-                if(check.filter(valfilter=>valfilter == val[0]).length) 
-                    JsonData.check[val[0]] = val[1]
+            DataEdit.forEach((data , column) => {
+                column = (Type === "pest" && column === "name") ? "pest_name" : column
+                if(check.filter(valfilter=>valfilter == column).length) 
+                    JsonData.check[column] = data
 
-                if(val[0] != "password")
-                    JsonData.data[val[0]] = val[1]
-                else JsonData["password"] = val[1]
+                if(column != "password") JsonData.data[column] = data
+                else JsonData["password"] = data
             })
 
             JsonData["type"] = Type

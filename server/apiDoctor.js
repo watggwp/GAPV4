@@ -3065,6 +3065,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     )
                     try {
                         // ตัดการส่ง check จากหน้าบ้าน ให้หลังบ้าน check แทน
+                        // revise code
                         const OverCheck = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
                             return checkData.join("=").replaceAll(" " , "")
