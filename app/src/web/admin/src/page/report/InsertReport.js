@@ -8,12 +8,7 @@ const InsertReport = () => {
 
   const ListReport = useCallback(async () => {
     try {
-      const listlocation = await clientMo.get("/api/admin/report/list", {
-        type: "listlocation",
-        limit: 100,
-        startRow: 0,
-        textSearch: "",
-      });
+      const listlocation = await clientMo.get("/api/admin/report/list");
       const parsedList = JSON.parse(listlocation); 
       setLocations(parsedList.data.doctors);
     } catch (error) {

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { clientMo } from "../../../../../assets/js/moduleClient";
 import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
 
@@ -9,10 +10,8 @@ const InsertGraph = () => {
   // ฟังก์ชันดึงข้อมูลจาก API
   const ListGraph = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/report/list", {
-        method: "GET",
-      });
-      const result = await response.json();
+      const response = await clientMo.get("/api/admin/report/list");
+      const result = JSON.parse(response);
 
       if (result.data) {
         setPlantData(result.data.plantStatistics || []); // ดึงข้อมูลพืช
