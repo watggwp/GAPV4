@@ -27,7 +27,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const sessionRef = useRef();
     const frameImage = useRef()
 
-    const TabOn = new TabLoad(Tabbar);
+    const { current : TabOn } = useRef(new TabLoad(Tabbar));
     const Href = new HrefData("HOME");
 
     useEffect(() => {
@@ -310,7 +310,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
     return (
         <AdminContext.Provider
-            values={{
+            value={{
                 TabOn : TabOn
             }}
         >
