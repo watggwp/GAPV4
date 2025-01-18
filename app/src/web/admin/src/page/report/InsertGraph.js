@@ -9,6 +9,7 @@ const InsertGraph = () => {
 
   // ฟังก์ชันดึงข้อมูลจาก API
   const ListGraph = useCallback(async () => {
+    console.log("Start fetch group")
     try {
       const response = await clientMo.get("/api/admin/report/list");
       const result = JSON.parse(response);
