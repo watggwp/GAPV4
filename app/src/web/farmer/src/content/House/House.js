@@ -377,7 +377,7 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
         // </section>
         <section ref={bodySection} onLoad={clientMo.unLoadingPage} className="house-detail">
             <div className="content-max-width">
-                <div className="title">เพิ่มโรงเรือน</div>
+                <div className="title">เพิ่มโรง</div>
                 <div className="frame-house-detail">
                     <div className="frame-content-house">
                         <div className="content">

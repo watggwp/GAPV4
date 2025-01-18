@@ -85,6 +85,7 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
         const DataIN = {
             type : Type,
             id_list : Data.id,
+            id_list : Data.pest_id,
             state : state ? 0 : 1
         }
         const fetchChange = await clientMo.post("/api/doctor/data/change" , DataIN)
@@ -127,6 +128,7 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                         }
                         {
                             Type === "plant" ? "พืช" :
+                            Type === "pest" ? "โรคพืช / ศัตรูพืช" :
                             Type === "fertilizer" ? "ปุ๋ย" :
                             Type === "chemical" ? "สารเคมี" :
                             Type === "source" ? "แหล่งที่ซื้อ" : ""
@@ -156,6 +158,10 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                         !StateEdit ?
                             <DetailPlant Data={Data}/> : 
                             <EditPlant CheckEdit={CheckEdit} Data={Data} ErrReport={ErrReport}/> :
+                    Type === 'pest' ?
+                        !StateEdit ?
+                            <Detailpest Data={Data}/> : 
+                            <Editpest CheckEdit={CheckEdit} Data={Data} ErrReport={ErrReport}/> :
                     Type === 'fertilizer' ?   
                         !StateEdit ?
                             <DetailFertilizer Data={Data}/> : 
@@ -260,6 +266,69 @@ const EditPlant = ({CheckEdit , Data , ErrReport}) => {
                     <input onInput={(e)=>parseInt(e.target.value) <= 0 ? e.target.value = "" : null} 
                             ref={DateQtyInsert} defaultValue={Data.qty_harvest}
                             onChange={(e)=>CheckEdit(e.target.value , "qty_harvest")} placeholder="เช่น 10 30" type="number"></input>
+                </label>
+            </div>
+        </div>
+    )
+}
+
+//
+const Detailpest = ({Data}) => {
+    return(
+        <div className="body">
+            <div className="row">
+                <label className="field-select">
+                    <span>
+                        <span>ชื่อชนิดพืช</span>
+                    </span>
+                    <input readOnly defaultValue={Data.pest_name}></input>
+                </label>
+                <label className="field-select">
+                    <span>ประเภท</span>
+                    <select disabled defaultValue={Data.type_plant}>
+                        <option disabled value={""}>เลือกประเภท</option>
+                        <option value={"พืชผัก"}>พืชผัก</option>
+                        <option value={"สมุนไพร"}>สมุนไพร</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    )
+}
+const Editpest = ({CheckEdit , Data , ErrReport}) => {
+    const typeInsert = useRef()
+    const DateQtyInsert = useRef()
+    
+    const SelectElementNext = (next = false) => {
+        if(next) next.focus()
+    }
+
+    return (
+        <div className="body">
+            <div className="row">
+                <label className="field-select">
+                    <span>
+                        <span className="important">ชื่อชนิดพืช</span>
+                        { ErrReport ? 
+                            <span className="err-text-overlape">พืชซ้ำ</span>
+                            : <></>
+                        }
+                    </span>
+                    <input onChange={(e)=>CheckEdit(e.target.value , "name")} 
+                        onKeyDown={(e)=>InputKeyDownNext(e , typeInsert.current)}
+                        placeholder="เช่น เมล่อน" defaultValue={Data.pest_name}></input>
+                </label>
+                <label className="field-select">
+                    <span className="important">ประเภท</span>
+                    <select ref={typeInsert} onChange={(e)=>{
+                            CheckEdit(e.target.value , "type_plant")
+                            SelectElementNext(DateQtyInsert.current)
+                        }
+                    } defaultValue={Data.type_plant}>
+                        <option disabled value={""}>เลือกประเภท</option>
+                        <option value={"พืชผัก"}>พืชผัก</option>
+                        <option value={"สมุนไพร"}>สมุนไพร</option>
+                    </select>
                 </label>
             </div>
         </div>

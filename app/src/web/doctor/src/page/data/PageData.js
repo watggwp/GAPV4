@@ -189,11 +189,11 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                 {
                     data : 
                     {
-                        name : nameInsert.current.value,
+                        pest_name : nameInsert.current.value,
                         
                     },
                     check : {
-                        name : nameInsert.current.value
+                        pest_name : nameInsert.current.value
                     },
                     type : "pest"
                 } : []
@@ -447,6 +447,10 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                     <span>
                                         {
                                             Type === "plant" ? "ชนิดพืช" :
+                                            Type === "pest" ? <div className="field-text">
+                                            <span>ชื่อโรคพืช / ศัตรูพืช</span>
+                                            <div className="data-text">{DataIn.pest_name}</div>
+                                        </div> :
                                             Type === "fertilizer" ? "ชื่อปุ๋ย" :
                                             Type === "chemical" ? "ชื่อสารเคมี" :
                                             Type === "source" ? "แหล่งที่ซื้อ" : ""
@@ -459,6 +463,11 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                         <div className="field-text">
                                             <span>ประเภท</span>
                                             <div className="data-text">{DataIn.type_plant}</div>
+                                        </div> :
+                                    Type === "pest" ? 
+                                    <div className="field-text">
+                                            <span>ชื่อโรคพืช / ศัตรูพืช</span>
+                                            <div className="data-text"></div>
                                         </div> :
                                     Type === "fertilizer" ? 
                                         <div className="field-text">
@@ -480,6 +489,18 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                             <div className="data-text">{DataIn.qty_harvest} วัน</div>
                                         </div> 
                                         <a onClick={()=>OpenManageData(DataIn)} className="frame-manage-list" title="จัดการข้อมูล">
+                                            <svg viewBox="0 0 20 20">
+                                                <path d="M19 4a1 1 0 01-1 1H2a1 1 0 010-2h16a1 1 0 011 1zm0 6a1 1 0 01-1 1H2a1 1 0 110-2h16a1 1 0 011 1zm-1 7a1 1 0 100-2H2a1 1 0 100 2h16z"/>
+                                            </svg>
+                                        </a>
+                                    </div> :
+                                Type === "pest" ?
+                                    <div className="row">
+                                        <div className="field-text max-box row-text">
+                                            <span><br></br></span>
+                                            <div className="data-text"></div>
+                                        </div> 
+                                        <a onClick={()=>OpenManageData(DataIn)} className="frame-manage-list position bottom" title="จัดการข้อมูล">
                                             <svg viewBox="0 0 20 20">
                                                 <path d="M19 4a1 1 0 01-1 1H2a1 1 0 010-2h16a1 1 0 011 1zm0 6a1 1 0 01-1 1H2a1 1 0 110-2h16a1 1 0 011 1zm-1 7a1 1 0 100-2H2a1 1 0 100 2h16z"/>
                                             </svg>

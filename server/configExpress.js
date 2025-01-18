@@ -7,7 +7,9 @@ const dbpackage = require('./dbConfig');
 const apifunc = require('./apifunc');
 const LINE = require("./configLine");
 const WebSocket = require('./webSocket');
-
+ 
+ 
+ 
 const express = require('express');
 const cors = require('cors')
 const helmat = require('helmet');
@@ -20,29 +22,42 @@ const sessions = require('express-session');
 const fs = require('fs');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
-
+ 
     const app = express();
+   
+    // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
+    // app.set('trust proxy', 1);
+ 
     const upload = multer()
-    const server = 
+    const server =
                 (process.argv[2] == process.env.BUILD) ? https.createServer({
                     key: fs.readFileSync(process.env.pathCertFile),
                     cert: fs.readFileSync(process.env.pathKeyFile)
-                } , app) 
-                : 
+                } , app)
+                :
                 http.createServer(app)
     // set Server
-
+ 
     const listDB = dbpackage.listConfig(username , password)
     // const HOST_CHECK = (process.argv[2] == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
-
+ 
     // config server and Hot Refresh
     // if(process.argv[2] != process.env.BUILD) reactServ(app)
-
+ 
     // set session
+    console.log(process.argv[2])
     const sessionMiddleware = sessions({
-        name : process.env.cookieName,
-        secret : process.env.KEY_SESSION ?? "",
+        name : process.env.cookie,
+        secret : process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
+        // cookie: {
+        //     httpOnly: true,
+        //     secure : true,
+        //     maxAge: null,
+        //     sameSite: "none"
+        // },
+        // resave : false
+ 
         cookie: {
             httpOnly: true,
             secure : process.argv[2] == process.env.BUILD,
@@ -52,50 +67,51 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         },
         resave : false
     })
-
+   
+    app.use(express.json())
+    app.use(cookieParser())
+    app.use(sessionMiddleware)
+ 
     // protocal websocket
     const io = WebSocket(server , sessionMiddleware , db , listDB , apifunc)
-
+ 
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     app.use(cors({
         origin : [
-            `http://${process.env.REACT_APP_API_LOCAL}:3001`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3002`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3003`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:3004`, 
-            ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`,
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`,
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`,
+            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`,
+            ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]),
             `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`
         ],
         credentials: true,
     }))
-    app.use(sessionMiddleware)
-
+   
     // config environment
-    app.use(express.json())
-    app.use(cookieParser())
     app.use(upload.any())
     app.use(express.static('app/src/assets/style'))
     app.use(express.static('app/src/assets/font'))
     app.use(express.static('app/src/assets/img'))
     app.use(express.static('app/src/assets/js'))
     app.use(express.static('app/src/assets/icon'))
-
+ 
     app.use(express.static('build/admin'))
     app.use(express.static('build/doctor'))
     app.use(express.static('build/farmer'))
-
+ 
     // router api url
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
-
+ 
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
-
+ 
     // page error 404
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));
     });
-
+ 
     return server
 }

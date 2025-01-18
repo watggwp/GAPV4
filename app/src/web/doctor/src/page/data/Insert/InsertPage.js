@@ -130,6 +130,9 @@ const InsertPest = ({
         <div className="row">
           <label className="field-select">
             <select ref={typeInsert}>
+            <option disabled value={""}>
+              เลือกประเภท
+            </option>
                 <option value={1}>โรคพืช</option>
                 <option value={2}>ศัตรูพืช</option>
             </select>

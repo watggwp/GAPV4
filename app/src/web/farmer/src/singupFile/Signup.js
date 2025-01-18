@@ -419,7 +419,7 @@ const StepTwo = (props) => {
                     <span>
                         <span>ที่อยู่ปัจจุบัน</span><span className="dot">*</span>
                     </span>
-                    <textarea placeholder="เช่น บ้านเลขที่ 99/99 หมู่ 14 ต.เมืองนะ อ.เชียงดาว จ.เชียงใหม่" defaultValue={getTextLocation} type="text" onChange={(e)=>{
+                    <textarea placeholder="กรอกที่อยู่อาศัย เช่น บ้านเลขที่ 99/99 หมู่ 14 ต.เมืองนะ อ.เชียงดาว จ.เชียงใหม่" defaultValue={getTextLocation} type="text" onChange={(e)=>{
                         props.data.set("text-location" , e.target.value)
                         setTextLocation(e.target.value)
                         CheckData("")
