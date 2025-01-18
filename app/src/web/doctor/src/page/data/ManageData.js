@@ -10,7 +10,7 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
     const [Data , setData] = useState(DataOfPage)
     const [StateEdit , setStateEdit] = useState(false)
     const [DataEdit , setDataEdit] = useState(new Map())
-    const [Status , setStatus] = useState(Data.is_use)
+    const [Status , setStatus] = useState(DataOfPage.is_use)
     const [BtSubmit , setBtSubmit] = useState("")
 
     const [ErrReport , setErrReport] = useState(false)
@@ -37,10 +37,13 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
             const JsonData = {}
             JsonData.check = {}
             JsonData.data = {}
-            const check = Type === "plant" ? ["name"] : 
-                            Type === "fertilizer" ? ["name" , "name_formula"] :
-                            Type === "chemical" ? ["name" , "name_formula"] :
-                            Type === "source" ? ["name"] : [];
+            const check = (
+                Type === "plant" ? ["name"] : 
+                Type === "fertilizer" ? ["name" , "name_formula"] :
+                Type === "chemical" ? ["name" , "name_formula"] :
+                Type === "pest" ? ["name"] :
+                Type === "source" ? ["name"] : []
+            )
 
             Array.from(DataEdit).forEach(val=>{
                 if(check.filter(valfilter=>valfilter == val[0]).length) 
