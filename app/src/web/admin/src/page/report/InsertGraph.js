@@ -13,6 +13,7 @@ const InsertGraph = () => {
       const response = await clientMo.get("/api/admin/report/list");
       const result = JSON.parse(response);
 
+      console.log(result)
       if (result.data) {
         setPlantData(result.data.farmerStatistics.plantStatistics || []); // ดึงข้อมูลพืช
         setFarmerCount(result.data.farmerStatistics.totalFarmers || 0); // ดึงจำนวนเกษตรกร
