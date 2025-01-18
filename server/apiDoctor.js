@@ -3083,6 +3083,11 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     )
                                 ) as checkData
                                 ` , (err , resultIn)=>{
+                                    console.log(resultIn)
+                                    if(err) {
+                                        console.log(err)
+                                        resole(0)
+                                    }
                                     resole(parseInt(resultIn[0].checkData))
                                 }
                             )
