@@ -7,7 +7,10 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
     const StatusRef = useRef()
     const Password = useRef()
     
-    const [Data , setData] = useState(DataOfPage)
+    const [Data , setData] = useState({
+        id : Type === "pest" ? DataOfPage.pest_id : DataOfPage.id,
+        ...DataOfPage
+    })
     const [StateEdit , setStateEdit] = useState(false)
     const [DataEdit , setDataEdit] = useState(new Map())
     const [Status , setStatus] = useState(DataOfPage.is_use)
@@ -90,7 +93,6 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
         const DataIN = {
             type : Type,
             id_list : Data.id,
-            id_list : Data.pest_id,
             state : state ? 0 : 1
         }
         const fetchChange = await clientMo.post("/api/doctor/data/change" , DataIN)
@@ -300,6 +302,7 @@ const Detailpest = ({Data}) => {
         </div>
     )
 }
+
 const Editpest = ({CheckEdit , Data , ErrReport}) => {
     const typeInsert = useRef()
     const DateQtyInsert = useRef()

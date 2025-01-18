@@ -3051,6 +3051,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
+                const data_id = req.body.id_list
                 const type_request = req.body.type
                 const From = (
                     type_request == "plant" ? "plant_list" : 
@@ -3059,7 +3060,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     type_request == "pest" ? "pests" : 
                     type_request == "source" ? "source_list" : ""
                 )
-                if(From) {
+                if(From && data_id) {
                     const columnID = (
                         type_request == "pest" ? "pest_id" : "id"
                     )
@@ -3112,7 +3113,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     UPDATE ${From}
                                     SET ${update}
                                     WHERE ${columnID} = ?
-                                    ` , [req.body.id_list] , (err , updateData) => {
+                                    ` , [data_id] , (err , updateData) => {
                                         resole()
                                     }
                                 )
@@ -3123,7 +3124,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 SELECT * 
                                 FROM ${From} 
                                 WHERE ${columnID} = ?
-                                ` , [req.body.id_list] , (err , select) => {
+                                ` , [data_id] , (err , select) => {
                                     if(err){
                                         con.end()
                                         res.send("err select")
