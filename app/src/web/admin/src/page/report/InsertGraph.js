@@ -15,8 +15,8 @@ const InsertGraph = () => {
       const result = JSON.parse(response);
 
       if (result.data) {
-        const [ { plantStatistics , totalFarmers } ] = result.data.farmerStatistics || [ { plantStatistics : [] , totalFarmers : 0 } ]
-        setPlantData(plantStatistics); // ดึงข้อมูลพืช
+        const [ { plantDetails , totalFarmers } ] = result.data.farmerStatistics || [ { plantDetails : [] , totalFarmers : 0 } ]
+        setPlantData(plantDetails); // ดึงข้อมูลพืช
         setFarmerCount(totalFarmers); // ดึงจำนวนเกษตรกร
       } else {
         console.error("ไม่มีข้อมูลจาก API");
