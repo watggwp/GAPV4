@@ -1694,80 +1694,90 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             console.log("select form");
                         }
 
-                        con.end()
-                        res.send(
-                            forms.map( async (form) => {
-                                const userData = req.query.type === '0' ? await new Promise((resolve) => {
-                                    con.query(
-                                        `
-                                            SELECT id_table as id_farmer , fullname as fullname
-                                            FROM acc_farmer , 
-                                            (
-                                                SELECT link_user
-                                                FROM housefarm
-                                                WHERE id_farm_house = ?
-                                            ) as house
-                                            WHERE acc_farmer.link_user = house.link_user
-                                            ORDER BY date_register
-                                            LIMIT 1
-                                        ` , [form.id_farm_house] ,
-                                        (err, users )=>{
-                                            if(err) {
-                                                dbpacket.dbErrorReturn(con, err, res);
-                                                console.log("select user");
-                                            }
-                                                        
-                                            resolve(users[0] || {})
-                                        }
-                                    )
-                                }) : {}
-        
-                                const plantData = req.query.type === '0' ? await new Promise((resolve) => {
-                                    con.query(
-                                        `
-                                            SELECT type_plant as type_main
-                                            FROM plant_list
-                                            WHERE name = ?
-                                            LIMIT 1
-                                        ` , [form.name_plant] ,
-                                        (err, plants )=>{
-                                            if(err) {
-                                                dbpacket.dbErrorReturn(con, err, res);
-                                                console.log("select user");
-                                            }
-                                                        
-                                            resolve(plants[0] || {})
-                                        }
-                                    )
-                                }) : {}
-        
-                                const houseFarmData = req.query.type === '0' ? await new Promise((resolve) => {
-                                    con.query(
-                                        `
-                                            SELECT location as location_house
+                        const formsData = []
+
+                        if(!forms.length) {
+                            con.end()
+                            res.send(formsData)
+                        }
+
+                        forms.forEach( async (form) => {
+                            const userData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT id_table as id_farmer , fullname as fullname
+                                        FROM acc_farmer , 
+                                        (
+                                            SELECT link_user
                                             FROM housefarm
                                             WHERE id_farm_house = ?
-                                            LIMIT 1
-                                        ` , [form.id_farm_house] ,
-                                        (err, houseFarm )=>{
-                                            if(err) {
-                                                dbpacket.dbErrorReturn(con, err, res);
-                                                console.log("select house");
-                                            }
-                                                        
-                                            resolve(houseFarm[0] || {})
+                                        ) as house
+                                        WHERE acc_farmer.link_user = house.link_user
+                                        ORDER BY date_register
+                                        LIMIT 1
+                                    ` , [form.id_farm_house] ,
+                                    (err, users )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select user");
                                         }
-                                    )
-                                }) : {}
+                                                    
+                                        resolve(users[0] || {})
+                                    }
+                                )
+                            }) : {}
+    
+                            const plantData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT type_plant as type_main
+                                        FROM plant_list
+                                        WHERE name = ?
+                                        LIMIT 1
+                                    ` , [form.name_plant] ,
+                                    (err, plants )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select user");
+                                        }
+                                                    
+                                        resolve(plants[0] || {})
+                                    }
+                                )
+                            }) : {}
+    
+                            const houseFarmData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT location as location_house
+                                        FROM housefarm
+                                        WHERE id_farm_house = ?
+                                        LIMIT 1
+                                    ` , [form.id_farm_house] ,
+                                    (err, houseFarm )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select house");
+                                        }
+                                                    
+                                        resolve(houseFarm[0] || {})
+                                    }
+                                )
+                            }) : {}
 
-                                return {
-                                    ...form,
-                                    ...userData,
-                                    ...plantData,
-                                    ...houseFarmData
-                                }
+                            formsData.push({
+                                ...form,
+                                ...userData,
+                                ...plantData,
+                                ...houseFarmData
+                            })
+
+                            if(forms.length === formsData.length) {
+                                con.end()
+                                res.send(formsData)
                             }
-                        ))
+                        })
+
                     }
                 )
             }
