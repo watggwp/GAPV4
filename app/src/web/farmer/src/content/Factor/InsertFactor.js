@@ -633,7 +633,7 @@ const PopupInsertFactor = ({
     const matchedDateSafe = pestChemicalData.find(
       (entry) => entry.chemical_name === chemicalValue
     );
-    setDateSafe(matchedDateSafe.safe_days)
+    matchedDateSafe.safe_days && setDateSafe(matchedDateSafe.safe_days)
 
     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
     if (!chemicalValue || !pestValue || !plantNameValue) {
