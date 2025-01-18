@@ -560,7 +560,7 @@ const PopupInsertFactor = ({
           ? ConvertDate(DateUse.current.value).christDate
           : ""
       );
-      DateUsePut.setDate(DateUsePut.getDate() + day_safe + 1);
+      DateUsePut.setDate(DateUsePut.getDate() + parseInt(day_safe) + 1);
       const result = DateUsePut.toISOString().split("T")[0];
       DateSafe.current.value = ConvertDate(result).buddhistDate;
       setDateOut(result);
