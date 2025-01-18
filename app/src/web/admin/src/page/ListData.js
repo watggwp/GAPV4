@@ -21,6 +21,8 @@ import { PageTemplateContext } from "./PageTemplate";
 import InsertGroup from "./group/InsertGroup";
 import InsertReport from "./report/InsertReport";
 import InsertGraph from "./report/InsertGraph";
+import InsertStatistics from "./report/InsertStatistics";
+import PageGroup from "./group/PageGroup";
 
 const ListData = ({
   socket,
@@ -272,6 +274,10 @@ const ListData = ({
           <><InsertReport></InsertReport></> :
           status.status == "graph" ? 
           <><InsertGraph></InsertGraph></> : 
+          status.status == "statistics" ? 
+          <><InsertStatistics></InsertStatistics></> : 
+          status.status == "group" ? 
+          <><PageGroup></PageGroup></> : 
           <ManageList
           socket={socket}
           Data={DataFetch}
