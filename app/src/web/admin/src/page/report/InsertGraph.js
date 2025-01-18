@@ -14,10 +14,10 @@ const InsertGraph = () => {
       const response = await clientMo.get("/api/admin/report/list");
       const result = JSON.parse(response);
 
-      console.log(result)
       if (result.data) {
-        setPlantData(result.data.farmerStatistics.plantStatistics || []); // ดึงข้อมูลพืช
-        setFarmerCount(result.data.farmerStatistics.totalFarmers || 0); // ดึงจำนวนเกษตรกร
+        const [ { plantStatistics , totalFarmers } ] = result.data.farmerStatistics || [ { plantStatistics : [] , totalFarmers : 0 } ]
+        setPlantData(plantStatistics); // ดึงข้อมูลพืช
+        setFarmerCount(totalFarmers); // ดึงจำนวนเกษตรกร
       } else {
         console.error("ไม่มีข้อมูลจาก API");
       }
