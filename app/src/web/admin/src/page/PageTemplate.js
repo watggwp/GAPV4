@@ -84,7 +84,6 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const ChangeStatus = async (statusClick) => {
         if(statusClick != StatusPage.status) {
             if(auth(true)) {
-                console.log(statusClick)
                 setStatus({status : statusClick , changePath : true})
                 HrefData.set(`${HrefData.get().split("?")[0]}?${statusClick}=c`)
                 TextSearchRef.current.value = ""
@@ -136,6 +135,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button> :
                     <></>
                     }
+                    {StateOnPage.status}
                     <div className="search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
                             <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
