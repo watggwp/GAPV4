@@ -7,6 +7,7 @@ const InsertGroup = () => {
     const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
     const [chemicals, setChemicals] = useState([]);
     const [pests, setPests] = useState([]);
+    const [plants, setPlants] = useState([]);
     const [text, setText] = useState("");
     const [status, setStatus] = useState(0);
     const [stateOnBt, setStateOnBt] = useState(true);
@@ -27,12 +28,21 @@ const InsertGroup = () => {
         setPests(Listpest);
     }, []);
 
+    const Listplants = useCallback(async () => {
+        const listplant = await clientMo.post("/api/admin/data/list", {
+            type: "plant", limit: 100, startRow: 0, textSearch: ""
+        });
+        const Listplant = JSON.parse(listplant);
+        setPlants(Listplant);
+    }, []);
+
     const CheckEmply = () => {
         // ตรวจสอบข้อมูลว่าง
         // เพิ่มฟังก์ชันเพื่อตรวจสอบข้อมูลก่อนส่ง
         return {
             chemical: chemicals,
             pest: pests,
+            plant:plants,
             text,
         };
     };
@@ -63,7 +73,8 @@ const InsertGroup = () => {
     useEffect(() => {
         ListGroup();
         Listpest();
-    }, [ListGroup, Listpest]);
+        Listplants();
+    }, [ListGroup, Listpest, Listplants,]);
 
     return (
         <>
@@ -106,22 +117,15 @@ const InsertGroup = () => {
 
                     {/* ตารางที่ 3: พืช */}
                     <div className="table-section">
-                        <span className="table-title">พืช</span>
-                        <select >
-                            <option value="">กรุณาเลือกชนิดพืช</option>
-                            <option value="มะเขือเทศ">มะเขือเทศ</option>
-                            <option value="มะเขือ">มะเขือ</option>
+                        <span className="table-title">ชนิดพืช</span>
+                        <select>
+                            <option value="">กรุณาเลือก</option>
+                            {plants.map((plant, index) => (
+                                <option key={index} value={plant.id}>
+                                    {plant.name}
+                                </option>
+                            ))}
                         </select>
-                        <div className="checkbox-group">
-                            <span>เลือกสายพันธุ์พืช:</span>
-                            {["สายพันธุ์ A", "สายพันธุ์ B"].map(
-                                (item, index) => (
-                                    <label key={index}>
-                                        <input type="checkbox" name={item} /> {item}
-                                    </label>
-                                )
-                            )}
-                        </div>
                     </div>
 
                     <div className="bt-submitgroup">
