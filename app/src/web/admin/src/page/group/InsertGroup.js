@@ -47,8 +47,8 @@ const InsertGroup = () => {
 
         if(chemical && pest && plant && safeDays) {
             return {
-                pest_id : chemical, 
-                chemical_id : pest, 
+                pest_id : pest, 
+                chemical_id : chemical, 
                 plant_id : plant,
                 safe_days : safeDays
             }
@@ -104,7 +104,7 @@ const InsertGroup = () => {
                             <option value="">กรุณาเลือก</option>
                             {
                                 pests.map((pest, index) => (
-                                    <option key={index} value={pest.id}>
+                                    <option key={index} value={pest.pest_id}>
                                         {pest.pest_name}
                                     </option>
                                 ))
