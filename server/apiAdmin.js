@@ -1392,39 +1392,38 @@ app.get('/api/admin/profile/get', (req, res) => {
 
       // ดึงข้อมูลเกษตรกรและพืชใน station
       const farmerQuery = `
-         SELECT
-    acc_farmer.station,
-    COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
-    COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
-    GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
-    CONCAT(
-        '[',
-        GROUP_CONCAT(
-            DISTINCT CONCAT(
-                '{"plantName":"', subquery.name_plant, '",' ,
-                '"id":"', subquery.id, '",' ,
-                '"farmersCount":', subquery.total_qty, ',' ,
-                '"duplicateCount":', subquery.duplicate_count, '}'
-            )
-        ),
-        ']'
-    ) AS plantDetails
-      FROM acc_farmer
-      LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
-      LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
-      LEFT JOIN (
-          SELECT
-              formplant.id,
-              formplant.name_plant,
-              COUNT(formplant.name_plant) AS total_qty,
-              id_farm_house,
-              SUM(CASE WHEN COUNT(formplant.name_plant) > 1 THEN 1 ELSE 0 END) OVER (PARTITION BY formplant.name_plant) AS duplicate_count
-          FROM formplant
-          GROUP BY id_farm_house, formplant.name_plant
-      ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
-      WHERE acc_farmer.station = ?
-      GROUP BY acc_farmer.station;
-
+            SELECT
+              acc_farmer.station,
+              COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+              COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+              GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+              CONCAT(
+                  '[',
+                  GROUP_CONCAT(
+                      DISTINCT CONCAT(
+                          '{"plantName":"', subquery.name_plant, '",' ,
+                          '"id":"', subquery.id, '",' ,
+                          '"farmersCount":', subquery.total_qty, ',' ,
+                          '"duplicateCount":', subquery.duplicate_count, '}'
+                      )
+                  ),
+                  ']'
+              ) AS plantDetails
+            FROM acc_farmer
+            LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+            LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+            LEFT JOIN (
+                SELECT
+                    formplant.id,
+                    formplant.name_plant,
+                    COUNT(formplant.name_plant) AS total_qty,
+                    id_farm_house,
+                    SUM(CASE WHEN COUNT(formplant.name_plant) > 1 THEN 1 ELSE 0 END) OVER (PARTITION BY formplant.name_plant) AS duplicate_count
+                FROM formplant
+                GROUP BY id_farm_house, formplant.name_plant
+            ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+            WHERE acc_farmer.station = ?
+            GROUP BY acc_farmer.station;
       `;
 
       con.query(farmerQuery, [station], (err, farmerStatistics) => {
