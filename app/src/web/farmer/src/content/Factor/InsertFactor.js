@@ -427,7 +427,6 @@ const PopupInsertFactor = ({
     if (!e) {
       if (Name.value && formula_name.value) {
         setHowUse();
-        setDateSafe();
       }
     }
 
@@ -554,19 +553,14 @@ const PopupInsertFactor = ({
   };
 
   // math date sefe chemical
-  const setDateSafe = () => {
+  const setDateSafe = (day_safe) => {
     try {
-      const NumDay = DataFactor.filter(
-        (val) =>
-          val.name_formula.indexOf(NameMainFactor.current.value) >= 0 &&
-          val.name.indexOf(NameFactor.current.value) >= 0
-      ).map((val) => val.date_safe_list)[0];
       const DateUsePut = new Date(
         DateUse.current.value
           ? ConvertDate(DateUse.current.value).christDate
           : ""
       );
-      DateUsePut.setDate(DateUsePut.getDate() + NumDay + 1);
+      DateUsePut.setDate(DateUsePut.getDate() + day_safe + 1);
       const result = DateUsePut.toISOString().split("T")[0];
       DateSafe.current.value = ConvertDate(result).buddhistDate;
       setDateOut(result);
@@ -651,6 +645,8 @@ const PopupInsertFactor = ({
       (entry) =>
         entry.pest_name === pestValue && entry.chemical_name === chemicalValue
     );
+
+    setDateSafe(pestChemicalData[0].safe_days)
 
     if (!matchedEntry) {
       console.warn("No match found in pestChemicalData for:", {
