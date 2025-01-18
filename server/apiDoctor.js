@@ -1759,12 +1759,14 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
                         console.log(result)
 
-                        result[0] = result[0] ? {
-                            ...result[0],
-                            ...userData,
-                            ...plantData,
-                            ...houseFarmData
-                        } : []
+                        if(result[0]) {
+                            result[0] = {
+                                ...result[0],
+                                ...userData,
+                                ...plantData,
+                                ...houseFarmData
+                            }
+                        }
 
                         con.end()
                         res.send(result)
