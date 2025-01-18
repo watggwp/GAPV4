@@ -3051,23 +3051,33 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" : 
+                    type_request == "fertilizer" ? "fertilizer_list" : 
+                    type_request == "chemical" ? "chemical_list" :
+                    type_request == "pest" ? "pests" : 
+                    type_request == "source" ? "source_list" : ""
+                )
                 if(From) {
+                    const columnID = (
+                        type_request == "pest" ? "pest_id" : "id"
+                    )
                     try {
+                        // ตัดการส่ง check จากหน้าบ้าน ให้หลังบ้าน check แทน
                         const OverCheck = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
-                            return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
-                        }).join(" and ")
+                            return checkData.join("=").replaceAll(" " , "")
+                        })
+                            .join(" and ")
+                            .replaceAll(";" , "")
 
                         const resultCheck = OverCheck.length ? await new Promise((resole , reject)=>{
                             con.query(
                                 `
                                 SELECT (
                                     SELECT EXISTS (
-                                        SELECT id 
+                                        SELECT ${columnID} 
                                         FROM ${From}
                                         WHERE ${OverCheck}
                                     )
@@ -3080,17 +3090,22 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
                         if(!resultCheck) {
                             const update = Object.entries(req.body.data).map(data=>{
-                                if(data[0] === "location") data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
+                                if(data[0] === "location") {
+                                    data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
+                                }
                                 else data[1] = `"${data[1].trim()}"`
                                 return data.join(" = ")
-                            }).join(' , ').replaceAll(";" , "").replaceAll(" " , "")
+                            })
+                                .join(' , ')
+                                .replaceAll(";" , "")
+                                .replaceAll(" " , "")
 
                             await new Promise((resole , reject)=>{
                                 con.query(
                                     `
                                     UPDATE ${From}
                                     SET ${update}
-                                    WHERE id = ?
+                                    WHERE ${columnID} = ?
                                     ` , [req.body.id_list] , (err , updateData) => {
                                         resole()
                                     }
@@ -3101,7 +3116,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 `
                                 SELECT * 
                                 FROM ${From} 
-                                WHERE id = ?
+                                WHERE ${columnID} = ?
                                 ` , [req.body.id_list] , (err , select) => {
                                     if(err){
                                         con.end()
@@ -3123,6 +3138,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             })
                         }
                     } catch (err) {
+                        console.log(err)
                         con.end()
                         res.send({
                             result : "error"
@@ -3159,28 +3175,39 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "pest" ? "pests" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" : 
+                    type_request == "pest" ? "pests" : 
+                    type_request == "fertilizer" ? "fertilizer_list" : 
+                    type_request == "chemical" ? "chemical_list" :
+                    type_request == "source" ? "source_list" : ""
+                )
                 const state = req.body.state == 0 ? 0 : 1; 
                 if(From) {
+                    const columnID = (
+                        type_request == "pest" ? "pest_id" : "id"
+                    )
                     try {
-                        const checkOver = state ? await new Promise((resole , reject)=>{
-                            const Where = req.body.type == "plant" || req.body.type == "source" ? "fromMain.name = fromSub.name" : 
-                                            req.body.type == "fertilizer" || req.body.type == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" : ""
+                        const checkDataOpenDuplicate = state ? await new Promise((resole , reject)=>{
+                            const Where = (
+                                type_request == "plant" || type_request == "source" ? "fromMain.name = fromSub.name" : 
+                                type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
+                                type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
+                                ""
+                            )
+
                             con.query(
                                 `
-                                SELECT (
-                                    SELECT EXISTS (
-                                        SELECT id
-                                        FROM ${From} as fromSub
-                                        WHERE ${Where} and id <> ? and is_use = 1
-                                    )
-                                ) as verify
-                                FROM ${From} as fromMain
-                                WHERE id = ?
+                                    SELECT (
+                                        SELECT EXISTS (
+                                            SELECT ${columnID}
+                                            FROM ${From} as fromSub
+                                            WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                                        )
+                                    ) as verify
+                                    FROM ${From} as fromMain
+                                    WHERE ${columnID} = ?
                                 ` , [ req.body.id_list , req.body.id_list ] , 
                                 (err , result) => {
                                     if(err) reject(err)
@@ -3188,10 +3215,10 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 }
                             )
                         }) : true
-                        if(checkOver) {
+                        if(checkDataOpenDuplicate) {
                             con.query(
                                 `
-                                UPDATE ${From} SET is_use = ? WHERE id = ? and is_use != ?
+                                UPDATE ${From} SET is_use = ? WHERE ${columnID} = ? and is_use != ?
                                 ` , [ state , req.body.id_list , state ] ,
                                 (err , list) => {
                                     if(err) {
