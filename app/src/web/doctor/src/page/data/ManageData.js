@@ -286,16 +286,16 @@ const Detailpest = ({Data}) => {
             <div className="row">
                 <label className="field-select">
                     <span>
-                        <span>ชื่อชนิดพืช</span>
+                        <span>ชื่อโรคพืช / ศัตรูพืช</span>
                     </span>
                     <input readOnly defaultValue={Data.pest_name}></input>
                 </label>
                 <label className="field-select">
                     <span>ประเภท</span>
-                    <select disabled defaultValue={Data.type_plant}>
+                    <select disabled defaultValue={Data.type_pest}>
                         <option disabled value={""}>เลือกประเภท</option>
-                        <option value={"พืชผัก"}>พืชผัก</option>
-                        <option value={"สมุนไพร"}>สมุนไพร</option>
+                        <option value={"1"}>โรคพืช</option>
+                        <option value={"2"}>ศัตรูพืช</option>
                     </select>
                 </label>
             </div>
@@ -329,13 +329,13 @@ const Editpest = ({CheckEdit , Data , ErrReport}) => {
                 <label className="field-select">
                     <span className="important">ประเภท</span>
                     <select ref={typeInsert} onChange={(e)=>{
-                            CheckEdit(e.target.value , "type_plant")
+                            CheckEdit(e.target.value , "type_pest")
                             SelectElementNext(DateQtyInsert.current)
                         }
-                    } defaultValue={Data.type_plant}>
+                    } defaultValue={Data.type_pest}>
                         <option disabled value={""}>เลือกประเภท</option>
-                        <option value={"พืชผัก"}>พืชผัก</option>
-                        <option value={"สมุนไพร"}>สมุนไพร</option>
+                        <option value={"1"}>โรคพืช</option>
+                        <option value={"2"}>ศัตรูพืช</option>
                     </select>
                 </label>
             </div>

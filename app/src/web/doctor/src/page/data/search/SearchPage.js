@@ -106,16 +106,20 @@ const SearchChemical = ({searchList , DataProcess}) => {
 }
 
 const SearchPest = ({searchList , DataProcess}) => {
-    const formulaPest = useRef()
+    const typePlant = useRef()
 
     useEffect(()=>{
-        if(DataProcess.has("pest_name")) formulaPest.current.value = DataProcess.get("pest_name")
+        if(DataProcess.has("type_pest")) typePlant.current.value = DataProcess.get("type_pest")
     } , [])
     return(
         <div className="row">
             <label className="field-select">
-                <span>ชื่อสามัญสารเคมี</span>
-                <input type="search" ref={formulaPest} onChange={(e)=>searchList(e.target , e.target.value , "pest_name")} placeholder="เช่น "></input>
+                <span>ประเภทพืช</span>
+                <select onChange={(e)=>searchList(e.target , e.target.value , "type_pest")} ref={typePlant} defaultValue={DataProcess.get("type_pest")}>
+                    <option value={""}>ทั้งหมด</option>
+                    <option value={"1"}>โรคพืช</option>
+                    <option value={"2"}>ศัตรูพืช</option>
+                </select>
             </label>
         </div> 
     )
