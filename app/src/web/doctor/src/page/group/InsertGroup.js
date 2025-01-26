@@ -18,7 +18,7 @@ const InsertGroup = () => {
  
     const ListGroup = useCallback(async () => {
         const listchemical = await clientMo.post("/api/doctor/data/get", {
-            type: "chemical", Limit: 100, StartRow: 0
+            type: "chemical", Limit: 100, StartRow: 0 , check : {}
         });
         const Listchemical = JSON.parse(listchemical);
         setChemicals(Listchemical);
@@ -26,7 +26,7 @@ const InsertGroup = () => {
  
     const Listpest = useCallback(async () => {
         const listchemical = await clientMo.post("/api/doctor/data/get", {
-            type: "pest", Limit: 100, StartRow: 0
+            type: "pest", Limit: 100, StartRow: 0 , check : {}
         });
         const Listpest = JSON.parse(listchemical);
         setPests(Listpest);
@@ -34,7 +34,7 @@ const InsertGroup = () => {
  
     const Listplants = useCallback(async () => {
         const listplant = await clientMo.post("/api/doctor/data/get", {
-            type: "plant", Limit: 100, StartRow: 0, textSearch: ""
+            type: "plant", Limit: 100, StartRow: 0 , check : {}
         });
         const Listplant = JSON.parse(listplant);
         setPlants(Listplant);
