@@ -294,8 +294,8 @@ const Detailpest = ({Data}) => {
                     <span>ประเภท</span>
                     <select disabled defaultValue={Data.type_pest}>
                         <option disabled value={""}>เลือกประเภท</option>
-                        <option value={"1"}>โรคพืช</option>
-                        <option value={"2"}>ศัตรูพืช</option>
+                        <option value={"โรคพืช"}>โรคพืช</option>
+                        <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
                     </select>
                 </label>
             </div>
@@ -334,8 +334,8 @@ const Editpest = ({CheckEdit , Data , ErrReport}) => {
                         }
                     } defaultValue={Data.type_pest}>
                         <option disabled value={""}>เลือกประเภท</option>
-                        <option value={"1"}>โรคพืช</option>
-                        <option value={"2"}>ศัตรูพืช</option>
+                        <option value={"โรคพืช"}>โรคพืช</option>
+                        <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
                     </select>
                 </label>
             </div>
