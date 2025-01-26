@@ -82,7 +82,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     }
 
     const ChangeStatus = async (statusClick) => {
-        if(statusClick != StatusPage.status) {
+        if(statusClick !== StatusPage.status) {
             if(auth(true)) {
                 setStatus({status : statusClick , changePath : true})
                 HrefData.set(`${HrefData.get().split("?")[0]}?${statusClick}=c`)
@@ -105,6 +105,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     </div>
                     : <></>
                     }
+                    {StateOnPage.status}
                     {
                     StateOnPage.status === "default" ? 
                         <button className="bt-delete" onClick={()=>ChangeStatus("delete")}>แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</button> : 

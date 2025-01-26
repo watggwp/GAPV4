@@ -144,6 +144,8 @@ const ListData = ({
           });
           break;
         }
+        default :
+          break;
       }
     } else if (HrefPage.get().split("?")[0] === "data") {
       ObjectData = await clientMo.post("/api/admin/data/list", {
@@ -268,13 +270,13 @@ const ListData = ({
       <div className="List-data">
         {
           
-          status.status == "listlocation" ? 
+          status.status === "listlocation" ? 
           <><InsertReport></InsertReport></> :
-          status.status == "graph" ? 
+          status.status === "graph" ? 
           <><InsertGraph></InsertGraph></> : 
-          status.status == "statistics" ? 
+          status.status === "statistics" ? 
           <><InsertStatistics></InsertStatistics></> : 
-          status.status == "group" ? 
+          status.status === "group" ? 
           <><PageGroup></PageGroup></> : 
           <ManageList
           socket={socket}

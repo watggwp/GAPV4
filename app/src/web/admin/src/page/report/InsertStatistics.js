@@ -29,7 +29,7 @@ const InsertStatistics = () => {
         .map((item, index) => ({
           rank: index + 1,
           name: item.pest_name,
-          count: item.total || 0,
+          count: item[`total_${duration}`] || 0,
         }));
 
       const pests = data
@@ -37,7 +37,7 @@ const InsertStatistics = () => {
         .map((item, index) => ({
           rank: index + 1,
           insect: item.pest_name,
-          count: item.total || 0,
+          count: item[`total_${duration}`] || 0,
         }));
 
       setPlantDiseaseStats(plantDiseases);
