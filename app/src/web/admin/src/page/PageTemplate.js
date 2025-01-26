@@ -132,7 +132,12 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     StateOnPage.status === "graph" ? 
                         <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
                     StateOnPage.status === "statistics" ? 
-                        <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button> :
+                        <div style={{
+                            display : "flex"
+                        }}>
+                            <button style={{ marginRight : "10px" }} >แจ้งเตือน</button>
+                            <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button>
+                        </div> :
                     <></>
                     }
                     
