@@ -329,6 +329,18 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                     DataProcess.get("type") === "source" ?
                                         <InsertSource nameInsert={nameInsert} position={position} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
                                     :
+                                    DataProcess.get("type") === "group" ?
+                                            <Modal
+                                              show={openInsert}
+                                              onHide={() => setOpenInsert(false)}
+                                              aria-labelledby="modal-title"
+                                              aria-describedby="modal-description"
+                                              centered
+                                              size="lg"
+                                            >
+                                             <InsertGroup/>
+                                            </Modal>
+                                    :
                                         <></>
                                 }
                                 <div className="bt-insert">
