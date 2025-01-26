@@ -1,12 +1,16 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { clientMo } from "../../../../../assets/js/moduleClient"
 import "../../assets/style/page/form/ManagePopup.scss"
 import { DayJSX, Loading, MapsJSX, PopupDom, ResizeImg } from "../../../../../assets/js/module"
 import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
 import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "./ListManageDoctor"
+import { DoctorContext } from "../../Doctor"
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
+
+    const { profile } = useContext(DoctorContext)
+
     const [Content , setContent] = useState(<></>)
     // const [ID_farmer , setID_farmer] = useState("")
     const [LoadContent , setLoadContent] = useState(true)
@@ -665,10 +669,13 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                             <div>ตรวจสอบ</div>
                                             <div>แบบบันทึก</div>
                                         </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
-                                            <div>วิเคราะห์</div>
-                                            <div>ผลผลิต</div>
-                                        </div>
+                                        {
+                                            profile.analyst_role &&
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
+                                                    <div>วิเคราะห์</div>
+                                                    <div>ผลผลิต</div>
+                                                </div>
+                                        }
                                     </div>
                                     <div className="bt-add-content">
                                         { StatePage === "success" ?

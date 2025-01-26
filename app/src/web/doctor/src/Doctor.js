@@ -13,7 +13,9 @@ import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
 
-export const DoctorContext = createContext(null)
+export const DoctorContext = createContext({
+    profile : {}
+})
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
