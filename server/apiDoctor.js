@@ -63,6 +63,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 (err , station) => {
                     con.end()
                     result['data'].img_doctor = result['data'].img_doctor.toString()
+
+                    delete result['data']["password_doctor"]
                     res.send({
                         ...result['data'] ,
                         name_station : station[0].name,
