@@ -755,14 +755,15 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     [ result['data']['id_table_doctor'] , result['data']['station_doctor'] , req.body.textSearch , req.body.textSearch ]
                 
                 con.query(queryType , queryParams ,  (err , result)=>{
-                    if (!err){
-                        const listFarmer = ProfileConvertImg(result , "img")
+                    if (err){
+                        console.log(err)
                         con.end()
-                        res.send(listFarmer)
-                    } else {
-                        con.end()
-                        res.send("")
+                        res.send("")   
                     }
+
+                    const listFarmer = ProfileConvertImg(result , "img")
+                    con.end()
+                    res.send(listFarmer)
                     
                 })
             }
