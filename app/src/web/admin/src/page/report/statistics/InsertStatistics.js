@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { clientMo } from "../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../PageTemplate";
+import { clientMo } from "../../../../../../assets/js/moduleClient";
+import { PageTemplateContext } from "../../PageTemplate";
 
 const InsertStatistics = () => {
   const { openInsert, setOpenInsert } = useContext(PageTemplateContext);

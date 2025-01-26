@@ -3,9 +3,11 @@ import '../assets/style/page/templatePage.scss'
 import "../assets/style/page/List.scss"
 
 import ListData from "./ListData";
+import ButtonChangeStatistics from "./report/statistics/buttonChange";
 
 export const PageTemplateContext = createContext({
-    openInsert : false , setOpenInsert : () => {}
+    openInsert : false , setOpenInsert : () => {},
+    ChangeStatus : (status) => {}
 })
 
 const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , session , TabOn}) => {
@@ -94,7 +96,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     return (
         <PageTemplateContext.Provider
             value={{
-                openInsert , setOpenInsert
+                openInsert , setOpenInsert,
+                ChangeStatus : ChangeStatus
             }}
         >
             <section className="page-manage">
@@ -132,12 +135,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     StateOnPage.status === "graph" ? 
                         <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
                     StateOnPage.status === "statistics" ? 
-                        <div style={{
-                            display : "flex"
-                        }}>
-                            <button style={{ marginRight : "10px" }} >แจ้งเตือน</button>
-                            <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button>
-                        </div> :
+                        <ButtonChangeStatistics/> :
                     <></>
                     }
                     

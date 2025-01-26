@@ -21,7 +21,7 @@ import { PageTemplateContext } from "./PageTemplate";
 import InsertGroup from "./group/InsertGroup";
 import InsertReport from "./report/InsertReport";
 import InsertGraph from "./report/InsertGraph";
-import InsertStatistics from "./report/InsertStatistics";
+import InsertStatistics from "./report/statistics/InsertStatistics";
 import PageGroup from "./group/PageGroup";
 
 const ListData = ({
