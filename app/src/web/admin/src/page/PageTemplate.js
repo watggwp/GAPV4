@@ -105,7 +105,6 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     </div>
                     : <></>
                     }
-                    {StateOnPage.status}
                     {
                     StateOnPage.status === "default" ? 
                         <button className="bt-delete" onClick={()=>ChangeStatus("delete")}>แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</button> : 

@@ -89,7 +89,8 @@ const ListData = ({
     socket.emit("unconnect-doctor-list");
     socket.removeListener("update-online");
     clearInterval(getInterval);
-
+    setStateOnPage({ status: status?.status })
+    
     let ObjectData;
     if (HrefPage.get().split("?")[0] === "list") {
       switch (status.status) {
@@ -244,9 +245,7 @@ const ListData = ({
         return 0;
       }
     }
-
-    setStateOnPage({ status: status?.status })
-  };
+  }
 
   return (
     <section className="body-list-manage">
