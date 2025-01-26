@@ -514,6 +514,8 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
         setManagePop(<DoctorDetail Ref={RefManagePopup} setPopup={setManagePop} session={session} Data={Data}/>)
     }
 
+    console.log(profile)
+
     return (
         <>
         <div className="content-detail-form">
