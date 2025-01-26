@@ -3530,8 +3530,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     }
     app.post('/api/data/statistic/get', async (req, res) => {
-        let username = req.session.user_data;
-        let password = req.session.pass_data;
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
        
         if (username === '' || password === '') {
           res.redirect('/api/logout');
@@ -3541,7 +3541,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB);
        
         try {
-          const auth = await apifunc.auth(con, username, password, res, "data");
+          const auth = await apifunc.auth(con, username, password, res, "doctor");
           if (auth['result'] === "pass") {
             con.query(
               `
@@ -3578,15 +3578,15 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
       });
 
       app.get('/api/data/report/list', async(req, res) => {
-        let username = req.session.user_data
-        let password = req.session.pass_data
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
         if(username === '' || password === '') {
           res.redirect('/api/logout')
           return 0
         }
         let con = Database.createConnection(listDB)
         try {
-          const auth = await apifunc.auth(con , username , password , res , "data")
+          const auth = await apifunc.auth(con , username , password , res , "doctor")
           if(auth['result'] === "pass") {
             const station = auth['data']['station_data']
     // ดึงข้อมูลเกษตรกรและพืชใน station

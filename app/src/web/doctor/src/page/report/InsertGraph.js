@@ -1,23 +1,21 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { dataContext } from "../../data";
- 
+
 const InsertGraph = () => {
-  const { TabOn } = useContext(dataContext);
   const [plantData, setPlantData] = useState([]);
   const [farmerCount, setFarmerCount] = useState(0);
- 
+
   // ฟังก์ชันดึงข้อมูลจาก API
   const ListGraph = useCallback(async () => {
     console.log("Start fetch group");
     try {
       const response = await clientMo.get("/api/data/report/list");
       const result = JSON.parse(response);
- 
+
       if (result.data) {
-        const [{ plantDetails, totalFarmers }] =
-          result.data.farmerStatistics || [{ plantDetails: [], totalFarmers: 0 }];
- 
+        const [{ plantDetails, totalFarmers }] = result.data
+          .farmerStatistics || [{ plantDetails: [], totalFarmers: 0 }];
+
         // เรียงข้อมูลพืชตามจำนวนจากมากไปน้อย และเรียงตามชื่อพืชหากจำนวนเท่ากัน
         const sortedPlants = plantDetails.sort((a, b) => {
           if (b.farmersCount === a.farmersCount) {
@@ -25,10 +23,9 @@ const InsertGraph = () => {
           }
           return b.farmersCount - a.farmersCount;
         });
- 
+
         setPlantData(sortedPlants);
         setFarmerCount(totalFarmers);
-        TabOn.addTimeOut(TabOn.end());
       } else {
         console.error("ไม่มีข้อมูลจาก API");
       }
@@ -36,11 +33,14 @@ const InsertGraph = () => {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
     }
   }, []);
- 
-  useEffect(() => {
-    ListGraph();
-  }, [ListGraph]);
- 
+
+  useEffect(
+    () => {
+      ListGraph();
+    },
+    [ListGraph]
+  );
+
   return (
     <div style={{ padding: "20px" }}>
       {/* แสดงตารางแรงค์กิ้ง */}
@@ -50,7 +50,7 @@ const InsertGraph = () => {
           padding: "20px",
           backgroundColor: "#f9f9f9",
           border: "1px solid #ddd",
-          borderRadius: "8px",
+          borderRadius: "8px"
         }}
       >
         <h4 style={{ textAlign: "center" }}>ตารางแสดงจำนวนพืชในพื้นที่</h4>
@@ -58,7 +58,7 @@ const InsertGraph = () => {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            marginTop: "10px",
+            marginTop: "10px"
           }}
         >
           <thead>
@@ -68,7 +68,7 @@ const InsertGraph = () => {
                   border: "1px solid #ddd",
                   padding: "8px",
                   textAlign: "center",
-                  backgroundColor: "#f4f4f4",
+                  backgroundColor: "#f4f4f4"
                 }}
               >
                 ลำดับ
@@ -78,7 +78,7 @@ const InsertGraph = () => {
                   border: "1px solid #ddd",
                   padding: "8px",
                   textAlign: "center",
-                  backgroundColor: "#f4f4f4",
+                  backgroundColor: "#f4f4f4"
                 }}
               >
                 ชื่อพืช
@@ -88,7 +88,7 @@ const InsertGraph = () => {
                   border: "1px solid #ddd",
                   padding: "8px",
                   textAlign: "center",
-                  backgroundColor: "#f4f4f4",
+                  backgroundColor: "#f4f4f4"
                 }}
               >
                 จำนวนพืช
@@ -96,13 +96,13 @@ const InsertGraph = () => {
             </tr>
           </thead>
           <tbody>
-            {plantData.map((plant, index) => (
+            {plantData.map((plant, index) =>
               <tr key={index}>
                 <td
                   style={{
                     border: "1px solid #ddd",
                     padding: "8px",
-                    textAlign: "center",
+                    textAlign: "center"
                   }}
                 >
                   {index + 1}
@@ -110,7 +110,7 @@ const InsertGraph = () => {
                 <td
                   style={{
                     border: "1px solid #ddd",
-                    padding: "8px",
+                    padding: "8px"
                   }}
                 >
                   {plant.plantName}
@@ -119,17 +119,17 @@ const InsertGraph = () => {
                   style={{
                     border: "1px solid #ddd",
                     padding: "8px",
-                    textAlign: "center",
+                    textAlign: "center"
                   }}
                 >
                   {plant.farmersCount}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
- 
+
       {/* แสดงจำนวนเกษตรกร */}
       <div
         style={{
@@ -138,7 +138,7 @@ const InsertGraph = () => {
           backgroundColor: "#f4f4f4",
           border: "1px solid #ddd",
           borderRadius: "8px",
-          textAlign: "center",
+          textAlign: "center"
         }}
       >
         <h4>จำนวนเกษตรกรในพื้นที่</h4>
@@ -146,7 +146,7 @@ const InsertGraph = () => {
           style={{
             fontSize: "24px",
             fontWeight: "bold",
-            color: "#333",
+            color: "#333"
           }}
         >
           {farmerCount} คน
@@ -155,5 +155,5 @@ const InsertGraph = () => {
     </div>
   );
 };
- 
+
 export default InsertGraph;

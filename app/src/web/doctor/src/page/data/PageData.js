@@ -9,6 +9,7 @@ import PopupConfirm from "./Insert/ConfirmInsert";
 import ManageData from "./ManageData";
 import { Modal } from "react-bootstrap";
 import InsertGroup from "../group/InsertGroup";
+import InsertReport from "../report/InsertReport";
 
 const MaxLimit = 5
 
@@ -369,10 +370,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                 </div>
                 <div className="data-list-content">
                     {
-                        DataProcess.get("type")=="group"?
+                        DataProcess.get("type") === "group" ?
                         <></>:
-                        DataProcess.get("type")=="report"?
-                        <></>:
+                        DataProcess.get("type") === "report" ?
+                        <InsertReport/> :
                         <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                     }
                     {

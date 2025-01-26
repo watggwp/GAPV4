@@ -1,23 +1,18 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { AdminContext } from "../../Admin";
-import { PageDataContext } from "../data/PageData";
  
 const PageGroup = () => {
   const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
-  const { TabOn } = useContext(AdminContext);
-  const { openInsert, setOpenInsert } = useContext(PageDataContext);
  
   // ฟังก์ชันสำหรับดึงข้อมูลจาก API
   const fetchGroupData = useCallback(async () => {
     console.log("Start fetching group data...");
     try {
-      const response = await clientMo.post("/api/admin/group/get");
+      const response = await clientMo.post("/api/doctor/group/get");
       const result = JSON.parse(response);
  
       if (Array.isArray(result)) {
         setGroupData(result); // เก็บข้อมูลใน state
-        TabOn.addTimeOut(TabOn.end());
         console.log("Group data set successfully:", result);
       } else {
         console.error("Invalid data format from API");
@@ -25,7 +20,7 @@ const PageGroup = () => {
     } catch (error) {
       console.error("Error fetching group data:", error);
     }
-  }, [TabOn]);
+  }, []);
  
   // เรียกใช้ API เมื่อ component ถูก mount
   useEffect(() => {
