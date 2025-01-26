@@ -12,7 +12,6 @@ import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
-import Pagegroup from "./page/group/group";
 
 export const DoctorContext = createContext(null)
 
