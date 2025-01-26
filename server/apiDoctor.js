@@ -2840,6 +2840,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
+            
+            console.log(result)
             if(result['result'] === "pass") {
                 const From = req.body.type == "plant" ? "plant_list" : 
                                 req.body.type == "fertilizer" ? "fertilizer_list" : 
