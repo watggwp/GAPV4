@@ -135,7 +135,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         <button className="bt-listlocation" onClick={() => ChangeStatus("listlocation")}>แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</button> :
                     <></>
                     }
-                    {StateOnPage.status}
+                    
                     <div className="search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
                             <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">

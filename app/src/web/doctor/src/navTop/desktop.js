@@ -1,14 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
-import { clientMo } from "../../../../assets/js/moduleClient";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Login from "../Login";
+import SessionOut from "../sesionOut";
+import { clientMo } from "../../../../assets/js/moduleClient";
+import io from "socket.io-client"
 
-import { Loading, PopupDom, TimeDiff } from "../../../../assets/js/module";
-import "../assets/style/NevTop/Desktop.scss";
+import "../assets/style/NevTop/Desktop.scss"
 import NavFirst from "../navFirst";
+import { DayJSX, Loading, PopupDom, TimeDiff } from "../../../../assets/js/module";
 import ProfilePage from "../page/profile/Profile";
+import { DoctorContext } from "../Doctor";
 
-const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCover , eleBody , setTextStatus , getProfile , FetchProfile}) => {
+const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCover , eleBody , setTextStatus , FetchProfile}) => {
     const RefPopup = useRef()
     const RefMenu = useRef()
     const [BodyPopup , setBodyPopup] = useState(<></>)
@@ -191,7 +193,7 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
                 // <PopupDom Ref={RefMenu} Body={BodyMenu} zIndex={900} positionEdit={true}/>
                 <div className="background-menu-mobile" ref={RefMenu}>
                     { BodyMenu ?
-                        <MenuMobile RefMenu={RefMenu} Profile={getProfile} setBodyMenu={setBodyMenu} Click={{
+                        <MenuMobile RefMenu={RefMenu} setBodyMenu={setBodyMenu} Click={{
                             HomeClick : Home,
                             ProfileClick : Profile,
                             LogoutClick : Logout
@@ -208,7 +210,7 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
     )
 }
 
-const MenuMobile = ({RefMenu , setBodyMenu , Profile , 
+const MenuMobile = ({RefMenu , setBodyMenu , 
 Click = {
     HomeClick : null,
     ProfileClick : null,
@@ -219,6 +221,8 @@ NotifyContent = {
     getNotifyList : []
 } , getNotifyContent , setNotifyContent
 , FetchNotify , setCountNotify , session}) => {
+
+    const { profile } = useContext(DoctorContext)
 
     const [ Menu , setMenu ] = useState(false)
     const [getShowNotify , setShowNotify] = useState(false)
@@ -268,13 +272,13 @@ NotifyContent = {
             <div className="content">
                 <div className="frame-pg">
                     <div className="img">
-                        <img src={Profile.img_doctor ? Profile.img_doctor : "/PROFILE.png"}></img>
+                        <img src={profile.img_doctor ? profile.img_doctor : "/PROFILE.png"}></img>
                     </div>
                     <div className="fullname">
                         <div style={{
                             fontWeight : "900"
                         }} className="head-name">หมอพืช</div>
-                        <div className="text-name">{Profile.fullname_doctor}</div>
+                        <div className="text-name">{profile.fullname_doctor}</div>
                     </div>
                 </div>
                 <div className="menu-list">

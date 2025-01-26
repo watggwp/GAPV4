@@ -153,7 +153,7 @@ const ListData = ({
         textSearch: textSearch
       });
     } else if (HrefPage.get().split("?")[0] === "group") {
-      ObjectData = await clientMo.post("/api/admin/group/list", {
+      ObjectData = await clientMo.post("/api/admin/group/get", {
         type: status.status,
         limit: Limit || 10,
         startRow: StartRow,
@@ -207,7 +207,7 @@ const ListData = ({
           ? "กราฟจำนวนเกษตรกรและพืชที่เพาะปลูก"
           : HrefPage.get().indexOf("statistics") >= 0
           ? "สถิติโรคพืช"
-          : ""
+          : "",
       ]);
       if (["list", "listadmin"].includes(HrefPage.get().split("?")[0])) {
         const isListAdmin = HrefPage.get().split("?")[0] === "listadmin";
@@ -267,8 +267,7 @@ const ListData = ({
       )}
       <div className="List-data">
         {
-          status.status == "group" ? 
-          <> </> : 
+          
           status.status == "listlocation" ? 
           <><InsertReport></InsertReport></> :
           status.status == "graph" ? 
@@ -787,18 +786,6 @@ const ManageList = ({
               ) : (
                 <></>
               )}
-              {/* {status.status === "plant" ? (
-                <div className="text-data">{data.variety_name}</div>
-              ) : status.status === "station" ? (
-                <MapsJSX
-                  lat={data.location.x}
-                  lng={data.location.y}
-                  w={"300vw"}
-                  h={"100vw"}
-                />
-              ) : (
-                ""
-              )} */}
             </div>
 
             <div className="name" w={status.status}>
@@ -817,18 +804,6 @@ const ManageList = ({
               }
             >
               {status.status === "chemical" ? <span>ชื่อสามัญสารเคมี</span> : <></>}
-              {/* {status.status === "chemical" ? (
-                <div className="text-data">{data.name_formula}</div>
-              ) : status.status === "station" ? (
-                <MapsJSX
-                  lat={data.location.x}
-                  lng={data.location.y}
-                  w={"300vw"}
-                  h={"100vw"}
-                />
-              ) : (
-                ""
-              )} */}
             </div>
 
             <div
@@ -841,18 +816,6 @@ const ManageList = ({
               ) : (
                 <></>
               )}
-              {/* {status.status === "chemical" ? (
-                <div className="text-data">{data.how_use}</div>
-              ) : status.status === "station" ? (
-                <MapsJSX
-                  lat={data.location.x}
-                  lng={data.location.y}
-                  w={"300vw"}
-                  h={"100vw"}
-                />
-              ) : (
-                ""
-              )} */}
             </div>
 
             <div className="name" w={status.status}>
@@ -924,7 +887,7 @@ const ManageList = ({
       </>
     ) : (
 
-      <>hoo</>
+      <></>
     )}
   </list-data-body>
 ));
@@ -1009,7 +972,8 @@ const InsertPage = ({ ReloadAccount, type }) => {
           RefData.Data1.current.value,
           RefData.Data2.current.value,
       ]
-        : [];
+        : 
+        [];
 
     if (RefIsCheck.filter((val) => !val).length == 0 && pwAdmin.current.value) {
       setstateOnBt(false);
@@ -1092,6 +1056,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
           ? await clientMo.post("/api/admin/group/insert", Data)
           : type === "report"
           ? await clientMo.post("/api/admin/report/insert", Data)
+
 
           : "";
       if (result === "1") {

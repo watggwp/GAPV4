@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react"
 
 import "./assets/style/Navfirst.scss"
-import PageFarmer from "./page/farmer/PageFarmer"
 import PageFormPlant from "./page/form/PageFormPlant"
+import PageFarmer from "./page/farmer/PageFarmer"
 
 import { clientMo } from "../../../assets/js/moduleClient"
-import PageData from "./page/data/PageData"
 import { ButtonMenu } from "./page/modules"
-const NavFirst = ({setTest, setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
+import PageData from "./page/data/PageData"
+const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
     
-    useEffect(()=>{ 
+    useEffect(()=>{
         if(type === 1) window.history.pushState({} , "" , "/doctor")
 
- 
         setTextStatus([])
         Resize()
 
@@ -63,6 +62,24 @@ const NavFirst = ({setTest, setMain , setSession , setdoctor , socket , type = 0
         else setSession()
     }
 
+    const group = async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<PageData setMain={setMain}
+                        socket={socket} LoadType={"group"} session={setSession} type={true} 
+                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+        else setSession()
+    }
+
+    const report = async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<PageData setMain={setMain}
+                        socket={socket} LoadType={"report"} session={setSession} type={true} 
+                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+        else setSession()
+    }
+
     return (
         <section className="nav-first" onLoad={clientMo.unLoadingPage}>
             <div className="head">
@@ -81,6 +98,8 @@ const NavFirst = ({setTest, setMain , setSession , setdoctor , socket , type = 0
                     </div>
                 }
                 <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
+                <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                <ButtonMenu type={"report"} textRow1={"แจ้งเตือน"} textRow2={"โรคระบาด"} action={report}/>
             </div>
         </section>
     )

@@ -725,7 +725,6 @@ app.get('/api/admin/profile/get', (req, res) => {
   })
 
   // group page
-  // group page
   app.post('/api/admin/group/insert' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -782,62 +781,6 @@ app.get('/api/admin/profile/get', (req, res) => {
       }
     }
   })
-
-
-
-  // report page
-  app.post('/api/admin/report/insert', async (req, res) => {
-    if (req.body.passwordAd && req.body.type) {
-      let username = req.session.user_admin;
-      let password = req.body.passwordAd;
-  
-      if (username === '') {
-        res.redirect('/api/logout');
-        return;
-      }
-  
-      let con = Database.createConnection(listDB);
-  
-      try {
-        const auth = await apifunc.auth(con, username, password, res, "admin");
-        if (auth['result'] === "pass") {
-          const data = req.body;
-  
-          if (data.type === "listlocation") {
-            con.query(
-              `
-              SELECT id_doctor, fullname_doctor 
-              FROM acc_doctor 
-              WHERE is_use = 1;
-              `,
-              (err, result) => {
-                if (!err) {
-                  res.send(result); // ส่งข้อมูล id_doctor และ fullname_doctor กลับไป
-                } else {
-                  con.end();
-                  res.send("error session");
-                  console.log("select acc_doctor err");
-                }
-              }
-            );
-            return;
-          }
-  
-          // หากไม่ใช่ type "listlocation" ให้ส่งข้อความ error กลับไป
-          res.send("invalid type");
-        }
-      } catch (err) {
-        if (err == "not pass") {
-          con.end();
-          res.send("incorrect");
-        }
-      }
-    } else {
-      res.send('error session');
-    }
-  });
-  
-  
 
 // data page
   app.post('/api/admin/data/list' , async (req , res)=>{
@@ -1333,7 +1276,7 @@ app.get('/api/admin/profile/get', (req, res) => {
     req.session.destroy()
     res.send('')
   })
-
+// report page
   app.get('/api/admin/report/list', async(req, res) => {
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -1447,6 +1390,115 @@ app.get('/api/admin/profile/get', (req, res) => {
       }
     }
 });
+
+app.post('/api/admin/statistic/get', async (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
+
+  if (username === '' || password === '') {
+    res.redirect('/api/logout');
+    return;
+  }
+
+  let con = Database.createConnection(listDB);
+
+  try {
+    const auth = await apifunc.auth(con, username, password, res, "admin");
+    if (auth['result'] === "pass") {
+      con.query(
+        `
+          SELECT 
+            p.pest_name,
+            p.type_pest,
+            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
+            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
+            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
+            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
+            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year
+          FROM formchemical fc
+          LEFT JOIN pests p ON fc.insect = p.pest_name
+          GROUP BY fc.insect
+          LIMIT 25;
+        `,
+        (err, result) => {
+          if (err) {
+            dbpacket.dbErrorReturn(con, err, res);
+            return;
+          }
+
+          con.end();
+          res.send(result); // ส่งข้อมูลสรุป pest_name, type_pest และจำนวน pest ตามระยะเวลา
+        }
+      );
+    }
+  } catch (err) {
+    con.end();
+    if (err == "not pass") {
+      res.redirect('/api/logout');
+    }
+  }
+});
+
+
+app.post('/api/admin/group/get', async (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
+
+  if (!username || !password) {
+    res.redirect('/api/logout');
+    return;
+  }
+
+  let con = Database.createConnection(listDB);
+
+  try {
+    const auth = await apifunc.auth(con, username, password, res, "admin");
+    if (auth['result'] === "pass") {
+      con.query(
+        `
+        SELECT 
+          pc.id,
+          pc.safe_days,
+          p.pest_name AS pest_name,
+          c.name AS chemical_name,
+          pl.name AS plant_name
+        FROM pest_chemical AS pc
+        INNER JOIN pests AS p ON pc.pest_id = p.pest_id
+        INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
+        INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
+        `,
+        (err, results) => {
+          if (err) {
+            console.error("Database query error:", err);
+            con.end();
+            res.status(500).json({ error: "Database query failed" });
+            return;
+          }
+
+          if (results.length === 0) {
+            console.log("No data found");
+            con.end();
+            res.status(404).json({ message: "No data found" });
+            return;
+          }
+
+          console.log("Data retrieved successfully:", results);
+          con.end();
+          res.status(200).json(results); // ส่งข้อมูลกลับไป
+        }
+      );
+    } else {
+      res.status(401).json({ error: "Unauthorized access" });
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    con.end();
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+  
+
 
   const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
     let con = Database.createConnection(listDB)

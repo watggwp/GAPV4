@@ -1,29 +1,36 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
+import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
 
 const PageGroup = () => {
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext); // Used if necessary
-  const [locations, setLocations] = useState([]);
+  const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
+  const { TabOn } = useContext(AdminContext);
+  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
 
-  const ListPagegroup = useCallback(async () => {
+  // ฟังก์ชันสำหรับดึงข้อมูลจาก API
+  const fetchGroupData = useCallback(async () => {
+    console.log("Start fetching group data...");
     try {
-      const response = await clientMo.post("/api/admin/data/list", {
-        type: "group",
-        limit: 100,
-        startRow: 0,
-        textSearch: "",
-      });
-      const parsedGroup = response.data; // Access the data directly
-      setLocations(parsedGroup.data); // Assuming `data` holds the group list
+      const response = await clientMo.post("/api/admin/group/get");
+      const result = JSON.parse(response);
+
+      if (Array.isArray(result)) {
+        setGroupData(result); // เก็บข้อมูลใน state
+        TabOn.addTimeOut(TabOn.end());
+        console.log("Group data set successfully:", result);
+      } else {
+        console.error("Invalid data format from API");
+      }
     } catch (error) {
       console.error("Error fetching group data:", error);
     }
-  }, []);
+  }, [TabOn]);
 
+  // เรียกใช้ API เมื่อ component ถูก mount
   useEffect(() => {
-    ListPagegroup();
-  }, [ListPagegroup]);
+    fetchGroupData();
+  }, [fetchGroupData]);
 
   return (
     <div className="data-table">
@@ -37,21 +44,23 @@ const PageGroup = () => {
             <th style={{ padding: "10px" }}>โรคพืช / ศัตรูพืช</th>
             <th style={{ padding: "10px" }}>สารเคมี</th>
             <th style={{ padding: "10px" }}>พืช</th>
+            <th style={{ padding: "10px" }}>วันที่ปลอดภัย</th>
           </tr>
         </thead>
         <tbody>
-          {locations.length > 0 ? (
-            locations.map((item, index) => (
-              <tr key={index}>
-                <td style={{ padding: "10px", textAlign: "center" }}>{item.id}</td>
-                <td style={{ padding: "10px" }}>{item.pest}</td>
-                <td style={{ padding: "10px" }}>{item.chemical}</td>
-                <td style={{ padding: "10px" }}>{item.plant}</td>
+          {groupData.length > 0 ? (
+            groupData.map((item, index) => (
+              <tr key={item.id}>
+                <td style={{ padding: "10px", textAlign: "center" }}>{index + 1}</td>
+                <td style={{ padding: "10px" }}>{item.pest_name}</td>
+                <td style={{ padding: "10px" }}>{item.chemical_name}</td>
+                <td style={{ padding: "10px" }}>{item.plant_name}</td>
+                <td style={{ padding: "10px", textAlign: "center" }}>{item.safe_days}</td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="4" style={{ padding: "10px", textAlign: "center" }}>
+              <td colSpan="5" style={{ padding: "10px", textAlign: "center" }}>
                 ไม่มีข้อมูล
               </td>
             </tr>

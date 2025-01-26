@@ -1,300 +1,359 @@
 import React, { useEffect, useRef, useState } from "react";
-import { PatternCheck, PopupDom, useLiff } from "../../../assets/js/module";
-import { clientMo } from "../../../assets/js/moduleClient";
-import env from "../../../env";
+import {clientMo}  from "../../../assets/js/moduleClient";
+import './assets/style/Login.scss'
+
 import Doctor from "./Doctor";
-import './assets/style/Login.scss';
-                                  
-const Login = ({ setMain, socket, isClick = 0 }) => {
-  const [inputUser, setInputUser] = useState("");
-  const [getLoadUid, setLoadUid] = useState(false);
-  const [getUidLine, setUidLine] = useState("");
-  const [formPersonal, setFormPersonal] = useState(<></>);
-  const [role, setRole] = useState("doctor");
+import { PatternCheck, PopupDom, useLiff } from "../../../assets/js/module";
+import env from "../../../env";
 
-  const personalRef = useRef();
-  const bodyRef = useRef();
+const Login = ({setMain , socket , isClick = 0}) => {
+    // const [Body , setBody] = useState(<></>)
+    const [InputUser , setInput] = useState("")
+    const [getLoadUid , setLoadUid] = useState(false)
 
-  const iconUserRef = useRef();
-  const iconPwRef = useRef();
-  const pwRef = useRef();
-  const errorLoginRef = useRef();
-  const formRef = useRef();
+    const [getUidLine , setUidLine] = useState("")
+    const [formPersonal , setFormPro] = useState(<></>)
 
-  let timeoutEmply = 0;
+    const [role , setrole] = useState("doctor")
 
-  const [init, liff] = useLiff("1661049098-dorebKYg");
+    const Personal = useRef()
+    const Body = useRef()
 
-  useEffect(() => {
-    if (isClick) window.history.pushState({}, null, '/doctor');
-    FetchProfile();
+    const IconUser = useRef()
+    const IconPw = useRef()
+    const pw = useRef()
+    const ErrorLogin = useRef()
+    const Form = useRef()
 
-    if (navigator.platform === "Win32") {
-      bodyRef.current.setAttribute("computer", "");
-    } else {
-      bodyRef.current.setAttribute("mobile", "");
-    }
-  }, []);
+    const list = document.querySelectorAll('.list');
 
-  const FetchProfile = () => {
-    init.then(async () => {
-      if (liff.isInClient()) {
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          if (profile.userId) {
-            setUidLine(profile.userId);
-            const Uid = await clientMo.post("/api/doctor/checkline", { id: profile.userId });
-            setInputUser(Uid);
-            setLoadUid(true);
-          }
-        }
-      } else {
-        setLoadUid(true);
-      }
-    }).catch(err => {});
-  };
+ function activeLink() {
+    list.forEach((item) =>
+        item.classList.remove('active'));
+    this.classList.add('active');
+}
 
-  const submitForm = (e) => {
-    e.preventDefault();
+list.forEach((item) =>
+    item.addEventListener('click', activeLink));
 
-    errorLoginRef.current.style.transform = `translateY(${(formRef.current.clientHeight / 2) + 30}px)`;
-    errorLoginRef.current.removeAttribute("show");
-    clearTimeout(timeoutEmply);
+    let timeoutEmply = 0
 
-    if (e.target.username.value !== '' && e.target.password.value !== '') {
-      setFormPersonal(<></>);
-      clientMo.LoadingPage();
+    const [init , liff] = useLiff("1661049098-dorebKYg")
 
-      const formData = {
-        username: e.target.username.value,
-        password: e.target.password.value,
-        uid_line: getUidLine,
-        role: role
-      };
+    useEffect(()=>{
+        if(isClick) window.history.pushState({} , null , '/doctor')
+        FetchProfile()
 
-      setTimeout(() => {
-        clientMo.postForm('/api/doctor/auth', formData).then((context) => {
-          if (context === "pass") {
-            setMain(<Doctor setMain={setMain} socket={socket} isClick={1} username={formData.username} password={formData.password} />);
-          } else if (context === "account") {
-            errorLoginRef.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ";
-            errorLoginRef.current.setAttribute("show", "");
-            for (let x = 0; x < e.target.length - 1; x++) {
-              let prevent = e.target[x].parentElement;
-              prevent.classList.remove('empty');
-              e.target[x].value = '';
-            }
-          } else if (context.indexOf("wait") >= 0) {
-            let id = context.split(':');
-            setFormPersonal(<FormPersonal id_doctor={id[1]} Ref={personalRef} setPopup={setFormPersonal} Err={errorLoginRef} main={{ setMain: setMain, socket: socket }} />);
-            for (let x = 0; x < e.target.length - 1; x++) {
-              let prevent = e.target[x].parentElement;
-              e.target[x].blur();
-              prevent.classList.remove('empty');
-              e.target[x].value = '';
-            }
-          } else {
-            errorLoginRef.current.innerHTML = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
-            errorLoginRef.current.setAttribute("show", "");
-            for (let x = 0; x < e.target.length - 1; x++) {
-              let prevent = e.target[x].parentElement;
-              e.target[x].blur();
-              prevent.classList.remove('empty');
-              e.target[x].value = '';
-            }
-          }
-          clientMo.unLoadingPage();
-        });
-      }, 1500);
-    } else {
-      let focus = true;
-      for (let x = 0; x < e.target.length - 1; x++) {
-        let prevent = e.target[x].parentElement;
-        if (e.target[x].value === "") {
-          if (focus) {
-            focus = false;
-            prevent.focus();
-          }
-          prevent.classList.add('empty');
-          e.target[x].previousElementSibling.children[0].setAttribute("emply", "");
+        if(navigator.platform === "Win32") {
+            Body.current.setAttribute("computer" , "")
         } else {
-          prevent.classList.remove('empty');
-          e.target[x].previousElementSibling.children[0].removeAttribute("emply");
+            Body.current.setAttribute("mobile" , "")
         }
-      }
-      timeoutEmply = setTimeout(() => {
-        iconUserRef.current.removeAttribute("emply");
-        iconPwRef.current.removeAttribute("emply");
-      }, 400);
-    }
-  };
+    } , [])
 
-  return (
-    <>
-      <PopupDom Ref={personalRef} Body={formPersonal} zIndex={5} />
-      <div style={{ backgroundImage: `url(${env.Background})` }} onLoad={() => clientMo.unLoadingPage()} ref={bodyRef} className="login-doctor">
-        <form ref={formRef} autoComplete="off" onSubmit={submitForm}>
-          <div className="Logo-App">
-            <img src="/logo2.png" alt="Logo" />
-            <span>เจ้าหน้าที่</span>
-          </div>
-          <div className="role-selection">
-            <label>
-              <input type="radio" name="role" value="doctor" checked={role === "doctor"} onChange={() => setRole("doctor")} />
-              <span>Doctor</span>
-            </label>
-            <label>
-              <input type="radio" name="role" value="analyst" checked={role === "analyst"} onChange={() => setRole("analyst")} />
-              <span>Analyst</span>
-            </label>
-            <label>
-              <input type="radio" name="role" value="consultant" checked={role === "consultant"} onChange={() => setRole("consultant")} />
-              <span>Consultant</span>
-            </label>
-          </div>
-          <label>
-            <span>
-              <svg ref={iconUserRef} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4Z" />
-              </svg>
-            </span>
-            {getLoadUid ?
-              <input defaultValue={inputUser} id="username-doctor-login" autoComplete="off" type="text" name="username" placeholder="รหัสประจำตัวเจ้าหน้าที่" /> :
-              <input autoComplete="off" id="username-doctor-login" type="text" name="username" placeholder="รหัสประจำตัวเจ้าหน้าที่" />
+    const FetchProfile = () => {
+        init.then( async ()=>{
+            if(liff.isInClient()) {
+                if(liff.isLoggedIn()) {
+                    const profile = await liff.getProfile()
+                    if(profile.userId) {
+                        setUidLine(profile.userId)
+                        const Uid = await clientMo.post("/api/doctor/checkline" , {id:profile.userId})
+                        setInput(Uid)
+                        setLoadUid(true)
+                    }
+                } 
+                // else {
+                //     liff.login()
+                // }
+            } else {
+                setLoadUid(true)
             }
-          </label>
-          <label>
-            <span>
-              <svg ref={iconPwRef} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 10 0v2h1m-3 0V6a3 3 0 0 0-6 0v2h6Z" />
-              </svg>
-            </span>
-            <input ref={pwRef} id="password-doctor-login" autoComplete="off" type="password" name="password" placeholder="รหัสผ่าน" />
-          </label>
-          <button type="submit" className="bt-submit-form">เข้าสู่ระบบ</button>
-        </form>
-        <p ref={errorLoginRef} className="error-login"></p>
-      </div>
-    </>
-  );
-};
-
-const FormPersonal = ({ main = { setMain: null, socket: null }, id_doctor, Ref, setPopup, Err }) => {
-  const [listStation, setListStation] = useState(null);
-
-  const firstnameRef = useRef();
-  const lastnameRef = useRef();
-  const stationRef = useRef();
-  const passwordRef = useRef();
-
-  const btConfirmRef = useRef();
-
-  useEffect(() => {
-    FetchStation();
-  }, []);
-
-  const FetchStation = async () => {
-    const Data = await clientMo.post("/api/doctor/station/list");
-    setListStation(
-      JSON.parse(Data).map((val, key) => (
-        <option key={key} value={val.id}>{val.name}</option>
-      ))
-    );
-    Ref.current.style.opacity = "1";
-    Ref.current.style.visibility = "visible";
-  };
-
-  const close = () => {
-    Ref.current.style.opacity = "0";
-    Ref.current.style.visibility = "hidden";
-    setTimeout(() => {
-      setPopup(<></>);
-    }, 500);
-  };
-
-  const confirm = async () => {
-    const first = firstnameRef.current;
-    const last = lastnameRef.current;
-    const sta = stationRef.current;
-    const pw = passwordRef.current;
-
-    if (first.value && last.value && sta.value && pw.value) {
-      clientMo.LoadingPage();
-      setTimeout(async () => {
-        const result = await clientMo.post('/api/doctor/savePersonal', {
-          firstname: first.value,
-          lastname: last.value,
-          station: sta.value,
-          username: id_doctor,
-          password: pw.value
-        });
-        if (result === "pass") {
-          main.setMain(<Doctor isClick={1} setMain={main.setMain} socket={main.socket} username={id_doctor} password={pw.value} />);
-        } else if (result === "password") {
-          pw.setAttribute('err', "");
-          pw.setAttribute('placeholder', "รหัสผ่านไม่ถูกต้อง");
-          pw.value = "";
-        } else if (result === "account") {
-          Err.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ";
-          Err.current.setAttribute("show", "");
-          close();
-        }
-
-        clientMo.unLoadingPage();
-      }, 1000);
+        }).catch(err=>{})
     }
-  };
 
-  const checkValue = () => {
-    const first = firstnameRef.current;
-    const last = lastnameRef.current;
-    const sta = stationRef.current;
-    const pw = passwordRef.current;
+    const submitFrom = (e = document.getElementById("")) => {
+        ErrorLogin.current.style.transform = `translateY(${(Form.current.clientHeight/2) + 30}px)`
+        ErrorLogin.current.removeAttribute("show")
+        clearTimeout(timeoutEmply)
+        if(e.target[0].value != '' && e.target[1].value != ''){
+            setFormPro(<></>)
+            clientMo.LoadingPage()
+            
+            const formData = {
+                username : e.target[0].value,
+                password : e.target[1].value,
+                uid_line : getUidLine,
+                role : role
+            }
 
-    if (first.value && PatternCheck(first.value).thaiName && last.value && PatternCheck(last.value).thaiName && sta.value && pw.value) 
-      btConfirmRef.current.setAttribute("confirm", "");
-    else 
-      btConfirmRef.current.removeAttribute("confirm");
-  };
+            setTimeout(()=>{
+                clientMo.postForm('/api/doctor/auth' , formData).then((context)=>{
+                    if(context === "pass") {
+                        setMain(<Doctor setMain={setMain} socket={socket} isClick={1} username={formData.username} password={formData.password}/>)
+                    } else if(context === "account") {
+                        ErrorLogin.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ"
+                        ErrorLogin.current.setAttribute("show" , "")
+                        for(let x = 0; x < e.target.length-1; x++) {
+                            let prevent = e.target[x].parentElement;
+                            prevent.classList.remove('empty');
+                            e.target[x].value = ''
+                        }
+                    } else if(context.indexOf("wait") >= 0) {
+                        let id = context.split(':')
+                        setFormPro(<FormPersonal id_doctor={id[1]} Ref={Personal} setPopup={setFormPro} Err={ErrorLogin}
+                                    main={{setMain : setMain , socket : socket}}/>)
+                        for(let x = 0; x < e.target.length-1; x++) {
+                            let prevent = e.target[x].parentElement;
+                            e.target[x].blur()
+                            prevent.classList.remove('empty');
+                            e.target[x].value = ''
+                        }
+                    }
+                    else {
+                        ErrorLogin.current.innerHTML = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+                        ErrorLogin.current.setAttribute("show" , "")
+                        for(let x = 0; x < e.target.length-1; x++) {
+                            let prevent = e.target[x].parentElement;
+                            e.target[x].blur()
+                            prevent.classList.remove('empty');
+                            e.target[x].value = ''
+                        }
+                    }
+                    clientMo.unLoadingPage()
+                })
+            } , 1500)
+        } else {
+            let focus = true;
+            for(let x = 0; x < e.target.length-1; x++) {
+                let prevent = e.target[x].parentElement;
+                if(e.target[x].value == "") {
+                    if(focus) {
+                        focus = false;
+                        prevent.focus();
+                    }
 
-  return (
-    <section id="form-personal-doctor">
-      <span className="head">ยืนยันตัวตนเจ้าหน้าที่</span>
-      <div className="form">
-        <div className="id">
-          <span>รหัสประตัวเจ้าหน้าที่</span>
-          <input readOnly value={id_doctor}></input>
-        </div>
-        <div className="profile">
-          <div className="input-field">
-            <span>ชื่อ</span>
-            <input onChange={checkValue} ref={firstnameRef} placeholder="ภาษาไทย ไม่มีคำนำหน้า เช่น สมชาย"></input>
-          </div>
-          <div className="input-field">
-            <span>นามสกุล</span>
-            <input onChange={checkValue} ref={lastnameRef} placeholder="ภาษาไทย เช่น สุขใจ"></input>
-          </div>
-          <div className="input-field">
-            <span>ศูนย์ปฏิบัติหน้าที่</span>
-            <select onChange={checkValue} ref={stationRef} defaultValue={""}>
-              <option value={""} disabled>เลือกศูนย์</option>
-              {listStation}
-            </select>
-          </div>
-        </div>
-        <div className="password">
-          <input onChange={checkValue} ref={passwordRef} autoComplete="off" type="password" placeholder="รหัสผ่าน"/>
-        </div>
-      </div>
-      <div className="bt">
-        <button onClick={close} className="cancel">ยกเลิก</button>
-        <button ref={btConfirmRef} onClick={confirm} className="submit">ยืนยัน</button>
-      </div>
-    </section>
-  );
+                    prevent.classList.add('empty')
+                    e.target[x].previousElementSibling.children[0].setAttribute("emply" , "")
+                }else{
+                    prevent.classList.remove('empty');
+                    e.target[x].previousElementSibling.children[0].removeAttribute("emply")
+                }
+            }
+            timeoutEmply = setTimeout(()=>{
+                IconUser.current.removeAttribute("emply")
+                IconPw.current.removeAttribute("emply")
+            } , 400)
+        }
+        e.preventDefault()
+    }
+
+    return (
+        <>
+            <PopupDom Ref={Personal} Body={formPersonal} zIndex={5} />
+            <div style={{backgroundImage : `url(${env.Background})`}} onLoad={()=>clientMo.unLoadingPage()} ref={Body} className="login-doctor">
+                <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
+                    <div className="Logo-App">
+                        <img src="/logo2.png"></img>
+                        <span>หมอพืช</span>
+                    </div>
+                    <div class="navigation" id="tab">
+                        <ul>
+                            <li class="list active" id="Doctor" onClick={()=>{setrole("doctor")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍⚕️</span>
+                                    <span class="text">หมอพืช</span>
+                                </a>
+                            </li>
+                            <li class="list " id="Analyst"  onClick={()=>{setrole("analyst")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍🔬</span>
+                                    <span class="text">นักวิเคราะห์สาร</span>
+                                </a>
+                            </li>
+                            <li class="list" id="Consultant"  onClick={()=>{setrole("consultant")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍💻</span>
+                                    <span class="text">ที่ปรึกษา</span>
+                                </a>
+                            </li>
+                            <div class="indicator"></div>
+                        </ul>
+                    </div>
+                    <label>
+                        <span>
+                            <svg ref={IconUser} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4Z"/>
+                            </svg>
+                        </span>
+                        { getLoadUid ?
+                            <input defaultValue={InputUser} id="username-doctor-login" autoComplete="off" type="text" name="username-doctor" placeholder="รหัสประจำตัวหมอพืช"/>
+                            :
+                            <input autoComplete="off" id="username-doctor-login" type="text" name="username-doctor" placeholder="รหัสประจำตัวหมอพืช"/>
+                        }
+                    </label>
+                    <label>
+                        <span>
+                            <svg ref={IconPw} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3Z"/>
+                            </svg>
+                        </span>
+                        <input ref={pw} autoComplete="off" id="password-doctor-login" type="password" name="password-doctor" placeholder="รหัสผ่าน"/>
+                    </label>
+                    <button type="submit" className="bt-submit-form">เข้าสู่ระบบ</button>
+                </form>
+                <p ref={ErrorLogin} className="error-login"></p>
+            </div>
+        </>
+    )
+}
+
+const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Ref , setPopup , Err}) => {
+    const [ListStation , setListStation] = useState([])
+
+    const firstname = useRef()
+    const lastname = useRef()
+    const station = useRef()
+    const id_station = useRef()
+    const password = useRef()
+
+
+    const btConfirm = useRef()
+
+    useEffect(()=>{
+        FetchStation()
+    } , [])
+
+    const FetchStation = async () => {
+        const Data = await clientMo.post("/api/doctor/station/list")
+        setListStation(
+            JSON.parse(Data)
+        )
+        Ref.current.style.opacity = "1"
+        Ref.current.style.visibility = "visible"
+    }
+
+    // เมื่อเลือกจาก dropdown ให้เติมรหัสศูนย์ในฟิลด์
+const handleStationChange = (event) => {
+    const selectedStationId = event.target.value
+    const selectedStation = ListStation.find(
+        (station) => station.id === parseInt(selectedStationId)
+    );
+    if (selectedStation) {
+        id_station.current.value = selectedStation.id_station; // เติมรหัสศูนย์
+    } else {
+        id_station.current.value = "" // ล้างค่า ถ้าไม่มีศูนย์ตรงกัน
+    }
+    checkValue(); // ตรวจสอบค่าเพื่อเปิดใช้งานปุ่มยืนยัน
 };
 
-export default Login;
+
+
+
+    const close = () => {
+        Ref.current.style.opacity = "0"
+        Ref.current.style.visibility = "hidden"
+        setTimeout(()=>{
+            setPopup(<></>)
+        } , 500)
+    }
+
+    const confirm = async () => {
+        const first = firstname.current
+        const last = lastname.current
+        const sta = station.current
+        const pw = password.current
+
+        if(first.value && last.value && sta.value && pw.value) {
+            clientMo.LoadingPage()
+            setTimeout( async ()=>{
+                const result = await clientMo.post('/api/doctor/savePersonal' , {
+                    firstname:first.value,
+                    lastname:last.value,
+                    station:sta.value,
+                    username:id_doctor,
+                    password:pw.value
+                })
+                if(result === "pass"){
+                    main.setMain(<Doctor isClick={1} setMain={main.setMain} socket={main.socket} username={id_doctor} password={pw.value}/>)
+                } else if(result === "password") {
+                    pw.setAttribute('err' , "")
+                    pw.setAttribute('placeholder' , "รหัสผ่านไม่ถูกต้อง")
+                    pw.value = ""
+                } else if (result === "account") {
+                    Err.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ"
+                    Err.current.setAttribute("show" , "")
+                    close()
+                }
+    
+                clientMo.unLoadingPage()
+            } , 1000)
+        }
+    }
+
+    const checkValue = () => {
+        const first = firstname.current.value.trim()
+        const last = lastname.current.value.trim()
+        const sta = station.current.value
+        const idsta = id_station.current.value
+        const pw = password.current.value.trim()
+    
+        if (first && last && sta && idsta && pw) {
+            btConfirm.current.setAttribute("confirm", "") // เปิดใช้งานปุ่ม
+        } else {
+            btConfirm.current.removeAttribute("confirm") // ปิดปุ่ม
+        }
+    }
+    
+
+    return (
+        <section id="form-personal-doctor">
+            <span className="head">ยืนยันตัวตนเจ้าหน้าที่</span>
+            <div className="form">
+                <div className="id">
+                    <span>รหัสประตัวเจ้าหน้าที่</span>
+                    <input readOnly value={id_doctor}></input>
+                </div>
+                <div className="profile">
+                    <div className="input-field">
+                        <span>ชื่อ</span>
+                        <input onChange={checkValue} ref={firstname} placeholder="ภาษาไทย ไม่มีคำนำหน้า เช่น สมชาย"></input>
+                    </div>
+                    <div className="input-field">
+                        <span>นามสกุล</span>
+                        <input onChange={checkValue} ref={lastname} placeholder="ภาษาไทย เช่น สุขใจ"></input>
+                    </div>
+                    <div className="input-field">
+                        <span>ศูนย์ปฏิบัติหน้าที่</span>
+                        <select onChange={handleStationChange} ref={station} defaultValue={""}>
+                            <option value={""} disabled>เลือกศูนย์</option>
+                            {ListStation.map((val , key)=>(
+                <option key={key} value={val.id}>{val.name}</option>
+            ))}
+                        </select>
+                    </div>
+                    <div className="input-field">
+                        <span>รหัสศูนย์โครงการ</span>
+                        <input readOnly
+                            ref={id_station}
+                            placeholder="รหัสศูนย์ปฏิบัติหน้าที่"
+                            
+                        />
+                    </div>
+                </div>
+                <div className="password">
+                    <input onChange={checkValue} ref={password} autoComplete="off" type="password" placeholder="รหัสผ่าน"/>
+                </div>
+            </div>
+            <div className="bt">
+                <button onClick={close} className="cancel">ยกเลิก</button>
+                <button ref={btConfirm} onClick={confirm} className="submit">ยืนยัน</button>
+            </div>
+        </section>
+    )
+}
+
+export default Login
 
 
     // componentDidMount() {

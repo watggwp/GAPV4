@@ -105,6 +105,26 @@ const SearchChemical = ({searchList , DataProcess}) => {
     )
 }
 
+const SearchPest = ({searchList , DataProcess}) => {
+    const typePlant = useRef()
+
+    useEffect(()=>{
+        if(DataProcess.has("type_pest")) typePlant.current.value = DataProcess.get("type_pest")
+    } , [])
+    return(
+        <div className="row">
+            <label className="field-select">
+                <span>ประเภทพืช</span>
+                <select onChange={(e)=>searchList(e.target , e.target.value , "type_pest")} ref={typePlant} defaultValue={DataProcess.get("type_pest")}>
+                    <option value={""}>ทั้งหมด</option>
+                    <option value={"1"}>โรคพืช</option>
+                    <option value={"2"}>ศัตรูพืช</option>
+                </select>
+            </label>
+        </div> 
+    )
+}
+
 const InputKeyDownNext = (e , next = false , previous = false) => {
     if(e.keyCode === 13 && next) next.focus()
     else if(e.keyCode === 8 && previous && !e.target.value) {
@@ -113,4 +133,4 @@ const InputKeyDownNext = (e , next = false , previous = false) => {
     }
 }
 
-export {SearchPlant , SearchFertilizer , SearchChemical}
+export {SearchPlant , SearchFertilizer , SearchChemical , SearchPest}

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loading, ResizeImg } from "../../../../../assets/js/module";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import "../../assets/style/page/profile/Profile.scss";
+import "../../assets/style/page/profile/Profile.scss"
+import { Loading, ResizeImg } from "../../../../../assets/js/module";
+
 
 const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileReload , FetchNotify}) => {
     const [getProfileOld , setProfileOld] = useState([])
@@ -15,10 +16,11 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
 
     const [btEditNot , setbtEditNot] = useState(true)
     const [FetchEditLoad , setFetchEditLoad] = useState(true)
- 
+
     const Image = useRef()
     const Fullname = useRef()
     const Station = useRef()
+    const id_station = useRef()
     const PasswordNew = useRef()
     const PasswordAgain = useRef()
     const Password = useRef()
@@ -160,6 +162,9 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
         }
     }
 
+
+    
+
     return(
         getProfile.length !== 0 ?
             <section className="profile-page">
@@ -258,6 +263,15 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                         {getProfile.name_station}
                                     </div>
                                 }
+                            </div>
+                            <div className="row-detail not-bm head-content">
+                                <div className="head-content">
+                                    <span className="head-detail">รหัสศูนย์โครงการ</span>
+                                    <input readOnly className="input-password"
+                                     value={getProfile.id_station}
+                                            ref={id_station}
+                                            placeholder="รหัสศูนย์ปฏิบัติหน้าที่"/>
+                                </div>
                             </div>
                             { !StateEditName && !StateEditStation ?
                                 <div className="row-detail not-bm head-bm">

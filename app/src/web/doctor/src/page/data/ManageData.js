@@ -7,10 +7,13 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
     const StatusRef = useRef()
     const Password = useRef()
     
-    const [Data , setData] = useState(DataOfPage)
+    const [Data , setData] = useState({
+        id : Type === "pest" ? DataOfPage.pest_id : DataOfPage.id,
+        ...DataOfPage
+    })
     const [StateEdit , setStateEdit] = useState(false)
     const [DataEdit , setDataEdit] = useState(new Map())
-    const [Status , setStatus] = useState(Data.is_use)
+    const [Status , setStatus] = useState(DataOfPage.is_use)
     const [BtSubmit , setBtSubmit] = useState("")
 
     const [ErrReport , setErrReport] = useState(false)
@@ -37,18 +40,23 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
             const JsonData = {}
             JsonData.check = {}
             JsonData.data = {}
-            const check = Type === "plant" ? ["name"] : 
-                            Type === "fertilizer" ? ["name" , "name_formula"] :
-                            Type === "chemical" ? ["name" , "name_formula"] :
-                            Type === "source" ? ["name"] : [];
 
-            Array.from(DataEdit).forEach(val=>{
-                if(check.filter(valfilter=>valfilter == val[0]).length) 
-                    JsonData.check[val[0]] = val[1]
+            // revise code
+            const check = (
+                Type === "plant" ? ["name"] : 
+                Type === "fertilizer" ? ["name" , "name_formula"] :
+                Type === "chemical" ? ["name" , "name_formula"] :
+                Type === "pest" ? ["pest_name"] :
+                Type === "source" ? ["name"] : []
+            )
 
-                if(val[0] != "password")
-                    JsonData.data[val[0]] = val[1]
-                else JsonData["password"] = val[1]
+            DataEdit.forEach((data , column) => {
+                column = (Type === "pest" && column === "name") ? "pest_name" : column
+                if(check.filter(valfilter=>valfilter == column).length) 
+                    JsonData.check[column] = data
+
+                if(column != "password") JsonData.data[column] = data
+                else JsonData["password"] = data
             })
 
             JsonData["type"] = Type
@@ -127,6 +135,7 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                         }
                         {
                             Type === "plant" ? "พืช" :
+                            Type === "pest" ? "โรคพืช / ศัตรูพืช" :
                             Type === "fertilizer" ? "ปุ๋ย" :
                             Type === "chemical" ? "สารเคมี" :
                             Type === "source" ? "แหล่งที่ซื้อ" : ""
@@ -156,6 +165,10 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                         !StateEdit ?
                             <DetailPlant Data={Data}/> : 
                             <EditPlant CheckEdit={CheckEdit} Data={Data} ErrReport={ErrReport}/> :
+                    Type === 'pest' ?
+                        !StateEdit ?
+                            <Detailpest Data={Data}/> : 
+                            <Editpest CheckEdit={CheckEdit} Data={Data} ErrReport={ErrReport}/> :
                     Type === 'fertilizer' ?   
                         !StateEdit ?
                             <DetailFertilizer Data={Data}/> : 
@@ -260,6 +273,70 @@ const EditPlant = ({CheckEdit , Data , ErrReport}) => {
                     <input onInput={(e)=>parseInt(e.target.value) <= 0 ? e.target.value = "" : null} 
                             ref={DateQtyInsert} defaultValue={Data.qty_harvest}
                             onChange={(e)=>CheckEdit(e.target.value , "qty_harvest")} placeholder="เช่น 10 30" type="number"></input>
+                </label>
+            </div>
+        </div>
+    )
+}
+
+//
+const Detailpest = ({Data}) => {
+    return(
+        <div className="body">
+            <div className="row">
+                <label className="field-select">
+                    <span>
+                        <span>ชื่อโรคพืช / ศัตรูพืช</span>
+                    </span>
+                    <input readOnly defaultValue={Data.pest_name}></input>
+                </label>
+                <label className="field-select">
+                    <span>ประเภท</span>
+                    <select disabled defaultValue={Data.type_pest}>
+                        <option disabled value={""}>เลือกประเภท</option>
+                        <option value={"1"}>โรคพืช</option>
+                        <option value={"2"}>ศัตรูพืช</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    )
+}
+
+const Editpest = ({CheckEdit , Data , ErrReport}) => {
+    const typeInsert = useRef()
+    const DateQtyInsert = useRef()
+    
+    const SelectElementNext = (next = false) => {
+        if(next) next.focus()
+    }
+
+    return (
+        <div className="body">
+            <div className="row">
+                <label className="field-select">
+                    <span>
+                        <span className="important">ชื่อชนิดพืช</span>
+                        { ErrReport ? 
+                            <span className="err-text-overlape">พืชซ้ำ</span>
+                            : <></>
+                        }
+                    </span>
+                    <input onChange={(e)=>CheckEdit(e.target.value , "name")} 
+                        onKeyDown={(e)=>InputKeyDownNext(e , typeInsert.current)}
+                        placeholder="เช่น เมล่อน" defaultValue={Data.pest_name}></input>
+                </label>
+                <label className="field-select">
+                    <span className="important">ประเภท</span>
+                    <select ref={typeInsert} onChange={(e)=>{
+                            CheckEdit(e.target.value , "type_pest")
+                            SelectElementNext(DateQtyInsert.current)
+                        }
+                    } defaultValue={Data.type_pest}>
+                        <option disabled value={""}>เลือกประเภท</option>
+                        <option value={"1"}>โรคพืช</option>
+                        <option value={"2"}>ศัตรูพืช</option>
+                    </select>
                 </label>
             </div>
         </div>

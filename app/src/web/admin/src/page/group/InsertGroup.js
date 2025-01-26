@@ -155,7 +155,11 @@ const InsertGroup = () => {
 
                     <div className="table-section">
                         <span className="table-title">วันที่ปลอดภัย</span>
-                        <input onChange={(e) => setSafeDays(e.target.value)} type="number"/>
+                        <input 
+                            onChange={(e) => setSafeDays(e.target.value)} 
+                            type="number" 
+                            placeholder="เช่น 10 , 30" 
+                        />
                     </div>
 
                     <div className="bt-submitgroup">
