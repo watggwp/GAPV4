@@ -690,17 +690,16 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     ) as name_doctor ,
                     (
                         SELECT date
-                        FROM message_user , 
-                        (
-                            SELECT uid_line
-                            FROM acc_farmer as farmer_check
-                            WHERE farmer_check.link_user = acc_farmer.link_user
-                            ORDER BY date_register DESC
-                            LIMIT 1
-                        ) as farmer
-                        WHERE message_user.uid_line_farmer = farmer.uid_line
-                                and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                                and type = ""
+                        FROM message_user
+                        WHERE message_user.uid_line_farmer = (
+                                    SELECT uid_line
+                                    FROM acc_farmer as farmer_check
+                                    WHERE farmer_check.link_user = acc_farmer.link_user
+                                    ORDER BY date_register DESC
+                                    LIMIT 1
+                                )
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                            and type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
@@ -755,15 +754,14 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     [ result['data']['id_table_doctor'] , result['data']['station_doctor'] , req.body.textSearch , req.body.textSearch ]
                 
                 con.query(queryType , queryParams ,  (err , result)=>{
-                    if (err){
-                        console.log(err)
+                    if (!err){
+                        const listFarmer = ProfileConvertImg(result , "img")
                         con.end()
-                        res.send("")   
+                        res.send(listFarmer)
+                    } else {
+                        con.end()
+                        res.send("")
                     }
-
-                    const listFarmer = ProfileConvertImg(result , "img")
-                    con.end()
-                    res.send(listFarmer)
                     
                 })
             }
