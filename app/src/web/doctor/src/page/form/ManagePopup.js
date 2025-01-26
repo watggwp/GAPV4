@@ -670,7 +670,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                             <div>แบบบันทึก</div>
                                         </div>
                                         {
-                                            profile?.analyst_role?.data?.[0] &&
+                                            Boolean(profile?.analyst_role?.data?.[0]) &&
                                                 <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
                                                     <div>วิเคราะห์</div>
                                                     <div>ผลผลิต</div>
