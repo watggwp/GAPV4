@@ -1,4 +1,4 @@
-// @import '~bootstrap/scss/bootstrap';
+@import '~bootstrap/scss/bootstrap';
 
 .doctor * :not(a) {
     -webkit-user-drag: none;
@@ -178,173 +178,173 @@ a {
     }
 }
 
-// .modal-content {
-//     background-color: #fff;
-//     border-radius: 8px;
-//     width: 100%;
-//     margin: auto;
-//     max-width: 1500px;
-//     font-size: 16px;
-//     font-family: Sans-font;
-//     font-weight: bold;
-//     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-// }
+.modal-content {
+    background-color: #fff;
+    border-radius: 8px;
+    width: 100%;
+    margin: auto;
+    max-width: 1500px;
+    font-size: 16px;
+    font-family: Sans-font;
+    font-weight: bold;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
  
-// .modal-header {
-//     display: flex;
-//     justify-content: center;
-//     align-items: center;
-//     position: relative;
-//     border-bottom: 1px solid #ddd;
-//     padding: 10px 20px;
-//     border: 2px solid #22C7A9
-// }
+.modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 20px;
+    border: 2px solid #22C7A9
+}
  
-// .modal-header h2 {
-//     margin: 0;
-//     font-size: 20px;
-//     font-weight: bold;
-//     text-align: center;
-//     flex-grow: 1;
-// }
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    flex-grow: 1;
+}
  
-// .modal-header .btn-close {
-//     position: absolute;
-//     right: 10px;
-//     top: 10px;
-//     background: none;
-//     border: none;
-//     font-size: 30px;
-//     cursor: pointer;
-//     color: black;
-//     font-family: Arial, sans-serif;
-//     font-weight: bold;
-//     line-height: 1;
-// }
+.modal-header .btn-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    color: black;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    line-height: 1;
+}
  
-// .modal-header .btn-close::before {
-//     content: "×"; /* ใช้กากบาท */
-//     display: block;
-// }
- 
- 
- 
-// .modal-body {
-//     display: grid;
-//     grid-template-columns: repeat(3, 1fr);
-//     gap: 10px; /* เพิ่มระยะห่างระหว่างคอลัมน์ */
-// }
- 
-// .table-section {
-//     border: 1px solid #ddd;
-//     border-radius: 5px;
-//     padding: 15px;
-//     background-color: #ffffff;
-//     text-align: center;
-//     min-width: 25px;
-//     border: 2px solid #22C7A9
-// }
- 
-// .table-section select {
-//     width: 100%;
-//     padding: 10px;
-//     border: 2px solid #22C7A9;
-//     border-radius: 5px;
-//     background-color: #22C7A9;
-//     color: white;
-//     font-weight: bold;
-// }
+.modal-header .btn-close::before {
+    content: "×"; /* ใช้กากบาท */
+    display: block;
+}
  
  
-// .checkbox-group {
-//     text-align: left;
-//     margin-top: 15px;
-// }
  
-// .checkbox-group span {
-//     display: block;
-//     font-weight: bold;
-//     margin-bottom: 5px;
-// }
+.modal-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; /* เพิ่มระยะห่างระหว่างคอลัมน์ */
+}
  
-// .checkbox-group label {
-//     display: block;
-//     margin-bottom: 8px;
-//     font-size: 16px;
-//     position: relative;
-// }
+.table-section {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #ffffff;
+    text-align: center;
+    min-width: 25px;
+    border: 2px solid #22C7A9
+}
  
-// .checkbox-group input[type="checkbox"] {
-//     width: 20px;
-//     height: 20px;
-//     appearance: none;
-//     -webkit-appearance: none;
-//     border: 2px solid #22C7A9;
-//     border-radius: 4px;
-//     cursor: pointer;
-//     position: relative;
-//     margin-right: 10px;
-// }
- 
-// .checkbox-group input[type="checkbox"]:checked {
-//     background-color: #22C7A9;
-//     border: 2px solid #22C7A9;
-// }
- 
-// .checkbox-group input[type="checkbox"]:checked::after {
-//     content: "✓";
-//     color: white;
-//     font-size: 16px;
-//     position: absolute;
-//     top: 50%;
-//     left: 50%;
-//     transform: translate(-50%, -50%);
-// }
+.table-section select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #22C7A9;
+    border-radius: 5px;
+    background-color: #22C7A9;
+    color: white;
+    font-weight: bold;
+}
  
  
-// .bt-submitgroup {
-//     display: flex;
-//     justify-content: center;
-//     align-items: center;
-//     gap: 35px; /* ระยะห่างระหว่างปุ่ม */
-//     margin-top: 20px;
-//     grid-column: 2;
+.checkbox-group {
+    text-align: left;
+    margin-top: 15px;
+}
  
-//     button {
-//         width: 40%;
-//         height: 40px;
-//         font-size: 18px;
-//         font-family: Sans-font;
-//         font-weight: 900;
-//         border: 0;
-//         outline: 0;
-//         border-radius: 20px;
-//         color: white;
-//         cursor: pointer;
-//     }
+.checkbox-group span {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
  
-//     button.cancel {
-//         background: linear-gradient(90deg , #FF0000 , #EB7878);
-//         box-shadow: 0px 2px 2px rgb(104, 0, 0);
-//     }
-//     button.cancel:active {
-//         padding-top: 2px;
-//         box-shadow: 0px 2px 2px inset rgb(104, 0, 0);
-//     }
+.checkbox-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    position: relative;
+}
  
-//     button.submit {
-//         background: linear-gradient(90deg , #049f9f , #60d6cf);
-//         box-shadow: 0px 2px 2px #055a5a;
-//     }
-//     button.submit:active {
-//         padding-top: 2px;
-//         box-shadow: 0px 2px 2px inset #055a5a;
-//     }
+.checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid #22C7A9;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    margin-right: 10px;
+}
  
-//     button.submit[no=""] {
-//         cursor: not-allowed;
-//         box-shadow: none;
-//         background: linear-gradient(90deg , #049f9f8e rgba(96, 214, 206, 0.556));
-//         color: rgb(206, 206, 206);
-//     }
-// }
+.checkbox-group input[type="checkbox"]:checked {
+    background-color: #22C7A9;
+    border: 2px solid #22C7A9;
+}
+ 
+.checkbox-group input[type="checkbox"]:checked::after {
+    content: "✓";
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+ 
+ 
+.bt-submitgroup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px; /* ระยะห่างระหว่างปุ่ม */
+    margin-top: 20px;
+    grid-column: 2;
+ 
+    button {
+        width: 40%;
+        height: 40px;
+        font-size: 18px;
+        font-family: Sans-font;
+        font-weight: 900;
+        border: 0;
+        outline: 0;
+        border-radius: 20px;
+        color: white;
+        cursor: pointer;
+    }
+ 
+    button.cancel {
+        background: linear-gradient(90deg , #FF0000 , #EB7878);
+        box-shadow: 0px 2px 2px rgb(104, 0, 0);
+    }
+    button.cancel:active {
+        padding-top: 2px;
+        box-shadow: 0px 2px 2px inset rgb(104, 0, 0);
+    }
+ 
+    button.submit {
+        background: linear-gradient(90deg , #049f9f , #60d6cf);
+        box-shadow: 0px 2px 2px #055a5a;
+    }
+    button.submit:active {
+        padding-top: 2px;
+        box-shadow: 0px 2px 2px inset #055a5a;
+    }
+ 
+    button.submit[no=""] {
+        cursor: not-allowed;
+        box-shadow: none;
+        background: linear-gradient(90deg , #049f9f8e rgba(96, 214, 206, 0.556));
+        color: rgb(206, 206, 206);
+    }
+}
