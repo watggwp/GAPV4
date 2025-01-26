@@ -9,7 +9,7 @@ const InsertGraph = () => {
   const ListGraph = useCallback(async () => {
     console.log("Start fetch group");
     try {
-      const response = await clientMo.get("/api/data/report/list");
+      const response = await clientMo.get("/api/doctor/data/report/list");
       const result = JSON.parse(response);
 
       if (result.data) {

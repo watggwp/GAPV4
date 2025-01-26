@@ -6,7 +6,7 @@ const InsertReport = () => {
 
   const ListReport = useCallback(async () => {
     try {
-      const listlocation = await clientMo.get("/api/data/report/list");
+      const listlocation = await clientMo.get("/api/doctor/data/report/list");
       const parsedList = JSON.parse(listlocation);
       setLocations(parsedList.data.doctors);
     } catch (error) {

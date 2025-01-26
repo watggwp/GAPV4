@@ -11,7 +11,7 @@ const InsertStatistics = () => {
     async () => {
       console.log(duration);
       try {
-        const response = await clientMo.post("/api/data/statistic/get", {
+        const response = await clientMo.post("/api/doctor/data/statistic/get", {
           duration // ส่งช่วงเวลาไปกับคำขอ
         });
         const data = JSON.parse(response);

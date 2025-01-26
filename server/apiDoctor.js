@@ -3529,7 +3529,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             )
         })
     }
-    app.post('/api/data/statistic/get', async (req, res) => {
+    app.post('/api/doctor/data/statistic/get', async (req, res) => {
         let username = req.session.user_doctor;
         let password = req.session.pass_doctor;
        
@@ -3577,7 +3577,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
       });
 
-      app.get('/api/data/report/list', async(req, res) => {
+      app.get('/api/doctor/data/report/list', async(req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
         if(username === '' || password === '') {
@@ -3673,6 +3673,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
           });
           }
         } catch (err) {
+            console.log(err)
           con.end()
           if(err == "not pass") {
             res.redirect('/api/logout')
