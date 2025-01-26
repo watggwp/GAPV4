@@ -1,12 +1,12 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
-import { PageTemplateContext } from "../PageTemplate";
+import { PageDataContext } from "../data/PageData";
  
 const PageGroup = () => {
   const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
   const { TabOn } = useContext(AdminContext);
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
+  const { openInsert, setOpenInsert } = useContext(PageDataContext);
  
   // ฟังก์ชันสำหรับดึงข้อมูลจาก API
   const fetchGroupData = useCallback(async () => {
