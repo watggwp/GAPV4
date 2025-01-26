@@ -1,4 +1,4 @@
-import React, { useRef , useEffect, useState} from "react";
+import React, { useRef , useEffect, useState, useCallback} from "react";
 import "./ListFertilizer.scss"
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
@@ -49,6 +49,17 @@ ObjectData}) => {
     const [ListSelectPests, setListPests] = useState(<></>);
     const ListSearchPests = useRef();
     const [LoadSearchPests, setLoadPests] = useState(false);
+     const [pestChemicalData, setPestChemicalData] = useState([]);
+     const [loading, setLoading] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
+    const [formId, setFormId] = useState(""); // สำหรับ formId
+    const [currentPlantPlantName, setCurrentPlantName] = useState(""); // ชื่อชนิดพืช
+
+
+     useEffect(() => {
+         console.log("Pest Chemical Data Updated:", pestChemicalData);
+       }, [pestChemicalData]);
 
 
     const [getWait , setWait] = useState(false)
@@ -88,6 +99,123 @@ useEffect(() => {
     FetchPests();
 }, []);
 
+useEffect(() => {
+    if (formId) {
+      console.log("Fetching data for formId:", formId);
+      FetchPestChemicalData();
+    }
+  }, [formId]);
+
+  useEffect(() => {
+    if (id_form_plant) {
+      setFormId(id_form_plant);
+    } else {
+      console.error("id_form_plant is undefined");
+      FetchPestChemicalData();
+    }
+  }, [id_form_plant]);
+
+// ฟังก์ชันโหลดข้อมูลจาก API
+  const FetchPestChemicalData = async () => {
+    setLoading(true);
+    try {
+      const Data = await clientMo.post("/api/farmer/pest-chemical", {
+        id_form_plant: formId
+      }); // เรียก API
+
+      console.log("Full API Response:", JSON.stringify(Data, null, 2));
+
+      // ตรวจสอบว่า CloseAccount ผ่านหรือไม่
+      if (await CloseAccount(Data, setPage)) {
+        const response = JSON.parse(Data); // แปลงข้อมูล JSON
+
+        console.log("Parsed Response Data:", response);
+
+        // ตรวจสอบโครงสร้างข้อมูล
+        if (response?.plant_name && Array.isArray(response.data)) {
+          const { plant_name, data } = response; // Destructure ข้อมูล
+          console.log("Plant Name:", plant_name);
+          console.log("Extracted Data:", data);
+
+          if (data.length > 0) {
+            setPestChemicalData(data);
+            setCurrentPlantName(plant_name);
+          } else {
+            console.warn("No pest-chemical data found:", data);
+            setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
+            setShowPopup(true);
+          }
+        } else {
+          console.error(
+            "Invalid response structure or missing required fields"
+          );
+          setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
+          setShowPopup(true);
+        }
+      } else {
+        console.error("CloseAccount validation failed");
+        setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching pest-chemical data:",
+        error.message || error
+      );
+      setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+      setShowPopup(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+const ValidateChemicalAndPest = () => {
+    const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
+    const pestValue = NameInsect.current?.value.trim();
+    const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
+
+    const matchedDateSafe = pestChemicalData.find(
+      (entry) => entry.chemical_name === chemicalValue
+    );
+    console.log(matchedDateSafe)
+    matchedDateSafe && setDateSafe(matchedDateSafe.safe_days)
+
+    // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
+    if (!chemicalValue || !pestValue || !plantNameValue) {
+        console.warn("Missing required inputs:", {
+            chemicalValue,
+            pestValue,
+            plantNameValue
+        });
+        return;
+    }
+
+    // ตรวจสอบความสัมพันธ์ใน pestChemicalData
+    const matchedEntry = pestChemicalData.find(
+      (entry) =>
+        entry.pest_name === pestValue && entry.chemical_name === chemicalValue
+    );
+
+    if (!matchedEntry) {
+      console.warn("No match found in pestChemicalData for:", {
+        pestValue,
+        chemicalValue,
+        plantNameValue
+      });
+      setPopupMessage(
+        `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
+      );
+      setShowPopup(true);
+    } else {
+      console.log("Matched entry:", matchedEntry);
+    }
+  };
+
+  const containsHidePopup = useCallback((element , target) => {
+    setTimeout(() => {
+        !element.contains(target) && element.setAttribute("remove","")
+    }, 10);
+  } , [])
 
 
     const FetchSource = async () => {
@@ -458,18 +586,19 @@ const ResetListPestsPopup = () => {
     }
 
     // math date sefe chemical
-    const setDateSafe = async () => {
+    const setDateSafe = (day_safe) => {
         try {
-            const NumDay = DataFactor.filter((val)=>
-                            val.name_formula.indexOf(NameMainFactor.current.value) >= 0 && val.name.indexOf(NameFactor.current.value) >= 0)
-                                .map((val)=>val.date_safe_list)[0]
-            const DateUsePut = new Date(DateUse.current.value ? ConvertDate(DateUse.current.value).christDate : "")
-            DateUsePut.setDate(DateUsePut.getDate() + NumDay + 1)
-            const result = DateUsePut.toISOString().split("T")[0]
-            DateSafe.current.value = ConvertDate(result).buddhistDate
-            setDateOut(result)
-        } catch(e) {}
-    }
+          const DateUsePut = new Date(
+            DateUse.current.value
+              ? ConvertDate(DateUse.current.value).christDate
+              : ""
+          );
+          DateUsePut.setDate(DateUsePut.getDate() + parseInt(day_safe) + 1);
+          const result = DateUsePut.toISOString().split("T")[0];
+          DateSafe.current.value = ConvertDate(result).buddhistDate;
+          setDateOut(result);
+        } catch (e) {}
+      };
 
     // off popup
     const OutListSearch = (e) => {
@@ -489,7 +618,20 @@ const ResetListPestsPopup = () => {
     }
 
     return(
-        <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
+        // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
+    <section className="popup-content-fertilizer">
+      {/* ป๊อปอัปแจ้งเตือน */}
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="icon">⚠️</div>
+            <div className="title">การแจ้งเตือน</div>
+            <p>{popupMessage}</p>
+            <button onClick={() => setShowPopup(false)}>ปิด</button>
+          </div>
+        </div>
+      )}
+
             {/* <div className="head">แบบบันทึกเกษตรกร</div> */}
             <div className="form">
                 <div className="head-form">
@@ -602,84 +744,117 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox colume${ObjectData.subjectResult.name == 2 ? " not" : ""}`}>
-                                                <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
-                                                <div className="content-colume-input">
-                                                    <div className="input-select-popup">
-                                                        <input onChange={LoadSearchName ? SearchNameFactor : null} onMouseDown={LoadSearchName ? SearchNameFactor : null}
-                                                            defaultValue={ObjectData.name} placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"} ref={NameFactor}
-                                                            readOnly={!LoadSearchName ? true : null} disabled={!LoadSearchName ? true : null}></input>
-                                                        <div ref={ListSearchName} remove="" className="list-input-search">
-                                                            {LoadSearchName ? 
-                                                                ListSelectName : 
-                                                                <div style={{
-                                                                    display : "flex",
-                                                                    justifyContent : "center" ,
-                                                                    alignItems : "center"
-                                                                }}> 
-                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                                </div>
-                                                                }
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className={`frame-textbox${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
-                                                <span>ชื่อสามัญสารเคมี</span>
-                                                <div className="input-select-other">
-                                                    <input onChange={LoadSearchNameMain ? SearchFactorNameOther : null} onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
-                                                        defaultValue={ObjectData.formula_name} ref={NameMainFactor} type="text" placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
-                                                        readOnly={!LoadSearchNameMain ? true : null} disabled={!LoadSearchNameMain ? true : null}></input>
-                                                    <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
-                                                        {LoadSearchNameMain ? 
-                                                            ListSelectNameMain :
-                                                            <div style={{
-                                                                display : "flex",
-                                                                justifyContent : "center" ,
-                                                                alignItems : "center"
-                                                            }}> 
-                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                        <label className={`frame-textbox colume${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
-                                              <span className="full">ศัตรูพืชหรือโรคพืชที่พบ</span>
-                                              <div className="content-colume-input">
-                                                  <div className="input-select-popup">
-                                                <input
-                                                    onChange={LoadSearchPests ? SearchPests : null}
-                                                    onMouseDown={LoadSearchPests ? SearchPests : null}
-                                                    defaultValue={ObjectData.insect}
-                                                    ref={NameInsect}
-                                                    placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
-                                                    readOnly={!LoadSearchPests ? true : null}
-                                                    disabled={!LoadSearchPests ? true : null}
-                                                />
-                                        <div ref={ListSearchPests} remove="" className="list-input-search">
-                                        {LoadSearchPests ? (
-                                           ListSelectPests
-                    ) : (
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
-                        </div>
-                    )}
-                </div>
+  <label className="frame-textbox colume">
+    <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
+    <div className="content-colume-input">
+      <div className="input-select-popup">
+        <input
+          onChange={LoadSearchName ? SearchNameFactor : null}
+          onMouseDown={LoadSearchName ? SearchNameFactor : null}
+          defaultValue={ObjectData.name || ""} // ใช้ ObjectData.name ถ้ามีค่า
+          ref={NameFactor}
+          placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
+          readOnly={!LoadSearchName ? true : null}
+          disabled={!LoadSearchName ? true : null}
+          onBlur={(e) => {
+            ValidateChemicalAndPest(); // ตรวจสอบสารเคมีกับศัตรูพืช
+            containsHidePopup(ListSearchName.current, e.target);
+          }}
+        />
+        <div ref={ListSearchName} remove="" className="list-input-search">
+          {LoadSearchName ? (
+            ListSelectName
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
             </div>
+          )}
         </div>
-    </label>
+      </div>
+    </div>
+  </label>
 </div>
+
+<div className="row">
+  <label className="frame-textbox">
+    <span>ชื่อสามัญสารเคมี</span>
+    <div className="input-select-other">
+      <input
+        onChange={LoadSearchNameMain ? SearchFactorNameOther : null}
+        onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
+        defaultValue={ObjectData.formula_name || ""} // ใช้ ObjectData.formula_name ถ้ามีค่า
+        ref={NameMainFactor}
+        type="text"
+        placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
+        readOnly={!LoadSearchNameMain ? true : null}
+        disabled={!LoadSearchNameMain ? true : null}
+        onBlur={(e) => {
+          containsHidePopup(ListSearchFactorNameMain.current, e.target);
+        }}
+      />
+      <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
+        {LoadSearchNameMain ? (
+          ListSelectNameMain
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+          </div>
+        )}
+      </div>
+    </div>
+  </label>
+</div>
+
+<div className="row">
+  <label className="frame-textbox colume">
+    <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
+    <div className="content-colume-input">
+      <div className="input-select-popup">
+        <input
+          onChange={LoadSearchPests ? SearchPests : null}
+          onMouseDown={LoadSearchPests ? SearchPests : null}
+          defaultValue={ObjectData.insect || ""} // ใช้ ObjectData.insect ถ้ามีค่า
+          ref={NameInsect}
+          placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
+          readOnly={!LoadSearchPests ? true : null}
+          disabled={!LoadSearchPests ? true : null}
+          onBlur={(e) => {
+            ValidateChemicalAndPest(); // ตรวจสอบความสัมพันธ์สารเคมีกับศัตรูพืช
+            containsHidePopup(ListSearchPests.current, e.target);
+          }}
+        />
+        <div ref={ListSearchPests} remove="" className="list-input-search">
+          {LoadSearchPests ? (
+            ListSelectPests
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </label>
+</div>
+
                                         <div className="row">
                                             <label className={`frame-textbox colume${ObjectData.subjectResult.use_is == 2 ? " not" : ""}`}>
                                                 <span className="full">วิธีการใช้</span>
@@ -713,13 +888,17 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox${ObjectData.subjectResult.date_safe == 2 ? " not" : ""}`}>
-                                                <span>วันที่ปลอดภัย</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} refIn={DateSafe} onInputIn={ChangeChemi}/>
-                                                {/* <input onChange={ChangeChemi} 
-                                                    defaultValue={ObjectData.date_safe.split(" ")[0]} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
-                                            </label>
-                                        </div>
+                                                                <label className="frame-textbox">
+                                                                  <span>วันที่ปลอดภัย</span>
+                                                                  <DatePickerThai
+                                                                    classNameMain="input-date"
+                                                                    defaultDate={getDateOut}
+                                                                    refIn={DateSafe}
+                                                                    onInputIn={ChangeChemi}
+                                                                  />
+                                                                  {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
+                                                                </label>
+                                                              </div>
                                         <div className="row">
                                             <label className={`frame-textbox${ObjectData.subjectResult.source == 2 ? " not" : ""}`}>
                                                 <span>แหล่งที่ซื้อ</span>

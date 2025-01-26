@@ -242,11 +242,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     
     app.all('/api/doctor/auth' , (req , res)=>{
         // เช็คการเข้าสู่ระบบจริงๆ
+
         let username = req.session.user_doctor ?? req.body['username'] ?? '';
         let password = req.session.pass_doctor ?? req.body['password'] ?? '';
-        // console.log(username)
-        // console.log(password)
-        // console.log(req)
     
         if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
             res.redirect('/api/logout')
@@ -265,7 +263,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 }
                 else if(result['data']['fullname_doctor'] 
                         && result['data']['station_doctor']) {
-                        
+                      
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password
@@ -689,17 +687,16 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     ) as name_doctor ,
                     (
                         SELECT date
-                        FROM message_user , 
-                        (
-                            SELECT uid_line
-                            FROM acc_farmer as farmer_check
-                            WHERE farmer_check.link_user = acc_farmer.link_user
-                            ORDER BY date_register DESC
-                            LIMIT 1
-                        ) as farmer
-                        WHERE message_user.uid_line_farmer = farmer.uid_line
-                                and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                                and type = ""
+                        FROM message_user
+                        WHERE message_user.uid_line_farmer = (
+                                    SELECT uid_line
+                                    FROM acc_farmer as farmer_check
+                                    WHERE farmer_check.link_user = acc_farmer.link_user
+                                    ORDER BY date_register DESC
+                                    LIMIT 1
+                                )
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                            and type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
@@ -1688,57 +1685,99 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         FROM editform
                         WHERE status = 0 and type_form = ? and id_form = form${TypeForm}.id
                     ) as countStatus
-                    ${ req.query.type === '0' ?
-                        `
-                        ,
-                        (
-                            SELECT id_table
-                            FROM acc_farmer , 
-                            (
-                                SELECT link_user
-                                FROM housefarm
-                                WHERE id_farm_house = formplant.id_farm_house
-                            ) as house
-                            WHERE acc_farmer.link_user = house.link_user
-                            ORDER BY date_register
-                            LIMIT 1
-                        ) as id_farmer, 
-                        (
-                            SELECT fullname
-                            FROM acc_farmer , 
-                            (
-                                SELECT link_user
-                                FROM housefarm
-                                WHERE id_farm_house = formplant.id_farm_house
-                            ) as house
-                            WHERE acc_farmer.link_user = house.link_user
-                            ORDER BY date_register
-                            LIMIT 1
-                        ) as fullname,
-                        (
-                            SELECT type_plant
-                            FROM plant_list
-                            WHERE name = formplant.name_plant
-                        ) as type_main ,
-                        (
-                            SELECT location
-                            FROM housefarm
-                            WHERE housefarm.id_farm_house = form${TypeForm}.id_farm_house
-                            LIMIT 1
-                        ) as location_house
-                        ` : ''
-                    }
                     FROM form${TypeForm}
                     WHERE ${subjectWhereID} = ?
                     ` , [TypeForm , req.query.id_form] ,
-                    (err, result )=>{
+                    async (err, forms )=>{
                         if(err) {
                             dbpacket.dbErrorReturn(con, err, res);
                             console.log("select form");
                         }
 
-                        con.end()
-                        res.send(result)
+                        const formsData = []
+
+                        if(!forms.length) {
+                            con.end()
+                            res.send(formsData)
+                        }
+
+                        forms.forEach( async (form) => {
+                            const userData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT id_table as id_farmer , fullname as fullname
+                                        FROM acc_farmer , 
+                                        (
+                                            SELECT link_user
+                                            FROM housefarm
+                                            WHERE id_farm_house = ?
+                                        ) as house
+                                        WHERE acc_farmer.link_user = house.link_user
+                                        ORDER BY date_register
+                                        LIMIT 1
+                                    ` , [form.id_farm_house] ,
+                                    (err, users )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select user");
+                                        }
+                                                    
+                                        resolve(users[0] || {})
+                                    }
+                                )
+                            }) : {}
+    
+                            const plantData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT type_plant as type_main
+                                        FROM plant_list
+                                        WHERE name = ?
+                                        LIMIT 1
+                                    ` , [form.name_plant] ,
+                                    (err, plants )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select user");
+                                        }
+                                                    
+                                        resolve(plants[0] || {})
+                                    }
+                                )
+                            }) : {}
+    
+                            const houseFarmData = req.query.type === '0' ? await new Promise((resolve) => {
+                                con.query(
+                                    `
+                                        SELECT location as location_house
+                                        FROM housefarm
+                                        WHERE id_farm_house = ?
+                                        LIMIT 1
+                                    ` , [form.id_farm_house] ,
+                                    (err, houseFarm )=>{
+                                        if(err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("select house");
+                                        }
+                                                    
+                                        resolve(houseFarm[0] || {})
+                                    }
+                                )
+                            }) : {}
+
+                            formsData.push({
+                                ...form,
+                                ...userData,
+                                ...plantData,
+                                ...houseFarmData
+                            })
+
+                            if(forms.length === formsData.length) {
+                                con.end()
+                                res.send(formsData)
+                            }
+                        })
+
                     }
                 )
             }

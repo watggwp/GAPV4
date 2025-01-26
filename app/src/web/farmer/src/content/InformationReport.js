@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { clientMo } from "../../../../assets/js/moduleClient";
 import "../assets/InformationReport.scss";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 const InformationReport = ({ setPage }) => {
     const [statistics, setStatistics] = useState(null);
@@ -35,54 +31,6 @@ const InformationReport = ({ setPage }) => {
         }
     };
 
-    const existingColors = ["#FF6384", "#36A2EB", "#FFCE56", "#8A2BE2", "#7FFF00"];
-
-    const ensureColors = (existingColors, requiredCount) => {
-        const colors = [...existingColors];
-        const hueStep = 360 / requiredCount; // เว้นระยะระหว่างสีด้วย Hue
-    
-        while (colors.length < requiredCount) {
-            const hue = (colors.length * hueStep) % 360; // กระจายเฉดสี
-            const saturation = 70 + Math.random() * 30; // ความเข้มของสี (70%-100%)
-            const lightness = 50 + Math.random() * 20; // ความสว่างของสี (50%-70%)
-    
-            colors.push(`hsl(${Math.floor(hue)}, ${Math.floor(saturation)}%, ${Math.floor(lightness)}%)`);
-        }
-        return colors;
-    };
-    
-
-    const pieData = {
-        labels: statistics?.farmerStatistics?.[0]?.plantDetails
-            ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.plantName)
-            : [],
-        datasets: [
-            {
-                label: "ข้อมูลพื้นฐาน",
-                data: statistics?.farmerStatistics?.[0]?.plantDetails
-                    ? statistics.farmerStatistics[0].plantDetails.map((plant) => plant.farmersCount)
-                    : [],
-                backgroundColor: ensureColors(
-                    existingColors,
-                    statistics?.farmerStatistics?.[0]?.plantDetails?.length || 0
-                ),
-            },
-        ],
-    };
-
-    const options = {
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: function (context) {
-                        const plant = statistics?.farmerStatistics?.[0]?.plantDetails?.[context.dataIndex];
-                        return `${plant.plantName}: ${plant.farmersCount}`;
-                    },
-                },
-            },
-        },
-    };
-
     return (
         <div className="Information-Report">
             <div className="content-max-width">
@@ -96,8 +44,8 @@ const InformationReport = ({ setPage }) => {
                     <p className="error-text">เกิดข้อผิดพลาด: {error}</p>
                 ) : (
                     <div className="button-container">
-                        <button className="option-btn" onClick={() => setView("chart")}>
-                            แสดงจำนวนเกษตรกรและพืชที่ปลูก
+                        <button className="option-btn" onClick={() => setView("ranking")}>
+                            แสดงจำนวนเกษตรกรเเละชนิดพืช
                         </button>
                         <button className="option-btn" onClick={() => setView("doctors")}>
                             แสดงรายชื่อหมอพืชเเละที่ปรึกษาเกษตรกร
@@ -107,50 +55,71 @@ const InformationReport = ({ setPage }) => {
 
                 {view && (
                     <div className="result-display">
-                        {view === "chart" && statistics?.farmerStatistics?.length > 0 && (
+                        {view === "ranking" && statistics?.farmerStatistics?.length > 0 && (
                             <div>
-                                <h2>จำนวนเกษตรกรและชนิดพืชในพื้นที่</h2>
-                                <div className="chart-container">
-                                    <Pie data={pieData} options={options} />
-                                </div>
-                                <h3>ข้อมูลเพิ่มเติม</h3>
+                                <h2>ตารางชนิดพืชและจำนวนชนิดพืช</h2>
+                                <table className="ranking-table">
+                                    <thead>
+                                        <tr>
+                                            <th>อันดับ</th>
+                                            <th>ชนิดพืช</th>
+                                            <th>จำนวน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {statistics?.farmerStatistics?.[0]?.plantDetails
+                                            ?.sort((a, b) => b.farmersCount - a.farmersCount)
+                                            ?.map((plant, index) => (
+                                                <tr key={plant.plantName}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{plant.plantName}</td>
+                                                    <td>{plant.farmersCount}</td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
                                 <ul>
-                                    <li>
-                                        <strong>จำนวนเกษตรกร:</strong>{" "}
-                                        {statistics?.farmerStatistics?.[0]?.totalFarmers || 0}
-                                    </li>
-                                    <li>
-                                        <strong>ชนิดพืช:</strong>{" "}
-                                        {statistics?.farmerStatistics?.[0]?.plantDetails?.map((plant, index) => (
-                                            <span key={index}>
-                                                {plant.plantName} ({plant.farmersCount})
-                                                {index !==
-                                                statistics.farmerStatistics[0].plantDetails.length - 1
-                                                    ? ", "
-                                                    : ""}
-                                            </span>
-                                        ))}
-                                    </li>
+                                <div className="total-farmers">
+                                    <strong>จำนวนเกษตรกรในพื้นที่</strong>{" "}
+                                    {statistics?.farmerStatistics?.[0]?.totalFarmers || 0} คน
+                                </div>
                                 </ul>
                             </div>
                         )}
-                        {view === "doctors" && statistics?.doctors?.length > 0 && (
+
+                        {view === "doctors" && (statistics?.doctors?.length > 0 || statistics?.advisors?.length > 0) && (
                             <div>
-                                <h2>รายชื่อหมอพืชในพื้นที่</h2>
-                                <ul className="doctor-list">
-                                    {statistics?.doctors.map((doctor) => (
-                                        <li key={doctor.id_doctor}>
-                                            {doctor.fullname_doctor}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <h2>รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</h2>
+                                <table className="doctor-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ชื่อ</th>
+                                            <th>สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {statistics?.doctors?.map((doctor) => (
+                                            <tr key={doctor.id_doctor}>
+                                                <td>{doctor.fullname_doctor}</td>
+                                                <td>หมอพืช</td>
+                                            </tr>
+                                        ))}
+                                        {statistics?.advisors?.map((advisor) => (
+                                            <tr key={advisor.id_advisor}>
+                                                <td>{advisor.fullname_advisor}</td>
+                                                <td>ที่ปรึกษาเกษตรกร</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
-                        {view === "chart" && statistics?.farmerStatistics?.length === 0 && (
+
+                        {view === "ranking" && statistics?.farmerStatistics?.length === 0 && (
                             <p>ไม่มีข้อมูลเกษตรกรและพืชในพื้นที่</p>
                         )}
-                        {view === "doctors" && statistics?.doctors?.length === 0 && (
-                            <p>ไม่มีรายชื่อหมอพืชในพื้นที่</p>
+                        {view === "doctors" && statistics?.doctors?.length === 0 && statistics?.advisors?.length === 0 && (
+                            <p>ไม่มีรายชื่อหมอพืชหรือที่ปรึกษาเกษตรกรในพื้นที่</p>
                         )}
                     </div>
                 )}

@@ -895,14 +895,6 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
     app.post('/api/farmer/plant/list' , async (req , res)=>{
         if(req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
@@ -1488,6 +1480,7 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                                 COUNT(formplant.name_plant) AS total_qty,
                                 id_farm_house
                             FROM formplant
+                            WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
                             GROUP BY id_farm_house , formplant.name_plant
                         ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
                         WHERE acc_farmer.station = ?

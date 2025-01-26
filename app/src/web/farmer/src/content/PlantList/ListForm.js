@@ -45,7 +45,7 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
                                 borderRadius: "5px",
                                 fontWeight: "900",
                                 color: "white"
-                            }}>มีข้อความจากผู้ส่งเสริม</span>
+                            }}>มีข้อความจากหมอพืช</span>
                         </div> : <></>
                     }
                     <div className="top">
@@ -57,33 +57,34 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
                             <DayJSX DATE={val.date_plant} TYPE="short" />
                         </div>
                     </div>
-                    
-                    
+                        
                     <div className="body">
                     <div className="content">
                             <span>ชนิดพืช :</span>
                             <div>{val.name_plant}</div>
                         </div>
-                        {/* <div className="content">
-                            <span>สายพันธุ์พืช :</span>
-                            <div>{val.name_varieties}</div>
-                        </div> */}
+                        
                     </div>
-                    <div className="bottom">
-                        {/* <div className="content">
-                            <span>สายพันธุ์ :</span>
-                            <div>{val.name_varieties}</div>
-                        </div>
-                         */}
-                         
-                        <div className="content">
+                    <div className="bottom">          
+                        <div className="content" style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap",marginRight: "5px" }}>
                             <span>จำนวน :</span>
                             <div>{`${val.qty} ต้น`}</div>
                         </div>
-                        <div className="content">
+                        <div className="content" style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
                             <span>รุ่นที่ :</span>
                             <div>{val.generation}</div>
                         </div>
+                        {/* <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+                            <div style={{ marginRight: "20px" }}>
+                                <span>จำนวน :</span>
+                                <span style={{ marginLeft: "5px" }}>{`${val.qty} ต้น`}</span>
+                            </div>
+                            <div>
+                                <span>รุ่นที่ :</span>
+                                <span style={{ marginLeft: "5px" }}>{val.generation}</span>
+                            </div>
+                        </div> */}
+
                         <div className="bt">
                             <button onClick={() => OpenMenuPlant(val.id)}>{val.state_status < 2 ? "บันทึกข้อมูล" : "ดูข้อมูล"}</button>
                         </div>

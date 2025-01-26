@@ -161,6 +161,7 @@ const PopupInsertFactor = ({
     }
   };
 
+
   // // ฟังก์ชันโหลดข้อมูลจาก API
   // const FetchPestChemicalData = async () => {
   //     try {
@@ -217,8 +218,10 @@ const PopupInsertFactor = ({
   };
 
   // ฟังก์ชันตั้งค่า Input ของศัตรูพืช
+  
   const SetTextInputPests = (name) => {
     NameInsect.current.value = name;
+    NameInsect.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
     ChangeChemi();
     ResetListPestsPopup();
   };
@@ -355,6 +358,11 @@ const PopupInsertFactor = ({
 
   // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
   const ConfirmChemi = async () => {
+    if (!validateInputs()) {
+      // หากไม่ผ่านการตรวจสอบข้อมูล ให้หยุดการทำงาน
+      return;
+    }
+  
     const DataInsert = {
       id_farmhouse: id_house,
       id_plant: id_form_plant,
@@ -367,9 +375,9 @@ const PopupInsertFactor = ({
       volume: Volume.current.value + " " + Unit.current.value,
       dateSafe: ConvertDate(DateSafe.current.value).christDate,
       source: Source.current.value,
-      type_insert: type_path
+      type_insert: type_path,
     };
-
+  
     setWait(true);
     const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
     if (await CloseAccount(result, setPage)) {
@@ -378,6 +386,7 @@ const PopupInsertFactor = ({
       setWait(false);
     }
   };
+  
 
   const cancel = () => {
     RefPop.current.removeAttribute("show");
@@ -479,12 +488,16 @@ const PopupInsertFactor = ({
     type_path === "z" ? ChangeFerti() : ChangeChemi();
   };
 
+ 
+
   const SetTextInputName = (name) => {
     NameFactor.current.value = name;
+    NameFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
     type_path === "z" ? ChangeFerti() : ChangeChemi();
     ResetListNamePopup();
     SearchFactorNameOther({ target: { value: "", selectBt: true } });
   };
+  
 
   const ResetListNamePopup = () => {
     setListName(<></>);
@@ -529,9 +542,11 @@ const PopupInsertFactor = ({
 
   const SetTextInputOrther = (name) => {
     NameMainFactor.current.value = name;
+    NameMainFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
     type_path === "z" ? ChangeFerti() : ChangeChemi();
     ResetListOtherPopup();
   };
+  
 
   const ResetListOtherPopup = () => {
     setListOther(<></>);
@@ -566,6 +581,7 @@ const PopupInsertFactor = ({
       setDateOut(result);
     } catch (e) {}
   };
+  
 
   // const ValidateChemicalAndPest = () => {
   //     // ListSearchName.current.setAttribute("remove","")
@@ -667,11 +683,69 @@ const PopupInsertFactor = ({
     }
   };
 
-  const containsHidePopup = useCallback((element , target) => {
+
+  const validateInputs = () => {
+    let isValid = true;
+  
+    // ตรวจสอบชื่อสารเคมี
+    if (!DataFactor.some((val) => val.name === NameFactor.current?.value.trim())) {
+      NameFactor.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameFactor.current.style.border = "2px solid transparent";
+    }
+  
+    // ตรวจสอบชื่อสามัญสารเคมี
+    if (
+      !DataFactor.some((val) => val.name_formula === NameMainFactor.current?.value.trim())
+    ) {
+      NameMainFactor.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameMainFactor.current.style.border = "2px solid transparent";
+    }
+  
+    // ตรวจสอบศัตรูพืช
+    if (!DataPests.some((val) => val.pest_name === NameInsect.current?.value.trim())) {
+      NameInsect.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameInsect.current.style.border = "2px solid transparent";
+    }
+  
+    return isValid;
+  };
+  
+  
+
+  const handleInputChange = (e, type) => {
+    const value = e.target.value.trim();
+  
+    if (type === "NameFactor") {
+      if (DataFactor.some((val) => val.name === value)) {
+        NameFactor.current.style.border = "2px solid transparent";
+      }
+    } else if (type === "NameMainFactor") {
+      if (DataFactor.some((val) => val.name_formula === value)) {
+        NameMainFactor.current.style.border = "2px solid transparent";
+      }
+    } else if (type === "NameInsect") {
+      if (DataPests.some((val) => val.pest_name === value)) {
+        NameInsect.current.style.border = "2px solid transparent";
+      }
+    }
+  };
+
+  
+
+  const containsHidePopup = useCallback((element, target) => {
     setTimeout(() => {
-        !element.contains(target) && element.setAttribute("remove","")
+      if (!element.contains(target) && !target.closest(".list-input-search")) {
+        element.setAttribute("remove", "");
+      }
     }, 10);
-  } , [])
+  }, []);
+  
 
   //
   const ChangeData = (DataFilter) => {
@@ -920,26 +994,24 @@ const PopupInsertFactor = ({
                           </span>
                           <div className="content-colume-input">
                             <div className="input-select-popup">
-                              <input
-                                onChange={
-                                  LoadSearchName ? SearchNameFactor : null
+                            <input
+                              onChange={(e) => {
+                                handleInputChange(e, "NameFactor");
+                                if (LoadSearchName) {
+                                  SearchNameFactor(e);
                                 }
-                                onMouseDown={
-                                  LoadSearchName ? SearchNameFactor : null
-                                }
-                                placeholder={
-                                  LoadSearchName
-                                    ? "กรอกชื่อสารเคมี"
-                                    : "กำลังโหลด"
-                                }
-                                ref={NameFactor}
-                                readOnly={!LoadSearchName ? true : null}
-                                disabled={!LoadSearchName ? true : null}
-                                onBlur={(e) => {
-                                    ValidateChemicalAndPest()
-                                    containsHidePopup(ListSearchName.current , e.target)
-                                }}
-                              ></input>
+                                
+                              }}
+                              onMouseDown={LoadSearchName ? SearchNameFactor : null}
+                              placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
+                              ref={NameFactor}
+                              readOnly={!LoadSearchName ? true : null}
+                              disabled={!LoadSearchName ? true : null}
+                              onBlur={(e) => {
+                                ValidateChemicalAndPest();
+                                containsHidePopup(ListSearchName.current, e.target);
+                              }}
+                            />
                               <div
                                 ref={ListSearchName}
                                 remove=""
@@ -972,30 +1044,23 @@ const PopupInsertFactor = ({
                         <label className="frame-textbox">
                           <span>ชื่อสามัญสารเคมี</span>
                           <div className="input-select-other">
-                            <input
-                              onChange={
-                                LoadSearchNameMain
-                                  ? SearchFactorNameOther
-                                  : null
-                              }
-                              onMouseDown={
-                                LoadSearchNameMain
-                                  ? SearchFactorNameOther
-                                  : null
-                              }
-                              ref={NameMainFactor}
-                              type="text"
-                              placeholder={
-                                LoadSearchNameMain
-                                  ? "กรอกชื่อสามัญ"
-                                  : "กำลังโหลด"
-                              }
-                              readOnly={!LoadSearchNameMain ? true : null}
-                              disabled={!LoadSearchNameMain ? true : null}
-                              onBlur={(e) => {
-                                containsHidePopup(ListSearchFactorNameMain.current , e.target)
-                              }}
-                            ></input>
+                          <input
+                            onChange={(e) => {
+                              handleInputChange(e, "NameMainFactor");
+                              if (LoadSearchNameMain) {
+                                SearchFactorNameOther(e);
+                              }                              
+                            }}
+                            onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
+                            ref={NameMainFactor}
+                            type="text"
+                            placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
+                            readOnly={!LoadSearchNameMain ? true : null}
+                            disabled={!LoadSearchNameMain ? true : null}
+                            onBlur={(e) => {
+                              containsHidePopup(ListSearchFactorNameMain.current, e.target);
+                            }}
+                          />
                             <div
                               ref={ListSearchFactorNameMain}
                               remove=""
@@ -1028,24 +1093,23 @@ const PopupInsertFactor = ({
                           <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
                           <div className="content-colume-input">
                             <div className="input-select-popup">
-                              <input
-                                onChange={LoadSearchPests ? SearchPests : null}
-                                onMouseDown={
-                                  LoadSearchPests ? SearchPests : null
-                                }
-                                placeholder={
-                                  LoadSearchPests
-                                    ? "กรอกชื่อศัตรูพืช"
-                                    : "กำลังโหลด"
-                                }
-                                ref={NameInsect}
-                                readOnly={!LoadSearchPests ? true : null}
-                                disabled={!LoadSearchPests ? true : null}
-                                onBlur={(e) => {
-                                    ValidateChemicalAndPest()
-                                    containsHidePopup(ListSearchPests.current , e.target)
-                                }}
-                              ></input>
+                            <input
+                              onChange={(e) => {
+                                handleInputChange(e, "NameInsect");
+                                if (LoadSearchPests) {
+                                  SearchPests(e);
+                                }                                
+                              }}
+                              onMouseDown={LoadSearchPests ? SearchPests : null}
+                              placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
+                              ref={NameInsect}
+                              readOnly={!LoadSearchPests ? true : null}
+                              disabled={!LoadSearchPests ? true : null}
+                              onBlur={(e) => {
+                                ValidateChemicalAndPest();
+                                containsHidePopup(ListSearchPests.current, e.target);
+                              }}
+                            />
                               <div
                                 ref={ListSearchPests}
                                 remove=""

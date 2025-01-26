@@ -14,28 +14,144 @@
     margin: 20px 0;
 }
 
+/* ปุ่มเลือกข้อมูล */
 .option-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #6dca6d;
-    border: none;
-    border-radius: 5px;
+    display: flex; /* ใช้ Flexbox */
+    justify-content: center; /* จัดข้อความให้อยู่กลางแนวนอน */
+    align-items: center; /* จัดข้อความให้อยู่กลางแนวตั้ง */
+    text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+    padding: 10px; /* ขนาด Padding */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    font-weight: bold; /* ตัวอักษรหนา */
+    color: #333; /* สีตัวอักษร */
+    background-color: #6dca6d; /* สีพื้นหลังของปุ่ม */
+    border: 1px solid #58c458; /* เส้นขอบบาง */
+    border-radius: 25px; /* ทำให้ปุ่มมุมมน */
     cursor: pointer;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-        background-color: #46c246;
-    }
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* เงาเล็กน้อย */
+    width: 250px; /* ความกว้างคงที่ */
+    height: 60px; /* ความสูงคงที่ */
+    line-height: 1.2; /* ระยะห่างระหว่างบรรทัด */
+    word-wrap: break-word; /* บังคับให้ข้อความห่อถ้ามันยาว */
 }
 
+/* เอฟเฟกต์ Hover */
+.option-btn:hover {
+    background-color: #e6e6e6; /* สีพื้นหลังเมื่อ Hover */
+    transform: translateY(-2px); /* ขยับขึ้นเล็กน้อยเมื่อ Hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15); /* เพิ่มเงา */
+}
+
+/* กล่องปุ่ม */
+.button-container {
+    display: flex; /* ใช้ Flexbox */
+    gap: 20px; /* ระยะห่างระหว่างปุ่ม */
+    justify-content: center; /* จัดปุ่มให้อยู่ตรงกลาง */
+    align-items: center; /* จัดปุ่มในแนวระนาบ */
+    flex-wrap: wrap; /* หากหน้าจอเล็ก ปุ่มจะจัดในหลายบรรทัด */
+    margin-top: 20px; /* เพิ่มระยะห่างจากส่วนบน */
+}
+
+
+
+
+
+/* ตาราง Ranking */
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้ตาราง */
+    border-radius: 8px; /* เพิ่มมุมมน */
+    overflow: hidden; /* ป้องกันขอบล้น */
+}
+
+.ranking-table th {
+    background-color: #4CAF50; /* สีพื้นหลังของหัวตาราง */
+    color: #fff; /* สีตัวอักษร */
+    font-weight: bold;
+    font-size: 18px; /* ขนาดตัวอักษรหัวข้อ */
+    text-align: center; /* จัดข้อความให้อยู่กลาง */
+    padding: 15px; /* ระยะห่างในเซลล์ */
+}
+
+.ranking-table td {
+    padding: 15px;
+    border: 1px solid #ddd; /* เส้นแบ่งระหว่างเซลล์ */
+    font-size: 16px; /* ขนาดตัวอักษร */
+    text-align: center; /* จัดข้อความให้อยู่กลาง */
+    color: #333; /* สีตัวอักษร */
+}
+
+.ranking-table td:first-child,
+.ranking-table th:first-child {
+    text-align: center; /* จัดคอลัมน์ "อันดับ" ให้อยู่ตรงกลาง */
+}
+
+.ranking-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* สีพื้นหลังสลับแถว */
+}
+
+.ranking-table tr:hover {
+    background-color: #e7ffe7; /* สีพื้นหลังเมื่อชี้เมาส์ */
+}
+
+/* หัวข้อของตาราง */
+.chart-heading {
+    font-size: 22px; /* ขนาดตัวอักษร */
+    font-weight: bold; /* ตัวอักษรหนา */
+    color: #4CAF50; /* สีเขียว */
+    text-align: center; /* จัดให้อยู่กลาง */
+    margin-bottom: 20px; /* ระยะห่างด้านล่าง */
+}
+
+/* กล่องแสดงผล */
 .result-display {
     margin-top: 20px;
     padding: 20px;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    border-radius: 10px; /* มุมมน */
+    background-color: #fdfdfd; /* สีพื้นหลัง */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
 }
+
+/* สไตล์ข้อความเพิ่มเติม */
+.result-display h2 {
+    font-size: 20px; /* ขนาดตัวอักษรหัวข้อ */
+    font-weight: bold; /* ตัวอักษรหนา */
+    margin-bottom: 15px; /* ระยะห่างด้านล่าง */
+    color: #333; /* สีข้อความ */
+}
+
+.result-display ul {
+    list-style: none; /* ลบสัญลักษณ์จุดหน้าข้อความ */
+    padding: 0;
+    margin: 0;
+}
+
+.result-display li {
+    font-size: 16px; /* ขนาดตัวอักษร */
+    margin-bottom: 10px; /* ระยะห่างระหว่างรายการ */
+    color: #555; /* สีข้อความ */
+}
+
+/* กล่องจำนวนเกษตรกรทั้งหมด */
+.total-farmers {
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 
 .chart-container {
     margin: 20px 0;
@@ -82,3 +198,34 @@
     margin: 0; /* ลบ Margin ทั้งหมด */
     padding: 0; /* ลบ Padding ทั้งหมด */
 }
+
+/* ตารางหมอพืชและที่ปรึกษา */
+.doctor-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    background-color: #fff; /* พื้นหลังสีขาว */
+    border-radius: 8px; /* มุมมน */
+    overflow: hidden; /* ป้องกันขอบล้น */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเล็กน้อย */
+}
+
+.doctor-table th {
+    background-color: #4CAF50; /* สีเขียวหัวตาราง */
+    color: #fff; /* ตัวอักษรสีขาว */
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 15px; /* ระยะห่างในเซลล์หัวตาราง */
+}
+
+.doctor-table td {
+    padding: 12px 15px; /* ระยะห่างในเซลล์ */
+    text-align: center; /* ข้อความจัดตรงกลาง */
+    border: 1px solid #ddd; /* เส้นขอบระหว่างเซลล์ */
+    color: #333; /* สีตัวอักษร */
+}
+
+
+
+
