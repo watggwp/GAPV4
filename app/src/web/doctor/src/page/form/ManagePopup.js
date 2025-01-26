@@ -432,7 +432,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
 
             try {
                 for(let x in MenuBTManage) {
-                    MenuBTManage[x].current.removeAttribute("select")
+                    MenuBTManage[x].current && MenuBTManage[x].current.removeAttribute("select")
                 }
                 MenuBTManage[type_page].current.setAttribute("select" , "")
             } catch(e) {}
