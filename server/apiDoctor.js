@@ -2852,7 +2852,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     const Check = req.body.type == "plant" ? { name : 1 , type_plant : 1 } : 
                                     req.body.type == "fertilizer" ? { name : 1 , name_formula : 1 } : 
                                     req.body.type == "chemical" ? { name : 1 , name_formula : 1 } :
-                                    req.body.type == "source" ? { name : 1 } : ""
+                                    req.body.type == "source" ? { name : 1 } : 
+                                    req.body.type == "pest" ? { pest_name : 1 } : 
+                                    ""
                     if(!Check || !Check[Data[0]]) return null
                     else if(Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE '${Data[1]}' )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
                     else return `INSTR( ${Data[0]} , '${Data[1]}' )`

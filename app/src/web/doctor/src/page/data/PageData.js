@@ -270,13 +270,22 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                     DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
                                 }</span>
                                 <div className="row">
-                                    <input onChange={(e)=>searchList(e.target , e.target.value , "name")} type="search" ref={SearchInput} placeholder={
-                                                DataProcess.get("type") === "plant" ? "ชื่อพืช เช่น เมล่อน" : 
-                                                DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" :
-                                                DataProcess.get("type") === "fertilizer" ? "ชื่อปุ๋ย/ตรา เช่น กระต่าย" : 
-                                                DataProcess.get("type") === "chemical" ? "ชื่อสารเคมี เช่น พรีวาธอน" :
-                                                DataProcess.get("type") === "source" ? "แหล่งที่ซื่อ เช่น สหกรณ์แม่เตียน" : ""
-                                            } defaultValue={DataProcess.get("name")}></input>
+                                    <input 
+                                        onChange={(e)=>searchList(e.target , e.target.value , 
+                                            DataProcess.get("type") === "pest" ?
+                                            "pest_name" : 
+                                            "name"
+                                        )} 
+                                        type="search" ref={SearchInput} 
+                                        placeholder={
+                                            DataProcess.get("type") === "plant" ? "ชื่อพืช เช่น เมล่อน" : 
+                                            DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" :
+                                            DataProcess.get("type") === "fertilizer" ? "ชื่อปุ๋ย/ตรา เช่น กระต่าย" : 
+                                            DataProcess.get("type") === "chemical" ? "ชื่อสารเคมี เช่น พรีวาธอน" :
+                                            DataProcess.get("type") === "source" ? "แหล่งที่ซื่อ เช่น สหกรณ์แม่เตียน" : ""
+                                        } 
+                                        defaultValue={DataProcess.get("name")}
+                                    />
                                 </div>
                                 { 
                                     DataProcess.get("type") === "plant" ?
