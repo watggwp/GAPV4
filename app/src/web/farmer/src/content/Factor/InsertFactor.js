@@ -698,7 +698,7 @@ const PopupInsertFactor = ({
       } else {
         console.log("Matched entry:", matchedEntry);
       }
-    } , 10)
+    } , 0)
   };
 
 
@@ -1026,6 +1026,7 @@ const PopupInsertFactor = ({
                                 readOnly={!LoadSearchName ? true : null}
                                 disabled={!LoadSearchName ? true : null}
                                 onBlur={(e) => {
+                                  console.log("name")
                                   ValidateChemicalAndPest()
                                   containsHidePopup(ListSearchName.current, e.target);
                                 }}
@@ -1124,6 +1125,7 @@ const PopupInsertFactor = ({
                               readOnly={!LoadSearchPests ? true : null}
                               disabled={!LoadSearchPests ? true : null}
                               onBlur={(e) => {
+                                console.log("pest")
                                 ValidateChemicalAndPest();
                                 containsHidePopup(ListSearchPests.current, e.target);
                               }}
