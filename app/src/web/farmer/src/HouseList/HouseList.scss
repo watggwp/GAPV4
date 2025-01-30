@@ -90,9 +90,9 @@
                 font-size: 14px;
                 font-weight: bold;
                 color: white;
-                padding: 0 5px; /* ปรับ padding ให้ข้อความไม่ถูกทับ */
+                padding: 0; /* ปรับ padding ให้ข้อความไม่ถูกทับ */
                 box-sizing: border-box;
-                justify-content: space-between; /* ทำให้ข้อความชิดซ้าย/ขวา */
+                justify-content: start; /* ทำให้ข้อความชิดซ้าย/ขวา */
             
                 .toggle-text {
                     position: relative;
