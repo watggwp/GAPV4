@@ -23,6 +23,39 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
     }, []);
 
     // Load Data List
+    // const ListPlantForm = async () => {
+    //     setLoading(false);
+    //     const auth = await clientMo.post('/api/farmer/formplant/select', { id_farmhouse: id_house });
+    //     if (await CloseAccount(auth)) {
+    //         setBodyList(JSON.parse(auth).map((val, key) => 
+    //             <div key={val.id} className={`plant-content ${val.state_status == 2 ? "submit" : ""}`} style={ 
+    //                 (val.report || val.form || val.plant || val.success) && val.state_status < 2 ? {
+    //                     marginTop: "25px",
+    //                     position: "relative"
+    //                 } : {}}>
+    //                 {(val.report || val.form || val.plant || val.success) && val.state_status < 2 ?
+    //                     <div className="report-of-doctor" style={{
+    //                         position: "absolute",
+    //                         bottom: "100%",
+    //                         right: "0.5em"
+    //                     }}>
+    //                         <span style={{
+    //                             backgroundColor: "red",
+    //                             padding: "1px 4px",
+    //                             borderRadius: "5px",
+    //                             fontWeight: "900",
+    //                             color: "white"
+    //                         }}>
+    //                             {val.doctor_role === 1 && val.consultant_role === 1
+    //                                 ? "มีข้อความจากหมอพืชและที่ปรึกษาเกษตรกร"
+    //                                 : val.doctor_role === 1
+    //                                     ? "มีข้อความจากหมอพืช"
+    //                                     : val.consultant_role === 1
+    //                                         ? "มีข้อความจากที่ปรึกษาเกษตรกร"
+    //                                         : ""}
+    //                         </span>
+    //                     </div> : <></>
+    //                 }
     const ListPlantForm = async () => {
         setLoading(false);
         const auth = await clientMo.post('/api/farmer/formplant/select', { id_farmhouse: id_house });
@@ -45,7 +78,7 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
                                 borderRadius: "5px",
                                 fontWeight: "900",
                                 color: "white"
-                            }}>มีข้อความจากหมอพืช</span>
+                            }}>มีข้อความจากเจ้าหน้าที่</span>
                         </div> : <></>
                     }
                     <div className="top">

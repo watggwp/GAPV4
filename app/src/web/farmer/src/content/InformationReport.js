@@ -79,15 +79,14 @@ const InformationReport = ({ setPage }) => {
                                     </tbody>
                                 </table>
                                 <ul>
-                                <div className="total-farmers">
-                                    <strong>จำนวนเกษตรกรในพื้นที่</strong>{" "}
-                                    {statistics?.farmerStatistics?.[0]?.totalFarmers || 0} คน
-                                </div>
+                                    <div className="total-farmers">
+                                        <strong>จำนวนเกษตรกรในพื้นที่</strong>{" "}
+                                        {statistics?.farmerStatistics?.[0]?.totalFarmers || 0} คน
+                                    </div>
                                 </ul>
                             </div>
-                        )}
-
-                        {view === "doctors" && (statistics?.doctors?.length > 0 || statistics?.advisors?.length > 0) && (
+                        )}  
+                        {view === "doctors" && (statistics?.doctors?.length > 0 || statistics?.consultants?.length > 0) && (
                             <div>
                                 <h2>รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</h2>
                                 <table className="doctor-table">
@@ -98,27 +97,36 @@ const InformationReport = ({ setPage }) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {statistics?.doctors?.map((doctor) => (
-                                            <tr key={doctor.id_doctor}>
-                                                <td>{doctor.fullname_doctor}</td>
-                                                <td>หมอพืช</td>
-                                            </tr>
-                                        ))}
-                                        {statistics?.advisors?.map((advisor) => (
-                                            <tr key={advisor.id_advisor}>
-                                                <td>{advisor.fullname_advisor}</td>
-                                                <td>ที่ปรึกษาเกษตรกร</td>
+                                        {Object.values(
+                                            [...statistics?.doctors, ...statistics?.consultants].reduce((acc, person) => {
+                                                if (!acc[person.id_doctor]) {
+                                                    acc[person.id_doctor] = {
+                                                        name: person.fullname_doctor,
+                                                        roles: new Set(),
+                                                    };
+                                                }
+                                                if (statistics?.doctors.some(d => d.id_doctor === person.id_doctor)) {
+                                                    acc[person.id_doctor].roles.add("หมอพืช");
+                                                }
+                                                if (statistics?.consultants.some(c => c.id_doctor === person.id_doctor)) {
+                                                    acc[person.id_doctor].roles.add("ที่ปรึกษาเกษตรกร");
+                                                }
+                                                return acc;
+                                            }, {})
+                                        ).map((person) => (
+                                            <tr key={person.name}>
+                                                <td>{person.name}</td>
+                                                <td>{[...person.roles].join(", ")}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         )}
-
                         {view === "ranking" && statistics?.farmerStatistics?.length === 0 && (
                             <p>ไม่มีข้อมูลเกษตรกรและพืชในพื้นที่</p>
                         )}
-                        {view === "doctors" && statistics?.doctors?.length === 0 && statistics?.advisors?.length === 0 && (
+                        {view === "doctors" && statistics?.doctors?.length === 0 && statistics?.consultants?.length === 0 && (
                             <p>ไม่มีรายชื่อหมอพืชหรือที่ปรึกษาเกษตรกรในพื้นที่</p>
                         )}
                     </div>
@@ -127,5 +135,4 @@ const InformationReport = ({ setPage }) => {
         </div>
     );
 };
-
 export default InformationReport;

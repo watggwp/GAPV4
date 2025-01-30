@@ -88,6 +88,8 @@ const PopupInsertFactor = ({
     });
     if (await CloseAccount(Data, setPage)) {
       const LIST = JSON.parse(Data);
+      LIST.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+      LIST.sort((a, b) => a.name_formula.localeCompare(b.name_formula, 'th'));
       setDataFactor(LIST);
       setLoadName(true);
       setLoadNameMain(true);
@@ -100,7 +102,14 @@ const PopupInsertFactor = ({
     setLoadPests(false);
     const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
     if (await CloseAccount(Data, setPage)) {
-      const LIST = JSON.parse(Data);
+      let LIST = JSON.parse(Data);
+      LIST = LIST.map((item) => ({
+        ...item,
+        pest_name: item.pest_name.trim() 
+    }));
+    const collator = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
+    LIST.sort((a, b) => collator.compare(a.pest_name, b.pest_name));
+
       setDataPests(LIST);
       setLoadPests(true);
       return LIST;
@@ -196,6 +205,7 @@ const PopupInsertFactor = ({
       let search = DataPests.filter(
         (val) => val.pest_name.indexOf(e.target.value) >= 0
       ).map((val) => val.pest_name);
+      search.sort((a, b) => a.localeCompare(b, 'th'));
       const setSearch = ChangeData(search);
       if (setSearch.length !== 0) {
         setListPests(
@@ -469,7 +479,9 @@ const PopupInsertFactor = ({
             val.name_formula.indexOf(NameMainFactor.current.value) >= 0
         )
         .map((val) => val.name);
-      const setSearch = ChangeData(search);
+        search.sort((a, b) => a.localeCompare(b, 'th'));
+      const setSearch = ChangeData(search) ;
+      console.log(setSearch)
       if (setSearch.length !== 0)
         setListName(
           setSearch.map((val, key) => (
@@ -483,7 +495,7 @@ const PopupInsertFactor = ({
           ))
         );
       else ResetListNamePopup();
-    } catch (e) {}
+    } catch (e) {console.log(e)}
 
     type_path === "z" ? ChangeFerti() : ChangeChemi();
   };
@@ -491,6 +503,7 @@ const PopupInsertFactor = ({
  
 
   const SetTextInputName = (name) => {
+    console.log(name)
     NameFactor.current.value = name;
     NameFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
     type_path === "z" ? ChangeFerti() : ChangeChemi();
@@ -517,6 +530,7 @@ const PopupInsertFactor = ({
             val.name.indexOf(NameFactor.current.value) >= 0
         )
         .map((val) => val.name_formula);
+        search.sort((a, b) => a.localeCompare(b, 'th'));
       const setSearch = ChangeData(search);
       if (setSearch.length !== 0) {
         if (setSearch.length === 1 && e.target.selectBt) {

@@ -75,7 +75,10 @@ const List = ({liff , setPage , DetailFetchList}) => {
 
     const FetchData = async () => {
         const result = await clientMo.get(`/api/farmer/report/list?id_farmhouse=${DetailFetchList.id_house}&id_plant=${DetailFetchList.id_plant}&type=${DetailFetchList.type}`)
+        console.log("API Response:", result); // Debug ผลลัพธ์ API
         if(await CloseAccount(result , setPage)) {
+            const data = JSON.parse(result);
+            console.log("Processed Data:", data);
             setBody(JSON.parse(result).map((val , key)=>
                 <div className="list-in-report" key={key}>
                     <div className="row">
@@ -94,12 +97,20 @@ const List = ({liff , setPage , DetailFetchList}) => {
                             <div>{val.report_text}</div>
                         </div>
                     </div>
-                    <div className="row">
+                    {/* <div className="row">
                         <div className="in-row">
                             <span>ผู้ส่งเสริม</span>
                             <div>{val.name_doctor}</div>
                         </div>
+                    </div> */}
+                    <div className="row">
+                    <div className="in-row">
+                        <span>
+                            {val.doctor_role === 1 ? "หมอพืช" : val.consultant_role === 1 ? "ที่ปรึกษาเกษตรกร" : "ผู้ส่งเสริม"}
+                        </span>
+                        <div>{val.name_doctor}</div>
                     </div>
+                </div>
                     { val.image_path ? 
                     <div className="row">
                         <div className="frame-image">
