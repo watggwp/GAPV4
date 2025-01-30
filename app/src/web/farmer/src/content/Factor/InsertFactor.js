@@ -534,13 +534,13 @@ const PopupInsertFactor = ({
       const setSearch = ChangeData(search);
       if (setSearch.length !== 0) {
         if (setSearch.length === 1 && e.target.selectBt) {
-          SetTextInputOrther(setSearch[0]);
+          SetTextInputOther(setSearch[0]);
         } else {
           setListOther(
             setSearch.map((val, key) => (
               <span
                 search_other=""
-                onClick={() => SetTextInputOrther(val)}
+                onClick={() => SetTextInputOther(val)}
                 key={key}
               >
                 {val}
@@ -554,7 +554,7 @@ const PopupInsertFactor = ({
     type_path === "z" ? ChangeFerti() : ChangeChemi();
   };
 
-  const SetTextInputOrther = (name) => {
+  const SetTextInputOther = (name) => {
     NameMainFactor.current.value = name;
     NameMainFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
     type_path === "z" ? ChangeFerti() : ChangeChemi();
@@ -1008,24 +1008,24 @@ const PopupInsertFactor = ({
                           </span>
                           <div className="content-colume-input">
                             <div className="input-select-popup">
-                            <input
-                              onChange={(e) => {
-                                handleInputChange(e, "NameFactor");
-                                if (LoadSearchName) {
-                                  SearchNameFactor(e);
-                                }
-                                
-                              }}
-                              onMouseDown={LoadSearchName ? SearchNameFactor : null}
-                              placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
-                              ref={NameFactor}
-                              readOnly={!LoadSearchName ? true : null}
-                              disabled={!LoadSearchName ? true : null}
-                              onBlur={(e) => {
-                                ValidateChemicalAndPest();
-                                containsHidePopup(ListSearchName.current, e.target);
-                              }}
-                            />
+                              <input
+                                onChange={(e) => {
+                                  handleInputChange(e, "NameFactor");
+                                  if (LoadSearchName) {
+                                    SearchNameFactor(e);
+                                  }
+                                  
+                                }}
+                                onMouseDown={LoadSearchName ? SearchNameFactor : null}
+                                placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
+                                ref={NameFactor}
+                                readOnly={!LoadSearchName ? true : null}
+                                disabled={!LoadSearchName ? true : null}
+                                onBlur={(e) => {
+                                  !ListSearchName.contains(e.target) && ValidateChemicalAndPest();
+                                  containsHidePopup(ListSearchName.current, e.target);
+                                }}
+                              />
                               <div
                                 ref={ListSearchName}
                                 remove=""
