@@ -655,46 +655,50 @@ const PopupInsertFactor = ({
   //     }
   // };
 
+  const debounce = useRef(0)
   const ValidateChemicalAndPest = () => {
-    const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
-    const pestValue = NameInsect.current?.value.trim();
-    const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
+    clearTimeout(debounce.current)
+    debounce.current = setTimeout(() => {
+      const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
+      const pestValue = NameInsect.current?.value.trim();
+      const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
 
-    const matchedDateSafe = pestChemicalData.find(
-      (entry) => entry.chemical_name === chemicalValue
-    );
-    console.log(matchedDateSafe)
-    matchedDateSafe && setDateSafe(matchedDateSafe.safe_days)
-
-    // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
-    if (!chemicalValue || !pestValue || !plantNameValue) {
-        console.warn("Missing required inputs:", {
-            chemicalValue,
-            pestValue,
-            plantNameValue
-        });
-        return;
-    }
-
-    // ตรวจสอบความสัมพันธ์ใน pestChemicalData
-    const matchedEntry = pestChemicalData.find(
-      (entry) =>
-        entry.pest_name === pestValue && entry.chemical_name === chemicalValue
-    );
-
-    if (!matchedEntry) {
-      console.warn("No match found in pestChemicalData for:", {
-        pestValue,
-        chemicalValue,
-        plantNameValue
-      });
-      setPopupMessage(
-        `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
+      const matchedDateSafe = pestChemicalData.find(
+        (entry) => entry.chemical_name === chemicalValue
       );
-      setShowPopup(true);
-    } else {
-      console.log("Matched entry:", matchedEntry);
-    }
+      console.log(matchedDateSafe)
+      matchedDateSafe && setDateSafe(matchedDateSafe.safe_days)
+
+      // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
+      if (!chemicalValue || !pestValue || !plantNameValue) {
+          console.warn("Missing required inputs:", {
+              chemicalValue,
+              pestValue,
+              plantNameValue
+          });
+          return;
+      }
+
+      // ตรวจสอบความสัมพันธ์ใน pestChemicalData
+      const matchedEntry = pestChemicalData.find(
+        (entry) =>
+          entry.pest_name === pestValue && entry.chemical_name === chemicalValue
+      );
+
+      if (!matchedEntry) {
+        console.warn("No match found in pestChemicalData for:", {
+          pestValue,
+          chemicalValue,
+          plantNameValue
+        });
+        setPopupMessage(
+          `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
+        );
+        setShowPopup(true);
+      } else {
+        console.log("Matched entry:", matchedEntry);
+      }
+    } , 0)
   };
 
 
@@ -1022,8 +1026,7 @@ const PopupInsertFactor = ({
                                 readOnly={!LoadSearchName ? true : null}
                                 disabled={!LoadSearchName ? true : null}
                                 onBlur={(e) => {
-                                  console.log(e.target)
-                                  !ListSearchName.current.contains(e.target) && ValidateChemicalAndPest();
+                                  ValidateChemicalAndPest()
                                   containsHidePopup(ListSearchName.current, e.target);
                                 }}
                               />
