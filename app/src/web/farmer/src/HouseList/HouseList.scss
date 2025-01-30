@@ -90,7 +90,7 @@
                 font-size: 14px;
                 font-weight: bold;
                 color: white;
-                padding: 0 8px; /* ปรับ padding ให้ข้อความไม่ถูกทับ */
+                padding: 0 5px; /* ปรับ padding ให้ข้อความไม่ถูกทับ */
                 box-sizing: border-box;
                 justify-content: space-between; /* ทำให้ข้อความชิดซ้าย/ขวา */
             
@@ -119,7 +119,7 @@
                     }
             
                     .toggle-text {
-                        margin-left: 6px; /* ขยับ ON ไปซ้าย */
+                        margin-right: 6px; /* ขยับ ON ไปซ้าย */
                         content: "ON";
                     }
                 }
@@ -128,11 +128,11 @@
                     background-color: #dc3545;
             
                     .toggle-circle {
-                        transform: translate(2px, -50%);
+                        transform: translate(0px, -50%);
                     }
             
                     .toggle-text {
-                        margin-right: 6px; /* ขยับ OFF ไปขวา */
+                        margin-left: 6px; /* ขยับ OFF ไปขวา */
                         content: "OFF";
                     }
                 }

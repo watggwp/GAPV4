@@ -81,9 +81,9 @@ const HouseList = () => {
                                     <img src={house.img_house} alt={house.name_house} />
                                     <div className="house-name">{house.name_house}</div>
                                     <div className={`toggle-switch ${house.isOpen ? "on" : "off"}`} onClick={() => confirmToggle(house)}>
-    <span className="toggle-text">{house.isOpen ? "ON" : "OFF"}</span>
-    <div className="toggle-circle"></div>
-</div>
+                                    <span className="toggle-text">{house.isOpen ? "ON" : "OFF"}</span>
+                                    <div className="toggle-circle"></div>
+                                </div>
 
 
 
