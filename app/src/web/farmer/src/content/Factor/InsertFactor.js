@@ -1022,7 +1022,7 @@ const PopupInsertFactor = ({
                                 readOnly={!LoadSearchName ? true : null}
                                 disabled={!LoadSearchName ? true : null}
                                 onBlur={(e) => {
-                                  !ListSearchName.contains(e.target) && ValidateChemicalAndPest();
+                                  !ListSearchName.current.contains(e.target) && ValidateChemicalAndPest();
                                   containsHidePopup(ListSearchName.current, e.target);
                                 }}
                               />
