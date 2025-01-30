@@ -659,6 +659,7 @@ const PopupInsertFactor = ({
   const ValidateChemicalAndPest = () => {
     clearTimeout(debounce.current)
     debounce.current = setTimeout(() => {
+      document.activeElement.blur()
       const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
       const pestValue = NameInsect.current?.value.trim();
       const plantNameValue = currentPlantPlantName?.trim(); // ชนิดพืชที่ได้จากไอดีฟอร์ม
@@ -1026,7 +1027,6 @@ const PopupInsertFactor = ({
                                 readOnly={!LoadSearchName ? true : null}
                                 disabled={!LoadSearchName ? true : null}
                                 onBlur={(e) => {
-                                  console.log("name")
                                   ValidateChemicalAndPest()
                                   containsHidePopup(ListSearchName.current, e.target);
                                 }}
@@ -1125,7 +1125,6 @@ const PopupInsertFactor = ({
                               readOnly={!LoadSearchPests ? true : null}
                               disabled={!LoadSearchPests ? true : null}
                               onBlur={(e) => {
-                                console.log("pest")
                                 ValidateChemicalAndPest();
                                 containsHidePopup(ListSearchPests.current, e.target);
                               }}
