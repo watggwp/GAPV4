@@ -698,7 +698,7 @@ const PopupInsertFactor = ({
       } else {
         console.log("Matched entry:", matchedEntry);
       }
-    } , 0)
+    } , 10)
   };
 
 
