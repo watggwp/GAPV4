@@ -313,6 +313,7 @@ const ManageGroup = ({ fetchGroups }) => {
                             <div className="table-section">
                                 <span className="table-title">วันที่ปลอดภัย</span>
                                 <input
+                                    value={safeDays.data}
                                     onChange={(e) => setSafeDays((data) => ({
                                         ...data,
                                         data : e.target.value
