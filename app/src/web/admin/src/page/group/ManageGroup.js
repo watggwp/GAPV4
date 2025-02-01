@@ -224,7 +224,9 @@ const ManageGroup = ({ fetchGroups }) => {
             .map(({ pest_id , pest_name }) => ({ id : pest_id , label : pest_name }))
     , [pests , filterType])
 
-    const PestValue = useMemo(() => PestsData.find(({ id }) => id === plantID) || null , [PestsData , plantID])
+    const PestValue = useMemo(() => 
+        PestsData.find(({ id }) => id === pestID) || null , [PestsData , pestID]
+    )
 
     return (
         <>
