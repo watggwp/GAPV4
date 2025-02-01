@@ -35,6 +35,7 @@ const ManageGroup = ({ fetchGroups }) => {
                 data : result.safe_days,
                 status : "finish"
             })
+            setFilterType(result.type_pest)
 
             setLoading(false);
         } catch (error) {

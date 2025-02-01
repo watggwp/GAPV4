@@ -804,8 +804,10 @@ app.get('/api/admin/profile/get', (req, res) => {
             pc.safe_days,
             pc.pest_id as pest_id,
             pc.chemical_id as chemical_id,
-            pc.plant_id as plant_id
+            pc.plant_id as plant_id,
+            pt.type_pest as type_pest
           FROM pest_chemical AS pc
+          LEFT JOIN pests pt ON pt.pest_id = pc.pest_id
           WHERE pc.id = ?
           `,
           [req.body.id] ,
