@@ -16,8 +16,8 @@ const ManageGroup = ({ fetchGroups }) => {
     const [ foundCurrentSafeDate , setFoundCurrentSafeDate ] = useState(false)
 
     const [ filterType, setFilterType ] = useState("");
-    const [ searchPest, setSearchPest ] = useState("");
-    const [ searchChemical, setSearchChemical ] = useState("");
+    const [ pestID, setPestID ] = useState("");
+    const [ chemicalID, setChemicalID ] = useState("");
     const [ plantID, setPlantID ] = useState("");
 
     const [ loading, setLoading ] = useState(popupDataManage.type === "edit");
@@ -28,8 +28,8 @@ const ManageGroup = ({ fetchGroups }) => {
             const response = await clientMo.post("/api/admin/group/get", { id: popupDataManage.metadata?.id });
             const result = JSON.parse(response)[0];
 
-            setSearchPest(result.pest_name)
-            setSearchChemical(result.chemical_name)
+            setPestID(result.pest_id)
+            setChemicalID(result.chemical_id)
             setPlantID(result.plant_id)
             setSafeDays({
                 data : result.safe_days,
@@ -68,22 +68,20 @@ const ManageGroup = ({ fetchGroups }) => {
     }, []);
 
     const CheckEmply = useCallback(() => {
-        const chemical_id = chemicals.find(chemical => chemical.name === searchChemical)?.id
-        const pest_id = pests.find(pest => pest.pest_name === searchPest)?.pest_id
 
         setStateOnBt(false)
-        if (chemical_id && pest_id && plantID && safeDays.data) {
+        if (chemicalID && pestID && plantID && safeDays.data) {
             setStateOnBt(true)
             return {
-                pest_id: pest_id,
-                chemical_id: chemical_id,
+                pest_id: pestID,
+                chemical_id: chemicalID,
                 plant_id: plantID,
                 safe_days: safeDays.data
             };
         } else {
             return false;
         }
-    } , [chemicals , pests , safeDays.data , searchChemical , searchPest , plantID])
+    } , [ safeDays.data , chemicalID , pestID , plantID])
 
     const onSubmit = async (e) => {
         const Data = CheckEmply();
@@ -149,38 +147,39 @@ const ManageGroup = ({ fetchGroups }) => {
     };
 
     const onGetDateSafe = useCallback( async () => {
-        const chemical_id = chemicals.find(chemical => chemical.name === searchChemical)?.id
         setSafeDays((data) => ({
             ...data,
             status : "loading"
         }))
 
-        const response = await clientMo.post("/api/admin/group/search/safedate", {
-            chemical_id,
-            plantID
-        });
-
         let newDateSafe = 0
-        try {
-            const { status , data } = JSON.parse(response)
+        if(plantID && chemicalID) {
+            const response = await clientMo.post("/api/admin/group/search/safedate", {
+                chemicalID,
+                plantID
+            });
 
-            switch(status) {
-                case 200 :
-                    newDateSafe = data[0]["safe_days"]
-                    setFoundCurrentSafeDate(true)
-                    break;
-                default :
-                    break
+            try {
+                const { status , data } = JSON.parse(response)
+    
+                switch(status) {
+                    case 200 :
+                        newDateSafe = data[0]["safe_days"]
+                        setFoundCurrentSafeDate(true)
+                        break;
+                    default :
+                        break
+                }
+            } catch(err) {
+                console.log(err)
             }
-        } catch(err) {
-            console.log(err)
         }
 
         setSafeDays({
             data : newDateSafe,
             status : "finish"
         })
-    } , [chemicals , searchChemical , plantID])
+    } , [chemicalID , plantID])
 
     useEffect(() => {
         popupDataManage.type === "edit" && requestGroup()
@@ -209,6 +208,23 @@ const ManageGroup = ({ fetchGroups }) => {
     , [plants])
 
     const PlantValue = useMemo(() => PlantsData.find(({ id }) => id === plantID) || null , [PlantsData , plantID])
+    
+    const ChemicalsData = useMemo(() => 
+        chemicals
+            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+            .map(({ id , name }) => ({ id , label : name }))
+    , [chemicals])
+
+    const ChemicalValue = useMemo(() => ChemicalsData.find(({ id }) => id === chemicalID) || null , [ChemicalsData , chemicalID])
+    
+    const PestsData = useMemo(() => 
+        plants
+            .filter((pest) => (filterType === "" || pest.type_pest === filterType))
+            .sort((a, b) => a.pest_name.localeCompare(b.pest_name, 'th'))
+            .map(({ pest_id , pest_name }) => ({ id : pest_id , label : pest_name }))
+    , [plants , filterType])
+
+    const PestValue = useMemo(() => PestsData.find(({ id }) => id === plantID) || null , [PestsData , plantID])
 
     return (
         <>
@@ -248,18 +264,26 @@ const ManageGroup = ({ fetchGroups }) => {
 
                             <div className="table-section">
                                 <span className="table-title">ชื่อโรคพืช / ศัตรูพืช</span>
-                                <input
+                                <Autocomplete
+                                    disablePortal
+                                    onChange={(e , value) => setPestID(value?.id || null)}
+                                    value={PestValue}
+                                    isOptionEqualToValue={(options , value) => options?.id === value.id}
+                                    options={PestsData}
+                                    renderInput={(params) => <TextField {...params} />}
+                                />
+                                {/* <input
                                     type="text"
                                     placeholder="ค้นหา..."
-                                    value={searchPest}
-                                    onChange={(e) => setSearchPest(e.target.value)}
+                                    value={pestID}
+                                    onChange={(e) => setPestID(e.target.value)}
                                     list="pest-options"
                                 />
                                 <datalist id="pest-options">
                                     {
                                         pests
                                             .filter((pest) => (filterType === "" || pest.type_pest === filterType))
-                                            .filter((pest) => pest.pest_name.includes(searchPest))
+                                            .filter((pest) => pest.pest_name.includes(pestID))
                                             .sort((a, b) => a.pest_name.localeCompare(b.pest_name, 'th'))
                                             .map((pest, index) => (
                                                 <option key={index} value={pest.pest_name}>
@@ -267,23 +291,31 @@ const ManageGroup = ({ fetchGroups }) => {
                                                 </option>
                                             ))
                                     }
-                                </datalist>
+                                </datalist> */}
                             </div>
 
 
                             <div className="table-section">
                                 <span className="table-title">สารเคมี</span>
-                                <input
+                                <Autocomplete
+                                    disablePortal
+                                    onChange={(e , value) => setChemicalID(value?.id || null)}
+                                    value={ChemicalValue}
+                                    isOptionEqualToValue={(options , value) => options?.id === value.id}
+                                    options={ChemicalsData}
+                                    renderInput={(params) => <TextField {...params} />}
+                                />
+                                {/* <input
                                     type="text"
                                     placeholder="ค้นหา..."
-                                    value={searchChemical}
-                                    onChange={(e) => setSearchChemical(e.target.value)}
+                                    value={chemicalID}
+                                    onChange={(e) => setChemicalID(e.target.value)}
                                     list="chemical-options"
                                 />
                                 <datalist id="chemical-options">
                                     {
                                         chemicals
-                                            .filter((chemical) => chemical.name.includes(searchChemical))
+                                            .filter((chemical) => chemical.name.includes(chemicalID))
                                             .sort((a, b) => a.name.localeCompare(b.name, 'th'))
                                             .map((chemical, index) => (
                                                 <option key={index} value={chemical.name}>
@@ -291,7 +323,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                                 </option>
                                             ))
                                     }
-                                </datalist>
+                                </datalist> */}
                             </div>
 
                             <div className="table-section">

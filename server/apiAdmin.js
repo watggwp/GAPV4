@@ -745,12 +745,10 @@ app.get('/api/admin/profile/get', (req, res) => {
           SELECT 
             pc.id,
             pc.safe_days,
-            p.pest_name AS pest_name,
-            c.name AS chemical_name,
+            pc.pest_id as pest_id,
+            pc.chemical_id as chemical_id,
             pc.plant_id as plant_id
           FROM pest_chemical AS pc
-          INNER JOIN pests AS p ON pc.pest_id = p.pest_id
-          INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
           `,
           (err, results) => {
             if (err) {
@@ -956,6 +954,11 @@ app.get('/api/admin/profile/get', (req, res) => {
               })
             }
           )
+        } else {
+          res.send({
+            status : 404,
+            data : {}
+          })
         }
       }
     } catch (err) {
