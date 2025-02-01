@@ -548,6 +548,81 @@ app.get('/api/admin/profile/get', (req, res) => {
     }
   })
 
+  app.post('/api/admin/add/doctor' , async (req , res)=>{
+    if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {
+        
+      let username = req.session.user_admin
+      let password = req.body['passwordAd']
+  
+      if(username === '') {
+        res.redirect('/api/logout')
+        return 0
+      }
+  
+      let con = Database.createConnection(listDB)
+  
+      try {
+        let auth = await apifunc.auth(con , username , password , res , "admin")
+        if(auth['result'] === "pass") {
+          con.query(`
+                    SELECT id_table_doctor
+                    FROM acc_doctor 
+                    WHERE id_doctor = ? and status_delete = 0
+                    ` , 
+          [req.body['id_doctor']] , 
+          (err , account)=>{
+
+            if(err) {
+              dbpacket.dbErrorReturn(con , err , res)
+              console.log("check doctor")
+              return 0
+            }
+
+            if(account[0]) {
+              con.end()
+              res.send("overflow")
+            } else {
+              con.query(`INSERT INTO acc_doctor
+                            (
+                              fullname_doctor , 
+                              id_doctor , 
+                              uid_line_doctor , 
+                              password_doctor , 
+                              img_doctor , 
+                              station_doctor , 
+                              status_account , 
+                              status_delete ,
+                              time_online,
+                              doctor_role,
+                              analyst_role,
+                              consultant_role
+                            ) 
+                            VALUES ('',?,'',SHA2(?,256),'','',1,0,"")` , 
+                [req.body['id_doctor'],req.body['passwordDT']] , 
+                (err , result)=>{
+                  if(err) {
+                    dbpacket.dbErrorReturn(con , err , res)
+                    console.log("insert doctor")
+                    return 0
+                  }
+                  con.end()
+                  res.send(result.affectedRows.toString())
+              })
+            }
+          })   
+        }
+      } catch (err) {
+        if(err == "not pass") {
+          con.end()
+          res.send("incorrect")
+        }
+      }
+    }
+    else {
+      res.send('error session')
+    }
+  })
+
   app.post('/api/admin/manage/doctor' , async (req,res)=>{
     let username = req.session.user_admin
     let password = req.body['password']
