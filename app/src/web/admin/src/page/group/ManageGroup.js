@@ -253,7 +253,7 @@ const ManageGroup = ({ fetchGroups }) => {
                         <div className="modal-body">
                             <div className="table-section">
                                 <span className="table-title">ศัตรูพืช / โรคพืช</span>
-                                <select onChange={(e) => setFilterType(e.target.value)}>
+                                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                                     <option value="">กรุณาเลือก</option>
                                     <option value="โรคพืช">โรคพืช</option>
                                     <option value="ศัตรูพืช">ศัตรูพืช</option>
