@@ -15,7 +15,7 @@ const PageGroup = () => {
   const fetchGroupData = useCallback(async () => {
     console.log("Start fetching group data...");
     try {
-      const response = await clientMo.post("/api/admin/group/get");
+      const response = await clientMo.post("/api/admin/group/gets");
       const result = JSON.parse(response);
 
       if (Array.isArray(result)) {

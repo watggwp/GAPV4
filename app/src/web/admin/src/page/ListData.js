@@ -186,12 +186,12 @@ const ListData = ({
         textSearch: textSearch
       });
     } else if (HrefPage.get().split("?")[0] === "group") {
-      ObjectData = await clientMo.post("/api/admin/group/get", {
-        type: status.status,
-        limit: Limit || 10,
-        startRow: StartRow,
-        textSearch: textSearch
-      });
+      // ObjectData = await clientMo.post("/api/admin/group/get", {
+      //   type: status.status,
+      //   limit: Limit || 10,
+      //   startRow: StartRow,
+      //   textSearch: textSearch
+      // });
     }
 
     if (ObjectData) {
