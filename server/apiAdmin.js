@@ -582,6 +582,7 @@ app.get('/api/admin/profile/get', (req, res) => {
               con.end()
               res.send("overflow")
             } else {
+              const { role2 , role3 ,role4 } = req.body
               con.query(`INSERT INTO acc_doctor
                             (
                               fullname_doctor , 
@@ -597,8 +598,8 @@ app.get('/api/admin/profile/get', (req, res) => {
                               analyst_role,
                               consultant_role
                             ) 
-                            VALUES ('',?,'',SHA2(?,256),'','',1,0,"")` , 
-                [req.body['id_doctor'],req.body['passwordDT']] , 
+                            VALUES ('',?,'',SHA2(?,256),'','',1,0,"" , ? , ? , ?)` , 
+                [req.body['id_doctor'],req.body['passwordDT'] , role2 , role3 ,role4] , 
                 (err , result)=>{
                   if(err) {
                     dbpacket.dbErrorReturn(con , err , res)
