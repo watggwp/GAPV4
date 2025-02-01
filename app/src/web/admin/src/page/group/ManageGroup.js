@@ -218,11 +218,11 @@ const ManageGroup = ({ fetchGroups }) => {
     const ChemicalValue = useMemo(() => ChemicalsData.find(({ id }) => id === chemicalID) || null , [ChemicalsData , chemicalID])
     
     const PestsData = useMemo(() => 
-        plants
+        pests
             .filter((pest) => (filterType === "" || pest.type_pest === filterType))
             .sort((a, b) => a.pest_name.localeCompare(b.pest_name, 'th'))
             .map(({ pest_id , pest_name }) => ({ id : pest_id , label : pest_name }))
-    , [plants , filterType])
+    , [pests , filterType])
 
     const PestValue = useMemo(() => PestsData.find(({ id }) => id === plantID) || null , [PestsData , plantID])
 
