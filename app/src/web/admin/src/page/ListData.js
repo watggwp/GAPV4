@@ -779,9 +779,9 @@ const ManageList = ({
                 >
               {status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>}
               {status.status === "plant" ? (
-              <div className="text-data">{data.variety_nam}</div>
+                <div className="text-data">{data.variety_nam}</div>
               ) : (
-              <></>
+                <></>
               )}
             </div>
 
