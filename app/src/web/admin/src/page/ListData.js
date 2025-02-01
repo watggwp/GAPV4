@@ -957,9 +957,11 @@ const InsertPage = ({ ReloadAccount, type }) => {
 
   
 
-  const CheckEmply = () => {
+  const CheckEmply = (roles = {}) => {
     const RefIsCheck =
-        type === "default" ? [RefData.Data1.current.value, RefData.Data2.current.value] : 
+        type === "default" ? [
+          RefData.Data1.current.value, RefData.Data2.current.value , Object.entries(roles).some(([role , status]) => status)
+        ] : 
         type === "admin" ? [RefData.Data1.current.value, RefData.Data2.current.value] : 
         type === "station" ? [
             RefData.Data1.current.value,
@@ -1005,9 +1007,10 @@ const InsertPage = ({ ReloadAccount, type }) => {
                 localType === "default"
                     ? {
                         id_doctor: RefData.Data1.current.value,
+                        ...roles,
                         passwordDT: RefData.Data2.current.value,
                         passwordAd: pwAdmin.current.value
-                        }
+                      }
                     : localType === "admin"
                     ? {
                         id: RefData.Data1.current.value,
@@ -1054,8 +1057,8 @@ const InsertPage = ({ ReloadAccount, type }) => {
     }
   };
 
-  const ClickAdd = async (e) => {
-    const Data = CheckEmply();
+  const ClickAdd = async (e , roles) => {
+    const Data = CheckEmply(roles);
     if (Data) {
       setOpen(1);
       setText("");
@@ -1655,7 +1658,7 @@ const BodyDetailInsert = ({
           </button>
           <button
             className="submit"
-            onClick={ClickAdd}
+            onClick={(e) => ClickAdd(e , checkboxState)}
             no={stateOnBt ? "" : null}
           >
             เพิ่มข้อมูล
