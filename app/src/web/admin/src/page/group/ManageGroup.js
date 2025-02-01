@@ -147,17 +147,17 @@ const ManageGroup = ({ fetchGroups }) => {
         }))
     };
 
-    const onGetDateSafe = useCallback( async () => {
+    const onGetDateSafe = useCallback( async (chemical_id , plant_id) => {
         setSafeDays((data) => ({
             ...data,
             status : "loading"
         }))
 
         let newDateSafe = 0
-        if(plantID && chemicalID) {
+        if(plant_id && chemical_id) {
             const response = await clientMo.post("/api/admin/group/search/safedate", {
-                chemicalID,
-                plantID
+                chemical_id,
+                plant_id
             });
 
             try {
@@ -180,7 +180,7 @@ const ManageGroup = ({ fetchGroups }) => {
             data : newDateSafe,
             status : "finish"
         })
-    } , [chemicalID , plantID])
+    } , [])
 
     useEffect(() => {
         popupDataManage.type === "edit" && requestGroup()
@@ -195,12 +195,6 @@ const ManageGroup = ({ fetchGroups }) => {
         clearTimeout(debounceInput.current)
         debounceInput.current = setTimeout(CheckEmply , 10)
     } , [CheckEmply])
-
-    const debounceDateSafe = useRef(0)
-    useEffect(() => {
-        clearTimeout(debounceDateSafe.current)
-        debounceInput.current = setTimeout(onGetDateSafe , 10)
-    } , [onGetDateSafe])
 
     const PlantsData = useMemo(() => 
         plants
@@ -302,7 +296,10 @@ const ManageGroup = ({ fetchGroups }) => {
                                 <span className="table-title">สารเคมี</span>
                                 <Autocomplete
                                     disablePortal
-                                    onChange={(e , value) => setChemicalID(value?.id || null)}
+                                    onChange={(e , value) => {
+                                        setChemicalID(value?.id || null)
+                                        onGetDateSafe(value?.id , plantID)
+                                    }}
                                     value={ChemicalValue}
                                     isOptionEqualToValue={(options , value) => options?.id === value.id}
                                     options={ChemicalsData}
@@ -333,7 +330,10 @@ const ManageGroup = ({ fetchGroups }) => {
                                 <span className="table-title">ชนิดพืช</span>
                                 <Autocomplete
                                     disablePortal
-                                    onChange={(e , value) => setPlantID(value?.id || null)}
+                                    onChange={(e , value) => {
+                                        setPlantID(value?.id || null)
+                                        onGetDateSafe(chemicalID , value?.id)
+                                    }}
                                     value={PlantValue}
                                     isOptionEqualToValue={(options , value) => options?.id === value.id}
                                     options={PlantsData}
