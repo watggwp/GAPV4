@@ -97,6 +97,7 @@ const ManageGroup = ({ fetchGroups }) => {
                         switch (status) {
                             case 200:
                                 alert("เพิ่มการจัดกลุ่มสำเร็จ");
+                                fetchGroups()
                                 Cancel();
                                 break;
                             default:
