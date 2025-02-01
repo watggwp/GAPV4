@@ -83,6 +83,7 @@ const Login = ({setBodyFileMain , state = false , socket}) => {
     return (
         <div style={{backgroundImage : `url(${env.Background})`}} onLoad={()=>clientMo.unLoadingPage()} ref={Body} className="login-admin">
             <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
+            <a href="http://localhost:3004/">Doctor</a>
                 <div className="Logo-App">
                     <img src="/logo2.png"></img>
                     <span>Admin</span>

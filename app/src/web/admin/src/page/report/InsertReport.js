@@ -4,16 +4,50 @@ import { PageTemplateContext } from "../PageTemplate";
 import { AdminContext } from "../../Admin";
 
 const InsertReport = () => {
-  const { TabOn } = useContext(AdminContext)
+  const { TabOn } = useContext(AdminContext);
   const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
   const [locations, setLocations] = useState([]);
 
   const ListReport = useCallback(async () => {
     try {
-      const listlocation = await clientMo.get("/api/admin/report/list");
-      const parsedList = JSON.parse(listlocation); 
-      setLocations(parsedList.data.doctors);
-      TabOn.addTimeOut(TabOn.end())
+      const response = await clientMo.get("/api/admin/report/list");
+      const parsedList = JSON.parse(response);
+
+      // ดึงข้อมูล doctors และ consultants
+      const doctors = parsedList.data.doctors || [];
+      const consultants = parsedList.data.consultants || [];
+
+      const mergedLocations = [];
+      const idSet = new Set();
+
+      // เพิ่ม doctors ลงใน list
+      doctors.forEach((doc) => {
+        idSet.add(doc.id_doctor);
+        mergedLocations.push({
+          id: doc.id_doctor,
+          fullname: doc.fullname_doctor,
+          role: "หมอพืช",
+        });
+      });
+
+      consultants.forEach((con) => {
+        if (idSet.has(con.id_doctor)) {
+          // ถ้าเจอใน doctors อยู่แล้ว ให้เปลี่ยน role เป็น "หมอพืชและที่ปรึกษา"
+          const existingIndex = mergedLocations.findIndex((item) => item.id === con.id_doctor);
+          mergedLocations[existingIndex].role = "หมอพืช,ที่ปรึกษาเกษตรกร";
+        } else {
+          // ถ้ายังไม่มีใน doctors ให้เพิ่มเป็น "ที่ปรึกษา"
+          idSet.add(con.id_doctor);
+          mergedLocations.push({
+            id: con.id_doctor,
+            fullname: con.fullname_doctor,
+            role: "ที่ปรึกษาเกษตรกร",
+          });
+        }
+      });
+
+      setLocations(mergedLocations);
+      TabOn.addTimeOut(TabOn.end());
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -25,39 +59,50 @@ const InsertReport = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-  <table
-    style={{
-      width: "100%",
-      borderCollapse: "collapse",
-      fontFamily: "Sans-serif",
-    }}
-  >
-    <thead>
-      <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
-        <th style={{ padding: "10px" }}>ลำดับ</th> {}
-        <th style={{ padding: "10px" }}>ชื่อ - นามสกุล</th> {}
-        <th style={{ padding: "10px" }}>เจ้าหน้าที่</th> {}
-      </tr>
-    </thead>
-    <tbody>
-      {locations.map((location, index) => (
-        <tr key={location.id_doctor}>
-          <td
-            style={{
-              padding: "10px",
-              border: "1px solid #ddd", 
-              textAlign: "center",
-            }}
-          >
-            {index + 1}
-          </td>
-          <td style={{ padding: "10px", border: "1px solid #ddd" }}>{location.fullname_doctor}</td>
-          <td style={{ padding: "10px", border: "1px solid #ddd" }}>หมอพืช</td>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontFamily: "Sans-font",
+        }}
+      >
+       <thead>
+        <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
+          <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
+            ลำดับ
+          </th>
+          <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
+            ชื่อ - นามสกุล
+          </th>
+          <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
+            เจ้าหน้าที่
+          </th>
         </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+      </thead>
+        <tbody>
+          {locations.map((location, index) => (
+            <tr key={location.id}>
+              <td
+                style={{
+                  padding: "10px",
+                  border: "1px solid #ddd",
+                  textAlign: "center",
+                  fontWeight: "900",
+                }}
+              >
+                {index + 1}
+              </td>
+              <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "900" }}>
+                {location.fullname}
+              </td>
+              <td style={{ padding: "10px", border: "1px solid #ddd", fontWeight: "900" }}>
+                {location.role}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

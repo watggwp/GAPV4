@@ -131,7 +131,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         <button className="bt-group" onClick={()=>ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button> :
                     
                     StateOnPage.status === "listlocation" ? 
-                        <button className="bt-graph" onClick={() => ChangeStatus("graph")}>แสดงกราฟจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</button> :
+                        <button className="bt-graph" onClick={() => ChangeStatus("graph")}>แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</button> :
                     StateOnPage.status === "graph" ? 
                         <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
                     StateOnPage.status === "statistics" ? 

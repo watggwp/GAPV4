@@ -112,7 +112,7 @@ const ListData = ({
       HrefPage.get().indexOf("station") >= 0
         ? "ศูนย์ส่งเสริม" : 
       HrefPage.get().indexOf("group") >= 0
-        ? "จัดกลุ่มข้อมูล" : 
+        ? "รายการจัดกลุ่มข้อมูล" : 
       HrefPage.get().indexOf("chemical") >= 0
         ? "สารเคมี" : 
       HrefPage.get().indexOf("pest") >= 0
@@ -120,7 +120,7 @@ const ListData = ({
       HrefPage.get().indexOf("listlocation") >= 0
         ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร" : 
       HrefPage.get().indexOf("graph") >= 0
-        ? "กราฟจำนวนเกษตรกรและพืชที่เพาะปลูก" : 
+        ? "จำนวนเกษตรกรและพืชที่เพาะปลูก" : 
       HrefPage.get().indexOf("statistics") >= 0
         ? "สถิติโรคพืช" : "",
     ]);
@@ -778,13 +778,14 @@ const ManageList = ({
             </div>
             <div
               className={
-                status.status === "plant" ? "variety_name" : ""
+              status.status === "plant" ? "variety_name" : ""
               }
-            >
+                >
+              {status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>}
               {status.status === "plant" ? (
-                <span>สายพันธุ์พืช</span>
+              <div className="text-data">{data.variety_nam}</div>
               ) : (
-                <></>
+              <></>
               )}
             </div>
 
@@ -820,14 +821,17 @@ const ManageList = ({
 
             <div className="name" w={status.status}>
               {status.status === "pest" ? (
-                <span className={status.status}>ชื่อโรคพืช / ศัตรูพืช</span>
+                <span className={status.status}>
+                  {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
+                </span>
               ) : (
                 <></>
               )}
               <div className={`text-data ${status.status}`}>
                 {data.pest_name}
               </div>
-            </div> 
+            </div>
+
           </detail-data>
 
           {status.status === "plant" ? (
@@ -859,6 +863,19 @@ const ManageList = ({
           ) : (
             <></>
           )}
+
+            <div 
+              className={
+              status.status === "station" ? "id_station" : "" 
+              }
+                >
+              {status.status === "station" ? <span>รหัสศูนย์ส่งเสริม</span> : <></>}
+              {status.status === "station" ? (
+              <div className="text-data">{data.id_station}</div>
+              ) : (
+              <></>
+              )}
+            </div>
 
         </detail-data-main>
         <action-bt>
@@ -931,7 +948,8 @@ const InsertPage = ({ ReloadAccount, type }) => {
   const RefData = {
     Data1: useRef(),
     Data2: useRef(),
-    Data3: useRef()
+    Data3: useRef(),
+    Data4: useRef()
   };
   const QtyDate = useRef();
   const [stateOnBt, setstateOnBt] = useState(true);
@@ -950,13 +968,14 @@ const InsertPage = ({ ReloadAccount, type }) => {
         type === "station" ? [
             RefData.Data1.current.value,
             RefData.Data2.current.value,
-            RefData.Data3.current.value
+            RefData.Data3.current.value,
+            RefData.Data4.current.value,
         ] : 
         type === "plant" ? [
-            QtyDate.current.value,
             RefData.Data1.current.value,
             RefData.Data2.current.value,
-            RefData.Data3.current.value
+            RefData.Data3.current.value,
+            QtyDate.current.value,
         ] :
         type === "chemical" ? [
             RefData.Data1.current.value,
@@ -981,6 +1000,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             name: RefData.Data1.current.value,
             lat: RefData.Data2.current.value,
             lng: RefData.Data3.current.value,
+            id_station: RefData.Data4.current.value,
             type: type,
             passwordAd: pwAdmin.current.value
         } : 
@@ -1017,9 +1037,11 @@ const InsertPage = ({ ReloadAccount, type }) => {
             passwordAd: pwAdmin.current.value
         }
         : type === "pest" ? {
-            name: RefData.Data2.current.value,
-            type: type,
-            passwordAd: pwAdmin.current.value
+          name: RefData.Data1.current.value,
+          type_pest: RefData.Data2.current.value,
+          type: type,
+          passwordAd: pwAdmin.current.value,
+          
         }
         : type === "group" ? {
           name: RefData.Data1.current.value,
@@ -1079,7 +1101,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
               : type === "listlocation"
               ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
               : type === "graph"
-              ? "กราฟจำนวนเกษตรกรและพืช"
+              ? "จำนวนเกษตรกรและพืช"
               : type === "statistics"
               ? "สถิติโรคพืช / ศัตรูพืช"
               : ""
@@ -1114,7 +1136,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
               : type === "listlocation"
               ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
               : type === "graph"
-              ? "กราฟจำนวนเกษตรกรและพืช"
+              ? "จำนวนเกษตรกรและพืช"
               : type === "statistics"
               ? "สถิติโรคพืช / ศัตรูพืช"
               : ""
@@ -1374,7 +1396,7 @@ const BodyDetailInsert = ({
               {type === "pest" ? (
                 <select
                   onChange={CheckEmply}
-                  ref={RefData.Data1}
+                  ref={RefData.Data2}
                   defaultValue={""}
                   style={{ width: "100%" }}
                 >
@@ -1427,7 +1449,22 @@ const BodyDetailInsert = ({
             {type === "plant" && (
               <div className="field-text">
                 <span className="head-text">สายพันธุ์พืช</span>
-                <input placeholder="เช่น เชอร์รี่แดง"></input>
+                <input 
+                    onChange={CheckEmply}
+                    ref={RefData.Data3}
+                    placeholder="เช่น เชอร์รี่แดง"
+                ></input>
+              </div>
+            )}
+
+            {type === "station" && (
+              <div className="field-text">
+                <span className="head-text">รหัสศูนย์ส่งเสริม</span>
+                <input 
+                    onChange={CheckEmply}
+                    ref={RefData.Data4}
+                    placeholder="เช่น 12345"
+                ></input>
               </div>
             )}
 
@@ -1450,7 +1487,7 @@ const BodyDetailInsert = ({
             {type === "pest" && (
               <div className="field-text">
                 <span className="head-text">ชื่อโรคพืช / ศัตรูพืช</span>
-                <input ref={RefData.Data2} placeholder="เช่น หนอนใบจุด"></input>
+                <input ref={RefData.Data1} placeholder="เช่น หนอนใบจุด"></input>
               </div>
             )}
           </label>

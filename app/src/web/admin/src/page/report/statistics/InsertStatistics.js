@@ -7,23 +7,17 @@ const InsertStatistics = () => {
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
-  const [duration, setDuration] = useState("1_week"); // ค่าเริ่มต้น
-
+  const [duration, setDuration] = useState("1_week");
 
   const fetchStatistics = useCallback(async () => {
-    console.log(duration)
     try {
-      const response = await clientMo.post("/api/admin/statistic/get", {
-        duration, // ส่งช่วงเวลาไปกับคำขอ
-      });
-      const  data  = JSON.parse(response)
-      if ( data.length === 0) {
-        console.log(data)
+      const response = await clientMo.post("/api/admin/statistic/get", { duration });
+      const data = JSON.parse(response);
+      if (data.length === 0) {
         console.error("No data received from API");
         return;
       }
 
-      // แยกข้อมูลตาม type_pest
       const plantDiseases = data
         .filter((item) => item.type_pest === "โรคพืช")
         .map((item, index) => ({
@@ -52,15 +46,23 @@ const InsertStatistics = () => {
   }, [fetchStatistics]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>สถิติโรคพืช / ศัตรูพืช</h1>
+    <div style={{ padding: "10px" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-        <label style={{ marginRight: "10px" }}>
+        <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
           เลือกระยะเวลา:
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            style={{ marginLeft: "10px", padding: "5px" }}
+            style={{
+              marginLeft: "10px",
+              padding: "8px",
+              fontFamily: "Sans-font",
+              fontWeight: "900",
+              borderRadius: "8px", 
+              border: "2px solid #22C7A9", 
+              backgroundColor: "white", 
+              outline: "none", 
+            }}
           >
             <option value="1_week">1 สัปดาห์</option>
             <option value="1_month">1 เดือน</option>
@@ -68,6 +70,7 @@ const InsertStatistics = () => {
             <option value="6_months">6 เดือน</option>
             <option value="1_year">1 ปี</option>
           </select>
+
         </label>
       </div>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
@@ -76,11 +79,13 @@ const InsertStatistics = () => {
           style={{
             padding: "10px 20px",
             marginRight: "10px",
-            backgroundColor: showPlantDiseases === true ? "#4CAF50" : "#ddd",
+            backgroundColor: showPlantDiseases === true ? "#22C7A9" : "#ddd",
             color: "#fff",
             border: "none",
             borderRadius: "5px",
             cursor: "pointer",
+            fontFamily: "Sans-font",
+            fontWeight: "900",
           }}
         >
           โรคพืช
@@ -89,11 +94,13 @@ const InsertStatistics = () => {
           onClick={() => setShowPlantDiseases(false)}
           style={{
             padding: "10px 20px",
-            backgroundColor: showPlantDiseases === false ? "#4CAF50" : "#ddd",
+            backgroundColor: showPlantDiseases === false ? "#22C7A9" : "#ddd",
             color: "#fff",
             border: "none",
             borderRadius: "5px",
             cursor: "pointer",
+            fontFamily: "Sans-font",
+            fontWeight: "900",
           }}
         >
           ศัตรูพืช
@@ -101,23 +108,12 @@ const InsertStatistics = () => {
       </div>
       {showPlantDiseases !== null && (
         <div
-          style={{
-            marginTop: "20px",
-            padding: "20px",
-            backgroundColor: "#f9f9f9",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-          }}
+          
         >
-          <h4 style={{ textAlign: "center" }}>
-            {showPlantDiseases
-              ? "ตารางแสดงจำนวนโรคพืช"
-              : "ตารางแสดงจำนวนศัตรูพืช"}
-          </h4>
           {(
             showPlantDiseases ? plantDiseaseStats : pestStats
           ).length === 0 ? (
-            <p style={{ textAlign: "center", color: "gray" }}>
+            <p style={{ textAlign: "center", color: "gray", fontFamily: "Sans-font", fontWeight: "900" }}>
               ไม่มีข้อมูลที่จะแสดง
             </p>
           ) : (
@@ -135,7 +131,10 @@ const InsertStatistics = () => {
                       border: "1px solid #ddd",
                       padding: "8px",
                       textAlign: "center",
-                      backgroundColor: "#f4f4f4",
+                      backgroundColor: "#60d6cf",
+                      fontFamily: "Sans-font",
+                      fontWeight: "900",
+                      color: "#fff",
                     }}
                   >
                     ลำดับ
@@ -145,7 +144,10 @@ const InsertStatistics = () => {
                       border: "1px solid #ddd",
                       padding: "8px",
                       textAlign: "center",
-                      backgroundColor: "#f4f4f4",
+                      backgroundColor: "#60d6cf",
+                      fontFamily: "Sans-font",
+                      fontWeight: "900",
+                      color: "#fff",
                     }}
                   >
                     {showPlantDiseases ? "ชื่อโรคพืช" : "ชื่อศัตรูพืช"}
@@ -155,7 +157,10 @@ const InsertStatistics = () => {
                       border: "1px solid #ddd",
                       padding: "8px",
                       textAlign: "center",
-                      backgroundColor: "#f4f4f4",
+                      backgroundColor: "#60d6cf",
+                      fontFamily: "Sans-font",
+                      fontWeight: "900",
+                      color: "#fff",
                     }}
                   >
                     จำนวน
@@ -171,6 +176,8 @@ const InsertStatistics = () => {
                           border: "1px solid #ddd",
                           padding: "8px",
                           textAlign: "center",
+                          fontFamily: "Sans-font",
+                          fontWeight: "900",
                         }}
                       >
                         {stat.rank}
@@ -179,6 +186,8 @@ const InsertStatistics = () => {
                         style={{
                           border: "1px solid #ddd",
                           padding: "8px",
+                          fontFamily: "Sans-font",
+                          fontWeight: "900",
                         }}
                       >
                         {stat.name || stat.insect}
@@ -188,6 +197,8 @@ const InsertStatistics = () => {
                           border: "1px solid #ddd",
                           padding: "8px",
                           textAlign: "center",
+                          fontFamily: "Sans-font",
+                          fontWeight: "900",
                         }}
                       >
                         {stat.count}

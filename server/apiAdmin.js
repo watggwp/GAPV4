@@ -728,7 +728,7 @@ app.get('/api/admin/profile/get', (req, res) => {
   app.post('/api/admin/group/insert' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
-
+ 
     if(username === '' || password === '') {
       res.redirect('/api/logout')
       return 0
@@ -741,11 +741,11 @@ app.get('/api/admin/profile/get', (req, res) => {
         const chemical_id = req.body.chemical_id
         const plant_id = req.body.plant_id
         const safe_days = req.body.safe_days
-
+ 
         if(pest_id && chemical_id && plant_id && safe_days) {
           con.query(
             `
-            INSERT INTO pest_chemical 
+            INSERT INTO pest_chemical
               ( pest_id , chemical_id , plant_id , safe_days )
             SELECT ? , ? , ? , ?
             WHERE NOT EXISTS (
@@ -754,7 +754,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                 WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
             )
             `
-            , [ 
+            , [
                 pest_id , chemical_id , plant_id , safe_days ,
                 pest_id , chemical_id , plant_id
               ] , (err , dataInsert) => {
@@ -765,7 +765,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                   result : "err insert"
                 })
               }
-  
+ 
               res.send({
                 status : 200,
                 result : "insert group"
@@ -781,6 +781,8 @@ app.get('/api/admin/profile/get', (req, res) => {
       }
     }
   })
+
+  
 
 // data page
   app.post('/api/admin/data/list' , async (req , res)=>{
@@ -893,103 +895,111 @@ app.get('/api/admin/profile/get', (req, res) => {
     }
   })
 
-  app.post('/api/admin/data/insert' , async (req , res)=>{
-    if(req.body.passwordAd && req.body.type) {
-        
-      let username = req.session.user_admin
-      let password = req.body.passwordAd
-  
-      if(username === '') {
-        res.redirect('/api/logout')
-        return 0
-      }
-  
-      let con = Database.createConnection(listDB)
-  
-      try {
-        const auth = await apifunc.auth(con , username , password , res , "admin")
-        if(auth['result'] === "pass") {
-          const data = req.body
-          const From = (
-            data.type === "station" ? "station_list" : 
-            data.type === "plant" ? "plant_list" :
-            data.type === "chemical" ? "chemical_list" :
-            data.type === "pest" ? "pests"
-            : ""
-          );
+  app.post('/api/admin/data/insert', async (req, res) => {
+    if (req.body.passwordAd && req.body.type) {
+        let username = req.session.user_admin;
+        let password = req.body.passwordAd;
 
-          const columnName = (
-            data.type === "pest" ? "pest_name" : "name"
-          )
+        if (username === '') {
+            res.redirect('/api/logout');
+            return 0;
+        }
 
-          con.query(
-            `
-            SELECT * FROM ${From} WHERE ${columnName} = ? and is_use = 1;
-            `
-            ,[ data.name ], (err , result)=>{
-            if(!err) {
-              if(!result.length) {
-                if(From) {
-                  con.query(`
-                    INSERT INTO ${From} 
-                    (
-                      ${columnName} , 
-                      is_use 
-                      ${
-                        data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
-                        data.type === "station" ? ", location" : 
-                        data.type === "chemical" ? ", name_formula , how_use , date_safe_list"
-                        : ""
-                      }
-                    ) 
-                    VALUES 
-                    (
-                      ? , 
-                      1 
-                      ${
-                        data.type === "plant" ? `, ? , ? , ?` :
-                        data.type === "station" ? `, POINT(?,?)` :
-                        data.type === "chemical" ? ", ? , ? , ?"
-                        : ""
-                      }
-                    )` , 
-                    data.type === "plant" ? [ data.name , data.type_plant , data.qtyDate , data.variety_name] :
-                    data.type === "station" ? [ data.name , data.lat , data.lng] :
-                    data.type === "chemical" ? [ data.name , data.name_formula , data.how_use , data.date_safe] :
-                    data.type === "pest" ? [ data.name ] : []
-                  , (err , insert)=>{
-                    if(err) {
-                      dbpacket.dbErrorReturn(con , err , res)
-                      console.log(`insert ${data.type} err`)
-                      return 0
+        let con = Database.createConnection(listDB);
+
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "admin");
+            if (auth['result'] === "pass") {
+                const data = req.body;
+                const From = (
+                    data.type === "station" ? "station_list" :
+                    data.type === "plant" ? "plant_list" :
+                    data.type === "chemical" ? "chemical_list" :
+                    data.type === "pest" ? "pests"
+                    : ""
+                );
+
+                const columnName = (
+                    data.type === "pest" ? "pest_name" : "name"
+                );
+
+                con.query(
+                    `
+                    SELECT * FROM ${From} WHERE ${columnName} = ? AND is_use = 1;
+                    `,
+                    [data.name],
+                    (err, result) => {
+                        if (!err) {
+                            if (!result.length) {
+                                if (From) {
+                                    con.query(
+                                        `
+                                        INSERT INTO ${From} 
+                                        (
+                                            ${columnName}, 
+                                            is_use 
+                                            ${
+                                                data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
+                                                data.type === "station" ? ", location, id_station" : 
+                                                data.type === "chemical" ? ", name_formula , how_use , date_safe_list" : 
+                                                data.type === "pest" ? ", type_pest" :
+                                                ""
+                                            }
+                                        ) 
+                                        VALUES 
+                                        (
+                                            ?, 
+                                            1 
+                                            ${
+                                                data.type === "plant" ? `, ?, ?, ?` : 
+                                                data.type === "station" ? `, POINT(?, ?), ?` : 
+                                                data.type === "chemical" ? ", ?, ?, ?" : 
+                                                data.type === "pest" ? ", ?" :
+                                                ""
+                                            }
+                                        )
+                                        `,
+                                        data.type === "plant" ? [data.name, data.type_plant, data.qtyDate, data.variety_name] :
+                                        data.type === "station" ? [data.name, data.lat, data.lng, data.id_station] :
+                                        data.type === "chemical" ? [data.name, data.name_formula, data.how_use, data.date_safe] :
+                                        data.type === "pest" ? [data.name, data.type_pest] : []
+                                        ,
+                                        (err, insert) => {
+                                            if (err) {
+                                                dbpacket.dbErrorReturn(con, err, res);
+                                                console.log(`insert ${data.type} err`);
+                                                return 0;
+                                            }
+
+                                            con.end();
+                                            res.send(insert.affectedRows.toString());
+                                        }
+                                    );
+                                }
+                            } else {
+                                con.end();
+                                res.send("overflow");
+                            }
+                        } else {
+                            con.end();
+                            res.send('error session');
+                            console.log(`select ${From} err`);
+                        }
                     }
-                    
-                    con.end()
-                    res.send(insert.affectedRows.toString())
-                  })
-                }
-              } else {
-                con.end()
-                res.send("overflow")
-              }
-            } else {
-              con.end()
-              res.send('error session')
-              console.log(`select ${From} err`)
+                );
             }
-          })
+        } catch (err) {
+            if (err == "not pass") {
+                con.end();
+                res.send("incorrect");
+            }
         }
-      } catch (err) {
-        if(err == "not pass") {
-          con.end()
-          res.send("incorrect")
-        }
-      }
+    } else {
+        res.send('error session');
     }
-    else {
-      res.send('error session')
-    }
-  })
+});
+
+
 
   app.post('/api/admin/data/change' , async (req , res)=>{
     let username = req.session.user_admin
@@ -1295,149 +1305,167 @@ app.get('/api/admin/profile/get', (req, res) => {
 
       // ดึงข้อมูลเกษตรกรและพืชใน station
       const farmerQuery = `
-            SELECT
-              acc_farmer.station,
-              COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
-              COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
-              GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
-              CONCAT(
-                  '[',
-                  GROUP_CONCAT(
-                      DISTINCT CONCAT(
-                          '{"plantName":"', subquery.name_plant, '",' ,
-                          '"id":"', subquery.id, '",' ,
-                          '"farmersCount":', subquery.total_qty, ',' ,
-                          '"duplicateCount":', subquery.duplicate_count, '}'
-                      )
-                  ),
-                  ']'
-              ) AS plantDetails
-            FROM acc_farmer
-            LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
-            LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
-            LEFT JOIN (
-                SELECT
-                    formplant.id,
-                    formplant.name_plant,
-                    COUNT(formplant.name_plant) AS total_qty,
-                    id_farm_house,
-                    SUM(CASE WHEN COUNT(formplant.name_plant) > 1 THEN 1 ELSE 0 END) OVER (PARTITION BY formplant.name_plant) AS duplicate_count
-                FROM formplant
-                GROUP BY id_farm_house, formplant.name_plant
-            ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
-            WHERE acc_farmer.station = ?
-            GROUP BY acc_farmer.station;
-      `;
-
-      con.query(farmerQuery, [station], (err, farmerStatistics) => {
-          if (err) {
-              console.error('Error fetching farmer statistics:', err);
-              res.status(500).json({ status: "error", message: "Database query error" });
-              return;
-          }
-
-          console.log('Farmer Statistics:', farmerStatistics);
-
-          // ดึงรายชื่อหมอพืชสำหรับ station นี้
-          const doctorQuery = `
-              SELECT id_doctor, fullname_doctor, station_doctor
-              FROM acc_doctor
-              WHERE station_doctor = ?;
-          `;
-
-          con.query(doctorQuery, [station], (err, doctors) => {
-              if (err) {
-                  console.error('Error fetching doctor data:', err);
-                  res.status(500).json({ status: "error", message: "Database query error" });
-                  return;
-              }
-
-              console.log('Doctors:', doctors);
-
-              // ส่งผลลัพธ์กลับไป
-              res.status(200).json({
-                  status: "success",
-                  data: {
-                      farmerStatistics: farmerStatistics.map((stat) => ({
-                          station: stat.station,
-                          totalFarmers: stat.total_farmers,
-                          totalPlants: stat.total_plants,
-                          plants: stat.plants,
-                          plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev , curr) => {
-                              const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"])
-                              if(indexFind >= 0) {
-                                  prev[indexFind]["farmersCount"] += curr["farmersCount"]
-                              } else {
-                                  prev.push({
-                                      plantName : curr["plantName"],
-                                      farmersCount : curr["farmersCount"]
-                                  })
-                              }
-
-                              return prev
-                          } , []),
-                      })),
-                      doctors,
-                  },
-              });
-          });
-      });
-      }
-    } catch (err) {
-      con.end()
-      if(err == "not pass") {
-        res.redirect('/api/logout')
-      }
-    }
-});
-
-app.post('/api/admin/statistic/get', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
-
-  if (username === '' || password === '') {
-    res.redirect('/api/logout');
-    return;
-  }
-
-  let con = Database.createConnection(listDB);
-
-  try {
-    const auth = await apifunc.auth(con, username, password, res, "admin");
-    if (auth['result'] === "pass") {
-      con.query(
-        `
-          SELECT 
-            p.pest_name,
-            p.type_pest,
-            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
-            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
-            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
-            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
-            COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year
-          FROM formchemical fc
-          LEFT JOIN pests p ON fc.insect = p.pest_name
-          GROUP BY fc.insect
-          LIMIT 25;
-        `,
-        (err, result) => {
-          if (err) {
-            dbpacket.dbErrorReturn(con, err, res);
-            return;
-          }
-
-          con.end();
-          res.send(result); // ส่งข้อมูลสรุป pest_name, type_pest และจำนวน pest ตามระยะเวลา
+                        SELECT
+                            acc_farmer.station,
+                            COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                            COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                            GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                            CONCAT(
+                                '[',
+                                GROUP_CONCAT(
+                                    DISTINCT CONCAT(
+                                        '{"plantName":"', subquery.name_plant, '",' ,
+                                        '"id":"', subquery.id, '",' ,
+                                        '"farmersCount":', subquery.total_qty, '}'
+                                    )
+                                ),
+                                ']'
+                            ) AS plantDetails
+                        FROM acc_farmer
+                        LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                        LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                        LEFT JOIN (
+                            SELECT
+                                formplant.id,
+                                formplant.name_plant,
+                                COUNT(formplant.name_plant) AS total_qty,
+                                id_farm_house
+                            FROM formplant
+                            WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
+                            GROUP BY id_farm_house , formplant.name_plant
+                        ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+                        WHERE acc_farmer.station = ?
+                        GROUP BY acc_farmer.station;
+                    `;
+   
+                    con.query(farmerQuery, [station], (err, farmerStatistics) => {
+                        if (err) {
+                            console.error('Error fetching farmer statistics:', err);
+                            res.status(500).json({ status: "error", message: "Database query error" });
+                            return;
+                        }
+   
+                        console.log('Farmer Statistics:', farmerStatistics);
+   
+                        // ดึงรายชื่อหมอพืช (เฉพาะที่ doctor_role = 1)
+                        const doctorQuery = `
+                            SELECT id_doctor, fullname_doctor, station_doctor
+                            FROM acc_doctor
+                            WHERE station_doctor = ? AND doctor_role = 1;
+                        `;
+   
+                        con.query(doctorQuery, [station], (err, doctors) => {
+                            if (err) {
+                                console.error('Error fetching doctor data:', err);
+                                res.status(500).json({ status: "error", message: "Database query error" });
+                                return;
+                            }
+   
+                            console.log('Doctors:', doctors);
+   
+                            // ดึงรายชื่อที่ปรึกษาเกษตรกร (เฉพาะที่ consultant_role = 1)
+                            const consultantQuery = `
+                                SELECT id_doctor, fullname_doctor, station_doctor
+                                FROM acc_doctor
+                                WHERE station_doctor = ? AND consultant_role = 1;
+                            `;
+   
+                            con.query(consultantQuery, [station], (err, consultants) => {
+                                if (err) {
+                                    console.error('Error fetching consultant data:', err);
+                                    res.status(500).json({ status: "error", message: "Database query error" });
+                                    return;
+                                }
+   
+                                console.log('Consultants:', consultants);
+   
+                                // ส่งผลลัพธ์กลับไป
+                                res.status(200).json({
+                                    status: "success",
+                                    data: {
+                                        farmerStatistics: farmerStatistics.map((stat) => ({
+                                            station: stat.station,
+                                            totalFarmers: stat.total_farmers,
+                                            totalPlants: stat.total_plants,
+                                            plants: stat.plants,
+                                            plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev, curr) => {
+                                                const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"]);
+                                                if (indexFind >= 0) {
+                                                    prev[indexFind]["farmersCount"] += curr["farmersCount"];
+                                                } else {
+                                                    prev.push({
+                                                        plantName: curr["plantName"],
+                                                        farmersCount: curr["farmersCount"]
+                                                    });
+                                                }
+                                                return prev;
+                                            }, []),
+                                        })),
+                                        doctors,
+                                        consultants,
+                                    },
+                                });
+                            });
+                        });
+                    });
+                }
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            res.status(500).json({ status: "error", message: "Internal Server Error" });
         }
-      );
-    }
-  } catch (err) {
-    con.end();
-    if (err == "not pass") {
-      res.redirect('/api/logout');
-    }
-  }
-});
+    });
+
+
+    app.post('/api/admin/statistic/get', async (req, res) => {
+      let username = req.session.user_admin;
+      let password = req.session.pass_admin;
+    
+      if (username === '' || password === '') {
+        res.redirect('/api/logout');
+        return;
+      }
+    
+      let con = Database.createConnection(listDB);
+    
+      try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] === "pass") {
+          con.query(
+            `SELECT 
+                p.pest_name,
+                p.type_pest,
+                COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
+                COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
+                COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
+                COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
+                COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year
+              FROM formchemical fc
+              LEFT JOIN pests p ON fc.insect = p.pest_name
+              LEFT JOIN formplant fp ON fc.id_plant = fp.id
+              LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+              LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+              WHERE af.station = ?
+              GROUP BY fc.insect
+              LIMIT 25;`, [auth['data']['station_admin']] ,
+            (err, result) => {
+              if (err) {
+                dbpacket.dbErrorReturn(con, err, res);
+                return;
+              }
+    
+              con.end();
+              res.send(result); 
+            }
+          );
+        }
+      } catch (err) {
+        con.end();
+        if (err == "not pass") {
+          res.redirect('/api/logout');
+        }
+      }
+    });
+    
 
 
 app.post('/api/admin/group/get', async (req, res) => {

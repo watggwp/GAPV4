@@ -9,10 +9,15 @@ const InsertGroup = () => {
     const [pests, setPests] = useState([]);
     const [plants, setPlants] = useState([]);
 
-    const [ chemical , setChemical ] = useState("")
-    const [ pest , setPest ] = useState("")
-    const [ plant , setPlant ] = useState("")
-    const [ safeDays , setSafeDays ] = useState(0)
+    const [chemical, setChemical] = useState("");
+    const [pest, setPest] = useState("");
+    const [plant, setPlant] = useState("");
+    const [safeDays, setSafeDays] = useState(0);
+    const [filterType, setFilterType] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchChemical, setSearchChemical] = useState("");
+    const [searchPlant, setSearchPlant] = useState("");
+
 
     const [status, setStatus] = useState(0);
     const [stateOnBt, setStateOnBt] = useState(true);
@@ -42,18 +47,15 @@ const InsertGroup = () => {
     }, []);
 
     const CheckEmply = () => {
-        // ตรวจสอบข้อมูลว่าง
-        // เพิ่มฟังก์ชันเพื่อตรวจสอบข้อมูลก่อนส่ง
-
-        if(chemical && pest && plant && safeDays) {
+        if (chemical && pest && plant && safeDays) {
             return {
-                pest_id : pest, 
-                chemical_id : chemical, 
-                plant_id : plant,
-                safe_days : safeDays
-            }
+                pest_id: pest,
+                chemical_id: chemical,
+                plant_id: plant,
+                safe_days: safeDays
+            };
         } else {
-            return false
+            return false;
         }
     };
 
@@ -66,34 +68,31 @@ const InsertGroup = () => {
                 const result = await clientMo.post("/api/admin/group/insert", Data);
                 console.log("Result:", result);
 
-                const { status } = JSON.parse(result)
-                switch(status) {
-                    case 200 :
-                        alert("เพิ่มการจัดกลุ่มสำเร็จ")
-                        Cancel()
+                const { status } = JSON.parse(result);
+                switch (status) {
+                    case 200:
+                        alert("เพิ่มการจัดกลุ่มสำเร็จ");
+                        Cancel();
                         break;
-                    default :
-                        alert("พบปัญหาการ เพิ่มการจัดกลุ่ม")
+                    default:
+                        alert("พบปัญหาการ เพิ่มการจัดกลุ่ม");
                         break;
                 }
-                // จัดการหลังการเพิ่มข้อมูลสำเร็จ
             } catch (error) {
                 console.error("Error adding data:", error);
-                // จัดการข้อผิดพลาด
             }
         }
     };
 
     const Cancel = () => {
         setOpenInsert(false);
-        // เพิ่มการกระทำเพิ่มเติมถ้าจำเป็น
     };
 
     useEffect(() => {
         ListGroup();
         Listpest();
         Listplants();
-    }, [ListGroup, Listpest, Listplants,]);
+    }, [ListGroup, Listpest, Listplants]);
 
     return (
         <>
@@ -108,57 +107,92 @@ const InsertGroup = () => {
                     />
                 </div>
                 <div className="modal-body">
-                    {/* ตารางที่ 1: โรคพืช / ศัตรูพืช */}
                     <div className="table-section">
-                        <span className="table-title">โรคพืช / ศัตรูพืช</span>
-                        <select onChange={(e) => setPest(e.target.value)}>
+                        <span className="table-title">ศัตรูพืช / โรคพืช</span>
+                        <select onChange={(e) => setFilterType(e.target.value)}>
                             <option value="">กรุณาเลือก</option>
-                            {
-                                pests.map((pest, index) => (
-                                    <option key={index} value={pest.pest_id}>
-                                        {pest.pest_name}
-                                    </option>
-                                ))
-                            }
+                            <option value="โรคพืช">โรคพืช</option>
+                            <option value="ศัตรูพืช">ศัตรูพืช</option>
                         </select>
                     </div>
 
-                    {/* ตารางที่ 2: สารเคมี */}
+                    <div className="table-section">
+                        <span className="table-title">ชื่อโรคพืช / ศัตรูพืช</span>
+                        <input
+                            type="text"
+                            placeholder="ค้นหา..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            list="pest-options"
+                        />
+                        <datalist  id="pest-options">
+                            {
+                                pests
+                                    .filter((pest) => (filterType === "" || pest.type_pest === filterType))
+                                    .filter((pest) => pest.pest_name.includes(searchTerm))
+                                    .sort((a, b) => a.pest_name.localeCompare(b.pest_name, 'th'))
+                                    .map((pest, index) => (
+                                        <option  key={index} value={pest.pest_name}>
+                                            {pest.pest_name}
+                                        </option>
+                                    ))
+                            }
+                        </datalist>
+                    </div>
+
+
                     <div className="table-section">
                         <span className="table-title">สารเคมี</span>
-                        <select onChange={(e) => setChemical(e.target.value)}>
-                            <option value="">กรุณาเลือก</option>
+                        <input
+                            type="text"
+                            placeholder="ค้นหา..."
+                            value={searchChemical}
+                            onChange={(e) => setSearchChemical(e.target.value)}
+                            list="chemical-options"
+                        />
+                        <datalist id="chemical-options">
                             {
-                                chemicals.map((chemical, index) => (
-                                    <option key={index} value={chemical.id}>
-                                        {chemical.name}
-                                    </option>
-                                ))
+                                chemicals
+                                    .filter((chemical) => chemical.name.includes(searchChemical))
+                                    .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+                                    .map((chemical, index) => (
+                                        <option key={index} value={chemical.name}>
+                                            {chemical.name}
+                                        </option>
+                                    ))
                             }
-                        </select>
+                        </datalist>
                     </div>
 
-                    {/* ตารางที่ 3: พืช */}
                     <div className="table-section">
                         <span className="table-title">ชนิดพืช</span>
-                        <select onChange={(e) => setPlant(e.target.value)}>
-                            <option value="">กรุณาเลือก</option>
+                        <input
+                            type="text"
+                            placeholder="ค้นหา..."
+                            value={searchPlant}
+                            onChange={(e) => setSearchPlant(e.target.value)}
+                            list="plant-options"
+                        />
+                        <datalist id="plant-options">
                             {
-                                plants.map((plant, index) => (
-                                    <option key={index} value={plant.id}>
-                                        {plant.name}
-                                    </option>
-                                ))
+                                plants
+                                    .filter((plant) => plant.name.includes(searchPlant))
+                                    .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+                                    .map((plant, index) => (
+                                        <option key={index} value={plant.name}>
+                                            {plant.name}
+                                        </option>
+                                    ))
                             }
-                        </select>
+                        </datalist>
                     </div>
 
                     <div className="table-section">
                         <span className="table-title">วันที่ปลอดภัย</span>
-                        <input 
-                            onChange={(e) => setSafeDays(e.target.value)} 
-                            type="number" 
-                            placeholder="เช่น 10 , 30" 
+                        <input
+                            onChange={(e) => setSafeDays(e.target.value)}
+                            type="number"
+                            placeholder="เช่น 10 , 30"
                         />
                     </div>
 
