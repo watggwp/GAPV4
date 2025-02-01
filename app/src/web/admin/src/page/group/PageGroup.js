@@ -3,12 +3,13 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
 import EditGroup from "./EditGroup";
+import ManageGroup from "./ManageGroup";
+import { Modal } from "react-bootstrap";
 
 const PageGroup = () => {
+  const { popupDataManage , setPopupDataManage } = useContext(PageTemplateContext)
   const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
   const { TabOn } = useContext(AdminContext);
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
-  const [selectedItem, setSelectedItem] = useState(null);
 
   // ฟังก์ชันสำหรับดึงข้อมูลจาก API
   const fetchGroupData = useCallback(async () => {
@@ -36,7 +37,13 @@ const PageGroup = () => {
 
   // ฟังก์ชันเมื่อคลิกปุ่ม "แก้ไข"
   const handleEditClick = (item) => {
-    console.log("Edit item:", item);
+    setPopupDataManage({
+      open : true,
+      type : "edit",
+      metadata : {
+        id : item.id
+      }
+    })
   };
 
   return (
@@ -134,14 +141,23 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
-      {selectedItem && (
+      {/* {selectedItem && (
         <EditGroup
           selectedItem={selectedItem}
           onClose={() => setSelectedItem(null)}
           onSave={fetchGroupData} 
         />
-      )}
-
+      )} */}
+      <Modal
+        show={popupDataManage.open}
+        onHide={() => setPopupDataManage((data) => ({ ...data , open : false }))}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+        centered
+        size="lg"
+      >
+        <ManageGroup fetchGroups={fetchGroupData} />
+      </Modal>
     </div>
   );
 };

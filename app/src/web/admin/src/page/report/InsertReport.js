@@ -1,11 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../PageTemplate";
 import { AdminContext } from "../../Admin";
 
 const InsertReport = () => {
   const { TabOn } = useContext(AdminContext);
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
   const [locations, setLocations] = useState([]);
 
   const ListReport = useCallback(async () => {

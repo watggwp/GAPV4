@@ -4,7 +4,7 @@ import { PageTemplateContext } from "../PageTemplate";
 
 const InsertGroup = () => {
 
-    const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
+    const { popupDataManage, setPopupDataManage } = useContext(PageTemplateContext);
     const [chemicals, setChemicals] = useState([]);
     const [pests, setPests] = useState([]);
     const [plants, setPlants] = useState([]);
@@ -62,7 +62,10 @@ const InsertGroup = () => {
     const ClickAdd = async (e) => {
         const Data = CheckEmply();
         if (Data) {
-            setOpenInsert(1);
+            setPopupDataManage({
+                open : true,
+                type : "insert"
+            });
 
             try {
                 const result = await clientMo.post("/api/admin/group/insert", Data);
@@ -85,7 +88,10 @@ const InsertGroup = () => {
     };
 
     const Cancel = () => {
-        setOpenInsert(false);
+        setPopupDataManage((data) => ({
+            ...data,
+            open : false
+        }))
     };
 
     useEffect(() => {
@@ -102,7 +108,10 @@ const InsertGroup = () => {
                     <button
                         type="button"
                         className="btn-close"
-                        onClick={() => setOpenInsert(false)}
+                        onClick={() => setPopupDataManage((data) => ({
+                            ...data,
+                            open : false
+                        }))}
                         aria-label="Close"
                     />
                 </div>

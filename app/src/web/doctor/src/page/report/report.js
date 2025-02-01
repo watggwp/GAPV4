@@ -1,9 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../PageTemplate";
  
 const InsertReport = () => {
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
   const [locations, setLocations] = useState([]);
  
   const ListReport = useCallback(async () => {

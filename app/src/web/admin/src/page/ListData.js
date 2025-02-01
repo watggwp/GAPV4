@@ -16,9 +16,7 @@ import EditPage from "./data/EditPage";
 import ManageDataPage from "./data/ManagePage";
 import ManageDoctorPage from "./doctor/ManagePage";
 import ManageAdminPage from "./admin/ManagePage";
-import { Modal } from "react-bootstrap";
 import { PageTemplateContext } from "./PageTemplate";
-import InsertGroup from "./group/InsertGroup";
 import InsertReport from "./report/InsertReport";
 import InsertGraph from "./report/InsertGraph";
 import InsertStatistics from "./report/statistics/InsertStatistics";
@@ -37,8 +35,6 @@ const ListData = ({
 }) => {
   // const [Body , setBody] = useState(<></>)
   // const [List , setList] = useState(<></>)
-
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
 
   const [DataFetch, setDataFetch] = useState([]);
   const [Because, setBecause] = useState(<></>);
@@ -275,21 +271,21 @@ const ListData = ({
           status.status === "statistics" ? 
           <><InsertStatistics></InsertStatistics></> : 
           status.status === "group" ? 
-          <><PageGroup></PageGroup></> : 
-          <ManageList
-          socket={socket}
-          Data={DataFetch}
-          setBecause={setBecause}
-          ListCount={ListCount}
-          setListCount={setListCount}
-          TabOn={TabOn}
-          HrefPage={HrefPage}
-          status={status}
-          auth={auth}
-          session={session}
-          RefBe={RefBe}
-          Fetch={() => fetchDataList(0, DataFetch.length)}
-        />
+            <PageGroup/> : 
+            <ManageList
+              socket={socket}
+              Data={DataFetch}
+              setBecause={setBecause}
+              ListCount={ListCount}
+              setListCount={setListCount}
+              TabOn={TabOn}
+              HrefPage={HrefPage}
+              status={status}
+              auth={auth}
+              session={session}
+              RefBe={RefBe}
+              Fetch={() => fetchDataList(0, DataFetch.length)}
+            />
         }
       </div>
       <div
@@ -927,7 +923,7 @@ setList(
 };
 
 const InsertPage = ({ ReloadAccount, type }) => {
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
+  const { popupDataManage, setPopupDataManage } = useContext(PageTemplateContext);
 
   const [localType, setLocalType] = useState("default");
   const [step, setStep] = useState(1);
@@ -1176,7 +1172,9 @@ const InsertPage = ({ ReloadAccount, type }) => {
 
     setStep(1); // กลับไปยังเมนูเริ่มต้น
 
-    if (e) setOpenInsert(false);
+    if (e) setPopupDataManage({
+      open : false
+    });
   };
 
   const GenerateMap = async (e) => {
@@ -1207,7 +1205,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
   };
 
   return (
-    <section className="page-insert" show={openInsert && ""}>
+    <section className="page-insert" show={popupDataManage.open && ""}>
       {type === "default" || type === "admin" ? (
         (() => {
           switch (step) {
@@ -1255,19 +1253,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
               return <></>;
           }
         })()
-      ) : type === "group" ? (
-        <Modal
-          show={openInsert}
-          onHide={() => setOpenInsert(false)}
-          aria-labelledby="modal-title"
-          aria-describedby="modal-description"
-          centered
-          size="lg"
-        >
-         <InsertGroup/>
-        </Modal>
-      ) : (
-       
+      ) : type === "group" ? (<></>) : (
         (type === "plant" ||
           type === "station" ||
           type === "chemical" ||

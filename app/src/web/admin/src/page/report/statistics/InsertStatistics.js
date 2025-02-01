@@ -1,9 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../../PageTemplate";
 
 const InsertStatistics = () => {
-  const { openInsert, setOpenInsert } = useContext(PageTemplateContext);
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);

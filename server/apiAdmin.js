@@ -745,14 +745,14 @@ app.get('/api/admin/profile/get', (req, res) => {
         if(pest_id && chemical_id && plant_id && safe_days) {
           con.query(
             `
-            INSERT INTO pest_chemical
-              ( pest_id , chemical_id , plant_id , safe_days )
-            SELECT ? , ? , ? , ?
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM pest_chemical
-                WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
-            )
+              INSERT INTO pest_chemical
+                ( pest_id , chemical_id , plant_id , safe_days )
+              SELECT ? , ? , ? , ?
+              WHERE NOT EXISTS (
+                  SELECT 1
+                  FROM pest_chemical
+                  WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
+              )
             `
             , [
                 pest_id , chemical_id , plant_id , safe_days ,
@@ -765,6 +765,17 @@ app.get('/api/admin/profile/get', (req, res) => {
                   result : "err insert"
                 })
               }
+
+              con.query(
+                `
+                  UPDATE pest_chemical SET safe_days = ?
+                  WHERE chemical_id = ? AND plant_id = ?
+                ` , [ safe_days , chemical_id , plant_id ] ,
+                (err , updateSafeDate) => {
+                  console.log(err)
+                  con.end()
+                }
+              )
  
               res.send({
                 status : 200,
@@ -782,7 +793,121 @@ app.get('/api/admin/profile/get', (req, res) => {
     }
   })
 
-  
+  app.post('/api/admin/group/edit' , async (req , res)=>{
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+ 
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+    let con = Database.createConnection(listDB)
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        const id = req.body.id
+        const pest_id = req.body.pest_id
+        const chemical_id = req.body.chemical_id
+        const plant_id = req.body.plant_id
+        const safe_days = req.body.safe_days
+ 
+        if(id && pest_id && chemical_id && plant_id && safe_days) {
+          con.query(
+            `
+              UPDATE pest_chemical
+                SET 
+                  pest_id = ?, 
+                  chemical_id = ?, 
+                  plant_id = ?, 
+                  safe_days = ?
+                WHERE id = ?
+            `
+            , [
+                pest_id , chemical_id , plant_id , safe_days , id
+              ] , (err , dataUpdate) => {
+              if(err) {
+                console.log(err)
+                res.send({
+                  status : 403,
+                  result : "err insert"
+                })
+              }
+
+              con.query(
+                `
+                  UPDATE pest_chemical SET safe_days = ?
+                  WHERE chemical_id = ? AND plant_id = ?
+                ` , [ safe_days , chemical_id , plant_id ] ,
+                (err , updateSafeDate) => {
+                  console.log(err)
+                  con.end()
+                }
+              )
+ 
+              res.send({
+                status : 200,
+                result : "update group"
+              })
+            }
+          )
+        }
+      }
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+  })
+
+  app.post('/api/admin/group/search/safedate' , async (req , res)=>{
+    let username = req.session.user_admin
+    let password = req.session.pass_admin
+ 
+    if(username === '' || password === '') {
+      res.redirect('/api/logout')
+      return 0
+    }
+    let con = Database.createConnection(listDB)
+    try {
+      const auth = await apifunc.auth(con , username , password , res , "admin")
+      if(auth['result'] === "pass") {
+        const chemical_id = req.body.chemical_id
+        const plant_id = req.body.plant_id
+ 
+        if(chemical_id && plant_id) {
+          con.query(
+            `
+              SELECT safe_days 
+              FROM pest_chemical
+              WHERE chemical_id = ? AND plant_id = ?
+              LIMIT 1
+            `
+            , [ chemical_id , plant_id ] , (err , dataSelect) => {
+              if(err) {
+                con.end()
+                res.send({
+                  status : 403,
+                  result : "err insert"
+                })
+              }
+ 
+              con.end()
+              res.send({
+                status : 200,
+                data : dataSelect
+              })
+            }
+          )
+        }
+      }
+    } catch (err) {
+      con.end()
+      if(err == "not pass") {
+        res.redirect('/api/logout')
+      }
+    }
+  })
 
 // data page
   app.post('/api/admin/data/list' , async (req , res)=>{

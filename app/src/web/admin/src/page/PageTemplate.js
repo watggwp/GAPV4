@@ -6,7 +6,14 @@ import ListData from "./ListData";
 import ButtonChangeStatistics from "./report/statistics/buttonChange";
 
 export const PageTemplateContext = createContext({
-    openInsert : false , setOpenInsert : () => {},
+    popupDataManage : {
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    } , 
+    setPopupDataManage : () => ({ open : false , type : "" }),
     ChangeStatus : (status) => {}
 })
 
@@ -45,7 +52,13 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const [getTimeOut , setTimeOut] = useState(0)
     const [getTextSearch , setTextSearch] = useState("")
 
-    const [ openInsert , setOpenInsert ] = useState(false)
+    const [ popupDataManage , setPopupDataManage ] = useState({
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    })
     const TextSearchRef = useRef()
 
     useEffect(()=>{
@@ -96,7 +109,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     return (
         <PageTemplateContext.Provider
             value={{
-                openInsert , setOpenInsert,
+                popupDataManage , setPopupDataManage,
                 ChangeStatus : ChangeStatus
             }}
         >
@@ -104,7 +117,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                 <div className="menu-page">
                     {StateOnPage.status === "default" || StateOnPage.status === "admin" || StateOnPage.status === "plant" || StateOnPage.status === "station" || StateOnPage.status === "group"  || StateOnPage.status === "chemical"  || StateOnPage.status === "pest" || StateOnPage.status === "report" ?
                     <div className="bt-add">
-                        <svg onClick={()=>setOpenInsert(true)} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
+                        <svg onClick={()=>setPopupDataManage({ open : true , type : "insert" })} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                     </div>
                     : <></>
                     }
