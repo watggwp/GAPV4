@@ -725,6 +725,63 @@ app.get('/api/admin/profile/get', (req, res) => {
   })
 
   // group page
+
+  app.post('/api/admin/group/get', async (req, res) => {
+    let username = req.session.user_admin;
+    let password = req.session.pass_admin;
+  
+    if (!username || !password) {
+      res.redirect('/api/logout');
+      return;
+    }
+  
+    let con = Database.createConnection(listDB);
+  
+    try {
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] === "pass") {
+        con.query(
+          `
+          SELECT 
+            pc.id,
+            pc.safe_days,
+            p.pest_name AS pest_name,
+            c.name AS chemical_name,
+            pc.plant_id as plant_id
+          FROM pest_chemical AS pc
+          INNER JOIN pests AS p ON pc.pest_id = p.pest_id
+          INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
+          `,
+          (err, results) => {
+            if (err) {
+              console.error("Database query error:", err);
+              con.end();
+              res.status(500).json({ error: "Database query failed" });
+              return;
+            }
+  
+            if (results.length === 0) {
+              console.log("No data found");
+              con.end();
+              res.status(404).json({ message: "No data found" });
+              return;
+            }
+  
+            console.log("Data retrieved successfully:", results);
+            con.end();
+            res.status(200).json(results); // ส่งข้อมูลกลับไป
+          }
+        );
+      } else {
+        res.status(401).json({ error: "Unauthorized access" });
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      con.end();
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post('/api/admin/group/insert' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -1590,68 +1647,6 @@ app.get('/api/admin/profile/get', (req, res) => {
         }
       }
     });
-    
-
-
-app.post('/api/admin/group/get', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
-
-  if (!username || !password) {
-    res.redirect('/api/logout');
-    return;
-  }
-
-  let con = Database.createConnection(listDB);
-
-  try {
-    const auth = await apifunc.auth(con, username, password, res, "admin");
-    if (auth['result'] === "pass") {
-      con.query(
-        `
-        SELECT 
-          pc.id,
-          pc.safe_days,
-          p.pest_name AS pest_name,
-          c.name AS chemical_name,
-          pl.name AS plant_name
-        FROM pest_chemical AS pc
-        INNER JOIN pests AS p ON pc.pest_id = p.pest_id
-        INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
-        INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
-        `,
-        (err, results) => {
-          if (err) {
-            console.error("Database query error:", err);
-            con.end();
-            res.status(500).json({ error: "Database query failed" });
-            return;
-          }
-
-          if (results.length === 0) {
-            console.log("No data found");
-            con.end();
-            res.status(404).json({ message: "No data found" });
-            return;
-          }
-
-          console.log("Data retrieved successfully:", results);
-          con.end();
-          res.status(200).json(results); // ส่งข้อมูลกลับไป
-        }
-      );
-    } else {
-      res.status(401).json({ error: "Unauthorized access" });
-    }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    con.end();
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-  
-
 
   const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
     let con = Database.createConnection(listDB)

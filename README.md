@@ -101,6 +101,9 @@
       "webpack-manifest-plugin": "^4.0.2",
       "wordcut": "^0.9.1",
       "workbox-webpack-plugin": "^6.4.1"
+      "@mui/material": "^6.4.2"
+      "@emotion/react": "^11.14.0"
+      "@emotion/styled": "^11.14.0"
       ```
 
    - Install Database

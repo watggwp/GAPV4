@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { PageTemplateContext } from "../PageTemplate";
+import { Autocomplete, TextField } from "@mui/material";
 
 const ManageGroup = ({ fetchGroups }) => {
     const { popupDataManage , setPopupDataManage } = useContext(PageTemplateContext);
@@ -17,7 +18,7 @@ const ManageGroup = ({ fetchGroups }) => {
     const [ filterType, setFilterType ] = useState("");
     const [ searchPest, setSearchPest ] = useState("");
     const [ searchChemical, setSearchChemical ] = useState("");
-    const [ searchPlant, setSearchPlant ] = useState("");
+    const [ plantID, setPlantID ] = useState("");
 
     const [ loading, setLoading ] = useState(popupDataManage.type === "edit");
     const [ stateOnBt, setStateOnBt ] = useState(true);
@@ -29,7 +30,7 @@ const ManageGroup = ({ fetchGroups }) => {
 
             setSearchPest(result.pest_name)
             setSearchChemical(result.chemical_name)
-            setSearchPlant(result.plant_name)
+            setPlantID(result.plant_id)
             setSafeDays({
                 data : result.safe_days,
                 status : "finish"
@@ -69,21 +70,20 @@ const ManageGroup = ({ fetchGroups }) => {
     const CheckEmply = useCallback(() => {
         const chemical_id = chemicals.find(chemical => chemical.name === searchChemical)?.id
         const pest_id = pests.find(pest => pest.pest_name === searchPest)?.pest_id
-        const plant_id = plants.find(plant => plant.name === searchPlant)?.id
 
         setStateOnBt(false)
-        if (chemical_id && pest_id && plant_id && safeDays.data) {
+        if (chemical_id && pest_id && plantID && safeDays.data) {
             setStateOnBt(true)
             return {
                 pest_id: pest_id,
                 chemical_id: chemical_id,
-                plant_id: plant_id,
+                plant_id: plantID,
                 safe_days: safeDays.data
             };
         } else {
             return false;
         }
-    } , [chemicals , pests , plants , safeDays.data , searchChemical , searchPest , searchPlant])
+    } , [chemicals , pests , safeDays.data , searchChemical , searchPest , plantID])
 
     const onSubmit = async (e) => {
         const Data = CheckEmply();
@@ -150,7 +150,6 @@ const ManageGroup = ({ fetchGroups }) => {
 
     const onGetDateSafe = useCallback( async () => {
         const chemical_id = chemicals.find(chemical => chemical.name === searchChemical)?.id
-        const plant_id = plants.find(plant => plant.name === searchPlant)?.id
         setSafeDays((data) => ({
             ...data,
             status : "loading"
@@ -158,7 +157,7 @@ const ManageGroup = ({ fetchGroups }) => {
 
         const response = await clientMo.post("/api/admin/group/search/safedate", {
             chemical_id,
-            plant_id
+            plantID
         });
 
         let newDateSafe = 0
@@ -181,7 +180,7 @@ const ManageGroup = ({ fetchGroups }) => {
             data : newDateSafe,
             status : "finish"
         })
-    } , [chemicals , plants , searchChemical , searchPlant])
+    } , [chemicals , searchChemical , plantID])
 
     useEffect(() => {
         popupDataManage.type === "edit" && requestGroup()
@@ -289,17 +288,29 @@ const ManageGroup = ({ fetchGroups }) => {
 
                             <div className="table-section">
                                 <span className="table-title">ชนิดพืช</span>
-                                <input
+                                <Autocomplete
+                                    disablePortal
+                                    onChange={(e , value) => setPlantID(value.id)}
+                                    value={plantID}
+                                    isOptionEqualToValue={({ id_op } , { id }) => id_op === id}
+                                    options={
+                                        plants
+                                            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+                                            .map(({ id , name }) => ({ id , label : name }))
+                                    }
+                                    renderInput={(params) => <TextField {...params} />}
+                                />
+                                {/* <input
                                     type="text"
                                     placeholder="ค้นหา..."
-                                    value={searchPlant}
-                                    onChange={(e) => setSearchPlant(e.target.value)}
+                                    value={plantID}
+                                    onChange={(e) => setPlantID(e.target.value)}
                                     list="plant-options"
                                 />
                                 <datalist id="plant-options">
                                     {
                                         plants
-                                            .filter((plant) => plant.name.includes(searchPlant))
+                                            .filter((plant) => plant.name.includes(plantID))
                                             .sort((a, b) => a.name.localeCompare(b.name, 'th'))
                                             .map((plant, index) => (
                                                 <option key={index} value={plant.name}>
@@ -307,7 +318,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                                 </option>
                                             ))
                                     }
-                                </datalist>
+                                </datalist> */}
                             </div>
 
                             <div className="table-section">
