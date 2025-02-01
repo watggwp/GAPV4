@@ -1059,6 +1059,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
 
   const ClickAdd = async (e , roles) => {
     const Data = CheckEmply(roles);
+    console.log(Data)
     if (Data) {
       setOpen(1);
       setText("");
