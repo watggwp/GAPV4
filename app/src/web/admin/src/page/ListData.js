@@ -1062,7 +1062,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
       setStatus(0);
       let result =
             type === "default"
-          ? await clientMo.post("/api/admin/add", Data)
+          ? await clientMo.post("/api/admin/add/doctor", Data)
           : type === "admin"
           ? await clientMo.post("/api/admin/add", Data)
           : type === "plant" ||
