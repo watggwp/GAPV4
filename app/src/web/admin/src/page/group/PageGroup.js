@@ -37,6 +37,7 @@ const PageGroup = () => {
 
   // ฟังก์ชันเมื่อคลิกปุ่ม "แก้ไข"
   const handleEditClick = (item) => {
+    console.log(item)
     setPopupDataManage({
       open : true,
       type : "edit",
