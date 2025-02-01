@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { PageTemplateContext } from "../PageTemplate";
 import { Autocomplete, TextField } from "@mui/material";
@@ -202,6 +202,14 @@ const ManageGroup = ({ fetchGroups }) => {
         debounceInput.current = setTimeout(onGetDateSafe , 10)
     } , [onGetDateSafe])
 
+    const PlantsData = useMemo(() => 
+        plants
+            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+            .map(({ id , name }) => ({ id , label : name }))
+    , [plants])
+
+    const PlantValue = useMemo(() => PlantsData.find(({ id }) => id === plantID) || null , [PlantsData , plantID])
+
     return (
         <>
             <div className="modal-content">
@@ -290,14 +298,10 @@ const ManageGroup = ({ fetchGroups }) => {
                                 <span className="table-title">ชนิดพืช</span>
                                 <Autocomplete
                                     disablePortal
-                                    onChange={(e , value) => setPlantID(value.id)}
-                                    value={plantID}
-                                    isOptionEqualToValue={({ id_op } , { id }) => id_op === id}
-                                    options={
-                                        plants
-                                            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
-                                            .map(({ id , name }) => ({ id , label : name }))
-                                    }
+                                    onChange={(e , value) => setPlantID(value?.id || null)}
+                                    value={PlantValue}
+                                    isOptionEqualToValue={(options , value) => options?.id === value.id}
+                                    options={PlantsData}
                                     renderInput={(params) => <TextField {...params} />}
                                 />
                                 {/* <input
