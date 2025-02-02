@@ -36,7 +36,8 @@ export default function ButtonChangeStatistics() {
                 style={{ 
                     marginRight: "10px", 
                     backgroundColor: hasSignificantPestData ? "red" : "initial",
-                    color: hasSignificantPestData ? "white" : "black"
+                    color: hasSignificantPestData ? "white" : "black",
+                    animation: "redBorderBlink 1s infinite"
                 }}
             >
                 แจ้งเตือน
