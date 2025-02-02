@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
-import EditGroup from "./EditGroup";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 
@@ -142,13 +141,7 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
-      {/* {selectedItem && (
-        <EditGroup
-          selectedItem={selectedItem}
-          onClose={() => setSelectedItem(null)}
-          onSave={fetchGroupData} 
-        />
-      )} */}
+      
       <Modal
         show={popupDataManage.open}
         onHide={() => setPopupDataManage((data) => ({ ...data , open : false }))}

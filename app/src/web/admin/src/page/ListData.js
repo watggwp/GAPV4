@@ -743,16 +743,15 @@ const ManageList = ({
       <>
         <detail-data-main column="">
           <detail-data maxsize="" flex={status.status}>
-            <div className="name" w={status.status}>
-              {status.status === "plant" ? (
-                <span className={status.status}>ชื่อพืช</span>
-              ) : (
-                <></>
+            <div className= "name" w={status.status === "plant" ? "name" : ""}>
+              {status.status === "plant" && (
+                <>
+                  <span>ชื่อพืช</span>
+                  <div className="text-data">{data.name}</div>
+                </>
               )}
-              <div className={`text-data ${status.status}`}>
-                {data.name}
-              </div>
             </div>
+
             <div
               className={
                 status.status === "plant" ? "type_plant" : "location"
@@ -779,41 +778,40 @@ const ManageList = ({
                 >
               {status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>}
               {status.status === "plant" ? (
-              <div className="text-data">{data.variety_nam}</div>
+              <div className="text-data">{data.variety_name}</div>
               ) : (
               <></>
               )}
             </div>
 
-            <div className="name" w={status.status}>
-              {status.status === "chemical" ? (
+            <div className={status.status}>
+            {status.status === "chemical" && (
+              <> 
                 <span className={status.status}>ชื่อสารเคมี</span>
-              ) : (
-                <></>
-              )}
-              <div className={`text-data ${status.status}`}>
-                {data.name}
-              </div>
-            </div>
-            <div
-              className={
-                status.status === "chemical" ? "name_formula	" : ""
-              }
-            >
-              {status.status === "chemical" ? <span>ชื่อสามัญสารเคมี</span> : <></>}
-            </div>
+                {/* แสดงชื่อสารเคมีเฉพาะที่นี่ */}
+                <div className="text-data">{data.name}</div>
+              </>
+            )}
+          </div>
 
-            <div
-              className={
-                status.status === "chemical" ? "how_use" : ""
-              }
-            >
-              {status.status === "chemical" ? (
+          <div className= "chemical" w={status.status === "chemical" ? "name_formula" : ""}>
+            {status.status === "chemical" && (
+              <>
+                <span>ชื่อสามัญสารเคมี</span>
+                <div className="text-data">{data.name_formula}</div>
+              </>
+            )}
+          </div>
+
+          <div className={status.status === "chemical" ? "how_use" : ""}>
+            {status.status === "chemical" && (
+              <>
                 <span>วิธีการใช้</span>
-              ) : (
-                <></>
-              )}
-            </div>
+                <div className="text-data">{data.how_use}</div>
+              </>
+            )}
+          </div>
+
 
             <div className="name" w={status.status}>
               {status.status === "pest" ? (
@@ -1431,7 +1429,13 @@ const BodyDetailInsert = ({
                     เลือกชนิดพืช
                   </option>
                   <option value={"พืชผัก"}>พืชผัก</option>
+                  <option value={"ผลไม้"}>ผลไม้</option>
                   <option value={"สมุนไพร"}>สมุนไพร</option>
+                  <option value={"ไม้ดอก"}>ไม้ดอก</option>
+                  <option value={"ไม้ผล"}>ไม้ผล</option>
+                  <option value={"กัญชง"}>กัญชง</option>
+                  <option value={"กัญชา"}>กัญชา</option>
+
                 </select>
               </div>
             )}
