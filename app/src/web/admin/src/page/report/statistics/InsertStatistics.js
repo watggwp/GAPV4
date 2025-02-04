@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 const InsertStatistics = () => {
@@ -6,11 +6,51 @@ const InsertStatistics = () => {
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
+  const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [minCount, setMinCount] = useState(0); // เพิ่มตัวแปรสำหรับจำนวนขั้นต่ำ
+
+  const calculateDateRange = (duration) => {
+    const endDate = new Date();
+    let startDate = new Date();
+
+    switch (duration) {
+      case "1_week":
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case "1_month":
+        startDate.setMonth(endDate.getMonth() - 1);
+        break;
+      case "3_months":
+        startDate.setMonth(endDate.getMonth() - 3);
+        break;
+      case "6_months":
+        startDate.setMonth(endDate.getMonth() - 6);
+        break;
+      case "1_year":
+        startDate.setFullYear(endDate.getFullYear() - 1);
+        break;
+      default:
+        startDate = endDate;
+    }
+
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // เดือนเริ่มจาก 0
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    };
+
+    setDateRange({
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    });
+  };
 
   const fetchStatistics = useCallback(async () => {
     try {
       const response = await clientMo.post("/api/admin/statistic/get", { duration });
       const data = JSON.parse(response);
+
       if (data.length === 0) {
         console.error("No data received from API");
         return;
@@ -40,8 +80,14 @@ const InsertStatistics = () => {
   }, [duration]);
 
   useEffect(() => {
+    calculateDateRange(duration);  // คำนวณช่วงวันที่เมื่อมีการเปลี่ยนแปลงระยะเวลา
     fetchStatistics();
-  }, [fetchStatistics]);
+  }, [duration, fetchStatistics]);
+
+  // ฟังก์ชันสำหรับกรองข้อมูลตามจำนวนขั้นต่ำ
+  const filterByMinCount = (stats) => {
+    return stats.filter((item) => item.count >= minCount);
+  };
 
   return (
     <div style={{ padding: "10px" }}>
@@ -68,9 +114,54 @@ const InsertStatistics = () => {
             <option value="6_months">6 เดือน</option>
             <option value="1_year">1 ปี</option>
           </select>
+        </label>
 
+        {/* กล่องแสดงช่วงวันที่ */}
+        <div
+          style={{
+            display: "inline-block",
+            marginLeft: "20px",
+            padding: "8px",
+            fontFamily: "Sans-font",
+            fontWeight: "900",
+            borderRadius: "8px",
+            border: "2px solid #22C7A9",
+            backgroundColor: "white",
+          }}
+        >
+          {`ตั้งแต่ ${dateRange.startDate} ถึง ${dateRange.endDate}`}
+        </div>
+
+        {/* กล่องเลือกจำนวนขั้นต่ำ */}
+        <label
+          style={{
+            display: "inline-block",
+            marginLeft: "30px",
+            fontFamily: "Sans-font",
+            fontWeight: "900",
+          }}
+        >
+          เลือกจำนวนขั้นต่ำ:
+          <input
+            type="number"
+            min="0"
+            value={minCount}
+            onChange={(e) => setMinCount(parseInt(e.target.value))}
+            style={{
+              marginLeft: "10px",
+              padding: "8px",
+              fontFamily: "Sans-font",
+              fontWeight: "900",
+              borderRadius: "8px",
+              border: "2px solid #22C7A9",
+              backgroundColor: "white",
+              outline: "none",
+              width: "80px",
+            }}
+          />
         </label>
       </div>
+
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
         <button
           onClick={() => setShowPlantDiseases(true)}
@@ -104,13 +195,10 @@ const InsertStatistics = () => {
           ศัตรูพืช
         </button>
       </div>
+
       {showPlantDiseases !== null && (
-        <div
-          
-        >
-          {(
-            showPlantDiseases ? plantDiseaseStats : pestStats
-          ).length === 0 ? (
+        <div>
+          {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).length === 0 ? (
             <p style={{ textAlign: "center", color: "gray", fontFamily: "Sans-font", fontWeight: "900" }}>
               ไม่มีข้อมูลที่จะแสดง
             </p>
@@ -166,44 +254,42 @@ const InsertStatistics = () => {
                 </tr>
               </thead>
               <tbody>
-                {(showPlantDiseases ? plantDiseaseStats : pestStats).map(
-                  (stat, index) => (
-                    <tr key={index}>
-                      <td
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "8px",
-                          textAlign: "center",
-                          fontFamily: "Sans-font",
-                          fontWeight: "900",
-                        }}
-                      >
-                        {stat.rank}
-                      </td>
-                      <td
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "8px",
-                          fontFamily: "Sans-font",
-                          fontWeight: "900",
-                        }}
-                      >
-                        {stat.name || stat.insect}
-                      </td>
-                      <td
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "8px",
-                          textAlign: "center",
-                          fontFamily: "Sans-font",
-                          fontWeight: "900",
-                        }}
-                      >
-                        {stat.count}
-                      </td>
-                    </tr>
-                  )
-                )}
+                {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).map((stat, index) => (
+                  <tr key={index}>
+                    <td
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "center",
+                        fontFamily: "Sans-font",
+                        fontWeight: "900",
+                      }}
+                    >
+                      {stat.rank}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        fontFamily: "Sans-font",
+                        fontWeight: "900",
+                      }}
+                    >
+                      {stat.name || stat.insect}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "center",
+                        fontFamily: "Sans-font",
+                        fontWeight: "900",
+                      }}
+                    >
+                      {stat.count}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}

@@ -664,13 +664,13 @@ const ManageList = ({
               ></img>
             </detail-Image>
             <detail-data>
-              <detail-in-fullname_admin>
+              <detail-in-fullname>
                 <span>
-                  {data.username
+                  {data.fullname_admin
                     ? data.fullname_admin
                     : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}
                 </span>
-              </detail-in-fullname_admin>
+              </detail-in-fullname>
               <detail-in>
                 <span className="head-data">รหัสประจำตัว</span>
                 <div className="text-data">{data.username}</div>
@@ -778,11 +778,7 @@ const ManageList = ({
                 >
               {status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>}
               {status.status === "plant" ? (
-<<<<<<< HEAD
               <div className="text-data">{data.variety_name}</div>
-=======
-                <div className="text-data">{data.variety_nam}</div>
->>>>>>> 0f34541d76231bc759949d763cadeaf6af621451
               ) : (
                 <></>
               )}
@@ -1213,52 +1209,28 @@ const InsertPage = ({ ReloadAccount, type }) => {
   return (
     <section className="page-insert" show={popupDataManage.open && ""}>
       {type === "default" || type === "admin" ? (
-        (() => {
-          switch (step) {
-            case 1:
-              return (
-                <div className="menu-selection">
-                  <span className="head">เพิ่มบัญชีเจ้าหน้าที่</span>
-                  <div className="menu-options">
-                    <button onClick={() => handleMenuSelection("admin")}>
-                      ผู้ดูแลระบบ
-                    </button>
-                    <button onClick={() => handleMenuSelection("default")}>
-                      บัญชีเจ้าหน้าที่ส่งเสริม
-                    </button>
-                  </div>
-                </div>
-              );
-            case 2:
-              return (
-                <BodyDetailInsert
-                  type={type}
-                  Open={Open}
-                  setOpen={setOpen}
-                  Status={Status}
-                  setStatus={setStatus}
-                  Text={Text}
-                  setText={setText}
-                  localType={localType}
-                  CheckEmply={CheckEmply}
-                  ClickAdd={ClickAdd}
-                  RefData={RefData}
-                  QtyDate={QtyDate}
-                  InputMap={InputMap}
-                  GenerateMap={GenerateMap}
-                  GenerateMapAuto={GenerateMapAuto}
-                  Lag={Lag}
-                  Lng={Lng}
-                  pwAdmin={pwAdmin}
-                  Cancel={Cancel}
-                  stateOnBt={stateOnBt}
-
-                />
-              );
-            default:
-              return <></>;
-          }
-        })()
+        <BodyDetailInsert
+          type={type}
+          Open={Open}
+          setOpen={setOpen}
+          Status={Status}
+          setStatus={setStatus}
+          Text={Text}
+          setText={setText}
+          localType={localType}
+          CheckEmply={CheckEmply}
+          ClickAdd={ClickAdd}
+          RefData={RefData}
+          QtyDate={QtyDate}
+          InputMap={InputMap}
+          GenerateMap={GenerateMap}
+          GenerateMapAuto={GenerateMapAuto}
+          Lag={Lag}
+          Lng={Lng}
+          pwAdmin={pwAdmin}
+          Cancel={Cancel}
+          stateOnBt={stateOnBt}
+        />
       ) : type === "group" ? (<></>) : (
         (type === "plant" ||
           type === "station" ||
@@ -1285,12 +1257,11 @@ const InsertPage = ({ ReloadAccount, type }) => {
             pwAdmin={pwAdmin}
             Cancel={Cancel}
             stateOnBt={stateOnBt}
-
           />
         )
       )}
     </section>
-  );
+);
 };
 
 const BodyDetailInsert = ({
@@ -1347,8 +1318,8 @@ const BodyDetailInsert = ({
       </div>
       <div className="body-page">
         <span className="head">
-          {type === "default"
-            ? localType === "default"
+          {   type === "default"
+              ? localType === "default"
               ? "บัญชีเจ้าหน้าที่ส่งเสริม"
               : localType === "admin"
               ? "บัญชีผู้ดูแลระบบ"
@@ -1406,7 +1377,9 @@ const BodyDetailInsert = ({
                     type === "default"
                       ? localType === "default"
                         ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-                        : localType === "admin"
+                        : ""
+                      : type === "admin"
+                      ? localType === "admin"
                         ? "บัญชีผู้ดูแลระบบ"
                         : ""
                       : type === "plant"
@@ -1416,7 +1389,7 @@ const BodyDetailInsert = ({
                       : type === "chemical"
                       ? "เช่น พรีวาธอน"
                       : ""
-                  }
+                  }                  
                 />
               )}
             </div>
@@ -1489,109 +1462,94 @@ const BodyDetailInsert = ({
               </div>
             )}
           </label>
-          {type === "default" ? (
-            localType === "default" ? (
-              <label>
-                <div className="field-text">
-                  <span className="head-text">
-                    รหัสผ่านบัญชีเจ้าหน้าที่ส่งเสริม
-                  </span>
-                  <input
-                    onChange={CheckEmply}
-                    ref={RefData.Data2}
-                    placeholder="กรอกรหัสผ่าน"
-                    type="password"
-                  ></input>
+          {type === "default" && localType === "default" ? (
+            <label>
+              <div className="field-text">
+                <span className="head-text">รหัสผ่านบัญชีเจ้าหน้าที่ส่งเสริม</span>
+                <input
+                  onChange={CheckEmply}
+                  ref={RefData.Data2}
+                  placeholder="กรอกรหัสผ่าน"
+                  type="password"
+                />
+              </div>
+              <div className="field-text">
+                <span className="head-text">สิทธิ์การใช้งาน</span>
+                <div className="checkbox-group">
+                  <label className="checkbox-item">
+                    <span>หมอพืช</span>
+                    <input
+                      type="checkbox"
+                      name="role2"
+                      checked={checkboxState.role2}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
+                  <label className="checkbox-item">
+                    <span>ที่ปรึกษาเกษตรกร</span>
+                    <input
+                      type="checkbox"
+                      name="role3"
+                      checked={checkboxState.role3}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
+                  <label className="checkbox-item">
+                    <span>นักวิเคราะห์สาร</span>
+                    <input
+                      type="checkbox"
+                      name="role4"
+                      checked={checkboxState.role4}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
                 </div>
-                <div className="field-text">
-                  <span className="head-text">สิทธิ์การใช้งาน</span>
-                  <div className="checkbox-group">
-                    <label className="checkbox-item">
-                      <span>ผู้ดูแลระบบ</span>
-                      <input
-                        type="checkbox"
-                        name="role1"
-                        checked={checkboxState.role1}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                    <label className="checkbox-item">
-                      <span>หมอพืช</span>
-                      <input
-                        type="checkbox"
-                        name="role2"
-                        checked={checkboxState.role2}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                    <label className="checkbox-item">
-                      <span>ที่ปรึกษาเกษตรกร</span>
-                      <input
-                        type="checkbox"
-                        name="role3"
-                        checked={checkboxState.role3}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                    <label className="checkbox-item">
-                      <span>นักวิเคราะห์สาร</span>
-                      <input
-                        type="checkbox"
-                        name="role4"
-                        checked={checkboxState.role4}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                  </div>
+              </div>
+            </label>
+          ) : type === "admin" && localType === "admin" ? (
+            <label>
+              <div className="field-text">
+                <span className="head-text">รหัสผ่านบัญชีผู้ดูแลระบบ</span>
+                <input
+                  onChange={CheckEmply}
+                  ref={RefData.Data2}
+                  placeholder="กรอกรหัสผ่าน"
+                  type="password"
+                />
+              </div>
+              <div className="field-text">
+                <span className="head-text">สิทธิ์การใช้งาน</span>
+                <div className="checkbox-group">
+                  <label className="checkbox-item">
+                    <span>หมอพืช</span>
+                    <input
+                      type="checkbox"
+                      name="role2"
+                      checked={checkboxState.role2}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
+                  <label className="checkbox-item">
+                    <span>ที่ปรึกษาเกษตรกร</span>
+                    <input
+                      type="checkbox"
+                      name="role3"
+                      checked={checkboxState.role3}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
+                  <label className="checkbox-item">
+                    <span>นักวิเคราะห์สาร</span>
+                    <input
+                      type="checkbox"
+                      name="role4"
+                      checked={checkboxState.role4}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
                 </div>
-              </label>
-            ) : localType === "admin" ? (
-              <label>
-                <div className="field-text">
-                  <span className="head-text">รหัสผ่านบัญชีผู้ดูแลระบบ</span>
-                  <input
-                    onChange={CheckEmply}
-                    ref={RefData.Data2}
-                    placeholder="กรอกรหัสผ่าน"
-                    type="password"
-                  ></input>
-                </div>
-                <div className="field-text">
-                  <span className="head-text">สิทธิ์การใช้งาน</span>
-                  <div className="checkbox-group">
-                    <label className="checkbox-item">
-                      <span>หมอพืช</span>
-                      <input
-                        type="checkbox"
-                        name="role2"
-                        checked={checkboxState.role2}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                    <label className="checkbox-item">
-                      <span>ที่ปรึกษาเกษตรกร</span>
-                      <input
-                        type="checkbox"
-                        name="role3"
-                        checked={checkboxState.role3}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                    <label className="checkbox-item">
-                      <span>นักวิเคราะห์สาร</span>
-                      <input
-                        type="checkbox"
-                        name="role4"
-                        checked={checkboxState.role4}
-                        onChange={handleCheckboxChange}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </label>
-            ) : (
-              ""
-            )
+              </div>
+            </label>
           ) : type === "plant" ? (
             <label>
               <div className="field-text">
@@ -1601,7 +1559,7 @@ const BodyDetailInsert = ({
                   ref={QtyDate}
                   placeholder="เช่น 10 , 30"
                   type="number"
-                ></input>
+                />
               </div>
             </label>
           ) : type === "chemical" ? (
@@ -1613,7 +1571,7 @@ const BodyDetailInsert = ({
                   ref={QtyDate}
                   placeholder="เช่น 10 , 30"
                   type="number"
-                ></input>
+                />
               </div>
             </label>
           ) : type === "station" ? (
@@ -1627,7 +1585,7 @@ const BodyDetailInsert = ({
                     type="text"
                     onChange={CheckEmply}
                     onInput={GenerateMap}
-                  ></input>
+                  />
                 </div>
               </label>
               <label className="station">
@@ -1637,13 +1595,13 @@ const BodyDetailInsert = ({
                     readOnly
                     ref={RefData.Data2}
                     value={Lag}
-                  ></input>
+                  />
                   <input
                     style={{ display: "none" }}
                     readOnly
                     ref={RefData.Data3}
                     value={Lng}
-                  ></input>
+                  />
                   <MapsJSX lat={Lag} lng={Lng} w={"100%"} />
                   <button onClick={GenerateMapAuto}>รีโหลดพิกัด</button>
                 </div>
