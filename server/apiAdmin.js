@@ -657,8 +657,8 @@ app.get('/api/admin/profile/get', (req, res) => {
 
                 if(deleteResult.length) {
                   const params = type_status === "status" ? 
-                                  [ req.body['id_table'] , username , req.body['because'] , new Date() , req.body['status'] ] : 
-                                  [ req.body['id_table'] , username , req.body['because'] , new Date() ]
+                      [ req.body['id_table'] , username , req.body['because'] , new Date() , req.body['status'] ] : 
+                      [ req.body['id_table'] , username , req.body['because'] , new Date() ]
 
                   con.query(
                     `
@@ -958,16 +958,18 @@ app.get('/api/admin/profile/get', (req, res) => {
                 })
               }
 
-              con.query(
-                `
-                  UPDATE pest_chemical SET safe_days = ?
-                  WHERE chemical_id = ? AND plant_id = ?
-                ` , [ safe_days , chemical_id , plant_id ] ,
-                (err , updateSafeDate) => {
-                  console.log(err)
-                  con.end()
-                }
-              )
+              if(dataInsert.affectedRows) {
+                con.query(
+                  `
+                    UPDATE pest_chemical SET safe_days = ?
+                    WHERE chemical_id = ? AND plant_id = ?
+                  ` , [ safe_days , chemical_id , plant_id ] ,
+                  (err , updateSafeDate) => {
+                    console.log(err)
+                    con.end()
+                  }
+                )
+              }
  
               res.send({
                 status : 200,
@@ -1012,7 +1014,11 @@ app.get('/api/admin/profile/get', (req, res) => {
                   chemical_id = ?, 
                   plant_id = ?, 
                   safe_days = ?
-                WHERE id = ?
+                WHERE id = ? AND NOT EXISTS (
+                  SELECT 1
+                  FROM pest_chemical
+                  WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND id <> ?
+                )
             `
             , [
                 pest_id , chemical_id , plant_id , safe_days , id
@@ -1025,16 +1031,18 @@ app.get('/api/admin/profile/get', (req, res) => {
                 })
               }
 
-              con.query(
-                `
-                  UPDATE pest_chemical SET safe_days = ?
-                  WHERE chemical_id = ? AND plant_id = ?
-                ` , [ safe_days , chemical_id , plant_id ] ,
-                (err , updateSafeDate) => {
-                  console.log(err)
-                  con.end()
-                }
-              )
+              if(dataUpdate.changedRows) {
+                con.query(
+                  `
+                    UPDATE pest_chemical SET safe_days = ?
+                    WHERE chemical_id = ? AND plant_id = ?
+                  ` , [ safe_days , chemical_id , plant_id ] ,
+                  (err , updateSafeDate) => {
+                    console.log(err)
+                    con.end()
+                  }
+                )
+              }
  
               res.send({
                 status : 200,

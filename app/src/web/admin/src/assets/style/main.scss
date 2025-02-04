@@ -58,3 +58,12 @@
     opacity: 1;
     visibility: visible;
 }
+
+@keyframes redBorderBlink {
+    0%, 100% {
+        border: 2px solid red;
+    }
+    50% {
+        border: 2px solid transparent;
+    }
+}
