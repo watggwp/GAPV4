@@ -49,7 +49,7 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
     } , [])
 
     const CloseMenu = (e) => {
-        if(Menu.current.includes(e.target) && SvgMenu.current.includes(e.target) && PathMenu.current.includes(e.target)) {
+        if(Menu.current !== e.target && SvgMenu.current !== e.target && PathMenu.current !== e.target) {
             window.removeEventListener("click" , CloseMenu)
             setStateMenu(false)
         }
