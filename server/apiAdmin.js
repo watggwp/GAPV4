@@ -967,14 +967,19 @@ app.get('/api/admin/profile/get', (req, res) => {
                   (err , updateSafeDate) => {
                     console.log(err)
                     con.end()
+
+                    res.send({
+                      status : 200,
+                      result : "insert group"
+                    })
                   }
                 )
+              } else {
+                res.send({
+                  status : 409,
+                  result : "insert group"
+                })
               }
- 
-              res.send({
-                status : 200,
-                result : "insert group"
-              })
             }
           )
         }
@@ -1041,14 +1046,19 @@ app.get('/api/admin/profile/get', (req, res) => {
                   (err , updateSafeDate) => {
                     console.log(err)
                     con.end()
+
+                    res.send({
+                      status : 200,
+                      result : "update group"
+                    })
                   }
                 )
+              } else {
+                res.send({
+                  status : 409,
+                  result : "insert group"
+                })
               }
- 
-              res.send({
-                status : 200,
-                result : "update group"
-              })
             }
           )
         }

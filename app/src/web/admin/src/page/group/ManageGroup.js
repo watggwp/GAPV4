@@ -101,6 +101,11 @@ const ManageGroup = ({ fetchGroups }) => {
                                 fetchGroups()
                                 Cancel();
                                 break;
+                            case 409 :
+                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
+                                fetchGroups()
+                                Cancel();
+                                break;
                             default:
                                 alert("พบปัญหาการ เพิ่มการจัดกลุ่ม");
                                 break;
@@ -122,6 +127,11 @@ const ManageGroup = ({ fetchGroups }) => {
                             case 200 :
                                 alert("บันทึกข้อมูลสำเร็จ");
                                 fetchGroups();
+                                Cancel();
+                                break;
+                            case 409 :
+                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
+                                fetchGroups()
                                 Cancel();
                                 break;
                             default :
