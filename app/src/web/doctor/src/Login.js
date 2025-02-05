@@ -153,7 +153,6 @@ list.forEach((item) =>
             <PopupDom Ref={Personal} Body={formPersonal} zIndex={5} />
             <div style={{backgroundImage : `url(${env.Background})`}} onLoad={()=>clientMo.unLoadingPage()} ref={Body} className="login-doctor">
                 <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
-                <a href="http://localhost:3003/">Admin</a>
                     <div className="Logo-App">
                         <img src="/logo2.png"></img>
                         <span>หมอพืช</span>
