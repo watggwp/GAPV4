@@ -2366,6 +2366,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         }
                     )
                 } catch (e) {
+                    console.log(e)
                     if(e === "not image") {
                         con.end()
                         res.send("not image")
