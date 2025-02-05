@@ -230,7 +230,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             `
               SELECT * 
               FROM because_${type_status}
-              WHERE id_table_doctor=?
+              WHERE id_table_doctor = ?  AND role = 1
               ORDER BY date DESC;
             ` 
           , 
@@ -276,7 +276,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             `
               SELECT * 
               FROM because_${type_status}
-               WHERE id=?
+              WHERE id_table_doctor = ? AND role = 0
               ORDER BY date DESC;
             ` 
           , 
@@ -663,8 +663,8 @@ app.get('/api/admin/profile/get', (req, res) => {
                   con.query(
                     `
                       INSERT INTO because_${type_status} 
-                      (id_table_doctor , id_admin , because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? , ? ${type_status === "status" ? `, ?` : ""});
+                      (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (? , ? , ? , 1 ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
                       if(err) {
@@ -751,8 +751,8 @@ app.get('/api/admin/profile/get', (req, res) => {
                   con.query(
                     `
                       INSERT INTO because_${type_status} 
-                      (id, because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? ${type_status === "status" ? `, ?` : ""});
+                      (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (? , ? , ? , 0 ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
                       if(err) {
