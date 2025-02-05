@@ -1478,38 +1478,6 @@ const BodyDetailInsert = ({
                   type="password"
                 />
               </div>
-              <div className="field-text">
-                <span className="head-text">สิทธิ์การใช้งาน</span>
-                <div className="checkbox-group">
-                  <label className="checkbox-item">
-                    <span>หมอพืช</span>
-                    <input
-                      type="checkbox"
-                      name="role2"
-                      checked={checkboxState.role2}
-                      onChange={handleCheckboxChange}
-                    />
-                  </label>
-                  <label className="checkbox-item">
-                    <span>ที่ปรึกษาเกษตรกร</span>
-                    <input
-                      type="checkbox"
-                      name="role3"
-                      checked={checkboxState.role3}
-                      onChange={handleCheckboxChange}
-                    />
-                  </label>
-                  <label className="checkbox-item">
-                    <span>นักวิเคราะห์สาร</span>
-                    <input
-                      type="checkbox"
-                      name="role4"
-                      checked={checkboxState.role4}
-                      onChange={handleCheckboxChange}
-                    />
-                  </label>
-                </div>
-              </div>
             </label>
           ) : type === "plant" ? (
             <label>

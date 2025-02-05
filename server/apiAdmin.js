@@ -276,7 +276,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             `
               SELECT * 
               FROM because_${type_status}
-              WHERE id_table_admin=?
+               WHERE id=?
               ORDER BY date DESC;
             ` 
           , 
@@ -751,8 +751,8 @@ app.get('/api/admin/profile/get', (req, res) => {
                   con.query(
                     `
                       INSERT INTO because_${type_status} 
-                      (id_table_admin ,id_admin, because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? , ? ${type_status === "status" ? `, ?` : ""});
+                      (id, because_text , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (? , ? , ? ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
                       if(err) {
