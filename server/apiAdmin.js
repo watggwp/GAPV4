@@ -1017,7 +1017,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                 WHERE id = ? AND NOT EXISTS (
                   SELECT 1
                   FROM pest_chemical
-                  WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND id <> ?
+                  WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND NOT id = ?
                 )
             `
             , [
