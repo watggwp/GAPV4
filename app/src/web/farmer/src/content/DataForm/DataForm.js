@@ -128,19 +128,44 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     //     FetchVarieties(plantId);
     // };
 
-  
+    const MathDateHarvest = (DatePlant, DateQty) => {
+        try {
+            const DatePlantQty = new Date(DatePlant);
+            DatePlantQty.setDate(DatePlantQty.getDate() + parseInt(DateQty));
+            DateOut.current.value = DatePlantQty.toISOString().split("T")[0]
+                .split("-")
+                .map((val, key) => key == 0 ? parseInt(val) + 543 : val) // เพิ่ม 543 เฉพาะปี
+                .reverse()
+                .join("-");
+            setDateOut(DatePlantQty.toISOString().split("T")[0]);
+        } catch (e) {
+            console.error("Error calculating harvest date:", e);
+        }
+    };
+     
 
-const handlePlantChange = (event) => {
-    const plantName = event.target.value;
-
-    // ค้นหา id_plant จาก DataPlant ที่ตรงกับชื่อพืช
-    const selectedPlant = DataPlant.find((plant) => plant.name === plantName);
-
-    if (selectedPlant) {
-        setSelectedPlantId(selectedPlant.id); // อัปเดต selectedPlantId
-        // FetchVarieties(selectedPlant.id); // ดึง varieties ของพืชที่เลือก
-    }
-};
+    const handlePlantChange = (event) => {
+        const plantName = event.target.value;
+    
+        // ค้นหา id_plant จาก DataPlant ที่ตรงกับชื่อพืช
+        const selectedPlant = DataPlant.find((plant) => plant.name === plantName);
+    
+        if (selectedPlant) {
+            setSelectedPlantId(selectedPlant.id);
+            setQtyDate(selectedPlant.qty_harvest); // อัปเดตจำนวนวันที่ใช้เก็บเกี่ยว
+    
+            // ถ้ามีวันที่ปลูกแล้ว ให้คำนวณวันที่เก็บเกี่ยว
+            if (DatePlant.current?.value) {
+                const plantDate = DatePlant.current.value
+                    .split("-")
+                    .reverse()
+                    .map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val))
+                    .join("-");
+                MathDateHarvest(plantDate, selectedPlant.qty_harvest);
+            }
+        }
+    };
+    
 
 
     const ReturnPage = async () => {
@@ -270,7 +295,7 @@ const handlePlantChange = (event) => {
                 posiW.value != Data.posi_w,
                 posiH.value != Data.posi_h,
                 qty.value != Data.qty,
-                area.value != Data.area,
+                Number(area.value) !== Number(Data.area),
                 unit.value != Data.unit,
                 dateOut.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") != Data.date_harvest.split(" ")[0],
                 system.value != Data.system_glow,

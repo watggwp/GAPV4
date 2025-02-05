@@ -22,6 +22,13 @@ const HouseList = () => {
                     ...house,
                     isOpen: house.status === 1,
                 }));
+                // จัดเรียงตามสถานะ (เปิดก่อน) และตาม id_farm_house
+            housesWithStatus.sort((a, b) => {
+                if (b.isOpen === a.isOpen) {
+                    return a.id_farm_house - b.id_farm_house; // ถ้าสถานะเท่ากัน ให้เรียงตาม ID
+                }
+                return b.isOpen - a.isOpen; // เปิดก่อน (isOpen = true)
+            });
                 setHouses(housesWithStatus);
             } else {
                 setHouses([]);
@@ -81,12 +88,9 @@ const HouseList = () => {
                                     <img src={house.img_house} alt={house.name_house} />
                                     <div className="house-name">{house.name_house}</div>
                                     <div className={`toggle-switch ${house.isOpen ? "on" : "off"}`} onClick={() => confirmToggle(house)}>
-                                    <span className="toggle-text">{house.isOpen ? "ON" : "OFF"}</span>
+                                    <span className="toggle-text">{house.isOpen ? "เปิด" : "ปิด"}</span>
                                     <div className="toggle-circle"></div>
                                 </div>
-
-
-
                                 </div>
                             </div>
                         ))
@@ -95,11 +99,15 @@ const HouseList = () => {
                     )}
                 </div>
             )}
-
             {modal.show && (
                 <div className="modal">
-                    <h3>ปิดโรงเรือน</h3>
-                    <p>ต้องการปิดโรงเรือน {modal.house.name_house} หรือไม่?</p>
+                    {console.log("Modal Data:", modal.house)} {/* ตรวจสอบข้อมูลที่ถูกส่งเข้าไป */}
+                    <h3>{modal.house.isOpen ? 'ปิดโรงเรือน' : 'เปิดโรงเรือน'}</h3>
+                    <p>
+                        {modal.house.isOpen 
+                            ? `ต้องการปิดโรงเรือน ${modal.house.name_house} หรือไม่?`
+                            : `ต้องการเปิดโรงเรือน ${modal.house.name_house} หรือไม่?`}
+                    </p>
                     <div className="modal-buttons">
                         <button className="cancel" onClick={() => setModal({ show: false, house: null })}>
                             ยกเลิก

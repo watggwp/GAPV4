@@ -7,6 +7,7 @@ const InformationReport = ({ setPage }) => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [view, setView] = useState(null);
+    const [activeButton, setActiveButton] = useState(""); // กำหนด state สำหรับปุ่มที่ถูกเลือก
 
     useEffect(() => {
         fetchStatistics();
@@ -44,13 +45,26 @@ const InformationReport = ({ setPage }) => {
                     <p className="error-text">เกิดข้อผิดพลาด: {error}</p>
                 ) : (
                     <div className="button-container">
-                        <button className="option-btn" onClick={() => setView("ranking")}>
-                            แสดงจำนวนเกษตรกรเเละชนิดพืช
-                        </button>
-                        <button className="option-btn" onClick={() => setView("doctors")}>
-                            แสดงรายชื่อหมอพืชเเละที่ปรึกษาเกษตรกร
-                        </button>
-                    </div>
+                    <button 
+                        className={`option-btn ${activeButton === 'ranking' ? 'active' : ''}`}
+                        onClick={() => {
+                            setView("ranking");
+                            setActiveButton('ranking'); // ตั้งค่าสถานะเมื่อกดปุ่ม
+                        }}
+                    >
+                        แสดงจำนวนเกษตรกรเเละชนิดพืช
+                    </button>
+
+                    <button 
+                        className={`option-btn ${activeButton === 'doctors' ? 'active' : ''}`}
+                        onClick={() => {
+                            setView("doctors");
+                            setActiveButton('doctors'); // ตั้งค่าสถานะเมื่อกดปุ่ม
+                        }}
+                    >
+                        แสดงรายชื่อหมอพืชเเละที่ปรึกษาเกษตรกร
+                    </button>
+                </div>
                 )}
 
                 {view && (
@@ -97,7 +111,7 @@ const InformationReport = ({ setPage }) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {Object.values(
+                                    {Object.values(
                                             [...statistics?.doctors, ...statistics?.consultants].reduce((acc, person) => {
                                                 if (!acc[person.id_doctor]) {
                                                     acc[person.id_doctor] = {
@@ -105,10 +119,10 @@ const InformationReport = ({ setPage }) => {
                                                         roles: new Set(),
                                                     };
                                                 }
-                                                if (statistics?.doctors.some(d => d.id_doctor === person.id_doctor)) {
+                                                if (person.doctor_role === 1) {
                                                     acc[person.id_doctor].roles.add("หมอพืช");
                                                 }
-                                                if (statistics?.consultants.some(c => c.id_doctor === person.id_doctor)) {
+                                                if (person.consultant_role === 1) {
                                                     acc[person.id_doctor].roles.add("ที่ปรึกษาเกษตรกร");
                                                 }
                                                 return acc;
@@ -124,10 +138,10 @@ const InformationReport = ({ setPage }) => {
                             </div>
                         )}
                         {view === "ranking" && statistics?.farmerStatistics?.length === 0 && (
-                            <p>ไม่มีข้อมูลเกษตรกรและพืชในพื้นที่</p>
+                            <p className="no-data-text">ไม่มีข้อมูลเกษตรกรและพืชในพื้นที่</p>
                         )}
                         {view === "doctors" && statistics?.doctors?.length === 0 && statistics?.consultants?.length === 0 && (
-                            <p>ไม่มีรายชื่อหมอพืชหรือที่ปรึกษาเกษตรกรในพื้นที่</p>
+                            <p className="no-data-text">ไม่มีรายชื่อหมอพืชหรือที่ปรึกษาเกษตรกรในพื้นที่</p>
                         )}
                     </div>
                 )}

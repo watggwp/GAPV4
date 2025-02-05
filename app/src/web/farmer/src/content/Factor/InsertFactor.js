@@ -171,17 +171,6 @@ const PopupInsertFactor = ({
   };
 
 
-  // // ฟังก์ชันโหลดข้อมูลจาก API
-  // const FetchPestChemicalData = async () => {
-  //     try {
-  //         const response = await clientMo.post("/api/farmer/pest-chemical");
-  //         const data = JSON.parse(response);
-  //         setPestChemicalData(data);
-  //     } catch (error) {
-  //         console.error('Error fetching pest-chemical data:', error);
-  //     }
-  // };
-
   useEffect(() => {
     if (formId) {
       console.log("Fetching data for formId:", formId);
@@ -308,63 +297,6 @@ const PopupInsertFactor = ({
       });
     }
   };
-
-  // const ConfirmChemi = async () => {
-  //     const dateUse = DateUse.current
-  //     const formula_name = NameMainFactor.current
-  //     const Name = NameFactor.current
-  //     const insect = NameInsect.current
-  //     const use = Use.current
-  //     const rate = Rate.current
-  //     const volume = Volume.current
-  //     const dateSafe = DateSafe.current
-  //     const source = Source.current
-
-  //     if( dateUse.value && formula_name.value && Name.value
-  //             && insect.value && use.value && rate.value
-  //             && volume.value && dateSafe.value && source.value
-  //         ) {
-  //             const DataInsert = {
-  //                 id_farmhouse : id_house,
-  //                 id_plant : id_form_plant,
-  //                 date : ConvertDate(dateUse.value).christDate,
-  //                 formula_name : formula_name.value,
-  //                 name : Name.value,
-  //                 insect : insect.value,
-  //                 use : use.value,
-  //                 rate : rate.value,
-  //                 volume : volume.value + " " + Unit.current.value,
-  //                 dateSafe : ConvertDate(dateSafe.value).christDate,
-  //                 source : source.value,
-  //                 type_insert : type_path
-  //             }
-
-  //             setWait(true)
-  //             const result = await clientMo.post("/api/farmer/factor/insert" , DataInsert)
-  //             if(await CloseAccount(result , setPage)) {
-  //                 cancel()
-  //                 ReloadData()
-  //                 setWait(false)
-  //             }
-  //     } else {
-  //         let RefObject = [
-  //                     dateUse ,
-  //                     formula_name ,
-  //                     Name ,
-  //                     insect,
-  //                     use ,
-  //                     rate,
-  //                     volume ,
-  //                     dateSafe,
-  //                     source ,
-  //                     // , seft
-  //                 ]
-  //         RefObject.forEach((ele)=>{
-  //             if(!ele.value && ele) ele.style.border = "2px solid red"
-  //             else if (ele.value && ele) ele.style.border = "2px solid transparent"
-  //         })
-  //     }
-  // }
 
   // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
   const ConfirmChemi = async () => {
@@ -597,64 +529,6 @@ const PopupInsertFactor = ({
   };
   
 
-  // const ValidateChemicalAndPest = () => {
-  //     // ListSearchName.current.setAttribute("remove","")
-  //     // ListSearchFactorNameMain.current.setAttribute("remove","")
-  //     // ListSearchPests.current.setAttribute("remove","")
-  //     const chemicalValue = NameFactor.current.value.trim();
-  //     const pestValue = NameInsect.current.value.trim();
-
-  //     // ตรวจสอบว่ามีการกรอกข้อมูลทั้งศัตรูพืชและสารเคมี
-  //     if (!chemicalValue || !pestValue) {
-  //         return; // ไม่แสดง Popup หากช่องว่าง
-  //     }
-
-  //     // ค้นหาข้อมูลศัตรูพืชและสารเคมีใน pestChemicalData
-  //     const matchedEntry = pestChemicalData.find(
-  //         (entry) =>
-  //             entry.pest_name === pestValue && entry.chemical_name === chemicalValue
-  //     );
-
-  //     if (!matchedEntry) {
-  //         setPopupMessage(
-  //             `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`
-  //         );
-  //         setShowPopup(true); // แสดง Popup หากข้อมูลไม่สัมพันธ์กัน
-  //     } else {
-  //         setShowPopup(false); // ซ่อน Popup หากข้อมูลถูกต้อง
-  //     }
-  // };
-
-  // const ValidateChemicalAndPest = () => {
-  //     const chemicalValue = NameFactor.current?.value.trim(); // ใช้ Optional Chaining ป้องกัน undefined
-  //     const pestValue = NameInsect.current?.value.trim();
-  //     const varietyValue = currentPlantVarietyName?.trim();
-
-  //     // ตรวจสอบว่ามีค่าในฟิลด์หรือไม่
-  //     if (!chemicalValue || !pestValue || !varietyValue) {
-  //         console.warn("Missing required inputs:", { chemicalValue, pestValue, varietyValue });
-  //         return;
-  //     }
-
-  //     // ตรวจสอบความสัมพันธ์ใน pestChemicalData
-  //     const matchedEntry = pestChemicalData.find(
-  //         (entry) =>
-  //             entry.pest_name === pestValue &&
-  //             entry.chemical_name === chemicalValue
-  //     );
-
-  //     if (!matchedEntry) {
-  //         console.warn("No match found in pestChemicalData for:", {
-  //             pestValue,
-  //             chemicalValue,
-  //         });
-  //         setPopupMessage( `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}"`);
-  //         setShowPopup(true);
-  //     } else {
-  //         console.log("Matched entry:", matchedEntry);
-  //     }
-  // };
-
   const debounce = useRef(0)
   const ValidateChemicalAndPest = () => {
     clearTimeout(debounce.current)
@@ -692,8 +566,13 @@ const PopupInsertFactor = ({
           chemicalValue,
           plantNameValue
         });
+        // ดึงประเภทศัตรูพืช (type_pest) ถ้ามี
+        const pestType = DataPests.find(
+          (entry) => entry.pest_name === pestValue
+        )?.type_pest || 'ศัตรูพืช/โรคพืช';  // ถ้าไม่พบ type_pest จะใช้ค่าเริ่มต้น
+
         setPopupMessage(
-          `สารเคมี "${chemicalValue}" ไม่สัมพันธ์กับศัตรูพืช "${pestValue}" `
+          `สารเคมี "${chemicalValue}" ไม่ตรงกับ${pestType} "${pestValue}" `
         );
         setShowPopup(true);
       } else {

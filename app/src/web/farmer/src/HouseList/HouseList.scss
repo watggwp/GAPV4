@@ -1,26 +1,34 @@
 .House-List {
-    font-family: 'Arial', sans-serif;
+    font-family: Sans-font;
     background-color: #f5f5f5;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    padding-top: 0; /* ลบ padding ด้านบน */
+    margin-top: 0; /* ลบ margin ด้านบน */
 
+
+    
     .title {
         font-size: 24px;
         font-weight: bold;
         text-align: center;
         color: black;
-        background-color: #d0e9d4;
-        width: 100%;
-        max-width: 420px;
-        padding: 12px 0;
-        margin-bottom: 10px;
+        background-color: #aaf4b6; /* สีเขียวเข้ม */
+        width: 100vw; /* ให้เต็มหน้าจอ */
+        padding: 14px 0;
+        margin: 0; /* ลบ margin */
+        box-sizing: border-box; /* ป้องกัน padding ทำให้ขนาดเกิน */
+        display: block; /* ให้ขยายเต็มแถว */
     }
-
+    
+    
+  
+    
     .sub-title {
-        font-size: 18px;
+        font-size: 22px;
         text-align: center;
         font-weight: bold;
         margin-bottom: 15px;
@@ -31,18 +39,20 @@
         flex-direction: column;
         gap: 12px;
         width: 100%;
-        max-width: 500px;
+        max-width: 320px;
     }
 
     .house-card {
         background-color: white;
         border-radius: 12px;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1),
+                    0 6px 20px rgba(0, 0, 0, 0.1); 
         padding: 0;
         display: flex;
         flex-direction: column;
         position: relative;
         transition: all 0.3s ease;
+        // border: 2px solid #929292;
 
         &:hover {
             transform: translateY(-3px);
@@ -79,20 +89,21 @@
                 position: absolute;
                 top: 10px;
                 right: 10px;
-                width: 60px; /* ขยายปุ่มให้พอดีขึ้น */
-                height: 30px;
+                width: 78px;
+                height: 32px;
                 background-color: #ccc;
                 border-radius: 30px;
                 display: flex;
                 align-items: center;
                 cursor: pointer;
                 transition: background-color 0.3s ease;
-                font-size: 14px;
+                font-size: 20px;
                 font-weight: bold;
                 color: white;
                 padding: 0; /* ปรับ padding ให้ข้อความไม่ถูกทับ */
                 box-sizing: border-box;
                 justify-content: start; /* ทำให้ข้อความชิดซ้าย/ขวา */
+                z-index: 500;
             
                 .toggle-text {
                     position: relative;
@@ -115,33 +126,45 @@
                     background-color: #28a745;
             
                     .toggle-circle {
-                        transform: translate(28px, -50%);
+                        transform: translate(49px, -50%);
                     }
             
                     .toggle-text {
-                        margin-right: 6px; /* ขยับ ON ไปซ้าย */
-                        content: "ON";
+                        margin-right: 0px;
+                        content: "เปิด";
+                        left: 11px; /* ขยับ ON ไปซ้าย */
                     }
                 }
-            
                 &.off {
                     background-color: #dc3545;
             
                     .toggle-circle {
-                        transform: translate(0px, -50%);
+                        transform: translate(5px, -50%);
                     }
             
                     .toggle-text {
-                        margin-left: 6px; /* ขยับ OFF ไปขวา */
-                        content: "OFF";
+                        margin-left: 6px;
+                        content: "ปิด";
+                        right: -28px;
                     }
                 }
             }
-            
-            
-            
-          
         }}
+
+        .no-houses {
+            font-size: 20px;             /* ขนาดตัวอักษร */
+            color: #555;                 /* สีข้อความ */
+            text-align: center;          /* จัดข้อความให้อยู่ตรงกลางแนวนอน */
+            
+            /* จัดให้อยู่กึ่งกลางหน้าจอทั้งแนวตั้งและแนวนอน */
+            display: flex;
+            justify-content: center;     /* จัดให้อยู่ตรงกลางแนวนอน */
+            align-items: center;         /* จัดให้อยู่ตรงกลางแนวตั้ง */
+            
+            height: 70vh;                /* ความสูงครึ่งหนึ่งของหน้าจอ */
+            width: 100%;                 /* ความกว้างเต็มหน้าจอ */
+        }
+        
 
     /* Popup Modal */
     .modal {
@@ -154,16 +177,35 @@
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         text-align: center;
-        width: 300px;
+        width: 280px;
+        z-index: 1000;
+
+        h3 {
+            font-size: 25px !important;  // ขนาดตัวหนังสือหัวข้อ
+            font-weight: bold;
+        }
+        
+        p {
+            font-size: 20px !important;    /* ขนาดตัวอักษร */
+            color: #000000;                /* สีข้อความ */
+            white-space: normal;           /* อนุญาตให้ตัดบรรทัดอัตโนมัติ */
+            word-wrap: break-word;         /* ตัดคำเมื่อเกินขอบกล่อง */
+            word-break: break-word;        /* ตัดคำให้พอดีเมื่อจำเป็น */
+            text-align: center;            /* จัดข้อความให้อยู่กึ่งกลาง */
+            max-width: 90%;                /* จำกัดความกว้างสูงสุดไม่ให้ล้นขอบกล่อง */
+            margin: 0 auto;                /* จัดให้อยู่กึ่งกลางแนวนอน */
+        }
+        
 
         .modal-buttons {
             display: flex;
             justify-content: space-between;
-            margin-top: 15px;
+            margin-top: 30px;
 
+           
             button {
                 padding: 10px 15px;
-                font-size: 14px;
+                font-size: 20px;
                 border: none;
                 border-radius: 8px;
                 cursor: pointer;
