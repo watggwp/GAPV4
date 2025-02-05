@@ -2335,6 +2335,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             const base64Data = req.body.img_report.replace("data:image/jpeg;base64," , "")
                             const imageBuffer = Buffer.from(base64Data, 'base64');
                             fs.writeFile( Path , imageBuffer , (err)=>{
+                                console.log(err)
                                 if(err) reject("not image")
                                 else resole(name_image)
                             })
@@ -2366,7 +2367,6 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         }
                     )
                 } catch (e) {
-                    console.log(e)
                     if(e === "not image") {
                         con.end()
                         res.send("not image")
