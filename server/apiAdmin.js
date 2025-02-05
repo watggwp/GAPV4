@@ -830,7 +830,7 @@ app.get('/api/admin/profile/get', (req, res) => {
           INNER JOIN pests AS p ON pc.pest_id = p.pest_id
           INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
           INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
-          `, [ search , search , search , search ] ,
+          `, [ `%${search}%` , `%${search}%` , `%${search}%` , `%${search}%` ] ,
           (err, results) => {
             if (err) {
               console.error("Database query error:", err);
