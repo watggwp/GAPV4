@@ -37,10 +37,10 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
     }
 
     useEffect(()=>{
-        if(getStateMenu) window.addEventListener("keyup" , CloseMenu)
-        // else window.removeEventListener("keyup" , CloseMenu)
+        if(getStateMenu) window.addEventListener("mouseup" , CloseMenu)
+        // else window.removeEventListener("mouseup" , CloseMenu)
         return(()=>{
-            window.removeEventListener("keyup" , CloseMenu)
+            window.removeEventListener("mouseup" , CloseMenu)
         })
     } , [getStateMenu])
 
