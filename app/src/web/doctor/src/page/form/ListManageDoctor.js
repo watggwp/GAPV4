@@ -36,16 +36,16 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
         setOpenImg(<OpenImageMax img={`/doctor/report/${data.image_path}`} Ref={RefOpenImage} setPopup={setOpenImg}/>)
     }
 
-    useEffect(()=>{
-        if(getStateMenu) window.addEventListener("mouseup" , CloseMenu)
-        // else window.removeEventListener("mouseup" , CloseMenu)
-        return(()=>{
-            window.removeEventListener("mouseup" , CloseMenu)
-        })
-    } , [getStateMenu])
+    // useEffect(()=>{
+    //     if(getStateMenu) window.addEventListener("mouseup" , CloseMenu)
+    //     // else window.removeEventListener("mouseup" , CloseMenu)
+    //     return(()=>{
+    //         window.removeEventListener("mouseup" , CloseMenu)
+    //     })
+    // } , [getStateMenu])
 
     const CloseMenu = (e) => {
-        if(Menu.current != e.target && SvgMenu.current != e.target && PathMenu.current != e.target) {
+        if(Menu.current.includes(e.target) && SvgMenu.current.includes(e.target) && PathMenu.current.includes(e.target)) {
             window.removeEventListener("click" , CloseMenu)
             setStateMenu(false)
         }
