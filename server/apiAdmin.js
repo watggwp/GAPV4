@@ -664,7 +664,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                     `
                       INSERT INTO because_${type_status} 
                       (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? , 1 ${type_status === "status" ? `, ?` : ""});
+                      (? , ? , ? , 1 , ? ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
                       if(err) {
@@ -752,7 +752,7 @@ app.get('/api/admin/profile/get', (req, res) => {
                     `
                       INSERT INTO because_${type_status} 
                       (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? , 0 ${type_status === "status" ? `, ?` : ""});
+                      (? , ? , ? , 0 , ? ${type_status === "status" ? `, ?` : ""});
                     ` , params ,
                     (err , resultBecause) => {
                       if(err) {
