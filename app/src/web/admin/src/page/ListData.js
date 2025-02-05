@@ -923,7 +923,6 @@ setList(
 const InsertPage = ({ ReloadAccount, type }) => {
   const { popupDataManage, setPopupDataManage } = useContext(PageTemplateContext);
 
-  const [localType, setLocalType] = useState("default");
   const [step, setStep] = useState(1);
   const [Open, setOpen] = useState(0);
   const [Text, setText] = useState("");
@@ -1000,23 +999,19 @@ const InsertPage = ({ ReloadAccount, type }) => {
             type: type,
             passwordAd: pwAdmin.current.value
         } : 
-        type === "default" || type === "admin" ? 
-            (
-                localType === "default"
-                    ? {
-                        id_doctor: RefData.Data1.current.value,
-                        ...roles,
-                        passwordDT: RefData.Data2.current.value,
-                        passwordAd: pwAdmin.current.value
-                      }
-                    : localType === "admin"
-                    ? {
-                        id: RefData.Data1.current.value,
-                        passwordAdNew: RefData.Data2.current.value,
-                        passwordAd: pwAdmin.current.value
-                        }
-                    : {}
-            )
+          type === "default" ? 
+            {
+              id_doctor: RefData.Data1.current.value,
+              ...roles,
+              passwordDT: RefData.Data2.current.value,
+              passwordAd: pwAdmin.current.value
+            } :
+          type === "admin" ?
+            {
+              id: RefData.Data1.current.value,
+              passwordAdNew: RefData.Data2.current.value,
+              passwordAd: pwAdmin.current.value
+            }
         : type === "plant" ? {
             name: RefData.Data1.current.value,
             type_plant: RefData.Data2.current.value,
@@ -1200,12 +1195,6 @@ const InsertPage = ({ ReloadAccount, type }) => {
     }
   };
 
-
-  const handleMenuSelection = (menuType) => {
-    setLocalType(menuType); // เปลี่ยน localType
-    setStep(2); // เปลี่ยนไป Step 2
-  };
-
   return (
     <section className="page-insert" show={popupDataManage.open && ""}>
       {type === "default" || type === "admin" ? (
@@ -1217,7 +1206,6 @@ const InsertPage = ({ ReloadAccount, type }) => {
           setStatus={setStatus}
           Text={Text}
           setText={setText}
-          localType={localType}
           CheckEmply={CheckEmply}
           ClickAdd={ClickAdd}
           RefData={RefData}
@@ -1244,7 +1232,6 @@ const InsertPage = ({ ReloadAccount, type }) => {
             setStatus={setStatus}
             Text={Text}
             setText={setText}
-            localType={localType}
             CheckEmply={CheckEmply}
             ClickAdd={ClickAdd}
             RefData={RefData}
@@ -1272,7 +1259,6 @@ const BodyDetailInsert = ({
   setStatus,
   Text,
   setText,
-  localType,
   CheckEmply,
   ClickAdd,
   RefData,
@@ -1318,43 +1304,28 @@ const BodyDetailInsert = ({
       </div>
       <div className="body-page">
         <span className="head">
-          {   type === "default"
-              ? localType === "default"
-              ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-              : localType === "admin"
-              ? "บัญชีผู้ดูแลระบบ"
-              : ""
-            : type === "plant"
-            ? "เพิ่มรายการชนิดพืช"
-            : type === "station"
-            ? "เพิ่มรายการศูนย์"
-            : type === "chemical"
-            ? "เพิ่มรายการสารเคมี"
-            : type === "pest"
-            ? "เพิ่มรายการโรคพืช / ศัตรูพืช"
-            : type === "gruop"
-            ? "เพิ่มรายการจัดกลุ่มข้อมูล"
-            : ""}
+          {   
+            type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
+            type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
+            type === "plant" ? "เพิ่มรายการชนิดพืช"  : 
+            type === "station" ? "เพิ่มรายการศูนย์" : 
+            type === "chemical" ? "เพิ่มรายการสารเคมี" : 
+            type === "pest" ? "เพิ่มรายการโรคพืช / ศัตรูพืช" : 
+            type === "gruop" ? "เพิ่มรายการจัดกลุ่มข้อมูล" : ""
+          }
         </span>
         <div className="detail-data">
           <label className={type === "plant" ? "two-box" : null}>
             <div className="field-text">
               <span className="head-text">
-                {type === "default"
-                  ? localType === "default"
-                    ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-                    : localType === "admin"
-                    ? "บัญชีผู้ดูแลระบบ"
-                    : ""
-                  : type === "plant"
-                  ? "ชื่อพืช"
-                  : type === "station"
-                  ? "ชื่อศูนย์ส่งเสริม"
-                  : type === "chemical"
-                  ? "ชื่อสารเคมี"
-                  : type === "pest"
-                  ? "โรคพืช / ศัตรูพืช"
-                  : ""}
+                {
+                  type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
+                  type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
+                  type === "plant" ? "ชื่อพืช" : 
+                  type === "station" ? "ชื่อศูนย์ส่งเสริม" : 
+                  type === "chemical" ? "ชื่อสารเคมี" : 
+                  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""
+                }
               </span>
               {type === "pest" ? (
                 <select
@@ -1374,21 +1345,11 @@ const BodyDetailInsert = ({
                   onChange={CheckEmply}
                   ref={RefData.Data1}
                   placeholder={
-                    type === "default"
-                      ? localType === "default"
-                        ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-                        : ""
-                      : type === "admin"
-                      ? localType === "admin"
-                        ? "บัญชีผู้ดูแลระบบ"
-                        : ""
-                      : type === "plant"
-                      ? "เช่น มะเขือเทศ"
-                      : type === "station"
-                      ? "เช่น ศูนย์โครงการหลวง"
-                      : type === "chemical"
-                      ? "เช่น พรีวาธอน"
-                      : ""
+                    type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
+                    type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
+                    type === "plant" ? "เช่น มะเขือเทศ" : 
+                    type === "station" ? "เช่น ศูนย์โครงการหลวง" : 
+                    type === "chemical" ? "เช่น พรีวาธอน" : ""
                   }                  
                 />
               )}
@@ -1462,7 +1423,7 @@ const BodyDetailInsert = ({
               </div>
             )}
           </label>
-          {type === "default" && localType === "default" ? (
+          {type === "default" ? (
             <label>
               <div className="field-text">
                 <span className="head-text">รหัสผ่านบัญชีเจ้าหน้าที่ส่งเสริม</span>
@@ -1506,7 +1467,7 @@ const BodyDetailInsert = ({
                 </div>
               </div>
             </label>
-          ) : type === "admin" && localType === "admin" ? (
+          ) : type === "admin" ? (
             <label>
               <div className="field-text">
                 <span className="head-text">รหัสผ่านบัญชีผู้ดูแลระบบ</span>
