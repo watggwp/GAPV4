@@ -36,16 +36,15 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
         setOpenImg(<OpenImageMax img={`/doctor/report/${data.image_path}`} Ref={RefOpenImage} setPopup={setOpenImg}/>)
     }
 
-    // useEffect(()=>{
-    //     if(getStateMenu) window.addEventListener("mouseup" , CloseMenu)
-    //     // else window.removeEventListener("mouseup" , CloseMenu)
-    //     return(()=>{
-    //         window.removeEventListener("mouseup" , CloseMenu)
-    //     })
-    // } , [getStateMenu])
+    useEffect(()=>{
+        if(getStateMenu) window.addEventListener("mouseup" , CloseMenu)
+        // else window.removeEventListener("mouseup" , CloseMenu)
+        return(()=>{
+            window.removeEventListener("mouseup" , CloseMenu)
+        })
+    } , [getStateMenu])
 
     const onOpenMenu = useCallback((event) => {
-        console.log(event)
         setStateMenu(true)
     } , [])
 
@@ -75,7 +74,7 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                     <div className="value">{data.report_text}</div>
                 </div>
             </div>
-            <div className="row end">
+            <div className="row-royal end">
                 { data.image_path ?
                     <div className="field menu-detail" onClick={OpenImg}>
                         <svg className="icon-menu" viewBox="0 0 16 16" >
