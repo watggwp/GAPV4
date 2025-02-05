@@ -816,6 +816,7 @@ app.get('/api/admin/profile/get', (req, res) => {
     try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
+        const { search } = req.body
         con.query(
           `
           SELECT 
@@ -825,10 +826,11 @@ app.get('/api/admin/profile/get', (req, res) => {
             c.name AS chemical_name,
             pl.name AS plant_name
           FROM pest_chemical AS pc
+          WHERE p.pest_name LIKE ? OR c.name LIKE ? OR pl.name LIKE ? OR pc.safe_days LIKE ?
           INNER JOIN pests AS p ON pc.pest_id = p.pest_id
           INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
           INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
-          `,
+          `, [ search , search , search , search ] ,
           (err, results) => {
             if (err) {
               console.error("Database query error:", err);

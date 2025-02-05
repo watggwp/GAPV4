@@ -6,7 +6,7 @@ import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 
 const PageGroup = () => {
-  const { popupDataManage , setPopupDataManage } = useContext(PageTemplateContext)
+  const { popupDataManage , setPopupDataManage , textSearch } = useContext(PageTemplateContext)
   const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
   const { TabOn } = useContext(AdminContext);
 
@@ -14,7 +14,7 @@ const PageGroup = () => {
   const fetchGroupData = useCallback(async () => {
     console.log("Start fetching group data...");
     try {
-      const response = await clientMo.post("/api/admin/group/gets");
+      const response = await clientMo.post("/api/admin/group/gets" , { search : textSearch });
       const result = JSON.parse(response);
 
       if (Array.isArray(result)) {
@@ -27,7 +27,7 @@ const PageGroup = () => {
     } catch (error) {
       console.error("Error fetching group data:", error);
     }
-  }, [TabOn]);
+  }, [TabOn , textSearch]);
 
   // เรียกใช้ API เมื่อ component ถูก mount
   useEffect(() => {

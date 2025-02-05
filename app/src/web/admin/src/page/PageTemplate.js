@@ -14,7 +14,8 @@ export const PageTemplateContext = createContext({
         }
     } , 
     setPopupDataManage : () => ({ open : false , type : "" }),
-    ChangeStatus : (status) => {}
+    ChangeStatus : (status) => {},
+    textSearch : ""
 })
 
 const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , session , TabOn}) => {
@@ -110,7 +111,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
         <PageTemplateContext.Provider
             value={{
                 popupDataManage , setPopupDataManage,
-                ChangeStatus : ChangeStatus
+                ChangeStatus : ChangeStatus ,
+                textSearch : getTextSearch
             }}
         >
             <section className="page-manage">
