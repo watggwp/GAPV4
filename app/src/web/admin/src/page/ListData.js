@@ -492,7 +492,7 @@ const ManageList = ({
     status={status.status}
   >
     {HrefPage.get().split("?")[0] === "list" ? (
-      status.status === "default" ? (
+      status.status === "default" || status.status === "delete" ? (
         <>
           {status.status === "default" ? (
             <div className="status-online">
