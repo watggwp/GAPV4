@@ -278,7 +278,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                     value={PestValue}
                                     isOptionEqualToValue={(options , value) => options?.id === value.id}
                                     options={PestsData}
-                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { sx : { font: "900 80px Sans-font" } } }}/>}
+                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : { font: "900 80px Sans-font" } } }}/>}
                                 />
                                 
                                 {/* <input
@@ -315,7 +315,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                     value={ChemicalValue}
                                     isOptionEqualToValue={(options , value) => options?.id === value.id}
                                     options={ChemicalsData}
-                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { sx : { font: "900 80px Sans-font" } } }}/>}
+                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : { font: "900 80px Sans-font" } } }}/>}
                                 />
                                 {/* <input
                                     type="text"
@@ -349,7 +349,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                     value={PlantValue}
                                     isOptionEqualToValue={(options , value) => options?.id === value.id}
                                     options={PlantsData}
-                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { sx : { font: "900 80px Sans-font" } } }}/>}
+                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : { font: "900 80px Sans-font" } } }}/>}
                                 />
                                 {/* <input
                                     type="text"
