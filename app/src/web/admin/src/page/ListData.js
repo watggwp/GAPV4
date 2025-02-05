@@ -294,15 +294,18 @@ const ListData = ({
           padding: "5px 0px"
         }}
       >
-        <LoadOtherOffset
-          Fetch={fetchDataList}
-          Data={DataFetch}
-          setRow={setRowList}
-          Limit={5}
-          style={{
-            backgroundColor: "#22C7A9"
-          }}
-        />
+        {
+          status.status !== "group" && status.status !== "statistics" &&
+            <LoadOtherOffset
+              Fetch={fetchDataList}
+              Data={DataFetch}
+              setRow={setRowList}
+              Limit={5}
+              style={{
+                backgroundColor: "#22C7A9"
+              }}
+            />
+        }
       </div>
       <div ref={RefBe} className="page-because-popup">
         {Because}
