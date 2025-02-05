@@ -1021,7 +1021,8 @@ app.get('/api/admin/profile/get', (req, res) => {
                 )
             `
             , [
-                pest_id , chemical_id , plant_id , safe_days , id
+                pest_id , chemical_id , plant_id , safe_days , id ,
+                pest_id , chemical_id , plant_id , id
               ] , (err , dataUpdate) => {
               if(err) {
                 console.log(err)
