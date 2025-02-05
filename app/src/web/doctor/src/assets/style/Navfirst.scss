@@ -102,8 +102,10 @@
 
         @media only screen and (max-width : 800px) {
             .bt-menu-frame {
-                width: 165px;
+                width: 120px;
                 padding: 6px 0px;
+                margin: 5px;
+    
 
                 img {
                     width: 75px;
@@ -220,6 +222,7 @@
 
     .column {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
 }

@@ -130,7 +130,7 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
                 <span className="pg-action">
                     <a onClick={Home} className="Logo" href="/doctor" title="หมอพืช">
                         <img src="/logo2.png"></img>
-                        <span>หมอพืช</span>
+                        <span>เจ้าหน้าที่</span>
                     </a>
                 </span>
                 <span className="bt-action">

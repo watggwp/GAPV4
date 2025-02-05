@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 
 import "./assets/style/Navfirst.scss"
 import PageFormPlant from "./page/form/PageFormPlant"
@@ -7,8 +7,14 @@ import PageFarmer from "./page/farmer/PageFarmer"
 import { clientMo } from "../../../assets/js/moduleClient"
 import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
+import { DoctorContext } from "./Doctor"
+
+
+
 const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
+
+    const { profile } = useContext(DoctorContext) //role
     
     useEffect(()=>{
         if(type === 1) window.history.pushState({} , "" , "/doctor")
@@ -97,9 +103,15 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                         <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form}/>
                     </div>
                 }
-                <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
-                <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
-                <ButtonMenu type={"report"} textRow1={"แจ้งเตือน"} textRow2={"โรคระบาด"} action={report}/>
+                {
+                    Boolean(profile?.doctor_role?.data?.[0]) &&  //role
+                        <>
+                            <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
+                            <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                            <ButtonMenu type={"report"} textRow1={"แจ้งเตือน"} textRow2={"โรคระบาด"} action={report}/>
+                        </>
+                }      
+                        
             </div>
         </section>
     )

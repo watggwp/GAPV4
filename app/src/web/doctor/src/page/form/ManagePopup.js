@@ -9,7 +9,7 @@ import { DoctorContext } from "../../Doctor"
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
 
-    const { profile } = useContext(DoctorContext) //
+    const { profile } = useContext(DoctorContext) //role
 
     const [Content , setContent] = useState(<></>)
     // const [ID_farmer , setID_farmer] = useState("")
@@ -659,18 +659,27 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                 (
                                     <>
                                     <div className="menu-manage-form">
-                                        <div className="flex-center" select="" onClick={(e)=>MenuManageFormByDoctor("success" , e)} ref={MenuBTManage.success}>
-                                            <div>เก็บเกี่ยว</div>
-                                        </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("report" , e)} ref={MenuBTManage.report}>
-                                            <div>ข้อแนะนำ</div>
-                                        </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckForm" , e)} ref={MenuBTManage.CheckForm}>
-                                            <div>ตรวจสอบ</div>
-                                            <div>แบบบันทึก</div>
-                                        </div>
                                         {
-                                            Boolean(profile?.analyst_role?.data?.[0]) && //
+                                            Boolean(profile?.doctor_role?.data?.[0]) && //role
+                                                <div className="flex-center" select="" onClick={(e)=>MenuManageFormByDoctor("success" , e)} ref={MenuBTManage.success}>
+                                                    <div>เก็บเกี่ยว</div>
+                                                </div>
+                                        }
+                                        {
+                                            Boolean(profile?.doctor_role?.data?.[0] || profile?.consultant_role?.data?.[0]) && //role
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("report" , e)} ref={MenuBTManage.report}>
+                                                    <div>ข้อแนะนำ</div>
+                                                </div>
+                                        }
+                                        {
+                                            Boolean(profile?.doctor_role?.data?.[0] ) && //role
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckForm" , e)} ref={MenuBTManage.CheckForm}>
+                                                    <div>ตรวจสอบ</div>
+                                                    <div>แบบบันทึก</div>
+                                                </div>
+                                        }   
+                                        {
+                                            Boolean(profile?.analyst_role?.data?.[0]) && //role
                                                 <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
                                                     <div>วิเคราะห์</div>
                                                     <div>ผลผลิต</div>

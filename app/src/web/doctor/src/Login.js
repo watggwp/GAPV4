@@ -163,18 +163,21 @@ list.forEach((item) =>
                                 <a href="#">
                                     <span class="icon">🧑🏻‍⚕️</span>
                                     <span class="text">หมอพืช</span>
+                                    <span class="text-logo doctor-logo">หมอพืช</span>
                                 </a>
                             </li>
                             <li class="list " id="Analyst"  onClick={()=>{setrole("analyst")}}>
                                 <a href="#">
                                     <span class="icon">🧑🏻‍🔬</span>
                                     <span class="text">นักวิเคราะห์สาร</span>
+                                    <span class="text-logo analyst-logo">วิเคราะห์สาร</span>
                                 </a>
                             </li>
                             <li class="list" id="Consultant"  onClick={()=>{setrole("consultant")}}>
                                 <a href="#">
                                     <span class="icon">🧑🏻‍💻</span>
                                     <span class="text">ที่ปรึกษา</span>
+                                    <span class="text-logo consultant-logo">ที่ปรึกษา</span>
                                 </a>
                             </li>
                             <div class="indicator"></div>

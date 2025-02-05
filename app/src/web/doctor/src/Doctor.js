@@ -155,7 +155,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                         <div className="text-icon-cover" ref={frameImage}>
                             <div className="text">
                                 <span>ยินดีต้อนรับ</span>
-                                <span style={{fontWeight : 900}}>หมอพืช</span>
+                                <span style={{fontWeight : 900}}>เจ้าหน้าที่</span>
                             </div>
                             <div className="icon-profile" style={{
                                 borderRadius : "50%",
