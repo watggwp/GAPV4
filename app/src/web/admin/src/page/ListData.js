@@ -295,7 +295,7 @@ const ListData = ({
         }}
       >
         {
-          status.status !== "group" && status.status !== "statistics" &&
+          status.status !== "group" && status.status !== "statistics" && status.status !== "listlocation" && status.status !== "graph" &&
             <LoadOtherOffset
               Fetch={fetchDataList}
               Data={DataFetch}
