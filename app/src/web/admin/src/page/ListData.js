@@ -489,7 +489,10 @@ const ManageList = ({
         ? data.id
         : ""
     }`}
-    status={status.status}
+    status={
+      status.status === "delete" || status.status === "deleteAdmin" ?
+        "delete" : status.status
+    }
   >
     {HrefPage.get().split("?")[0] === "list" ? (
       status.status === "default" || status.status === "delete" ? (
