@@ -43,8 +43,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     })
 
     app.post('/api/doctor/data/list' , async (req , res)=>{
-        let username = req.session.user_admin
-        let password = req.session.pass_admin
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
      
         if(username === '' || password === '') {
           res.redirect('/api/logout')
@@ -52,7 +52,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
         let con = Database.createConnection(listDB)
         try {
-          const auth = await apifunc.auth(con , username , password , res , "admin")
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
           if(auth['result'] === "pass") {
             let data = req.body
      
@@ -68,8 +68,6 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             if(!type_data) {
               res.send([])
             }
-     
-     
      
             const columnName = (
               data.type === "pest" ? "pest_name" : "name"
@@ -101,8 +99,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
       })
 
       app.post('/api/doctor/group/gets', async (req, res) => {
-        let username = req.session.user_admin;
-        let password = req.session.pass_admin;
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
      
         if (!username || !password) {
           res.redirect('/api/logout');
@@ -112,7 +110,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB);
      
         try {
-          const auth = await apifunc.auth(con, username, password, res, "admin");
+          const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
           if (auth['result'] === "pass") {
             const { search } = req.body
             con.query(
@@ -161,7 +159,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
       });
      
       app.post('/api/doctor/manage/group', async (req, res) => {
-        let username = req.session.user_admin;
+        let username = req.session.user_doctor;
         let password = req.body['password'];
      
         // ตรวจสอบว่าแอดมินเข้าสู่ระบบหรือไม่
@@ -175,7 +173,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
      
         try {
             // ตรวจสอบสิทธิ์แอดมิน
-            const auth = await apifunc.auth(con, username, password, res, "admin");
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
             if (auth['result'] === "pass") {
                 let { id, status } = req.body;
      
@@ -3546,7 +3544,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         ` , [ result.data.station_doctor , req.query.id ] , 
                         (err , list) => {
                             if(list.length) list.map(val=>{
-                                val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/admin.jpg"
+                                val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/acc_doctor.jpg"
                                 return val
                             })
 
