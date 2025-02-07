@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DayJSX, Loading, OpenImageMax, PopupDom } from "../../../../../assets/js/module";
 import { clientMo } from "../../../../../assets/js/moduleClient";
+import DetailEdit from "./report/DetailEdit";
 
 const ListSuccess = ({data , index , DoctorSuccess}) => {
     return(
@@ -32,6 +33,9 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
     const [getOpenImg , setOpenImg] = useState()
     const [getStateMenu , setStateMenu] = useState(false)
 
+    const PopRef = useRef()
+    const [BodyPopupEdit , setBodyPopupEdit] = useState(<></>)
+
     const OpenImg = () => {
         setOpenImg(<OpenImageMax img={`/doctor/report/${data.image_path}`} Ref={RefOpenImage} setPopup={setOpenImg}/>)
     }
@@ -46,6 +50,10 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
 
     const onOpenMenu = useCallback((event) => {
         setStateMenu(true)
+    } , [])
+
+    const onOpenPopup = useCallback(() => {
+        setBodyPopupEdit(<DetailEdit Ref={PopRef} setRef={setBodyPopupEdit} />)
     } , [])
 
     const CloseMenu = (e) => {
@@ -98,7 +106,7 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                     {/* <button className="edit-report" onClick={()=>PopupEditReport(data , "report")}>แก้ไข</button> */}
                 </div>
                 { data.report_text ?
-                    <div className="field menu-detail" onClick={OpenImg}>
+                    <div className="field menu-detail" onClick={onOpenPopup}>
                         <svg viewBox="0 0 494.936 494.936">
                             <g>
                                 <g>
@@ -118,6 +126,7 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                     </div> : <></>
                 }
             </div>
+            <PopupDom Ref={PopRef} Body={BodyPopupEdit}/>
         </>
     )
 }
