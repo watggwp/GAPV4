@@ -21,7 +21,8 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
-  const { minCount , setMinCount } = useContext(InsertStatisticsContext)
+  // const { minCount , setMinCount } = useContext(InsertStatisticsContext)
+  const [minCount, setMinCount] = useState(0)
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
@@ -108,9 +109,6 @@ const InsertStatistics = () => {
     return stats.filter((item) => item.count >= minCount);
   };
 
-  useEffect(() => {
-    console.log(minCount)
-  } , [minCount])
   return (
     <div style={{ padding: "10px" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
