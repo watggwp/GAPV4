@@ -1183,7 +1183,12 @@ app.get('/api/admin/profile/get', (req, res) => {
                             }
 
                             con.end();
-                            res.send({ message: `Status updated to ${status} successfully`, id, status });
+                            res.send({ 
+                              message: `Status updated to ${status} successfully`, 
+                              id, 
+                              newStatus : status,
+                              status : 200 
+                            });
                         }
                     );
                 }

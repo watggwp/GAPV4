@@ -73,16 +73,19 @@ const PageGroup = () => {
 
       const result = JSON.parse(response);
 
-      if (result.message === "Data updated successfully") {
-        setGroupData((group => {
-          const { index } = groupMapping.get(selectedToggleId)
-          if(group[index]) {
-            group[index]["status"] = status
-          }
-        }))
-        alert("อัปเดตสถานะสำเร็จ");
-      } else {
-        alert("เกิดข้อผิดพลาด: " + result.message);
+      switch(result.status) {
+        case 200 :
+          setGroupData((group => {
+            const { index } = groupMapping.get(selectedToggleId)
+            if(group[index]) {
+              group[index]["status"] = status
+            }
+          }))
+          alert("อัปเดตสถานะสำเร็จ");
+          break;
+        default :
+          alert("เกิดข้อผิดพลาด: " + result.message);
+          break;
       }
     } catch (error) {
       console.error("Error updating status:", error);
