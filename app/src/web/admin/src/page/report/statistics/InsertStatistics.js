@@ -321,7 +321,7 @@ const InsertStatistics = () => {
                         fontWeight: "900",
                       }}
                     >
-                      {stat.data}
+                      {stat.name_plants}
                     </td>
                     <td
                       style={{
