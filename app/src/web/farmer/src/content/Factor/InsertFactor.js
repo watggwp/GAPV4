@@ -438,6 +438,8 @@ const PopupInsertFactor = ({
     console.log(name)
     NameFactor.current.value = name;
     NameFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
+     // ล้างค่าชื่อสามัญสารเคมี
+    NameMainFactor.current.value = "";
     type_path === "z" ? ChangeFerti() : ChangeChemi();
     ResetListNamePopup();
     SearchFactorNameOther({ target: { value: "", selectBt: true } });
@@ -623,6 +625,8 @@ const PopupInsertFactor = ({
       if (DataFactor.some((val) => val.name === value)) {
         NameFactor.current.style.border = "2px solid transparent";
       }
+      // ล้างค่าชื่อสามัญสารเคมีเมื่อเปลี่ยนชื่อสารเคมี
+        NameMainFactor.current.value = "";
     } else if (type === "NameMainFactor") {
       if (DataFactor.some((val) => val.name_formula === value)) {
         NameMainFactor.current.style.border = "2px solid transparent";
@@ -826,7 +830,7 @@ const PopupInsertFactor = ({
                               defaultValue={"ลิตร"}
                             >
                               <option value={"ลิตร"}>ลิตร</option>
-                              <option value={"ก.ก"}>ก.ก</option>
+                              <option value={"กก."}>กก.</option>
                             </select>
                           </div>
                         </label>

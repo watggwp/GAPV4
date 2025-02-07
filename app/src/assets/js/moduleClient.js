@@ -94,7 +94,7 @@ const HOST_API = process.env.NODE_ENV === "development" ?
     "http://" + process.env.REACT_APP_API_LOCAL + ":" + process.env.REACT_APP_API_PORT :
     "https://" + process.env.REACT_APP_API_PUBLIC + ":" + process.env.REACT_APP_API_PORT
 
-// const HOST_API = "https://44ae8be7ee6f.ngrok.app"
+// const HOST_API = "https://eb9bd49bc0c5.ngrok.app"
 
 const clientMo = {
     post : async (url = "" , data={}) => {

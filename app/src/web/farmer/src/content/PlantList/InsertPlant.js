@@ -202,6 +202,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                         Insect.current.value = Object.FromHistory[0].insect;
                         QtyInsect.current.value = Object.FromHistory[0].qtyInsect;
                         Seft.current.value = Object.FromHistory[0].seft;
+                        History.current.value = Object.FromHistory[0].name_plant; // ใช้ค่าจาก FromHistory
                     }
                 } catch (err) {
                     console.error(err);

@@ -52,7 +52,7 @@ const InformationReport = ({ setPage }) => {
                             setActiveButton('ranking'); // ตั้งค่าสถานะเมื่อกดปุ่ม
                         }}
                     >
-                        แสดงจำนวนเกษตรกรเเละชนิดพืช
+                        จำนวนเกษตรกรเเละชนิดพืช
                     </button>
 
                     <button 
@@ -62,7 +62,7 @@ const InformationReport = ({ setPage }) => {
                             setActiveButton('doctors'); // ตั้งค่าสถานะเมื่อกดปุ่ม
                         }}
                     >
-                        แสดงรายชื่อหมอพืชเเละที่ปรึกษาเกษตรกร
+                        รายชื่อเจ้าหน้าที่
                     </button>
                 </div>
                 )}
@@ -107,7 +107,7 @@ const InformationReport = ({ setPage }) => {
                                     <thead>
                                         <tr>
                                             <th>ชื่อ</th>
-                                            <th>สถานะ</th>
+                                            <th>ตำเเหน่ง</th>
                                         </tr>
                                     </thead>
                                     <tbody>

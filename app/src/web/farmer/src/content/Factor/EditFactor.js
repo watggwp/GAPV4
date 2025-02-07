@@ -55,6 +55,27 @@ ObjectData}) => {
     const [showPopup, setShowPopup] = useState(false);
     const [formId, setFormId] = useState(""); // สำหรับ formId
     const [currentPlantPlantName, setCurrentPlantName] = useState(""); // ชื่อชนิดพืช
+    const [nameFactorValue, setNameFactorValue] = useState(ObjectData.name || "");
+    const [nameMainFactorValue, setNameMainFactorValue] = useState(ObjectData.formula_name || "");
+
+// เมื่อ ObjectData เปลี่ยน ให้ตั้งค่าข้อมูลใหม่
+useEffect(() => {
+  setNameFactorValue(ObjectData.name || "");
+  setNameMainFactorValue(ObjectData.formula_name || "");
+}, [ObjectData]);
+
+const handleNameFactorChange = (e) => {
+  const value = e.target.value.trim();
+  setNameFactorValue(value);
+
+  // เมื่อเปลี่ยนชื่อสารเคมี ให้ล้างชื่อสามัญสารเคมี
+  setNameMainFactorValue("");
+};
+
+const handleNameMainFactorChange = (e) => {
+  setNameMainFactorValue(e.target.value.trim());
+};
+
 
 
      useEffect(() => {
@@ -262,6 +283,8 @@ useEffect(() => {
       if (DataFactor.some((val) => val.name === value)) {
         NameFactor.current.style.border = "2px solid transparent";
       }
+      // ล้างค่าชื่อสามัญสารเคมีเมื่อเปลี่ยนชื่อสารเคมี
+        NameMainFactor.current.value = "";
     } else if (type === "NameMainFactor") {
       if (DataFactor.some((val) => val.name_formula === value)) {
         NameMainFactor.current.style.border = "2px solid transparent";
@@ -557,6 +580,8 @@ useEffect(() => {
     const SetTextInputName = (name) => {
         NameFactor.current.value = name;
         (type_path === "z") ? ChangeFerti() : ChangeChemi();
+        // ล้างค่าชื่อสามัญสารเคมี
+        NameMainFactor.current.value = "";
         ResetListNamePopup()
         SearchFactorNameOther({target : {value : "" , selectBt : true}})
     }
@@ -777,7 +802,7 @@ const ResetListPestsPopup = () => {
                                                     <input onChange={ChangeFerti} ref={Volume} defaultValue={ObjectData.volume.split(" ")[0]} type="number" placeholder="ตัวเลข"></input>
                                                     <select onChange={ChangeFerti} ref={Unit} defaultValue={ObjectData.volume.split(" ")[1]}>
                                                         <option value={"ลิตร"}>ลิตร</option>
-                                                        <option value={"ก.ก"}>ก.ก</option>
+                                                        <option value={"กก."}>กก.</option>
                                                     </select>
                                                 </div>
                                             </label>
@@ -812,81 +837,82 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                        <label className="frame-textbox colume">
-                                            <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
-                                            <div className="content-colume-input">
-                                            <div className="input-select-popup">
-                                                <input
-                                                onChange={LoadSearchName ? SearchNameFactor : null}
-                                                onMouseDown={LoadSearchName ? SearchNameFactor : null}
-                                                defaultValue={ObjectData.name || ""} // ใช้ ObjectData.name ถ้ามีค่า
-                                                ref={NameFactor}
-                                                placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
-                                                readOnly={!LoadSearchName ? true : null}
-                                                disabled={!LoadSearchName ? true : null}
-                                                onBlur={(e) => {
-                                                    ValidateChemicalAndPest(); // ตรวจสอบสารเคมีกับศัตรูพืช
-                                                    validateInputs();
-                                                    containsHidePopup(ListSearchName.current, e.target);
-                                                }}
-                                                />
-                                                <div ref={ListSearchName} remove="" className="list-input-search">
-                                                {LoadSearchName ? (
-                                                    ListSelectName
-                                                ) : (
-                                                    <div
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                    }}
-                                                    >
-                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                            <label className="frame-textbox colume">
+                                                <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
+                                                <div className="content-colume-input">
+                                                    <div className="input-select-popup">
+                                                        <input
+                                                            onChange={(e) => {
+                                                                if (LoadSearchName) SearchNameFactor(e);
+                                                                NameMainFactor.current.value = ""; // ล้างค่าชื่อสามัญ
+                                                            }}
+                                                            onMouseDown={LoadSearchName ? SearchNameFactor : null}
+                                                            defaultValue={ObjectData.name || ""}
+                                                            ref={NameFactor}
+                                                            placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
+                                                            readOnly={!LoadSearchName ? true : null}
+                                                            disabled={!LoadSearchName ? true : null}
+                                                            onBlur={(e) => {
+                                                                ValidateChemicalAndPest();
+                                                                validateInputs();
+                                                                containsHidePopup(ListSearchName.current, e.target);
+                                                            }}
+                                                        />
+                                                        <div ref={ListSearchName} remove="" className="list-input-search">
+                                                            {LoadSearchName ? (
+                                                                ListSelectName
+                                                            ) : (
+                                                                <div
+                                                                    style={{
+                                                                        display: "flex",
+                                                                        justifyContent: "center",
+                                                                        alignItems: "center",
+                                                                    }}
+                                                                >
+                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                )}
                                                 </div>
-                                            </div>
-                                            </div>
-                                        </label>
+                                            </label>
                                         </div>
-
                                         <div className="row">
-                                        <label className="frame-textbox">
-                                            <span>ชื่อสามัญสารเคมี</span>
-                                            <div className="input-select-other">
-                                            <input
-                                                onChange={LoadSearchNameMain ? SearchFactorNameOther : null}
-                                                onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
-                                                defaultValue={ObjectData.formula_name || ""} // ใช้ ObjectData.formula_name ถ้ามีค่า
-                                                ref={NameMainFactor}
-                                                type="text"
-                                                placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
-                                                readOnly={!LoadSearchNameMain ? true : null}
-                                                disabled={!LoadSearchNameMain ? true : null}
-                                                onBlur={(e) => {
-                                                validateInputs();    
-                                                containsHidePopup(ListSearchFactorNameMain.current, e.target);
-                                                }}
-                                            />
-                                            <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
-                                                {LoadSearchNameMain ? (
-                                                ListSelectNameMain
-                                                ) : (
-                                                <div
-                                                    style={{
-                                                    display: "flex",
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    }}
-                                                >
-                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                            <label className="frame-textbox">
+                                                <span>ชื่อสามัญสารเคมี</span>
+                                                <div className="input-select-other">
+                                                    <input
+                                                        onChange={LoadSearchNameMain ? SearchFactorNameOther : null}
+                                                        onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
+                                                        defaultValue={ObjectData.formula_name || ""}
+                                                        ref={NameMainFactor}
+                                                        type="text"
+                                                        placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
+                                                        readOnly={!LoadSearchNameMain ? true : null}
+                                                        disabled={!LoadSearchNameMain ? true : null}
+                                                        onBlur={(e) => {
+                                                            validateInputs();
+                                                            containsHidePopup(ListSearchFactorNameMain.current, e.target);
+                                                        }}
+                                                    />
+                                                    <div ref={ListSearchFactorNameMain} remove="" className="list-input-search">
+                                                        {LoadSearchNameMain ? (
+                                                            ListSelectNameMain
+                                                        ) : (
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    justifyContent: "center",
+                                                                    alignItems: "center",
+                                                                }}
+                                                            >
+                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                )}
-                                            </div>
-                                            </div>
-                                        </label>
+                                            </label>
                                         </div>
-
                                         <div className="row">
                                         <label className="frame-textbox colume">
                                             <span className="full">ศัตรูพืชหรือโรคที่พบ</span>

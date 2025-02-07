@@ -198,42 +198,72 @@ const House = ({liff , uid}) => {
     }
 
     const confirmData = () => {
-        setOpen(1)
-        if(ImageCurrent.current.src.indexOf("/view-preview-img.svg") < 0) {
-            let CropImage = CropImageToData()
-    
-            let data = {
-                uidLine : uid,
-                img : CropImage,
-                name : namefarm.current.value,
-                lag : getLag,
-                lng : getLng
-            }
-
-            if(data.img && data.name && data.lag && data.lng) {
-                clientMo.postForm("/api/farmer/farmhouse/add" , data).then((result)=>{
-                    console.log(result)
-                    if(result === "133") {
-                        setText("เพิ่มโรงเรือนสำเร็จ")
-                        setResult(1)
-                    } else if (result === "130") {
-                        setText("พบปัญหาในการเพิ่มโรงเรือน")
-                        setResult(3)
-                    } else if (result === "no") {
-                        setText("บัญชีนี้ไม่สามารถใช้งานได้ กรุณาติดต่อเจ้าหน้าที่")
-                        setResult(2)
-                    } else if (result === "error") {
-                        setText("เกิดปัญหาทางเครือข่าย")
-                        setResult(3)
-                    }
-                })
-            } else {
-                setOpen(0)
-            }
-        } else {
-            setOpen(0)
+        // ตรวจสอบว่าภาพที่แสดงไม่ใช่ default preview image
+        if (ImageCurrent.current.src.indexOf("/view-preview-img.svg") > -1) {
+          setText("กรุณาอัปโหลดรูปภาพโรงเรือน");
+          setResult(3); // 3 = ข้อความแจ้งเตือน error
+          setOpen(1);   // เปิด ReportAction เพื่อแสดงแจ้งเตือน
+          return;
         }
-    } 
+      
+        // ดึงค่าจากฟิลด์ต่าง ๆ
+        const CropImage = CropImageToData(); // ควรได้เป็น Data URL ของรูปที่ครอบตัดแล้ว
+        const nameValue = namefarm.current.value.trim();
+        const latValue = getLag;
+        const lngValue = getLng;
+      
+        // ตรวจสอบแต่ละฟิลด์และรวบรวมข้อความแจ้งเตือน
+        let missingFields = "";
+        if (!CropImage) {
+          missingFields += "กรุณาอัปโหลดรูปภาพโรงเรือน\n";
+        }
+        if (!nameValue) {
+          missingFields += "กรุณากรอกชื่อโรงเรือน\n";
+        }
+        if (!latValue || !lngValue || latValue === 0 || lngValue === 0 || latValue === -1 || lngValue === -1) {
+          missingFields += "กรุณาระบุตำแหน่งโรงเรือน\n";
+        }
+      
+        // หากมีฟิลด์ที่ไม่ครบ ให้แสดง ReportAction แจ้งเตือน
+        if (missingFields) {
+          setText(missingFields);
+          setResult(3);
+          setOpen(1);
+          return;
+        }
+      
+        // ข้อมูลครบถ้วนแล้ว ให้แสดง loading/modal
+        setOpen(1);
+      
+        // เตรียมข้อมูลสำหรับส่ง
+        let data = {
+          uidLine: uid,
+          img: CropImage,
+          name: nameValue,
+          lag: latValue,
+          lng: lngValue,
+        };
+      
+        // ส่งข้อมูลไปยัง API สำหรับเพิ่มโรงเรือน
+        clientMo.postForm("/api/farmer/farmhouse/add", data).then((result) => {
+          console.log(result);
+          if (result === "133") {
+            setText("เพิ่มโรงเรือนสำเร็จ");
+            setResult(1);
+          } else if (result === "130") {
+            setText("พบปัญหาในการเพิ่มโรงเรือน");
+            setResult(3);
+          } else if (result === "no") {
+            setText("บัญชีนี้ไม่สามารถใช้งานได้ กรุณาติดต่อเจ้าหน้าที่");
+            setResult(2);
+          } else if (result === "error") {
+            setText("เกิดปัญหาทางเครือข่าย");
+            setResult(3);
+          }
+        });
+      };
+      
+      
 
     // let loadnum = true
     // const LoadOn = () => {
