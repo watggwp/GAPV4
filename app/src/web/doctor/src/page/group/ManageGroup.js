@@ -1,10 +1,10 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../PageTemplate";
 import { Autocomplete, TextField } from "@mui/material";
+import { PageDataContext } from "../data/PageData";
  
 const ManageGroup = ({ fetchGroups }) => {
-    const { popupDataManage , setPopupDataManage } = useContext(PageTemplateContext);
+    const { popupDataManage , setPopupDataManage } = useContext(PageDataContext);
     const [ chemicals, setChemicals ] = useState([]);
     const [ pests, setPests ] = useState([]);
     const [ plants, setPlants ] = useState([]);

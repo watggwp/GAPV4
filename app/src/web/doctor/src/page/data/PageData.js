@@ -14,8 +14,16 @@ import InsertReport from "../report/InsertReport";
 const MaxLimit = 5
 
 export const PageDataContext = createContext({
-    openInsert : false, 
-    setOpenInsert : () => {}
+    popupDataManage : {
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    } , 
+    setPopupDataManage : () => ({ open : false , type : "" }),
+    ChangeStatus : (status) => {},
+    textSearch : ""
 })
 
 const PageData = ({setMain , session , socket , type = false , eleImageCover , LoadType , eleBody , setTextStatus}) => {
@@ -26,7 +34,13 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
     //     open : type
     // })
     
-    const [ openInsert , setOpenInsert ] = useState(false)
+    const [ popupDataManage , setPopupDataManage ] = useState({
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    })
 
     const [TypeSelectMenu , setTypeSelectMenu] = useState(0)
     const [DataProcess , setDataProcess] = useState(new Map([
@@ -44,6 +58,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const Search = useRef()
     const SearchInput = useRef()
+    const [ textSearch , setTextSearch ] = useState("")
     const SelectType = useRef()
     const Other = useRef()
 
@@ -79,7 +94,9 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const OpenOption = (Ref , option) => {
         setTypeSelectMenu(option)
-        setOpenInsert((open) => !open)
+        setPopupDataManage({
+            open : true
+        })
         if(TypeSelectMenu === option) Ref.current.toggleAttribute("show")
         else if(Ref.current.getAttribute("show") == null) Ref.current.toggleAttribute("show")
     }
@@ -90,10 +107,11 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         DataSelect.set(keyMap , value)
         if(!value) DataSelect.delete(keyMap)
 
+        setTextSearch(value)
         if(target === SelectType.current) {
             DataSelect.set("statusClick" , true)
             if(!TypeSelectMenu) {
-                SearchInput.current.value = ""
+                setTextSearch("")
             }
             else {
                 SubmitInsert.current.setAttribute("no" , "")
@@ -241,7 +259,11 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     return(
         <PageDataContext.Provider
-            value={{ openInsert : openInsert , setOpenInsert : setOpenInsert }}
+            value={{ 
+                setPopupDataManage,
+                popupDataManage,
+                textSearch
+            }}
         >
             <section className="data-list-content-page data-page">
                 {
@@ -289,12 +311,15 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                             }</span>
                                             <div className="row">
                                                 <input 
-                                                    onChange={(e)=>searchList(e.target , e.target.value , 
-                                                        DataProcess.get("type") === "pest" ?
-                                                        "pest_name" : 
-                                                        "name"
-                                                    )} 
-                                                    type="search" ref={SearchInput} 
+                                                    onChange={(e)=>
+                                                        searchList(e.target , e.target.value , 
+                                                            DataProcess.get("type") === "pest" ?
+                                                            "pest_name" : 
+                                                            "name"
+                                                        )
+                                                    } 
+                                                    type="search"
+                                                    value={textSearch}
                                                     placeholder={
                                                         DataProcess.get("type") === "plant" ? "ชื่อพืช เช่น เมล่อน" : 
                                                         DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" :
@@ -349,8 +374,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                                 :
                                                 DataProcess.get("type") === "group" ?
                                                         <Modal
-                                                            show={openInsert}
-                                                            onHide={() => setOpenInsert(false)}
+                                                            show={popupDataManage.open}s
+                                                            onHide={() => setPopupDataManage({
+                                                                open : false
+                                                            })}
                                                             aria-labelledby="modal-title"
                                                             aria-describedby="modal-description"
                                                             centered

@@ -1,10 +1,10 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { PageTemplateContext } from "../PageTemplate";
+import PageData from "../data/PageData";
  
 const InsertGroup = () => {
  
-    const { popupDataManage, setPopupDataManage } = useContext(PageTemplateContext);
+    const { popupDataManage, setPopupDataManage } = useContext(PageData);
     const [chemicals, setChemicals] = useState([]);
     const [pests, setPests] = useState([]);
     const [plants, setPlants] = useState([]);

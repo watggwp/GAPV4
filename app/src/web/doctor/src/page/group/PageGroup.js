@@ -1,13 +1,13 @@
 import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
-import { PageTemplateContext } from "../PageTemplate";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
+import { PageDataContext } from "../data/PageData";
  
 const PageGroup = () => {
-  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
+  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageDataContext);
   const [groupData, setGroupData] = useState([]);
   const [groupMapping, setGroupMapping] = useState(new Map());
   const { TabOn } = useContext(AdminContext);
