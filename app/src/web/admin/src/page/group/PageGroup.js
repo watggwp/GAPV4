@@ -80,6 +80,7 @@ const PageGroup = () => {
             if(group[index]) {
               group[index]["status"] = status
             }
+            return group
           }))
           alert("อัปเดตสถานะสำเร็จ");
           break;
