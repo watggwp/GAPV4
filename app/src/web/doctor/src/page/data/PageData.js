@@ -10,6 +10,7 @@ import ManageData from "./ManageData";
 import { Modal } from "react-bootstrap";
 import InsertGroup from "../group/InsertGroup";
 import InsertReport from "../report/InsertReport";
+import PageGroup from "../group/PageGroup";
 
 const MaxLimit = 5
 
@@ -370,20 +371,20 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                                 DataProcess.get("type") === "source" ?
                                                     <InsertSource nameInsert={nameInsert} position={position} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
                                                 :
-                                                DataProcess.get("type") === "group" ?
-                                                        <Modal
-                                                            show={popupDataManage.open}s
-                                                            onHide={() => setPopupDataManage({
-                                                                open : false
-                                                            })}
-                                                            aria-labelledby="modal-title"
-                                                            aria-describedby="modal-description"
-                                                            centered
-                                                            size="lg"
-                                                        >
-                                                            <InsertGroup/>
-                                                        </Modal>
-                                                :
+                                                // DataProcess.get("type") === "group" ?
+                                                //         <Modal
+                                                //             show={popupDataManage.open}s
+                                                //             onHide={() => setPopupDataManage({
+                                                //                 open : false
+                                                //             })}
+                                                //             aria-labelledby="modal-title"
+                                                //             aria-describedby="modal-description"
+                                                //             centered
+                                                //             size="lg"
+                                                //         >
+                                                //             <InsertGroup/>
+                                                //         </Modal>
+                                                // :
                                                     <></>
                                             }
                                             <div className="bt-insert">
@@ -399,10 +400,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                 <div className="data-list-content">
                     {
                         DataProcess.get("type") === "group" ?
-                        <></>:
+                            <PageGroup/>:
                         DataProcess.get("type") === "report" ?
-                        <InsertReport/> :
-                        <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
+                            <InsertReport/> :
+                            <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                     }
                     {
                         TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={2}/> : <></>
