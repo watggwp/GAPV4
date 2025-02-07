@@ -43,6 +43,8 @@ const DetailEdit = ({Ref , setRef}) => {
                 setBody(Data.detail)
                 setLoad(true)
             } else setLoad(true)
+        } else {
+            setLoad(true)
         }
     }
 
