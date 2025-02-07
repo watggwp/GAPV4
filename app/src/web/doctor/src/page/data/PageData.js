@@ -94,9 +94,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const OpenOption = (Ref , option) => {
         setTypeSelectMenu(option)
-        setPopupDataManage({
-            open : true
-        })
+        setPopupDataManage({ open : true , type : "insert" })
         if(TypeSelectMenu === option) Ref.current.toggleAttribute("show")
         else if(Ref.current.getAttribute("show") == null) Ref.current.toggleAttribute("show")
     }
