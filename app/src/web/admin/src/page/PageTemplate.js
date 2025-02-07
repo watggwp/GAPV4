@@ -52,6 +52,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     })
 
     const [getTimeOut , setTimeOut] = useState(0)
+    const [getTextSearchValue , setTextSearchValue] = useState("")
     const [getTextSearch , setTextSearch] = useState("")
 
     const [ popupDataManage , setPopupDataManage ] = useState({
@@ -163,10 +164,11 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                                 </g>
                             </svg>
                             <input
-                                value={getTextSearch}
+                                value={getTextSearchValue}
                                 autoComplete="none" 
                                 ref={TextSearchRef}
                                 onInput={(e)=>{
+                                    setTextSearchValue(e.target.value)
                                     clearTimeout(getTimeOut)
                                     setTimeOut(setTimeout(()=>{
                                         setTextSearch(e.target.value)
