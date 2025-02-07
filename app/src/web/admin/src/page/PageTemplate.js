@@ -160,12 +160,19 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                                 <path d="m11.25 11.25l3 3"/><circle cx="7.5" cy="7.5" r="4.75"/>
                             </g>
                         </svg>
-                        <input ref={TextSearchRef} onInput={(e)=>{
-                            clearTimeout(getTimeOut)
-                            setTimeOut(setTimeout(()=>{
-                                setTextSearch(e.target.value)
-                            } , 2000))
-                        }} type="text" placeholder="Search"></input>
+                        <input
+                            value={getTextSearch}
+                            autoComplete="none" 
+                            ref={TextSearchRef}
+                            onInput={(e)=>{
+                                clearTimeout(getTimeOut)
+                                setTimeOut(setTimeout(()=>{
+                                    setTextSearch(e.target.value)
+                                } , 2000))
+                            }} 
+                            type="text"
+                            placeholder="Search"
+                        />
                         <svg xmlns="http://www.w3.org/2000/svg" onClick={()=>{
                             clearTimeout(getTimeOut)
                             setTextSearch("")
