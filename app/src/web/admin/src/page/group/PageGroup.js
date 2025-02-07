@@ -71,7 +71,7 @@ const PageGroup = () => {
         password: password,
       });
 
-      const result = response.data;
+      const result = JSON.parse(response).data;
 
       if (result.message === "Data updated successfully") {
         setGroupData((group => {
