@@ -158,6 +158,81 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
       });
      
+      app.post('/api/doctor/group/insert' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+     
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            const pest_id = req.body.pest_id
+            const chemical_id = req.body.chemical_id
+            const plant_id = req.body.plant_id
+            const safe_days = req.body.safe_days
+     
+            if(pest_id && chemical_id && plant_id && safe_days) {
+              con.query(
+                `
+                  INSERT INTO pest_chemical
+                    ( pest_id , chemical_id , plant_id , safe_days )
+                  SELECT ? , ? , ? , ?
+                  WHERE NOT EXISTS (
+                      SELECT 1
+                      FROM pest_chemical
+                      WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
+                  )
+                `
+                , [
+                    pest_id , chemical_id , plant_id , safe_days ,
+                    pest_id , chemical_id , plant_id
+                  ] , (err , dataInsert) => {
+                  if(err) {
+                    console.log(err)
+                    res.send({
+                      status : 403,
+                      result : "err insert"
+                    })
+                  }
+     
+                  if(dataInsert.affectedRows) {
+                    con.query(
+                      `
+                        UPDATE pest_chemical SET safe_days = ?
+                        WHERE chemical_id = ? AND plant_id = ?
+                      ` , [ safe_days , chemical_id , plant_id ] ,
+                      (err , updateSafeDate) => {
+                        console.log(err)
+                        con.end()
+     
+                        res.send({
+                          status : 200,
+                          result : "insert group"
+                        })
+                      }
+                    )
+                  } else {
+                    res.send({
+                      status : 409,
+                      result : "insert group"
+                    })
+                  }
+                }
+              )
+            }
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+      })
+
       app.post('/api/doctor/manage/group', async (req, res) => {
         let username = req.session.user_doctor;
         let password = req.body['password'];
