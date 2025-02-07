@@ -9,9 +9,9 @@ import { Modal } from "react-bootstrap";
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
   const [groupData, setGroupData] = useState([]);
+  const [groupMapping, setGroupMapping] = useState(new Map());
   const { TabOn } = useContext(AdminContext);
 
-  const [toggleStates, setToggleStates] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedToggleId, setSelectedToggleId] = useState(null);
   const [status, setStatus] = useState(null);
@@ -26,11 +26,11 @@ const PageGroup = () => {
         setGroupData(result);
         TabOn.addTimeOut(TabOn.end());
 
-        const initialStates = {};
-        result.forEach((item) => {
-          initialStates[item.id] = item.status === 1; // กำหนดสถานะเริ่มต้นจาก API
+        const initialMapping = new Map();
+        result.forEach((item , idx) => {
+          initialMapping.set(item.id , {...item , index : idx})
         });
-        setToggleStates(initialStates);
+        setGroupMapping(initialMapping);
       } else {
         console.error("Invalid data format from API");
       }
@@ -53,7 +53,7 @@ const PageGroup = () => {
 
   const handleToggleClick = (id) => {
     setSelectedToggleId(id);
-    setStatus(toggleStates[id] ? 0 : 1);
+    setStatus(groupMapping.get(id)?.status ? 0 : 1);
     setShowConfirmModal(true);
   };
 
@@ -74,10 +74,12 @@ const PageGroup = () => {
       const result = response.data;
 
       if (result.message === "Data updated successfully") {
-        setToggleStates((prev) => ({
-          ...prev,
-          [selectedToggleId]: status === 1,
-        }));
+        setGroupData((group => {
+          const { index } = groupMapping.get(selectedToggleId)
+          if(group[index]) {
+            group[index]["status"] = status
+          }
+        }))
         alert("อัปเดตสถานะสำเร็จ");
       } else {
         alert("เกิดข้อผิดพลาด: " + result.message);
@@ -148,11 +150,11 @@ const PageGroup = () => {
                       border: "none",
                       borderRadius: "30px",
                       cursor: "pointer",
-                      backgroundColor: toggleStates[item.id] ? "#28a745" : "#dc3545",
+                      backgroundColor: item.status ? "#28a745" : "#dc3545",
                       boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
                     }}
                   >
-                    {toggleStates[item.id] ? "ON" : "OFF"}
+                    {item.status ? "ON" : "OFF"}
                   </button>
                 </td>
               </tr>
