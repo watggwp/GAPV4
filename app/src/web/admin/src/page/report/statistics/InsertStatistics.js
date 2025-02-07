@@ -165,11 +165,7 @@ const InsertStatistics = () => {
             type="number"
             min="0"
             value={minCount}
-            onChange={(e) => {
-              console.log(e.target.value)
-              console.log(minCount)
-              setMinCount(parseInt(e.target.value))
-            }}
+            onChange={(e) => setMinCount(e.target.value)}
             style={{
               marginLeft: "10px",
               padding: "8px",
