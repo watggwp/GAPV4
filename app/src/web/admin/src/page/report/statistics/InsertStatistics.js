@@ -108,6 +108,9 @@ const InsertStatistics = () => {
     return stats.filter((item) => item.count >= minCount);
   };
 
+  useEffect(() => {
+    console.log(minCount)
+  } , [minCount])
   return (
     <div style={{ padding: "10px" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
@@ -165,7 +168,10 @@ const InsertStatistics = () => {
             type="number"
             min="0"
             value={minCount}
-            onChange={(e) => setMinCount(e.target.value)}
+            onChange={(e) => {
+              console.log(e.target.value)
+              setMinCount(parseInt(e.target.value))
+            }}
             style={{
               marginLeft: "10px",
               padding: "8px",
