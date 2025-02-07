@@ -1,7 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { AdminContext } from "../../Admin";
-import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 import { PageDataContext } from "../data/PageData";
@@ -10,7 +8,6 @@ const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageDataContext);
   const [groupData, setGroupData] = useState([]);
   const [groupMapping, setGroupMapping] = useState(new Map());
-  const { TabOn } = useContext(AdminContext);
  
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedToggleId, setSelectedToggleId] = useState(null);
@@ -24,7 +21,6 @@ const PageGroup = () => {
  
       if (Array.isArray(result)) {
         setGroupData(result);
-        TabOn.addTimeOut(TabOn.end());
  
         const initialMapping = new Map();
         result.forEach((item , idx) => {
@@ -37,7 +33,7 @@ const PageGroup = () => {
     } catch (error) {
       console.error("Error fetching group data:", error);
     }
-  }, [TabOn, textSearch]);
+  }, [textSearch]);
  
   useEffect(() => {
     fetchGroupData();
