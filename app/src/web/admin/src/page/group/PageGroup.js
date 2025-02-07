@@ -1,49 +1,93 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
+import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 
 const PageGroup = () => {
-  const { popupDataManage , setPopupDataManage , textSearch } = useContext(PageTemplateContext)
-  const [groupData, setGroupData] = useState([]); // เก็บข้อมูลจาก API
+  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
+  const [groupData, setGroupData] = useState([]);
   const { TabOn } = useContext(AdminContext);
 
-  // ฟังก์ชันสำหรับดึงข้อมูลจาก API
+  const [toggleStates, setToggleStates] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedToggleId, setSelectedToggleId] = useState(null);
+  const [status, setStatus] = useState(null);
+  const PasswordRef = useRef(null);
+
   const fetchGroupData = useCallback(async () => {
-    console.log("Start fetching group data...");
     try {
-      const response = await clientMo.post("/api/admin/group/gets" , { search : textSearch });
+      const response = await clientMo.post("/api/admin/group/gets", { search: textSearch });
       const result = JSON.parse(response);
 
       if (Array.isArray(result)) {
-        setGroupData(result); // เก็บข้อมูลใน state
+        setGroupData(result);
         TabOn.addTimeOut(TabOn.end());
-        console.log("Group data set successfully:", result);
+
+        const initialStates = {};
+        result.forEach((item) => {
+          initialStates[item.id] = item.status === 1; // กำหนดสถานะเริ่มต้นจาก API
+        });
+        setToggleStates(initialStates);
       } else {
         console.error("Invalid data format from API");
       }
     } catch (error) {
       console.error("Error fetching group data:", error);
     }
-  }, [TabOn , textSearch]);
+  }, [TabOn, textSearch]);
 
-  // เรียกใช้ API เมื่อ component ถูก mount
   useEffect(() => {
     fetchGroupData();
   }, [fetchGroupData]);
 
-  // ฟังก์ชันเมื่อคลิกปุ่ม "แก้ไข"
   const handleEditClick = (item) => {
-    console.log(item)
     setPopupDataManage({
-      open : true,
-      type : "edit",
-      metadata : {
-        id : item.id
+      open: true,
+      type: "edit",
+      metadata: { id: item.id },
+    });
+  };
+
+  const handleToggleClick = (id) => {
+    setSelectedToggleId(id);
+    setStatus(toggleStates[id] ? 0 : 1);
+    setShowConfirmModal(true);
+  };
+
+  const handleToggleConfirm = async () => {
+    const password = PasswordRef.current.value;
+    if (!password) {
+      alert("กรุณากรอกรหัสผ่าน");
+      return;
+    }
+
+    try {
+      const response = await clientMo.post("/api/admin/manage/group", {
+        id: selectedToggleId,
+        status: status,
+        password: password,
+      });
+
+      const result = response.data;
+
+      if (result.message === "Data updated successfully") {
+        setToggleStates((prev) => ({
+          ...prev,
+          [selectedToggleId]: status === 1,
+        }));
+        alert("อัปเดตสถานะสำเร็จ");
+      } else {
+        alert("เกิดข้อผิดพลาด: " + result.message);
       }
-    })
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("ไม่สามารถอัปเดตสถานะได้");
+    }
+
+    setShowConfirmModal(false);
   };
 
   return (
@@ -59,97 +103,87 @@ const PageGroup = () => {
       >
         <thead>
           <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              ลำดับ
-            </th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              โรคพืช / ศัตรูพืช
-            </th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              สารเคมี
-            </th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              พืช
-            </th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              วันที่ปลอดภัย
-            </th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-              จัดการข้อมูล
-            </th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>ลำดับ</th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>โรคพืช / ศัตรูพืช</th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>สารเคมี</th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>พืช</th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>วันที่ปลอดภัย</th>
+            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>จัดการข้อมูล</th>
           </tr>
         </thead>
         <tbody>
           {groupData.length > 0 ? (
             groupData.map((item, index) => (
               <tr key={item.id}>
-                <td
-                  style={{
-                    padding: "10px",
-                    textAlign: "center",
-                    fontWeight: "900",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  {index + 1}
-                </td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-                  {item.pest_name}
-                </td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-                  {item.chemical_name}
-                </td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
-                  {item.plant_name}
-                </td>
-                <td
-                  style={{
-                    padding: "10px",
-                    textAlign: "center",
-                    fontWeight: "900",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  {item.safe_days}
-                </td>
+                <td style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>{index + 1}</td>
+                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.pest_name}</td>
+                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.chemical_name}</td>
+                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.plant_name}</td>
+                <td style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>{item.safe_days}</td>
                 <td style={{ padding: "10px", textAlign: "center", border: "1px solid #ddd" }}>
-                <button
-                  onClick={() => handleEditClick(item)}
-                  style={{
-                    padding: "5px 10px",
-                    width: "75px", 
-                    background: "linear-gradient(160deg,rgb(245, 146, 33),rgb(255, 170, 42))",
-                    fontWeight: "900",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "60px",
-                    cursor: "pointer",
-                    boxShadow: "0px 2px 4px rgba(216, 140, 140, 0.94)", 
-                  }}
-                >
-                  แก้ไข
-                </button>
-              </td>
+                  <button
+                    onClick={() => handleEditClick(item)}
+                    style={{
+                      padding: "5px 10px",
+                      width: "75px",
+                      background: "linear-gradient(160deg,rgb(245, 146, 33),rgb(255, 170, 42))",
+                      fontWeight: "900",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "60px",
+                      cursor: "pointer",
+                      boxShadow: "0px 2px 4px rgba(216, 140, 140, 0.94)",
+                      marginRight: "10px",
+                    }}
+                  >
+                    แก้ไข
+                  </button>
+
+                  <button
+                    onClick={() => handleToggleClick(item.id)}
+                    style={{
+                      padding: "5px 15px",
+                      fontWeight: "900",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "30px",
+                      cursor: "pointer",
+                      backgroundColor: toggleStates[item.id] ? "#28a745" : "#dc3545",
+                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
+                    }}
+                  >
+                    {toggleStates[item.id] ? "ON" : "OFF"}
+                  </button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="6" style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>
-                ไม่มีข้อมูล
-              </td>
+              <td colSpan="6" style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>ไม่มีข้อมูล</td>
             </tr>
           )}
         </tbody>
       </table>
-      
-      <Modal
-        show={popupDataManage.open}
-        onHide={() => setPopupDataManage((data) => ({ ...data , open : false }))}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-        centered
-        size="lg"
-      >
+
+      {showConfirmModal && (
+        <div className="manage-overlay">
+          <div className="manage-page">
+            <div className="head-page">{`ยืนยันการ${status === 1 ? "เปิด" : "ปิด"}`}</div>
+            <div className="form-manage">
+              <label className="column">
+                <span>รหัสผ่านผู้ดูแล</span>
+                <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" className="input-text input-pw" />
+              </label>
+              <div className="bt-manage">
+                <button onClick={() => setShowConfirmModal(false)} className="close">ยกเลิก</button>
+                <button onClick={handleToggleConfirm} className="submit">ยืนยัน</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg">
         <ManageGroup fetchGroups={fetchGroupData} />
       </Modal>
     </div>

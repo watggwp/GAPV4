@@ -1033,6 +1033,141 @@
           
 
     }
+    .manage-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5); // พื้นหลังมัว
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    
+        .manage-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0px 4px 4px rgba(166, 166, 166, 0.571);
+            width: 95%;
+            max-width: 450px;
+            padding: 20px;
+            z-index: 1001;
+    
+            .head-page {
+                font-family: Sans-font;
+                font-size: 22px;
+                font-weight: 900;
+                box-shadow: 0px 4px 4px rgba(193, 193, 193, 0.489);
+                background-color: #1CFFF1;
+                border-radius: 15px;
+                text-align: center;
+                width: 100%;
+            }
+    
+            .column {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 90%;
+    
+                .input-value {
+                    display: flex;
+                    font-family: Sans-font;
+                    font-size: 18px;
+                    align-items: center;
+                    border-radius: 8px;
+                    border: none;
+                    outline: none;
+                    background-color: rgba(184, 246, 246, 0.53);
+                    width: 85%;
+                    padding: 1px 4px;
+                }
+            }
+    
+            .form-manage {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+    
+                input[readonly], 
+                textarea[readonly] {
+                    background-color: rgba(177, 177, 177, 0.304) !important;
+                    backdrop-filter: blur(8px);
+                }
+    
+                label {
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: center;
+                    width: 90%;
+                    margin: 5px;
+    
+                    span {
+                        font-family: Sans-font;
+                        font-size: 18px;
+                        font-weight: 900;
+                        width: 100%;
+                    }
+    
+                    .input-text {
+                        background-color: rgba(82, 216, 191, 0.29);
+                        border: none;
+                        outline: none;
+                        padding: 5px 10px;
+                        border-radius: 50px;
+                        width: 100%;
+                        min-height: 20px;
+                        font-size: 18px;
+                    }
+                }
+    
+                .bt-manage {
+                    margin-top: 15px;
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+                    width: 100%;
+    
+                    button {
+                        font-family: Sans-font;
+                        border-radius: 50px;
+                        font-size: 18px;
+                        width: 30%;
+                        border: none;
+                        outline: none;
+                        color: white;
+                        font-weight: 900;
+                        box-shadow: 0px 4px 4px rgba(184, 184, 184, 0.347);
+                        cursor: pointer;
+                    }
+    
+                    button.close {
+                        background: linear-gradient(120deg, #FF0000, #EB7878);
+                    }
+    
+                    button.submit {
+                        background: linear-gradient(120deg, #10c2b6, #72f3f3);
+                    }
+    
+                    button.submit[disabled] {
+                        color: rgba(128, 128, 128, 0.416);
+                        background: linear-gradient(120deg, rgba(16, 194, 182, 0.44), rgba(114, 243, 243, 0.53));
+                        box-shadow: none;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+    }
+    
     
     // @media screen and (max-width: 860px) {
     //     .body-list-doctor {
@@ -1359,6 +1494,5 @@
         font-size: 16px;
         font-family: 'Sans-font'; 
     }
-    
 
-    
+ 

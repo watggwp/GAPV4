@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
+import ButtonChangeStatistics from "./buttonChange";
 
 const InsertStatistics = () => {
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
@@ -160,6 +161,7 @@ const InsertStatistics = () => {
             }}
           />
         </label>
+        <ButtonChangeStatistics minCount={minCount} />
       </div>
 
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>

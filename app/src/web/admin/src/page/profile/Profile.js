@@ -242,6 +242,14 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                     </div>
                                 }
                             </div>
+                            <div className="row-detail not-bm head-content">
+                                <div className="head-content">
+                                    <span className="head-detail">รหัสศูนย์โครงการ</span>
+                                    <input readOnly className="input-password"
+                                     value={getProfile.id_station}
+                                            placeholder="รหัสศูนย์ปฏิบัติหน้าที่"/>
+                                </div>
+                            </div>
                             { !StateEditName && !StateEditStation ?
                                 <div className="row-detail not-bm head-bm">
                                     <div className="head-content right">

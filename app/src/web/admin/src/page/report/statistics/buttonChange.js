@@ -2,13 +2,15 @@ import { useContext, useState } from "react";
 import { PageTemplateContext } from "../../PageTemplate";
 import { Modal } from "react-bootstrap";
 
-export default function ButtonChangeStatistics() {
+export default function ButtonChangeStatistics({ minCount }) { 
     const { ChangeStatus } = useContext(PageTemplateContext);
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
     const [stateOnBt, setStateOnBt] = useState(true);
 
     const handleOpenModal = () => {
-        setPopupDataManage((data) => ({ ...data, open: true }));
+        if (minCount >= 1) {  // เปิด Modal ได้เฉพาะเมื่อ minCount >= 1
+            setPopupDataManage((data) => ({ ...data, open: true }));
+        }
     };
 
     const handleCloseModal = () => {
@@ -27,8 +29,14 @@ export default function ButtonChangeStatistics() {
     return (
         <div style={{ display: "flex" }}>
             <button 
-                style={{ marginRight: "10px", backgroundColor: "red", color: "white" }} 
+                style={{ 
+                    marginRight: "10px", 
+                    backgroundColor: minCount >= 1 ? "red" : "gray", 
+                    color: "white", 
+                    cursor: minCount >= 1 ? "pointer" : "not-allowed"
+                }} 
                 onClick={handleOpenModal}
+                disabled={minCount < 1} // ป้องกันการกดปุ่มเมื่อปุ่มเป็นสีเทา
             >
                 แจ้งเตือน
             </button>
@@ -47,13 +55,11 @@ export default function ButtonChangeStatistics() {
                 aria-describedby="modal-description"
                 centered
                 size="lg"
-                >
+            >
                 <div className="modal-content">
                     <div className="modal-header">
-                    <h2 id="modal-title">แจ้งเตือนการระบาด</h2>
-                        <button type="button" className="btn-close" onClick={handleCloseModal}>
-                            
-                        </button>
+                        <h2 id="modal-title">แจ้งเตือนการระบาด</h2>
+                        <button type="button" className="btn-close" onClick={handleCloseModal}></button>
                     </div>
 
                     <div className="modal-body">
