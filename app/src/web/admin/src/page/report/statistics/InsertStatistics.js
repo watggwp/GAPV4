@@ -21,8 +21,7 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
-  // const { minCount , setMinCount } = useContext(InsertStatisticsContext)
-  const [minCount, setMinCount] = useState(0)
+  const { minCount , setMinCount } = useContext(InsertStatisticsContext)
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
