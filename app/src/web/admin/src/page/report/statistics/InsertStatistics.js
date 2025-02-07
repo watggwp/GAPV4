@@ -9,6 +9,9 @@ export const InsertStatisticsContext = createContext({
 export function InsertStatisticsProvider({ children }) {
   const [minCount, setMinCount] = useState(0)
 
+  useEffect(() => {
+    console.log(minCount)
+  } , [minCount])
   return(
     <InsertStatisticsContext.Provider
       value={{
