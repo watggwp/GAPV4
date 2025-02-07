@@ -826,7 +826,8 @@ app.get('/api/admin/profile/get', (req, res) => {
             pc.safe_days,
             p.pest_name AS pest_name,
             c.name AS chemical_name,
-            pl.name AS plant_name
+            pl.name AS plant_name,
+            pc.status AS status
           FROM pest_chemical AS pc
           INNER JOIN pests AS p ON pc.pest_id = p.pest_id
           INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
