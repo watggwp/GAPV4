@@ -271,6 +271,19 @@ const InsertStatistics = () => {
                       color: "#fff",
                     }}
                   >
+                    พืชที่เกี่ยวข้อง
+                  </th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                      backgroundColor: "#60d6cf",
+                      fontFamily: "Sans-font",
+                      fontWeight: "900",
+                      color: "#fff",
+                    }}
+                  >
                     จำนวน
                   </th>
                 </tr>
@@ -298,6 +311,17 @@ const InsertStatistics = () => {
                       }}
                     >
                       {stat.name || stat.insect}
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "center",
+                        fontFamily: "Sans-font",
+                        fontWeight: "900",
+                      }}
+                    >
+                      {stat.data}
                     </td>
                     <td
                       style={{
