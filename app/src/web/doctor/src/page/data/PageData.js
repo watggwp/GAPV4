@@ -491,7 +491,7 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                         {
                                             Type === "plant" ? "ชนิดพืช" :
                                             Type === "pest" ? <div className="field-text">
-                                            <span>ชื่อโรคพืช / ศัตรูพืช</span>
+                                            <span><div>ชื่อ {DataIn.type_pest}</div></span>
                                             <div className="data-text">{DataIn.pest_name}</div>
                                         </div> :
                                             Type === "fertilizer" ? "ชื่อปุ๋ย" :

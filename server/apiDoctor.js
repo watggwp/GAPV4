@@ -42,6 +42,198 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     })
 
+    app.post('/api/doctor/data/list' , async (req , res)=>{
+        let username = req.session.user_admin
+        let password = req.session.pass_admin
+     
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "admin")
+          if(auth['result'] === "pass") {
+            let data = req.body
+     
+            const type_data = (
+              data.type === "plant" ? "plant_list" :
+              data.type === "station" ? "station_list" :
+              data.type === "chemical" ? "chemical_list" :
+              data.type === "pest" ? "pests" :
+              ""
+            );
+            const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
+            const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
+            if(!type_data) {
+              res.send([])
+            }
+     
+     
+     
+            const columnName = (
+              data.type === "pest" ? "pest_name" : "name"
+            )
+     
+            con.query(
+              `
+              SELECT * FROM ${type_data}
+              WHERE INSTR( ${columnName} , ? )
+              ORDER BY is_use DESC , ${columnName} ASC
+              LIMIT ${Limit} OFFSET ${StartRow}
+              ` , [data.textSearch]
+              , (err , result)=>{
+              if(err) {
+                dbpacket.dbErrorReturn(con , err , res)
+                console.log(`select ${type_data} err`)
+                return 0
+              }
+              con.end()
+              res.send(result)
+            })
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+      })
+
+      app.post('/api/doctor/group/gets', async (req, res) => {
+        let username = req.session.user_admin;
+        let password = req.session.pass_admin;
+     
+        if (!username || !password) {
+          res.redirect('/api/logout');
+          return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+          const auth = await apifunc.auth(con, username, password, res, "admin");
+          if (auth['result'] === "pass") {
+            const { search } = req.body
+            con.query(
+              `
+              SELECT
+                pc.id,
+                pc.safe_days,
+                p.pest_name AS pest_name,
+                c.name AS chemical_name,
+                pl.name AS plant_name,
+                pc.status AS status
+              FROM pest_chemical AS pc
+              INNER JOIN pests AS p ON pc.pest_id = p.pest_id
+              INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
+              INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
+              WHERE p.pest_name LIKE ? OR c.name LIKE ? OR pl.name LIKE ? OR pc.safe_days LIKE ?
+              `, [ `%${search}%` , `%${search}%` , `%${search}%` , `%${search}%` ] ,
+              (err, results) => {
+                if (err) {
+                  console.error("Database query error:", err);
+                  con.end();
+                  res.status(500).json({ error: "Database query failed" });
+                  return;
+                }
+     
+                if (results.length === 0) {
+                  console.log("No data found");
+                  con.end();
+                  res.status(404).json({ message: "No data found" });
+                  return;
+                }
+     
+                console.log("Data retrieved successfully:", results);
+                con.end();
+                res.status(200).json(results); // ส่งข้อมูลกลับไป
+              }
+            );
+          } else {
+            res.status(401).json({ error: "Unauthorized access" });
+          }
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          con.end();
+          res.status(500).json({ error: "Internal server error" });
+        }
+      });
+     
+      app.post('/api/doctor/manage/group', async (req, res) => {
+        let username = req.session.user_admin;
+        let password = req.body['password'];
+     
+        // ตรวจสอบว่าแอดมินเข้าสู่ระบบหรือไม่
+        if (username === '') {
+            res.redirect('/api/logout');
+            return;
+        }
+     
+        let con = Database.createConnection(listDB);
+        console.log(req.body);
+     
+        try {
+            // ตรวจสอบสิทธิ์แอดมิน
+            const auth = await apifunc.auth(con, username, password, res, "admin");
+            if (auth['result'] === "pass") {
+                let { id, status } = req.body;
+     
+                // ตรวจสอบข้อมูลที่ส่งมา
+                if (id === undefined || (status !== 0 && status !== 1)) {
+                    con.end();
+                    return res.status(400).send({ message: "Invalid ID or status value" });
+                }
+     
+                // ตรวจสอบว่ามีข้อมูลนี้อยู่หรือไม่
+                con.query(
+                    `SELECT id FROM pest_chemical WHERE id = ?`,
+                    [id],
+                    (err, result) => {
+                        if (err) {
+                            con.end();
+                            console.error("Database error:", err);
+                            return res.status(500).send({ message: "Database query error" });
+                        }
+     
+                        if (result.length === 0) {
+                            con.end();
+                            return res.status(404).send({ message: "ID not found" });
+                        }
+     
+                        // อัปเดตสถานะ
+                        con.query(
+                            `UPDATE pest_chemical SET status = ? WHERE id = ?`,
+                            [status, id],
+                            (err, updateResult) => {
+                                if (err) {
+                                    con.end();
+                                    console.error("Update error:", err);
+                                    return res.status(500).send({ message: "Update error" });
+                                }
+     
+                                con.end();
+                                res.send({
+                                  message: `Status updated to ${status} successfully`,
+                                  id,
+                                  newStatus : status,
+                                  status : 200
+                                });
+                            }
+                        );
+                    }
+                );
+            } else {
+                con.end();
+                res.send({ message: "password" });
+            }
+        } catch (err) {
+            con.end();
+            console.error("Authentication error:", err);
+            res.status(500).send({ message: "Authentication error" });
+        }
+    });
+
     app.get('/api/doctor/profile/get' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
