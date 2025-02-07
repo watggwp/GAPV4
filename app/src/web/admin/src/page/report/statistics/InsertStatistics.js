@@ -1,14 +1,32 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
-import ButtonChangeStatistics from "./buttonChange";
+
+export const InsertStatisticsContext = createContext({
+  minCount : 0, 
+  setMinCount : () => {}
+})
+
+export function InsertStatisticsProvider({ children }) {
+  const [minCount, setMinCount] = useState(0)
+
+  return(
+    <InsertStatisticsContext.Provider
+      value={{
+        minCount, setMinCount
+      }}
+    >
+      {children}
+    </InsertStatisticsContext.Provider>
+  )
+}
 
 const InsertStatistics = () => {
+  const { minCount , setMinCount } = useContext(InsertStatisticsContext)
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
-  const [minCount, setMinCount] = useState(0); // เพิ่มตัวแปรสำหรับจำนวนขั้นต่ำ
 
   const calculateDateRange = (duration) => {
     const endDate = new Date();
@@ -161,7 +179,6 @@ const InsertStatistics = () => {
             }}
           />
         </label>
-        <ButtonChangeStatistics minCount={minCount} />
       </div>
 
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>

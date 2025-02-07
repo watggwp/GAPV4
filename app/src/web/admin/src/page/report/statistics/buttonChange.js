@@ -1,8 +1,10 @@
 import { useContext, useState } from "react";
 import { PageTemplateContext } from "../../PageTemplate";
 import { Modal } from "react-bootstrap";
+import { InsertStatisticsContext } from "./InsertStatistics";
 
-export default function ButtonChangeStatistics({ minCount }) { 
+export default function ButtonChangeStatistics() { 
+    const { minCount } = useContext(InsertStatisticsContext)
     const { ChangeStatus } = useContext(PageTemplateContext);
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
     const [stateOnBt, setStateOnBt] = useState(true);

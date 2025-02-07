@@ -265,11 +265,11 @@ const ListData = ({
         {
           
           status.status === "listlocation" ? 
-          <><InsertReport></InsertReport></> :
+            <InsertReport/> :
           status.status === "graph" ? 
-          <><InsertGraph></InsertGraph></> : 
+            <InsertGraph/> : 
           status.status === "statistics" ? 
-          <><InsertStatistics></InsertStatistics></> : 
+            <InsertStatistics/> : 
           status.status === "group" ? 
             <PageGroup/> : 
             <ManageList

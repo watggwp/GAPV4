@@ -4,6 +4,7 @@ import "../assets/style/page/List.scss"
 
 import ListData from "./ListData";
 import ButtonChangeStatistics from "./report/statistics/buttonChange";
+import { InsertStatisticsProvider } from "./report/statistics/InsertStatistics";
 
 export const PageTemplateContext = createContext({
     popupDataManage : {
@@ -150,7 +151,9 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     StateOnPage.status === "graph" ? 
                         <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
                     StateOnPage.status === "statistics" ? 
-                        <ButtonChangeStatistics/> :
+                        <InsertStatisticsProvider>
+                            <ButtonChangeStatistics/>
+                        </InsertStatisticsProvider> :
                     <></>
                     }
                     
