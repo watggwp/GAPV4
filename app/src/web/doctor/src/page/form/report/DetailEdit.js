@@ -17,6 +17,7 @@ const DetailEdit = ({Ref , setRef}) => {
     } , [Ref])
 
     const Fetch = async () => {
+        setData([])
         // ดึง id ของการ edit มาก่อน
         // const result = await clientMo.post(UrlFecth , DataFetch)
         // if(result) {
