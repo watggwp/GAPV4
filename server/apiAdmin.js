@@ -1726,38 +1726,38 @@ app.get('/api/admin/report/list', async(req, res) => {
 
     // ดึงข้อมูลเกษตรกรและพืชใน station
     const farmerQuery = `
-                      SELECT
-                          acc_farmer.station,
-                          COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
-                          COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
-                          GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
-                          CONCAT(
-                              '[',
-                              GROUP_CONCAT(
-                                  DISTINCT CONCAT(
-                                      '{"plantName":"', subquery.name_plant, '",' ,
-                                      '"id":"', subquery.id, '",' ,
-                                      '"farmersCount":', subquery.total_qty, '}'
-                                  )
-                              ),
-                              ']'
-                          ) AS plantDetails
-                      FROM acc_farmer
-                      LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
-                      LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
-                      LEFT JOIN (
-                          SELECT
-                              formplant.id,
-                              formplant.name_plant,
-                              COUNT(formplant.name_plant) AS total_qty,
-                              id_farm_house
-                          FROM formplant
-                          WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
-                          GROUP BY id_farm_house , formplant.name_plant
-                      ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
-                      WHERE acc_farmer.station = ?
-                      GROUP BY acc_farmer.station;
-                  `;
+                    SELECT
+                        acc_farmer.station,
+                        COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                        COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                        GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                        CONCAT(
+                            '[',
+                            GROUP_CONCAT(
+                                DISTINCT CONCAT(
+                                    '{"plantName":"', subquery.name_plant, '",' ,
+                                    '"id":"', subquery.id, '",' ,
+                                    '"farmersCount":', subquery.total_qty, '}'
+                                )
+                            ),
+                            ']'
+                        ) AS plantDetails
+                    FROM acc_farmer
+                    LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                    LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                    LEFT JOIN (
+                        SELECT
+                            formplant.id,
+                            formplant.name_plant,
+                            COUNT(formplant.name_plant) AS total_qty,
+                            id_farm_house
+                        FROM formplant
+                        WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
+                        GROUP BY id_farm_house , formplant.name_plant
+                    ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+                    WHERE acc_farmer.station = ?
+                    GROUP BY acc_farmer.station;
+                `;
  
                   con.query(farmerQuery, [station], (err, farmerStatistics) => {
                       if (err) {
@@ -1859,7 +1859,8 @@ app.get('/api/admin/report/list', async(req, res) => {
               COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
               COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
               COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
-              COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year
+              COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year,
+              GROUP_CONCAT(DISTINCT fp.name_plant SEPARATOR ', ') AS name_plants
             FROM formchemical fc
             LEFT JOIN pests p ON fc.insect = p.pest_name
             LEFT JOIN formplant fp ON fc.id_plant = fp.id
