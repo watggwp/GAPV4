@@ -87,22 +87,28 @@ const ListData = ({
     clearInterval(getInterval);
     setStateOnPage({ status: status?.status })
 
-    modify(70, 30, [
-      "หน้าแรก",
-      HrefPage.get().split("?")[0] === "list"
-        ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-      HrefPage.get().split("?")[0] === "listadmin"
-        ? "บัญชีผู้ดูแลระบบ" : 
+    const primaryMenu = (
+      HrefPage.get().split("?")[0] === "list" ? (
+        ["default" , "delete"].includes(HrefPage.get().split("?")[1])
+          ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
+        ["admin" , "deleteAdmin"].includes(HrefPage.get().split("?")[1])
+          ? "บัญชีผู้ดูแลระบบ" : ""
+      ) :
       HrefPage.get().split("?")[0] === "data"
         ? "ข้อมูลเพิ่มเติม" : 
       HrefPage.get().split("?")[0] === "group"
         ? "จัดกลุ่มข้อมูล" : 
       HrefPage.get().split("?")[0] === "report"
-        ? "รายงานข้อมูล" : "",
-      HrefPage.get().indexOf("delete") >= 0
-        ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" : 
-      HrefPage.get().indexOf("deleteAdmin") >= 0
-        ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : 
+        ? "รายงานข้อมูล" : ""
+    )
+
+    const secondaryMenu = (
+      HrefPage.get().split("?")[0] === "list" ? (
+        ["delete"].includes(HrefPage.get().split("?")[1])
+          ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" : 
+        ["deleteAdmin"].includes(HrefPage.get().split("?")[1])
+          ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : ""
+      ) : 
       HrefPage.get().indexOf("plant") >= 0
         ? "ชนิดพืช" : 
       HrefPage.get().indexOf("station") >= 0
@@ -118,7 +124,13 @@ const ListData = ({
       HrefPage.get().indexOf("graph") >= 0
         ? "จำนวนเกษตรกรและพืชที่เพาะปลูก" : 
       HrefPage.get().indexOf("statistics") >= 0
-        ? "สถิติโรคพืช" : "",
+        ? "สถิติโรคพืช" : ""
+    )
+
+    modify(70, 30, [
+      "หน้าแรก",
+      primaryMenu,
+      secondaryMenu
     ]);
 
     let ObjectData;
