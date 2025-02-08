@@ -15,8 +15,14 @@ export default function ButtonChangeStatistics() {
     // ฟังก์ชันโหลดข้อมูลจาก API ทั้ง 1 สัปดาห์ และ 1 เดือน
     const fetchStatistics = async () => {
         try {
-            console.log(selectedRows)
-            setSelectedData(Object.entries(selectedRows).map(([ , selectedRow]) => selectedRow))
+            setSelectedData(() => {
+                const newSelectsData = []
+                selectedRows.forEach(selectedRow => {
+                    newSelectsData.push(selectedRow)
+                })
+                console.log(newSelectsData)
+                return newSelectsData
+            })
             // ดึงข้อมูลทั้ง 1 สัปดาห์ และ 1 เดือน
             // const [weekResponse, monthResponse] = await Promise.all([
             //     clientMo.post("/api/admin/statistic/get", { duration: "1_week" }),
