@@ -104,9 +104,9 @@ const ListData = ({
 
     const secondaryMenu = (
       HrefPage.get().split("?")[0] === "list" ? (
-        ["delete"].includes(HrefPage.get().split("?")[1])
+        ["delete"].includes(window.location.href.split("?")[1])
           ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" : 
-        ["deleteAdmin"].includes(HrefPage.get().split("?")[1])
+        ["deleteAdmin"].includes(window.location.href.split("?")[1])
           ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : ""
       ) : 
       HrefPage.get().indexOf("plant") >= 0
