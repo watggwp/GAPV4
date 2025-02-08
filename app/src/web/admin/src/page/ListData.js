@@ -86,13 +86,12 @@ const ListData = ({
     socket.removeListener("update-online");
     clearInterval(getInterval);
     setStateOnPage({ status: status?.status })
-
-    console.log(HrefPage.get().split("?"))
+    
     const primaryMenu = (
       HrefPage.get().split("?")[0] === "list" ? (
-        ["default" , "delete"].includes(HrefPage.get().split("?")[1])
+        ["default" , "delete"].includes(window.location.href.split("?")[1])
           ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-        ["admin" , "deleteAdmin"].includes(HrefPage.get().split("?")[1])
+        ["admin" , "deleteAdmin"].includes(window.location.href.split("?")[1])
           ? "บัญชีผู้ดูแลระบบ" : ""
       ) :
       HrefPage.get().split("?")[0] === "data"
