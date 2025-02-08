@@ -891,7 +891,10 @@ const ManageList = ({
               <></>
             )}
             <bt-status
-              onClick={() => OpenConfirmData(data.id, status.status)}
+              onClick={() => OpenConfirmData(
+                status.status === "pest" ? data.pest_id : data.id, 
+                status.status
+              )}
             >
               <div className="frame" status={data.is_use}>
                 <span>ON</span>
