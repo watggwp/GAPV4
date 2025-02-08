@@ -81,6 +81,7 @@ const InsertStatistics = () => {
   };
 
   const handleCheckboxChange = (checked , id) => {
+    console.log(checked , id)
     setSelectedRows(selected => {
       if(checked) selected.set(id , pestsMapping.get(id))
       else selected.delete(id)
