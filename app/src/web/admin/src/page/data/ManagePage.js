@@ -46,7 +46,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
         let data = await clientMo.post("/api/admin/data/get" , {id : id_table , type : type})
         data = JSON.parse(data).map((val)=>val)[0]
         setData({
-            id : data.id,
+            id : type === "pest" ? data.pest_id : data.id,
             name : data.name,
             ...data
         })
