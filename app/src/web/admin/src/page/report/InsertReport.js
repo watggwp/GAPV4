@@ -1,14 +1,16 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
+import { PageTemplateContext } from "../PageTemplate";
 
 const InsertReport = () => {
   const { TabOn } = useContext(AdminContext);
+  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
   const [locations, setLocations] = useState([]);
 
   const ListReport = useCallback(async () => {
     try {
-      const response = await clientMo.get("/api/admin/report/list");
+      const response = await clientMo.post("/api/admin/report/list", { search: textSearch });
       const parsedList = JSON.parse(response);
 
       // ดึงข้อมูล doctors และ consultants
@@ -49,7 +51,7 @@ const InsertReport = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }, [TabOn]);
+  }, [TabOn, textSearch]);
 
   useEffect(() => {
     ListReport();

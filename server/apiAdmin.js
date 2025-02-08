@@ -1708,7 +1708,7 @@ app.get('/api/admin/profile/get', (req, res) => {
     res.send('')
   })
 // report page
-app.get('/api/admin/report/list', async(req, res) => {
+app.post('/api/admin/report/list', async(req, res) => {
   let username = req.session.user_admin
   let password = req.session.pass_admin
 
@@ -1723,6 +1723,7 @@ app.get('/api/admin/report/list', async(req, res) => {
     const auth = await apifunc.auth(con , username , password , res , "admin")
     if(auth['result'] === "pass") {
       const station = auth['data']['station_admin']
+      const { search } = req.body
 
     // ดึงข้อมูลเกษตรกรและพืชใน station
     const farmerQuery = `
@@ -1755,11 +1756,12 @@ app.get('/api/admin/report/list', async(req, res) => {
                         WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
                         GROUP BY id_farm_house , formplant.name_plant
                     ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
-                    WHERE acc_farmer.station = ?
+                    WHERE acc_farmer.station = ? 
+                    AND (formplant.name_plant LIKE ?)
                     GROUP BY acc_farmer.station;
                 `;
  
-                  con.query(farmerQuery, [station], (err, farmerStatistics) => {
+                con.query(farmerQuery, [station, `%${search}%`], (err, farmerStatistics) => {
                       if (err) {
                           console.error('Error fetching farmer statistics:', err);
                           res.status(500).json({ status: "error", message: "Database query error" });
@@ -1770,33 +1772,37 @@ app.get('/api/admin/report/list', async(req, res) => {
  
                       // ดึงรายชื่อหมอพืช (เฉพาะที่ doctor_role = 1)
                       const doctorQuery = `
-                          SELECT id_doctor, fullname_doctor, station_doctor
-                          FROM acc_doctor
-                          WHERE station_doctor = ? AND doctor_role = 1;
-                      `;
- 
-                      con.query(doctorQuery, [station], (err, doctors) => {
-                          if (err) {
-                              console.error('Error fetching doctor data:', err);
-                              res.status(500).json({ status: "error", message: "Database query error" });
-                              return;
-                          }
- 
-                          console.log('Doctors:', doctors);
- 
-                          // ดึงรายชื่อที่ปรึกษาเกษตรกร (เฉพาะที่ consultant_role = 1)
-                          const consultantQuery = `
-                              SELECT id_doctor, fullname_doctor, station_doctor
-                              FROM acc_doctor
-                              WHERE station_doctor = ? AND consultant_role = 1;
-                          `;
- 
-                          con.query(consultantQuery, [station], (err, consultants) => {
-                              if (err) {
-                                  console.error('Error fetching consultant data:', err);
-                                  res.status(500).json({ status: "error", message: "Database query error" });
-                                  return;
-                              }
+                      SELECT id_doctor, fullname_doctor, station_doctor, 'หมอพืช' AS role
+                      FROM acc_doctor
+                      WHERE station_doctor = ? 
+                      AND doctor_role = 1
+                      AND (fullname_doctor LIKE ? OR 'หมอพืช' LIKE ?);
+                  `;
+
+                    con.query(doctorQuery, [station, `%${search}%`, `%${search}%`], (err, doctors) => {
+                        if (err) {
+                            console.error('Error fetching doctor data:', err);
+                            res.status(500).json({ status: "error", message: "Database query error" });
+                            return;
+                        }
+
+                        console.log('Doctors:', doctors);
+
+                        // ดึงรายชื่อที่ปรึกษาเกษตรกร (เฉพาะที่ consultant_role = 1)
+                        const consultantQuery = `
+                            SELECT id_doctor, fullname_doctor, station_doctor, 'ที่ปรึกษาเกษตรกร' AS role
+                            FROM acc_doctor
+                            WHERE station_doctor = ? 
+                            AND consultant_role = 1
+                            AND (fullname_doctor LIKE ? OR 'ที่ปรึกษาเกษตรกร' LIKE ?);
+                        `;
+
+                        con.query(consultantQuery, [station, `%${search}%`, `%${search}%`], (err, consultants) => {
+                            if (err) {
+                                console.error('Error fetching consultant data:', err);
+                                res.status(500).json({ status: "error", message: "Database query error" });
+                                return;
+                            }
  
                               console.log('Consultants:', consultants);
  

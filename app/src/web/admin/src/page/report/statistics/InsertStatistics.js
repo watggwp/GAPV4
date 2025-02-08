@@ -2,17 +2,28 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 export const InsertStatisticsContext = createContext({
-  minCount : 0, 
-  setMinCount : () => {}
-})
+  minCount: 0, 
+  setMinCount: () => {},
+  selectedRows: [], 
+  setSelectedRows: () => {},
+  plantDiseaseStats: [], 
+  pestStats: []
+});
 
 export function InsertStatisticsProvider({ children }) {
-  const [minCount, setMinCount] = useState(0)
+  const [minCount, setMinCount] = useState(0);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
+  const [pestStats, setPestStats] = useState([]);
 
-  return(
+
+  return (
     <InsertStatisticsContext.Provider
       value={{
-        minCount, setMinCount
+        minCount, setMinCount,
+        selectedRows, setSelectedRows,
+        plantDiseaseStats, setPlantDiseaseStats,
+        pestStats, setPestStats
       }}
     >
       {children}
@@ -27,6 +38,8 @@ const InsertStatistics = () => {
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [selectedRows, setSelectedRows] = useState([]);
+
 
   const calculateDateRange = (duration) => {
     const endDate = new Date();
@@ -65,6 +78,14 @@ const InsertStatistics = () => {
     });
   };
 
+        const handleCheckboxChange = (rank) => {
+        setSelectedRows((prevSelected) => 
+          prevSelected.includes(rank) 
+            ? prevSelected.filter((item) => item !== rank) 
+            : [...prevSelected, rank] 
+        );
+      };
+
   const fetchStatistics = useCallback(async () => {
     try {
       const response = await clientMo.post("/api/admin/statistic/get", { duration });
@@ -74,7 +95,6 @@ const InsertStatistics = () => {
         console.error("No data received from API");
         return;
       }
-
       const plantDiseases = data
         .filter((item) => item.type_pest === "โรคพืช")
         .map((item, index) => ({
@@ -236,6 +256,19 @@ const InsertStatistics = () => {
             >
               <thead>
                 <tr>
+                <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                      backgroundColor: "#60d6cf",
+                      fontFamily: "Sans-font",
+                      fontWeight: "900",
+                      color: "#fff",
+                    }}
+                  >
+                    เลือก
+                  </th>
                   <th
                     style={{
                       border: "1px solid #ddd",
@@ -293,6 +326,41 @@ const InsertStatistics = () => {
               <tbody>
                 {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).map((stat, index) => (
                   <tr key={index}>
+                    <td 
+                      style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",fontFamily: "Sans-font",fontWeight: "900",display: "flex", justifyContent: "center", alignItems: "center", }}
+                    >
+                      <label 
+                        style={{
+                          display: "flex",
+                          width: "22px",
+                          height: "22px",
+                          borderRadius: "5px",
+                          border: "2px solid #22C7A9",
+                          backgroundColor: selectedRows.includes(stat.rank) ? "#22C7A9" : "white",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease-in-out",
+                        }}
+                      >
+                        <input 
+                          type="checkbox"
+                          checked={selectedRows.includes(stat.rank)}
+                          onChange={() => handleCheckboxChange(stat.rank)}
+                          style={{
+                            display: "none", // ซ่อน checkbox ดั้งเดิม
+                          }}
+                        />
+                        {selectedRows.includes(stat.rank) && (
+                          <span 
+                            style={{ color: "white",fontSize: "16px",fontWeight: "bold",}}
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </label>
+                    </td>
+
                     <td
                       style={{
                         border: "1px solid #ddd",

@@ -1,16 +1,18 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { AdminContext } from "../../Admin";
+import { PageTemplateContext } from "../PageTemplate";
 
 const InsertGraph = () => {
   const { TabOn } = useContext(AdminContext);
+  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
   const [plantData, setPlantData] = useState([]);
   const [farmerCount, setFarmerCount] = useState(0);
 
   const ListGraph = useCallback(async () => {
     console.log("Start fetch group");
     try {
-      const response = await clientMo.get("/api/admin/report/list");
+      const response = await clientMo.post("/api/admin/report/list", { search: textSearch });
       const result = JSON.parse(response);
 
       if (result.data) {
@@ -37,7 +39,7 @@ const InsertGraph = () => {
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
     }
-  }, []);
+  }, [TabOn, textSearch]);
 
   useEffect(() => {
     ListGraph();

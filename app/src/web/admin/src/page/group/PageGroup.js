@@ -177,7 +177,7 @@ const PageGroup = () => {
             <div className="head-page">{`ยืนยันการ${status === 1 ? "เปิด" : "ปิด"}`}</div>
             <div className="form-manage">
               <label className="column">
-                <span>รหัสผ่านผู้ดูแล</span>
+                <span>รหัสผ่านผู้ดูแลระบบ</span>
                 <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" className="input-text input-pw" />
               </label>
               <div className="bt-manage">

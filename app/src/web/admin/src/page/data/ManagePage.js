@@ -42,7 +42,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant : type === "plant" ? data.variety_name : type === "station" ? data.location : ""
+            dataOther : type === "plant" ? data.type_plant : type === "plant" ? data.variety_name :  type === "station" ? data.location : ""
         })
         setLoading(false)
     }
@@ -156,6 +156,36 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                                     <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
                                     ""
                             }
+                        </div>
+                        <div className="namechemical" w={type}>
+                            {type === "chemical" ? <span className={type}>ชื่อสารเคมี</span> : <>
+                            </>}
+                            <div>{Data.name}</div>
+                        </div>
+                        <div className={type === "chemical" ? "name_formula" : ""}>
+                            {
+                                type === "chemical" ? <span>ชื่อสามัญสารเคมี</span> : <></>
+                            }
+                            
+                        </div>
+                        <div className={type === "chemical" ? "how_use" : ""}>
+                            {
+                                type === "chemical" ? <span>วิธีการใช้</span> : <></>
+                            }
+                            
+                        </div>
+
+                        <div className="namepest" w={type}>
+                        {type === "pest" ? (
+                            <span className={type}>
+                                {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
+                            </span>
+                        ) : (
+                            <></>
+                        )}
+                        <div className={`text-data ${type}`}>
+                            {Data.pest_name}
+                        </div>
                         </div>
                     </div>
                 </div>   
