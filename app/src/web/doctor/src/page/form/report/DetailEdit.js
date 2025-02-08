@@ -3,7 +3,7 @@ import "../../../assets/style/page/form/DetailEdit.scss"
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { DayJSX, Loading, ReportAction } from "../../../../../../assets/js/module";
 
-const DetailEdit = ({Ref , setRef}) => {
+const DetailEdit = ({Ref , setRef , id_report}) => {
     const [Data , setData] = useState(null)
     const [HeadEdit , setHead] = useState([])
     const [BodyEdit , setBody] = useState(<></>)
@@ -19,7 +19,7 @@ const DetailEdit = ({Ref , setRef}) => {
     const Fetch = async () => {
         setData([])
         // ดึง id ของการ edit มาก่อน
-        const result = await clientMo.get(`/api/doctor/form/report/edit/gets?id_report=${}`)
+        const result = await clientMo.get(`/api/doctor/form/report/edit/gets?id_report=${id_report}`)
         // if(result) {
         //     const Data = JSON.parse(result)
         //     setData(Data)

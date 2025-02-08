@@ -53,8 +53,8 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
     } , [])
 
     const onOpenPopup = useCallback(() => {
-        setBodyPopupEdit(<DetailEdit Ref={PopRef} setRef={setBodyPopupEdit} />)
-    } , [])
+        setBodyPopupEdit(<DetailEdit Ref={PopRef} setRef={setBodyPopupEdit} id_report={data.id}/>)
+    } , [data.id])
 
     const CloseMenu = (e) => {
         if(Menu.current !== e.target && SvgMenu.current !== e.target && PathMenu.current !== e.target) {
