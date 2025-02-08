@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { GetLinkUrlOfSearch, Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
-import { Grid2 } from "@mui/material";
+import { Grid2, TextField } from "@mui/material";
 const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -190,12 +190,32 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
                         <div className="name column">
-                            {
+                            <TextField
+                                label={
+                                    type === "plant" ?
+                                        "ชื่อพืช" :
+                                        "ชื่อศูนย์"
+                                }
+                                defaultValue={Data.name}
+                                slotProps={{
+                                    htmlInput : {
+                                        ref : NameRef
+                                    }
+                                }}
+                                onChange={validateValue}
+                                placeholder={
+                                    type === "plant" ?
+                                        "ชื่อพืช" :
+                                        "ชื่อศูนย์ในโครงการ"
+                                }
+                                fullWidth
+                            />
+                            {/* {
                                 type === "plant" ? 
                                     <span className={type}>ชื่อพืช</span> : 
                                     <span className={type}>ชื่อศูนย์</span>
-                            }
-                            <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input>
+                            } */}
+                            {/* <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input> */}
                         </div>
                         <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
                             {
