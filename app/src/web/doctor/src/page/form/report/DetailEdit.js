@@ -141,10 +141,10 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
                             <path d="M35.8125 8.98335C28.5 1.83335 16.5 1.83335 9.1875 8.98335C1.875 16.1334 1.875 27.8667 9.1875 35.0167C16.5 42.1667 28.3125 42.1667 35.625 35.0167C42.9375 27.8667 43.125 16.1334 35.8125 8.98335ZM27.75 29.7L22.5 24.5667L17.25 29.7L14.625 27.1333L19.875 22L14.625 16.8667L17.25 14.3L22.5 19.4333L27.75 14.3L30.375 16.8667L25.125 22L30.375 27.1333L27.75 29.7Z" fill="#FF0000"/>
                         </svg>
                     </div>
-                    {/* <div className="not-edit">
+                    <div className="not-edit">
                         ไม่พบการแก้ไขข้อมูล
-                    </div> */}
-                    <div class="container" id="detail-box">
+                    </div>
+                    {/* <div class="container" id="detail-box">
                                                 <div class="header">รายละเอียด</div>
                                         
                                                 <div className="frame-menu">
@@ -177,7 +177,7 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
                                                     <div>นายวันชนะ เบ็ญจมาค</div>
                                                 </div>
                                         
-                                            </div>
+                                            </div> */}
                     </>
                 }
             </section>
