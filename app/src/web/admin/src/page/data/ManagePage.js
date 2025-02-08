@@ -131,7 +131,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                 }
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
-                        <Grid2 container>
+                        <Grid2 container spacing={{ xs : 2 }}>
                             {
                                 type === "plant" ?
                                     <Plant Data={Data} /> :
