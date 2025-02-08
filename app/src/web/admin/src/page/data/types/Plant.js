@@ -38,7 +38,7 @@ export default function Plant() {
                     />
                 </Grid2>
             </Grid2>
-            <Grid2 container>
+            <Grid2 container spacing={{ xs : 1 }}>
                 <Grid2 size={{ xs : 12 }}>
                     <TextField
                         label="สายพันธ์ุพืช"
@@ -52,6 +52,7 @@ export default function Plant() {
                                 shrink : true
                             }
                         }}
+                        fullWidth
                     />
                 </Grid2>
             </Grid2>

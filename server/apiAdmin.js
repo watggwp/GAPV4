@@ -1287,10 +1287,14 @@ app.get('/api/admin/profile/get', (req, res) => {
           data.type === "pest" ? "pests" : 
           false
         );
+
+        const columnID = (
+          data.type === "pest" ? "pest_id" : "id"
+        )
         if(From) {
           con.query(
             `
-              SELECT * FROM ${From} WHERE id=?
+              SELECT * FROM ${From} WHERE ${columnID} = ?
             ` 
           , 
           [data.id] ,
