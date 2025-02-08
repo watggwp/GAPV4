@@ -483,13 +483,13 @@ const ManageList = ({
     key={key}
     id={`data-list-content-${
       HrefPage.get().split("?")[0] === "list"
-        ? status.status == "default"
+        ? status.status === "default"
           ? data.id_table_doctor
-          : status.status == "admin"
-          ? data.id
+          : status.status === "admin"
+            ? data.id
           : ""
         : HrefPage.get().split("?")[0] === "data"
-        ? data.id
+          ? status.status === "pest" ? data.pest : data.id
         : ""
     }`}
     status={
