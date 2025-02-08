@@ -489,7 +489,7 @@ const ManageList = ({
             ? data.id
           : ""
         : HrefPage.get().split("?")[0] === "data"
-          ? status.status === "pest" ? data.pest : data.id
+          ? status.status === "pest" ? data.pest_id : data.id
         : ""
     }`}
     status={
