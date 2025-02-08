@@ -55,11 +55,11 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
     const HeaderSelects = useMemo(() => {
         const newHeader = []
         reportHistorys.data.forEach(( _ , id_record_edit ) => {
-            if(!newHeader.length) newHeader.push(<a select="" onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>ล่าสุด</a>)
+            if(reportHistory.id_record_edit === id_record_edit) newHeader.push(<a select="" onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>ล่าสุด</a>)
             else newHeader.push(<a onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>{newHeader.length}</a>)
         })
         return newHeader
-    }, [onSelectHistory , reportHistorys])
+    }, [onSelectHistory , reportHistorys , reportHistory])
 
     return(
         reportHistorys.status === "loading" ?
