@@ -3,6 +3,8 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
+import { Grid2, TextField } from "@mui/material";
+import Plant from "./types/Plant";
 const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -16,9 +18,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
     const PasswordRef = useRef()
 
     const [Data , setData] = useState({
-        id : "", 
-        name : "",
-        dataOther : null
+        id : "",
     })
 
     useEffect(()=>{
@@ -42,7 +42,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant : type === "plant" ? data.variety_name :  type === "station" ? data.location : ""
+            ...data
         })
         setLoading(false)
     }
@@ -131,11 +131,14 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                 }
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
-                        <div className="name" w={type}>
-                            {type === "plant" ? <span className={type}>ชื่อพืช</span> : <></>}
-                            <div>{Data.name}</div>
-                        </div>
-                        <div className={type === "plant" ? "type_plant" : "location"}>
+                        <Grid2 container>
+                            {
+                                type === "plant" ?
+                                    <Plant Data={Data} /> :
+                                    <></>
+                            }
+                        </Grid2>
+                        {/* <div className={type === "plant" ? "type_plant" : "location"}>
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
                             }
@@ -151,26 +154,40 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                                 type === "plant" ? <span>สายพันธุ์พืช</span> : <></>
                             }
                             {
-                                type === "plant" ? <div>{Data.dataOther}</div> :
-                                Data.dataOther ? 
-                                    <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
-                                    ""
+                                type === "plant" ? 
+                                    <div>{Data.dataOther}</div> :
+                                    Data.dataOther ? 
+                                        <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
+                                        ""
                             }
                         </div>
                         <div className="namechemical" w={type}>
-                            {type === "chemical" ? <span className={type}>ชื่อสารเคมี</span> : <>
-                            </>}
+                            {
+                                type === "chemical" ? 
+                                    <span className={type}>ชื่อสารเคมี</span> 
+                                    : <></>
+                            }
                             <div>{Data.name}</div>
                         </div>
                         <div className={type === "chemical" ? "name_formula" : ""}>
                             {
-                                type === "chemical" ? <span>ชื่อสามัญสารเคมี</span> : <></>
+                                type === "chemical" ? 
+                                    <>
+                                    <span>ชื่อสามัญสารเคมี</span>
+                                    <div>{Data.name_formula}</div>
+                                    </> : 
+                                    <></>
                             }
                             
                         </div>
                         <div className={type === "chemical" ? "how_use" : ""}>
                             {
-                                type === "chemical" ? <span>วิธีการใช้</span> : <></>
+                                type === "chemical" ? 
+                                    <>
+                                    <span>วิธีการใช้</span> 
+                                    <div>{Data.how_use}</div>
+                                    </>
+                                    : <></>
                             }
                             
                         </div>
@@ -186,7 +203,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                         <div className={`text-data ${type}`}>
                             {Data.pest_name}
                         </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>   
             </div>
