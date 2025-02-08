@@ -17,7 +17,7 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
             switch(Data.status) {
                 case 200 :
                     const newHistorys = new Map()
-                    Data.forEach((report_history , idx) => {
+                    Data.data.forEach((report_history , idx) => {
                         if(idx === 0) {
                             setReportHistory(report_history)
                         }
