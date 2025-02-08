@@ -39,7 +39,7 @@ export default function ButtonChangeStatistics() {
             //     .sort((a, b) => b.count - a.count); // เรียงจากมากไปน้อย
 
             // setSelectedData(combinedData);
-            // setPopupDataManage({ open: true });
+            setPopupDataManage({ open: true });
 
         } catch (error) {
             console.error("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error);
