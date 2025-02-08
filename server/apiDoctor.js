@@ -2139,7 +2139,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const id_report = req.query.id_report 
+                const id_report = req.params.id_report 
                 con.query(
                     ` 
                         SELECT *
