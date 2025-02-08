@@ -2139,15 +2139,15 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const id_report = req.params.id_report 
+                const id_report = req.query.id_report 
                 con.query(
                     ` 
                         SELECT *
                         FROM record_edit
-                        WHERE id_report_detail =?
+                        WHERE id_report_detail = ?
                         ORDER BY edit_date DESC
                     ` 
-                , [  id_report ] , 
+                , [ id_report ] , 
                 (err, result )=>{
                     if (err) {
                         dbpacket.dbErrorReturn(con, err, res);
