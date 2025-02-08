@@ -5,25 +5,18 @@ export const InsertStatisticsContext = createContext({
   minCount: 0, 
   setMinCount: () => {},
   selectedRows: new Map(), 
-  setSelectedRows: () => {},
-  plantDiseaseStats: [], 
-  pestStats: []
+  setSelectedRows: () => {}
 });
 
 export function InsertStatisticsProvider({ children }) {
   const [minCount, setMinCount] = useState(0);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
-  const [pestStats, setPestStats] = useState([]);
-
+  const [selectedRows, setSelectedRows] = useState(new Map());
 
   return (
     <InsertStatisticsContext.Provider
       value={{
         minCount, setMinCount,
-        selectedRows, setSelectedRows,
-        plantDiseaseStats, setPlantDiseaseStats,
-        pestStats, setPestStats
+        selectedRows, setSelectedRows
       }}
     >
       {children}
@@ -32,7 +25,7 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
-  const { minCount , setMinCount } = useContext(InsertStatisticsContext)
+  const { minCount , selectedRows , setMinCount , setSelectedRows } = useContext(InsertStatisticsContext)
 
   const [ pestsMapping , setPestsMapping ] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
@@ -40,7 +33,6 @@ const InsertStatistics = () => {
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
-  const [selectedRows, setSelectedRows] = useState(new Map());
 
 
   const calculateDateRange = (duration) => {
