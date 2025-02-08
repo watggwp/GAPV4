@@ -2156,7 +2156,10 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     }
 
                     con.end()
-                    res.send(result)
+                    res.send({
+                        status : 200,
+                        data : result
+                    })
                 })
             }
         } catch (err) {
@@ -2738,6 +2741,25 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         const SET = new Array(req.body.report_text ? `report_text = '${req.body.report_text}'` : "" , img_path != null ? `image_path = '${img_path}'` : "")
                                         .filter(val=>val).join(",").replaceAll(" " , "")
                         
+                        const old_report = await new Promise((resolve) => {
+                            con.query(
+                                `
+                                SELECT id , report_text , image_path
+                                FROM report_detail
+                                WHERE id = ? 
+                                LIMIT 1
+                                ` , [ req.body.id ],
+                                (err , oldData) => {
+                                    if (err) {
+                                        console.log("edit report");
+                                        return 0;
+                                    }
+        
+                                    resolve(oldData)
+                                }
+                            )
+                        })
+
                         con.query(
                             `
                             UPDATE report_detail
@@ -2750,9 +2772,24 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     console.log("edit report");
                                     return 0;
                                 }
-    
-                                con.end()
-                                res.send("113")
+
+                                con.query(
+                                    `
+                                    INSERT INTO record_edit 
+                                        ( edit_date , report_text , image_path , id_report_detail ) VALUES 
+                                        ( ? , ? , ? , ? )
+                                    ` , [ new Date() , old_report.report_text , old_report.image_path , old_report.id ],
+                                    (err , resultEdit) => {
+                                        if (err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("edit report");
+                                            return 0;
+                                        }
+        
+                                        con.end()
+                                        res.send("113")
+                                    }
+                                )
                             }
                         )
                     }
