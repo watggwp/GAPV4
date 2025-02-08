@@ -9,21 +9,36 @@ export default function Plant({ Data }) {
                 <TextField
                     label="ชื่อพืช"
                     variant="outlined"
-                    value={Data.name}
+                    defaultValue={Data.name}
+                    slotProps={{
+                        htmlInput : {
+                            readOnly : true
+                        }
+                    }}
                 />
             </Grid2>
             <Grid2 size={{ sm : 12 , md : 6 }}>
                 <TextField
                     label="ชนิดพืช"
                     variant="outlined"
-                    value={Data.type_plant}
+                    defaultValue={Data.type_plant}
+                    slotProps={{
+                        htmlInput : {
+                            readOnly : true
+                        }
+                    }}
                 />
             </Grid2>
-            <Grid2 size={{ sm : 12 , md : 6 }}>
+            <Grid2 size={{ xs : 12 }}>
                 <TextField
                     label="สายพันธ์ุพืช"
                     variant="outlined"
-                    value={Data.variety_name}
+                    defaultValue={Data.variety_name}
+                    slotProps={{
+                        htmlInput : {
+                            readOnly : true
+                        }
+                    }}
                 />
             </Grid2>
         </React.Fragment>
