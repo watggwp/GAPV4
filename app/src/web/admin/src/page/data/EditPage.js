@@ -196,10 +196,10 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                         "ชื่อพืช" :
                                         "ชื่อศูนย์"
                                 }
-                                defaultValue={Data.name}
                                 slotProps={{
                                     htmlInput : {
-                                        ref : NameRef
+                                        ref : NameRef,
+                                        defaultValue : Data.name
                                     }
                                 }}
                                 onChange={validateValue}
@@ -208,6 +208,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                         "ชื่อพืช" :
                                         "ชื่อศูนย์ในโครงการ"
                                 }
+                                size="small"
                                 fullWidth
                             />
                             {/* {
@@ -225,7 +226,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                 type === "plant" ? <div>{Data.dataOther}</div> :
                                 Data.dataOther ? 
                                     <>
-                                    <Grid2 container>
+                                    <Grid2 container width={"100%"}>
                                         <Grid2 size={{ xs : 12 }}>
                                             <div className="flied-location-edit" w={type}>
                                                 <span className="head-flied">ตำแหน่งที่ตั้ง</span>
