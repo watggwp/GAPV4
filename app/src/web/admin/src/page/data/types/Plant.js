@@ -9,7 +9,7 @@ export default function Plant({ Data }) {
                 <TextField
                     label="ชื่อพืช"
                     variant="outlined"
-                    defaultValue={Data.name}
+                    value={Data.name}
                     slotProps={{
                         htmlInput : {
                             readOnly : true
@@ -21,7 +21,7 @@ export default function Plant({ Data }) {
                 <TextField
                     label="ชนิดพืช"
                     variant="outlined"
-                    defaultValue={Data.type_plant}
+                    value={Data.type_plant}
                     slotProps={{
                         htmlInput : {
                             readOnly : true
@@ -33,7 +33,7 @@ export default function Plant({ Data }) {
                 <TextField
                     label="สายพันธ์ุพืช"
                     variant="outlined"
-                    defaultValue={Data.variety_name}
+                    value={Data.variety_name}
                     slotProps={{
                         htmlInput : {
                             readOnly : true
