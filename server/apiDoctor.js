@@ -2755,7 +2755,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                         return 0;
                                     }
         
-                                    resolve(oldData)
+                                    resolve(oldData[0])
                                 }
                             )
                         })
