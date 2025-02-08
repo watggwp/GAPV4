@@ -29,7 +29,8 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
     const [Data , setData] = useState({
         id : "", 
         name : "",
-        dataOther : null
+        dataOther : null,
+        status : "loading"
     })
 
     useEffect(()=>{
@@ -55,7 +56,8 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant :type === "plant" ? data.variety_name : type === "station" ? data.location : ""
+            dataOther : type === "plant" ? data.type_plant :type === "plant" ? data.variety_name : type === "station" ? data.location : "",
+            status : "finish"
         })
 
         if(type === "station") {
@@ -190,27 +192,30 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
                         <div className="name column">
-                            <TextField
-                                label={
-                                    type === "plant" ?
-                                        "ชื่อพืช" :
-                                        "ชื่อศูนย์"
-                                }
-                                slotProps={{
-                                    htmlInput : {
-                                        ref : NameRef,
-                                        defaultValue : Data.name
-                                    }
-                                }}
-                                onChange={validateValue}
-                                placeholder={
-                                    type === "plant" ?
-                                        "ชื่อพืช" :
-                                        "ชื่อศูนย์ในโครงการ"
-                                }
-                                size="small"
-                                fullWidth
-                            />
+                            {
+                                Data.status === "finish" &&
+                                    <TextField
+                                        label={
+                                            type === "plant" ?
+                                                "ชื่อพืช" :
+                                                "ชื่อศูนย์"
+                                        }
+                                        defaultValue={Data.name}
+                                        slotProps={{
+                                            htmlInput : {
+                                                ref : NameRef
+                                            }
+                                        }}
+                                        onChange={validateValue}
+                                        placeholder={
+                                            type === "plant" ?
+                                                "ชื่อพืช" :
+                                                "ชื่อศูนย์ในโครงการ"
+                                        }
+                                        size="small"
+                                        fullWidth
+                                    />
+                            }
                             {/* {
                                 type === "plant" ? 
                                     <span className={type}>ชื่อพืช</span> : 
