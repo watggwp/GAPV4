@@ -363,7 +363,7 @@ const InsertStatistics = () => {
                           height: "22px",
                           borderRadius: "5px",
                           border: "2px solid #22C7A9",
-                          backgroundColor: selectedRows.includes(stat.rank) ? "#22C7A9" : "white",
+                          backgroundColor: selectedRows.has(stat.id) ? "#22C7A9" : "white",
                           alignItems: "center",
                           justifyContent: "center",
                           cursor: "pointer",
@@ -372,13 +372,13 @@ const InsertStatistics = () => {
                       >
                         <input 
                           type="checkbox"
-                          checked={selectedRows.includes(stat.rank)}
+                          checked={selectedRows.has(stat.id)}
                           onChange={(e) => handleCheckboxChange(e.target.checked , stat.pest_id)}
                           style={{
                             display: "none", // ซ่อน checkbox ดั้งเดิม
                           }}
                         />
-                        {selectedRows.includes(stat.rank) && (
+                        {selectedRows.has(stat.id) && (
                           <span 
                             style={{ color: "white",fontSize: "16px",fontWeight: "bold",}}
                           >
