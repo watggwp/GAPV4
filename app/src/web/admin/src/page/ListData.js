@@ -87,6 +87,7 @@ const ListData = ({
     clearInterval(getInterval);
     setStateOnPage({ status: status?.status })
 
+    console.log(HrefPage.get().split("?"))
     const primaryMenu = (
       HrefPage.get().split("?")[0] === "list" ? (
         ["default" , "delete"].includes(HrefPage.get().split("?")[1])
