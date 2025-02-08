@@ -1,10 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { createContext, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import { Grid2, TextField } from "@mui/material";
-import Plant from "./types/Plant";
+import Plant from "./types/plant";
+import Station from "./types/station";
+import Chemical from "./types/chemical";
+import Pest from "./types/pest";
+
+export const PopupManagePageContext = createContext({ Data : {} })
+
 const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -131,13 +137,23 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                 }
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
-                        <Grid2 container spacing={{ xs : 2 }}>
-                            {
-                                type === "plant" ?
-                                    <Plant Data={Data} /> :
-                                    <></>
-                            }
-                        </Grid2>
+                        <PopupManagePageContext.Provider
+                            value={{ Data: Data }}
+                        >
+                            <Grid2 container spacing={{ xs : 2 }}>
+                                {
+                                    type === "plant" ?
+                                        <Plant/> :
+                                    type === "station" ?
+                                        <Station/> :
+                                    type === "chemical" ?
+                                        <Chemical/> :
+                                    type === "pest" ?
+                                        <Pest/> :
+                                        <></>
+                                }
+                            </Grid2>
+                        </PopupManagePageContext.Provider>
                         {/* <div className={type === "plant" ? "type_plant" : "location"}>
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
