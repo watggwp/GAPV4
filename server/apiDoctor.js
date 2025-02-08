@@ -2124,6 +2124,49 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     })
 
+
+    app.get('/api/doctor/form/report/edit/gets' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+    
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        try {
+            const result= await apifunc.auth(con , username , password , res , "acc_doctor")
+            if(result['result'] === "pass") {
+                const id_report = req.query.id_report 
+                con.query(
+                    ` 
+                        SELECT *
+                        FROM record_edit
+                        WHERE id_report_detail =?
+                        ORDER BY edit_date DESC
+                    ` 
+                , [  id_report ] , 
+                (err, result )=>{
+                    if (err) {
+                        dbpacket.dbErrorReturn(con, err, res);
+                        console.log("select plant editform");
+                        return 0;
+                    }
+
+                    con.end()
+                    res.send(result)
+                })
+            }
+        } catch (err) {
+            con.end()
+            if(err == "not pass") {
+                res.redirect('/api/logout')
+            }
+        }
+    })
+
     app.put('/api/doctor/form/edit/change/status' , async (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor

@@ -107,7 +107,7 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                 </div>
                 { data.report_text ?
                     <div className="field menu-detail" onClick={onOpenPopup}>
-                        <svg viewBox="0 0 494.936 494.936">
+                        <svg className="icon-menu" viewBox="0 0 494.936 494.936">
                             <g>
                                 <g>
                                     <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157

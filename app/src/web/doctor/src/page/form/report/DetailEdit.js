@@ -19,7 +19,7 @@ const DetailEdit = ({Ref , setRef}) => {
     const Fetch = async () => {
         setData([])
         // ดึง id ของการ edit มาก่อน
-        // const result = await clientMo.post(UrlFecth , DataFetch)
+        const result = await clientMo.get(`/api/doctor/form/report/edit/gets?id_report=${}`)
         // if(result) {
         //     const Data = JSON.parse(result)
         //     setData(Data)
@@ -95,7 +95,37 @@ const DetailEdit = ({Ref , setRef}) => {
                                 <div className="detail">
                                     <div className="detail-body">
                                         <div className="body">
-                                            {/* body */}
+                                            {/* body */
+                                            <div class="container" id="detail-box">
+                                                <div class="header">รายละเอียด</div>
+                                                <div className="frame-menu">
+                                                <div className="menu-list">
+                                                {
+                                                    Data.map((val , key)=>
+                                                        key == 0  ?
+                                                        <a select="" onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>ล่าสุด</a>
+                                                        :
+                                                        <a onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>{key + 1}</a>
+                                                    )
+                                                }
+                                                </div>
+                                            </div>
+                                                <div class="section old-advice">
+                                                    <div>คำแนะนำเก่า</div>
+                                                    <div>งดใช้ยาฆ่าแมลง 20 วัน</div>
+                                                    <div class="image-box">รูปภาพเก่า</div>
+                                                </div>
+                                                <div class="section new-advice">
+                                                    <div>คำแนะนำใหม่</div>
+                                                    <div>งดใช้ยาฆ่าแมลง 30 วัน</div>
+                                                    <div class="image-box">รูปภาพใหม่</div>
+                                                </div>
+                                                <div class="section officer">
+                                                    <div>ชื่อเจ้าหน้าที่ที่แก้ไข</div>
+                                                    <div>นายวันชนะ เบ็ญจมาค</div>
+                                                </div>
+                                            </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -111,9 +141,43 @@ const DetailEdit = ({Ref , setRef}) => {
                             <path d="M35.8125 8.98335C28.5 1.83335 16.5 1.83335 9.1875 8.98335C1.875 16.1334 1.875 27.8667 9.1875 35.0167C16.5 42.1667 28.3125 42.1667 35.625 35.0167C42.9375 27.8667 43.125 16.1334 35.8125 8.98335ZM27.75 29.7L22.5 24.5667L17.25 29.7L14.625 27.1333L19.875 22L14.625 16.8667L17.25 14.3L22.5 19.4333L27.75 14.3L30.375 16.8667L25.125 22L30.375 27.1333L27.75 29.7Z" fill="#FF0000"/>
                         </svg>
                     </div>
-                    <div className="not-edit">
+                    {/* <div className="not-edit">
                         ไม่พบการแก้ไขข้อมูล
-                    </div>
+                    </div> */}
+                    <div class="container" id="detail-box">
+                                                <div class="header">รายละเอียด</div>
+                                        
+                                                <div className="frame-menu">
+                                                <div className="menu-list">
+                                                {
+                                                    Data.map((val , key)=>
+                                                        key == 0  ?
+                                                        <a select="" onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>ล่าสุด</a>
+                                                        :
+                                                        <a onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>{key + 1}</a>
+                                                    )
+                                                }
+                                                </div>
+                                            </div>
+
+                                                <div class="section old-advice">
+                                                    <div>คำแนะนำเก่า</div>
+                                                    <div>งดใช้ยาฆ่าแมลง 20 วัน</div>
+                                                    <div class="image-box">รูปภาพเก่า</div>
+                                                </div>
+                                        
+                                                <div class="section new-advice">
+                                                    <div>คำแนะนำใหม่</div>
+                                                    <div>งดใช้ยาฆ่าแมลง 30 วัน</div>
+                                                    <div class="image-box">รูปภาพใหม่</div>
+                                                </div>
+                                        
+                                                <div class="section officer">
+                                                    <div>ชื่อเจ้าหน้าที่ที่แก้ไข</div>
+                                                    <div>นายวันชนะ เบ็ญจมาค</div>
+                                                </div>
+                                        
+                                            </div>
                     </>
                 }
             </section>
