@@ -58,7 +58,7 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
                 <a select="" onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>ล่าสุด</a> :
                 <a onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>{idx + 1}</a>
         )
-    , [])
+    , [onSelectHistory , reportHistorys])
 
     return(
         reportHistorys.status === "loading" ?
