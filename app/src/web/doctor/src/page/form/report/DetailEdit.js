@@ -52,13 +52,14 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
         }, 500)
     }
 
-    const HeaderSelects = useMemo(() =>
-        Object.entries(reportHistorys.data).map(([ id_record_edit ] , idx) => 
+    const HeaderSelects = useMemo(() => {
+        console.log(reportHistorys.data)
+        return Object.entries(reportHistorys.data).map(([ id_record_edit ] , idx) => 
             idx === 0  ?
                 <a select="" onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>ล่าสุด</a> :
                 <a onClick={()=>onSelectHistory(id_record_edit)} key={id_record_edit}>{idx + 1}</a>
         )
-    , [onSelectHistory , reportHistorys])
+    }, [onSelectHistory , reportHistorys])
 
     return(
         reportHistorys.status === "loading" ?
@@ -70,7 +71,7 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
                         <div className="menu-edit">
                             <div className="frame-menu">
                                 <div className="menu-list">
-                                {HeaderSelects}
+                                    {HeaderSelects}
                                 </div>
                             </div>
                             <div className="close" onClick={close}>
