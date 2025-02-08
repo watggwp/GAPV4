@@ -84,6 +84,7 @@ const InsertStatistics = () => {
     setSelectedRows(selected => {
       if(checked) selected.set(id , pestsMapping.get(id))
       else selected.delete(id)
+      return new Map([...selected])
     })
     // setSelectedRows((prevSelected) => 
     //   prevSelected.includes(rank) 
