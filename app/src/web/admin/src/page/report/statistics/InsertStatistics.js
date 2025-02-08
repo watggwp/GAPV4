@@ -4,7 +4,7 @@ import { clientMo } from "../../../../../../assets/js/moduleClient";
 export const InsertStatisticsContext = createContext({
   minCount: 0, 
   setMinCount: () => {},
-  selectedRows: [], 
+  selectedRows: new Map(), 
   setSelectedRows: () => {},
   plantDiseaseStats: [], 
   pestStats: []
@@ -33,12 +33,14 @@ export function InsertStatisticsProvider({ children }) {
 
 const InsertStatistics = () => {
   const { minCount , setMinCount } = useContext(InsertStatisticsContext)
+
+  const [ pestsMapping , setPestsMapping ] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState(new Map());
 
 
   const calculateDateRange = (duration) => {
@@ -78,13 +80,17 @@ const InsertStatistics = () => {
     });
   };
 
-        const handleCheckboxChange = (rank) => {
-        setSelectedRows((prevSelected) => 
-          prevSelected.includes(rank) 
-            ? prevSelected.filter((item) => item !== rank) 
-            : [...prevSelected, rank] 
-        );
-      };
+  const handleCheckboxChange = (checked , id) => {
+    setSelectedRows(selected => {
+      if(checked) selected.set(id , pestsMapping.get(id))
+      else selected.delete(id)
+    })
+    // setSelectedRows((prevSelected) => 
+    //   prevSelected.includes(rank) 
+    //     ? prevSelected.filter((item) => item !== rank) 
+    //     : [...prevSelected, rank] 
+    // );
+  };
 
   const fetchStatistics = useCallback(async () => {
     try {
@@ -95,24 +101,45 @@ const InsertStatistics = () => {
         console.error("No data received from API");
         return;
       }
-      const plantDiseases = data
-        .filter((item) => item.type_pest === "โรคพืช")
-        .map((item, index) => ({
-          rank: index + 1,
-          name: item.pest_name,
-          name_plants : item.name_plants,
-          count: item[`total_${duration}`] || 0,
-        }));
 
-      const pests = data
-        .filter((item) => item.type_pest === "ศัตรูพืช")
-        .map((item, index) => ({
-          rank: index + 1,
+      const pests_mapping = new Map()
+      const plantDiseases = []
+      const pests = []
+
+      data.forEach((item , index) => {
+        switch(item.type_pest) {
+          case "โรคพืช" : 
+            plantDiseases.push({
+              rank: index + 1,
+              id : item.pest_id,
+              name: item.pest_name,
+              name_plants : item.name_plants,
+              count: item[`total_${duration}`] || 0,
+            })
+            break;
+          case "ศัตรูพืช" :
+            pests.push({
+              rank: index + 1,
+              id : item.pest_id,
+              insect: item.pest_name,
+              name_plants : item.name_plants,
+              count: item[`total_${duration}`] || 0,
+            })
+            break;
+          default :
+            break
+        }
+
+        pests_mapping.set(item.pest_id , {
+          id : item.pest_id,
           insect: item.pest_name,
           name_plants : item.name_plants,
           count: item[`total_${duration}`] || 0,
-        }));
+        })
+      })
 
+
+      setPestsMapping(pests_mapping)
       setPlantDiseaseStats(plantDiseases);
       setPestStats(pests);
     } catch (error) {
@@ -346,7 +373,7 @@ const InsertStatistics = () => {
                         <input 
                           type="checkbox"
                           checked={selectedRows.includes(stat.rank)}
-                          onChange={() => handleCheckboxChange(stat.rank)}
+                          onChange={(e) => handleCheckboxChange(e.target.checked , stat.pest_id)}
                           style={{
                             display: "none", // ซ่อน checkbox ดั้งเดิม
                           }}

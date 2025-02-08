@@ -15,30 +15,31 @@ export default function ButtonChangeStatistics() {
     // ฟังก์ชันโหลดข้อมูลจาก API ทั้ง 1 สัปดาห์ และ 1 เดือน
     const fetchStatistics = async () => {
         try {
+            setSelectedData(Object.entries(selectedRows).map(([ , selectedRow]) => selectedRow))
             // ดึงข้อมูลทั้ง 1 สัปดาห์ และ 1 เดือน
-            const [weekResponse, monthResponse] = await Promise.all([
-                clientMo.post("/api/admin/statistic/get", { duration: "1_week" }),
-                clientMo.post("/api/admin/statistic/get", { duration: "1_month" })
-            ]);
+            // const [weekResponse, monthResponse] = await Promise.all([
+            //     clientMo.post("/api/admin/statistic/get", { duration: "1_week" }),
+            //     clientMo.post("/api/admin/statistic/get", { duration: "1_month" })
+            // ]);
 
-            const weekData = JSON.parse(weekResponse);
-            const monthData = JSON.parse(monthResponse);
+            // const weekData = JSON.parse(weekResponse);
+            // const monthData = JSON.parse(monthResponse);
 
-            // รวมข้อมูลและกรองเฉพาะที่เลือก
-            const combinedData = [...weekData, ...monthData]
-                .filter((item, index, self) => 
-                    selectedRows.includes(item.rank) &&
-                    self.findIndex(i => i.pest_name === item.pest_name) === index // ลบค่าซ้ำ
-                )
-                .map(item => ({
-                    name: item.pest_name,
-                    name_plants: item.name_plants,
-                    count: (item.total_1_week || 0) + (item.total_1_month || 0) // รวมค่าทั้งสองช่วง
-                }))
-                .sort((a, b) => b.count - a.count); // เรียงจากมากไปน้อย
+            // // รวมข้อมูลและกรองเฉพาะที่เลือก
+            // const combinedData = [...weekData, ...monthData]
+            //     .filter((item, index, self) => 
+            //         selectedRows.includes(item.rank) &&
+            //         self.findIndex(i => i.pest_name === item.pest_name) === index // ลบค่าซ้ำ
+            //     )
+            //     .map(item => ({
+            //         name: item.pest_name,
+            //         name_plants: item.name_plants,
+            //         count: (item.total_1_week || 0) + (item.total_1_month || 0) // รวมค่าทั้งสองช่วง
+            //     }))
+            //     .sort((a, b) => b.count - a.count); // เรียงจากมากไปน้อย
 
-            setSelectedData(combinedData);
-            setPopupDataManage({ open: true });
+            // setSelectedData(combinedData);
+            // setPopupDataManage({ open: true });
 
         } catch (error) {
             console.error("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error);

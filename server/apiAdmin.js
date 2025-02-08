@@ -1863,6 +1863,7 @@ app.post('/api/admin/report/list', async(req, res) => {
       if (auth['result'] === "pass") {
         con.query(
           `SELECT 
+              p.pest_id,
               p.pest_name,
               p.type_pest,
               COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
