@@ -3,6 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { GetLinkUrlOfSearch, Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
+import { Grid2 } from "@mui/material";
 const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -189,7 +190,11 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
                         <div className="name column">
-                            {type === "plant" ? <span className={type}>ชื่อพืช</span> : <span className={type}>ชื่อศูนย์</span>}
+                            {
+                                type === "plant" ? 
+                                    <span className={type}>ชื่อพืช</span> : 
+                                    <span className={type}>ชื่อศูนย์</span>
+                            }
                             <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input>
                         </div>
                         <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
@@ -200,18 +205,24 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                 type === "plant" ? <div>{Data.dataOther}</div> :
                                 Data.dataOther ? 
                                     <>
-                                    <div className="flied-location-edit" w={type}>
-                                        <span className="head-flied">ตำแหน่งที่ตั้ง</span>
-                                        <input onChange={ async (e)=>{
-                                            clearTimeout(getTimeOutChange)
-                                            await GenerateMap(e)
-                                            setTimeOutChange(setTimeout(()=>{
-                                                validateValue()
-                                            } , 1))
-                                        }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
-                                        <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
-                                    </div>
-                                    <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
+                                    <Grid2 container>
+                                        <Grid2 size={{ xs : 12 }}>
+                                            <div className="flied-location-edit" w={type}>
+                                                <span className="head-flied">ตำแหน่งที่ตั้ง</span>
+                                                <input onChange={ async (e)=>{
+                                                    clearTimeout(getTimeOutChange)
+                                                    await GenerateMap(e)
+                                                    setTimeOutChange(setTimeout(()=>{
+                                                        validateValue()
+                                                    } , 1))
+                                                }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
+                                                <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
+                                            </div>
+                                        </Grid2>
+                                        <Grid2 size={{ xs : 12 }}>
+                                            <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
+                                        </Grid2>
+                                    </Grid2>
                                     </>
                                     : 
                                     <></>
