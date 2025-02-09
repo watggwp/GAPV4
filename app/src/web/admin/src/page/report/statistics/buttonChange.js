@@ -17,7 +17,7 @@ export default function ButtonChangeStatistics() {
     useEffect(() => {
         if (selectedRows.size) {
             selectedRows.forEach(row => {
-                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) // ส่ง pest_id
+                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) 
                     .then(response => {
                         const data = JSON.parse(response)
                         if (data.chemical_used) {
@@ -142,6 +142,14 @@ export default function ButtonChangeStatistics() {
                         ) : (
                             <p style={{ textAlign: "center", color: "gray", fontWeight: "bold", padding: "10px" }}>ไม่มีข้อมูลที่จะแสดง</p>
                         )}
+                    </div>
+                    <div className="bt-submitnoty">
+                        <button className="cancel" onClick={Cancel}>
+                            ยกเลิก
+                        </button>
+                        <button className="submit" onClick={ClickAdd} disabled={!stateOnBt}>
+                            แจ้งข้อมูล
+                        </button>
                     </div>
                 </div>
             </Modal>
