@@ -17,7 +17,7 @@ export default function ButtonChangeStatistics() {
     useEffect(() => {
         if (selectedRows.size) {
             selectedRows.forEach(row => {
-                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) // ส่ง pest_id
+                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) 
                     .then(response => {
                         if (response.data.chemical_used) {
                             setChemicals(prevChemicals => ({
@@ -131,8 +131,7 @@ export default function ButtonChangeStatistics() {
                                                 </td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.name_plants}</td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.count}</td>
-                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                                                    {chemicals[item.name] || "-"}
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{chemicals[item.name] || "-"}
                                                 </td>
                                             </tr>
                                     ))}
@@ -141,6 +140,14 @@ export default function ButtonChangeStatistics() {
                         ) : (
                             <p style={{ textAlign: "center", color: "gray", fontWeight: "bold", padding: "10px" }}>ไม่มีข้อมูลที่จะแสดง</p>
                         )}
+                    </div>
+                    <div className="bt-submitnoty">
+                        <button className="cancel" onClick={Cancel}>
+                            ยกเลิก
+                        </button>
+                        <button className="submit" onClick={ClickAdd} disabled={!stateOnBt}>
+                            แจ้งข้อมูล
+                        </button>
                     </div>
                 </div>
             </Modal>
