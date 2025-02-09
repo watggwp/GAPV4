@@ -853,7 +853,12 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con , dbpacket , res , req , LINE)
-                con.query(`SELECT name  , id , qty_harvest FROM plant_list WHERE is_use = 1 ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC` , (err , result)=>{
+                con.query(`SELECT name, id, qty_harvest
+                            FROM plant_list
+                            WHERE is_use = 1
+                            AND id = (SELECT MAX(id) FROM plant_list p2 WHERE p2.name = plant_list.name)
+                            ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
+                            ` , (err , result)=>{
                     con.end()
                     if (!err) {
                         res.send(result)
