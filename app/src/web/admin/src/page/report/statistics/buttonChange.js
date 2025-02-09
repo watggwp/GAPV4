@@ -15,7 +15,7 @@ export default function ButtonChangeStatistics() {
 
     // ดึงข้อมูลสารเคมีที่ใช้จาก API
     useEffect(() => {
-        if (selectedRows.length > 0) {
+        if (selectedRows.size) {
             selectedRows.forEach(row => {
                 clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.pest_id }) // ส่ง pest_id
                     .then(response => {
