@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { PageTemplateContext } from "../../PageTemplate";
 import { Modal } from "react-bootstrap";
 import { InsertStatisticsContext } from "./InsertStatistics";
-import axios from "axios";
+import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 export default function ButtonChangeStatistics() { 
     const { minCount, selectedRows } = useContext(InsertStatisticsContext);
@@ -11,30 +11,32 @@ export default function ButtonChangeStatistics() {
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
     const [stateOnBt, setStateOnBt] = useState(true);
     const [selectedData, setSelectedData] = useState([]);
-    const [chemicalData, setChemicalData] = useState([]);
+    const [chemicals, setChemicals] = useState({}); // เก็บข้อมูลสารเคมีที่ใช้
 
-    // โหลดข้อมูลสารเคมีที่ใช้กับโรคหรือศัตรูพืช
+    // ดึงข้อมูลสารเคมีที่ใช้จาก API
     useEffect(() => {
-        axios.post("/api/admin/chemical_pest/get", { id: 1 }) // ส่งค่า ID ตัวอย่าง
-            .then(response => {
-                setChemicalData(response.data);
-            })
-            .catch(error => {
-                console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลสารเคมี:", error);
+        if (selectedRows.length > 0) {
+            selectedRows.forEach(row => {
+                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.pest_id }) // ส่ง pest_id
+                    .then(response => {
+                        if (response.data.chemical_used) {
+                            setChemicals(prevChemicals => ({
+                                ...prevChemicals,
+                                [row.name]: response.data.chemical_used // เก็บชื่อสารเคมีตาม pest_name
+                            }));
+                        }
+                    })
+                    .catch(error => console.error("Error fetching data:", error));
             });
-    }, []);
+        }
+    }, [selectedRows]);
 
     const fetchStatistics = async () => {
         try {
             setSelectedData(() => {
-                const newSelectsData = []
+                const newSelectsData = [];
                 selectedRows.forEach(selectedRow => {
-                    // กรองข้อมูลสารเคมีให้ตรงกับโรค/ศัตรูพืช
-                    const matchingChemical = chemicalData.find(c => c.pest_name === selectedRow.name);
-                    newSelectsData.push({
-                        ...selectedRow,
-                        chemical: matchingChemical ? matchingChemical.chemical_name : "-" // ถ้าไม่มีให้แสดง "-"
-                    });
+                    newSelectsData.push(selectedRow);
                 });
                 console.log(newSelectsData);
                 return newSelectsData;
@@ -129,7 +131,9 @@ export default function ButtonChangeStatistics() {
                                                 </td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.name_plants}</td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.count}</td>
-                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.chemical_name}</td>
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                                                    {chemicals[item.name] || "-"}
+                                                </td>
                                             </tr>
                                     ))}
                                 </tbody>
@@ -137,15 +141,6 @@ export default function ButtonChangeStatistics() {
                         ) : (
                             <p style={{ textAlign: "center", color: "gray", fontWeight: "bold", padding: "10px" }}>ไม่มีข้อมูลที่จะแสดง</p>
                         )}
-                    </div>
-
-                    <div className="bt-submitnoty">
-                        <button className="cancel" onClick={Cancel}>
-                            ยกเลิก
-                        </button>
-                        <button className="submit" onClick={ClickAdd} disabled={!stateOnBt}>
-                            แจ้งข้อมูล
-                        </button>
                     </div>
                 </div>
             </Modal>

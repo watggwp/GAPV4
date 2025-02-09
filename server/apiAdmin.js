@@ -1928,9 +1928,9 @@ app.post('/api/admin/report/list', async(req, res) => {
                 FROM pest_chemical AS pc
                 LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
                 LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
-                WHERE pc.id = ?
+                WHERE pc.pest_id = ? 
                 `,
-                [req.body.id],
+                [req.body.pest_id], // ใช้ pest_id ที่ส่งมาจากหน้าเว็บ
                 (err, results) => {
                     if (err) {
                         console.error("Database query error:", err);
@@ -1946,9 +1946,12 @@ app.post('/api/admin/report/list', async(req, res) => {
                         return;
                     }
 
-                    console.log("Data retrieved successfully:", results);
+                    // ส่งเฉพาะชื่อสารเคมีที่ใช้
+                    const chemicalNames = results.map(item => item.chemical_name).join(", ");
+
+                    console.log("Data retrieved successfully:", chemicalNames);
                     con.end();
-                    res.status(200).json(results); // ส่งข้อมูลกลับไป
+                    res.status(200).json({ chemical_used: chemicalNames });
                 }
             );
         } else {
