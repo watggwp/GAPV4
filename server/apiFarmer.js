@@ -723,7 +723,10 @@ app.post('/api/farmer/formplant/select', async (req, res) => {
             if (err === "no" || err === "no account") res.send("close");
             else res.send("error auth");
         }
-    } else res.send("error auth");
+    } else {
+        console.log("uid")
+        res.send("error auth");
+    }
 });
 
 // app.post('/api/farmer/varieties', authCheck, (req, res) => {
