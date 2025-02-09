@@ -78,11 +78,7 @@ const InsertStatistics = () => {
       else selected.delete(id)
       return new Map([...selected])
     })
-    // setSelectedRows((prevSelected) => 
-    //   prevSelected.includes(rank) 
-    //     ? prevSelected.filter((item) => item !== rank) 
-    //     : [...prevSelected, rank] 
-    // );
+    
   };
 
   const fetchStatistics = useCallback(async () => {
@@ -390,7 +386,7 @@ const InsertStatistics = () => {
                         fontWeight: "900",
                       }}
                     >
-                      {stat.rank}
+                      {index + 1} {/* กำหนดลำดับใหม่แทนค่าที่มากับ API */}
                     </td>
                     <td
                       style={{

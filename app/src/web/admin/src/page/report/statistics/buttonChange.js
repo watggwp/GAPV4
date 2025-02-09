@@ -1,8 +1,8 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { PageTemplateContext } from "../../PageTemplate";
 import { Modal } from "react-bootstrap";
 import { InsertStatisticsContext } from "./InsertStatistics";
-import { clientMo } from "../../../../../../assets/js/moduleClient";
+import axios from "axios";
 
 export default function ButtonChangeStatistics() { 
     const { minCount, selectedRows } = useContext(InsertStatisticsContext);
@@ -11,41 +11,35 @@ export default function ButtonChangeStatistics() {
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
     const [stateOnBt, setStateOnBt] = useState(true);
     const [selectedData, setSelectedData] = useState([]);
+    const [chemicalData, setChemicalData] = useState([]);
 
-    // ฟังก์ชันโหลดข้อมูลจาก API ทั้ง 1 สัปดาห์ และ 1 เดือน
+    // โหลดข้อมูลสารเคมีที่ใช้กับโรคหรือศัตรูพืช
+    useEffect(() => {
+        axios.post("/api/admin/chemical_pest/get", { id: 1 }) // ส่งค่า ID ตัวอย่าง
+            .then(response => {
+                setChemicalData(response.data);
+            })
+            .catch(error => {
+                console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลสารเคมี:", error);
+            });
+    }, []);
+
     const fetchStatistics = async () => {
         try {
             setSelectedData(() => {
                 const newSelectsData = []
                 selectedRows.forEach(selectedRow => {
-                    newSelectsData.push(selectedRow)
-                })
-                console.log(newSelectsData)
-                return newSelectsData
-            })
-            // ดึงข้อมูลทั้ง 1 สัปดาห์ และ 1 เดือน
-            // const [weekResponse, monthResponse] = await Promise.all([
-            //     clientMo.post("/api/admin/statistic/get", { duration: "1_week" }),
-            //     clientMo.post("/api/admin/statistic/get", { duration: "1_month" })
-            // ]);
+                    // กรองข้อมูลสารเคมีให้ตรงกับโรค/ศัตรูพืช
+                    const matchingChemical = chemicalData.find(c => c.pest_name === selectedRow.name);
+                    newSelectsData.push({
+                        ...selectedRow,
+                        chemical: matchingChemical ? matchingChemical.chemical_name : "-" // ถ้าไม่มีให้แสดง "-"
+                    });
+                });
+                console.log(newSelectsData);
+                return newSelectsData;
+            });
 
-            // const weekData = JSON.parse(weekResponse);
-            // const monthData = JSON.parse(monthResponse);
-
-            // // รวมข้อมูลและกรองเฉพาะที่เลือก
-            // const combinedData = [...weekData, ...monthData]
-            //     .filter((item, index, self) => 
-            //         selectedRows.includes(item.rank) &&
-            //         self.findIndex(i => i.pest_name === item.pest_name) === index // ลบค่าซ้ำ
-            //     )
-            //     .map(item => ({
-            //         name: item.pest_name,
-            //         name_plants: item.name_plants,
-            //         count: (item.total_1_week || 0) + (item.total_1_month || 0) // รวมค่าทั้งสองช่วง
-            //     }))
-            //     .sort((a, b) => b.count - a.count); // เรียงจากมากไปน้อย
-
-            // setSelectedData(combinedData);
             setPopupDataManage({ open: true });
 
         } catch (error) {
@@ -108,28 +102,40 @@ export default function ButtonChangeStatistics() {
                         <button type="button" className="btn-close" onClick={handleCloseModal}></button>
                     </div>
 
-                    <div className="modal-body">
+                    <div className="modal-body" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                         {selectedData.length > 0 ? (
-                            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "10px" }}>
+                            <table style={{ 
+                                width: "90%", 
+                                borderCollapse: "collapse", 
+                                marginTop: "10px", 
+                                border: "2px solid #60d6cf", 
+                                textAlign: "center"
+                            }}>
                                 <thead>
-                                    <tr>
-                                        <th style={{ padding: "10px", backgroundColor: "#60d6cf", color: "white" }}>ชื่อโรค/ศัตรูพืช</th>
-                                        <th style={{ padding: "10px", backgroundColor: "#60d6cf", color: "white" }}>พืชที่เกี่ยวข้อง</th>
-                                        <th style={{ padding: "10px", backgroundColor: "#60d6cf", color: "white" }}>จำนวน</th>
+                                    <tr style={{ backgroundColor: "#60d6cf", color: "white" }}>
+                                        <th style={{ padding: "10px", border: "1px solid white" }}>ชื่อโรค/ศัตรูพืช</th>
+                                        <th style={{ padding: "10px", border: "1px solid white" }}>พืชที่เกี่ยวข้อง</th>
+                                        <th style={{ padding: "10px", border: "1px solid white" }}>จำนวน</th>
+                                        <th style={{ padding: "10px", border: "1px solid white" }}>สารเคมีที่ใช้</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedData.map((item, index) => (
-                                        <tr key={index}>
-                                            <td style={{ padding: "8px", textAlign: "center" }}>{item.name}</td>
-                                            <td style={{ padding: "8px", textAlign: "center" }}>{item.name_plants}</td>
-                                            <td style={{ padding: "8px", textAlign: "center" }}>{item.count}</td>
-                                        </tr>
+                                    {[...selectedData]
+                                        .sort((a, b) => b.count - a.count) 
+                                        .map((item, index) => (
+                                            <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#fff" }}>
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                                                    {item.name || item.insect}
+                                                </td>
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.name_plants}</td>
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.count}</td>
+                                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.chemical_name}</td>
+                                            </tr>
                                     ))}
                                 </tbody>
                             </table>
                         ) : (
-                            <p style={{ textAlign: "center", color: "gray" }}>ไม่มีข้อมูลที่จะแสดง</p>
+                            <p style={{ textAlign: "center", color: "gray", fontWeight: "bold", padding: "10px" }}>ไม่มีข้อมูลที่จะแสดง</p>
                         )}
                     </div>
 
@@ -138,7 +144,7 @@ export default function ButtonChangeStatistics() {
                             ยกเลิก
                         </button>
                         <button className="submit" onClick={ClickAdd} disabled={!stateOnBt}>
-                            เพิ่มข้อมูล
+                            แจ้งข้อมูล
                         </button>
                     </div>
                 </div>

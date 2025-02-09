@@ -1350,9 +1350,12 @@ app.get('/api/admin/profile/get', (req, res) => {
 
                 con.query(
                     `
-                    SELECT * FROM ${From} WHERE ${columnName} = ? AND is_use = 1;
+                    SELECT * FROM ${From} WHERE ${columnName} = ? 
+                    ${data.type === "plant" ? "AND variety_name = ?" : ""} 
+                    AND is_use = 1;
+
                     `,
-                    [data.name],
+                    data.type === "plant" ? [data.name, data.variety_name] : [data.name],
                     (err, result) => {
                         if (!err) {
                             if (!result.length) {
@@ -1729,6 +1732,8 @@ app.post('/api/admin/report/list', async(req, res) => {
       const station = auth['data']['station_admin']
       const { search } = req.body
 
+      const isNumber = !isNaN(search) && search.trim() !== '';
+
     // ดึงข้อมูลเกษตรกรและพืชใน station
     const farmerQuery = `
                     SELECT
@@ -1898,6 +1903,64 @@ app.post('/api/admin/report/list', async(req, res) => {
       }
     }
   });
+
+  app.post('/api/admin/chemical_pest/get', async (req, res) => {
+    let username = req.session.user_admin;
+    let password = req.session.pass_admin;
+
+    if (!username || !password) {
+        res.redirect('/api/logout');
+        return;
+    }
+
+    let con = Database.createConnection(listDB);
+
+    try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] === "pass") {
+            con.query(
+                `
+                SELECT 
+                    pc.pest_id AS pest_id,
+                    pc.chemical_id AS chemical_id,
+                    p.pest_name AS pest_name,
+                    c.name AS chemical_name
+                FROM pest_chemical AS pc
+                LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+                LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+                WHERE pc.id = ?
+                `,
+                [req.body.id],
+                (err, results) => {
+                    if (err) {
+                        console.error("Database query error:", err);
+                        con.end();
+                        res.status(500).json({ error: "Database query failed" });
+                        return;
+                    }
+
+                    if (results.length === 0) {
+                        console.log("No data found");
+                        con.end();
+                        res.status(404).json({ message: "No data found" });
+                        return;
+                    }
+
+                    console.log("Data retrieved successfully:", results);
+                    con.end();
+                    res.status(200).json(results); // ส่งข้อมูลกลับไป
+                }
+            );
+        } else {
+            res.status(401).json({ error: "Unauthorized access" });
+        }
+    } catch (err) {
+        console.error("Unexpected error:", err);
+        con.end();
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
   const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
     let con = Database.createConnection(listDB)
