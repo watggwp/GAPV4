@@ -1530,13 +1530,6 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
     
     
     
-
-    
-    
-    
-    
-    
-    
     // end formplant
 
     // start factor
