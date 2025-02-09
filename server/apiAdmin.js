@@ -1951,7 +1951,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 
                     console.log("Data retrieved successfully:", chemicalNames);
                     con.end();
-                    res.status(200).json({ chemical_used: chemicalNames });
+                    res.status(200).send({ chemical_used: chemicalNames });
                 }
             );
         } else {

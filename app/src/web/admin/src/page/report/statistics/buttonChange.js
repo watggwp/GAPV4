@@ -19,10 +19,11 @@ export default function ButtonChangeStatistics() {
             selectedRows.forEach(row => {
                 clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) // ส่ง pest_id
                     .then(response => {
-                        if (response.data.chemical_used) {
+                        const data = JSON.parse(response)
+                        if (data.chemical_used) {
                             setChemicals(prevChemicals => ({
                                 ...prevChemicals,
-                                [row.name]: response.data.chemical_used // เก็บชื่อสารเคมีตาม pest_name
+                                [row.id]: response.data.chemical_used // เก็บชื่อสารเคมีตาม pest_name
                             }));
                         }
                     })
@@ -132,7 +133,7 @@ export default function ButtonChangeStatistics() {
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.name_plants}</td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.count}</td>
                                                 <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                                                    {chemicals[item.name] || "-"}
+                                                    {chemicals[item.id] || "-"}
                                                 </td>
                                             </tr>
                                     ))}
