@@ -21,7 +21,7 @@ export default function ButtonChangeStatistics() {
                     .then(response => {
                         // console.log(response)
                         const data = JSON.parse(response)
-                        if (data.chemical_used) {
+                        if (data && data.chemical_used) {
                             setChemicals(prevChemicals => ({
                                 ...prevChemicals,
                                 [row.id]: response.data.chemical_used // เก็บชื่อสารเคมีตาม pest_name
