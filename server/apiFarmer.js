@@ -636,6 +636,7 @@ app.post('/api/farmer/formplant/select', async (req, res) => {
                     SELECT type_plant 
                     FROM plant_list 
                     WHERE plant_list.name = formplant.name_plant and plant_list.is_use = 1
+                    LIMIT 1
                 ) as type_plant
                 FROM formplant, 
                 (
@@ -649,6 +650,7 @@ app.post('/api/farmer/formplant/select', async (req, res) => {
                 auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse
             ],
             async (err, result) => {
+                console.log(err)
                 if (!err) {
                     if (result[0]) {
                         if (req.body.id_formplant) {
