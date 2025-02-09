@@ -17,7 +17,7 @@ export default function ButtonChangeStatistics() {
     useEffect(() => {
         if (selectedRows.size) {
             selectedRows.forEach(row => {
-                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.pest_id }) // ส่ง pest_id
+                clientMo.post("/api/admin/chemical_pest/get", { pest_id: row.id }) // ส่ง pest_id
                     .then(response => {
                         if (response.data.chemical_used) {
                             setChemicals(prevChemicals => ({
