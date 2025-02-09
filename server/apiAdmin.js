@@ -1928,9 +1928,9 @@ app.post('/api/admin/report/list', async(req, res) => {
                 FROM pest_chemical AS pc
                 LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
                 LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
-                WHERE pc.pest_id = ? 
-                `,
-                [req.body.pest_id], // ใช้ pest_id ที่ส่งมาจากหน้าเว็บ
+                WHERE pc.pest_id = ? AND pc.status = 1
+                `, 
+                [req.body.pest_id], 
                 (err, results) => {
                     if (err) {
                         console.error("Database query error:", err);
@@ -1963,6 +1963,7 @@ app.post('/api/admin/report/list', async(req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 });
+
 
 
   const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
