@@ -718,6 +718,7 @@ app.post('/api/farmer/formplant/select', async (req, res) => {
                 }
             });
         } catch (err) {
+            console.log(err)
             con.end();
             if (err === "no" || err === "no account") res.send("close");
             else res.send("error auth");
