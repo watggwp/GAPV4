@@ -199,12 +199,12 @@ const House = ({liff , uid}) => {
 
     const confirmData = () => {
         // ตรวจสอบว่าภาพที่แสดงไม่ใช่ default preview image
-        if (ImageCurrent.current.src.indexOf("/view-preview-img.svg") > -1) {
-          setText("กรุณาอัปโหลดรูปภาพโรงเรือน");
-          setResult(3); // 3 = ข้อความแจ้งเตือน error
-          setOpen(1);   // เปิด ReportAction เพื่อแสดงแจ้งเตือน
-          return;
-        }
+        // if (ImageCurrent.current.src.indexOf("/view-preview-img.svg") > -1) {
+        //   setText("กรุณาอัปโหลดรูปภาพโรงเรือน");
+        //   setResult(3); // 3 = ข้อความแจ้งเตือน error
+        //   setOpen(1);   // เปิด ReportAction เพื่อแสดงแจ้งเตือน
+        //   return;
+        // }
       
         // ดึงค่าจากฟิลด์ต่าง ๆ
         const CropImage = CropImageToData(); // ควรได้เป็น Data URL ของรูปที่ครอบตัดแล้ว
@@ -214,11 +214,11 @@ const House = ({liff , uid}) => {
       
         // ตรวจสอบแต่ละฟิลด์และรวบรวมข้อความแจ้งเตือน
         let missingFields = "";
+        if (!nameValue) {
+            missingFields += "กรุณากรอกชื่อโรงเรือน\n";
+          }
         if (!CropImage) {
           missingFields += "กรุณาอัปโหลดรูปภาพโรงเรือน\n";
-        }
-        if (!nameValue) {
-          missingFields += "กรุณากรอกชื่อโรงเรือน\n";
         }
         if (!latValue || !lngValue || latValue === 0 || lngValue === 0 || latValue === -1 || lngValue === -1) {
           missingFields += "กรุณาระบุตำแหน่งโรงเรือน\n";

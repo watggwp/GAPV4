@@ -216,32 +216,52 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
             try {
                 const auth = await authCheck(con , dbpacket , res , req , LINE)
                 if(auth) {
-                    con.query(
-                        `
-                        INSERT INTO housefarm 
-                            (
-                                uid_line , 
-                                name_house , 
-                                img_house , 
-                                link_user,
-                                location
-                            )
-                        VALUES (? , ? , ? , ? , POINT(? , ?))` , 
-                        [
-                            auth.data.uid_line , req.body['name'].toString().trim() , req.body['img'] , auth.data.link_user , req.body['lag'] , req.body['lng']
-                        ] , (err , insert)=>{
-                            con.end()
-                            if (!err) {
-                                if(insert.affectedRows > 0) {
-                                    if(insert.affectedRows > 1) console.log(insert)
-                                    res.send("133")
+
+                    const overlap = await new Promise((resolve) => {
+                        con.query(
+                            `
+                            SELECT id_farm_house
+                            FROM housefarm 
+                            WHERE uid_line = ? AND name_house = ?
+                            LIMIT 1` , 
+                            [
+                                auth.data.uid_line , req.body['name'].toString().trim()
+                            ] , (err , resultOverlab)=>{
+                                resolve(resultOverlab[0])
+                            })
+                    })
+
+                    if(!overlap) {
+                        con.query(
+                            `
+                            INSERT INTO housefarm 
+                                (
+                                    uid_line , 
+                                    name_house , 
+                                    img_house , 
+                                    link_user,
+                                    location
+                                )
+                            VALUES (? , ? , ? , ? , POINT(? , ?))` , 
+                            [
+                                auth.data.uid_line , req.body['name'].toString().trim() , req.body['img'] , auth.data.link_user , req.body['lag'] , req.body['lng']
+                            ] , (err , insert)=>{
+                                con.end()
+                                if (!err) {
+                                    if(insert.affectedRows > 0) {
+                                        if(insert.affectedRows > 1) console.log(insert)
+                                        res.send("133")
+                                    } else {
+                                        res.send("130")
+                                    }
                                 } else {
-                                    res.send("130")
+                                    res.send("error auth")
                                 }
-                            } else {
-                                res.send("error auth")
-                            }
-                        })
+                            })
+                    } else {
+                        con.end()
+                        res.send("130")
+                    }
                 }
             } catch (err) {
                 con.end()
