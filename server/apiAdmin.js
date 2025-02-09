@@ -1,3 +1,5 @@
+const { request } = require('axios');
+
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
@@ -1962,6 +1964,54 @@ app.post('/api/admin/report/list', async(req, res) => {
         con.end();
         res.status(500).json({ error: "Internal server error" });
     }
+});
+
+app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
+
+  if (username === '' || password === '') {
+    res.redirect('/api/logout');
+    return;
+  }
+
+  let con = Database.createConnection(listDB);
+
+  req.body.selectedData
+
+  try {
+    const auth = await apifunc.auth(con, username, password, res, "admin");
+    if (auth['result'] === "pass") {
+      con.query(
+        `SELECT 
+           acc_farmer.uid_line
+          FROM formchemical fc
+          LEFT JOIN pests p ON fc.insect = p.pest_name
+          LEFT JOIN formplant fp ON fc.id_plant = fp.id
+          LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+          LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+          WHERE af.station = ?
+          LIMIT 25;`, [auth['data']['station_admin']] ,
+        (err, result) => {
+          if (err) {
+            dbpacket.dbErrorReturn(con, err, res);
+            return;
+          }
+          try {
+            Line.multicast([...(new Set(uid))] , {type : "text" , text : `${textSend}`})
+        } catch(e) {}
+
+          con.end();
+          res.send(result); 
+        }
+      );
+    }
+  } catch (err) {
+    con.end();
+    if (err == "not pass") {
+      res.redirect('/api/logout');
+    }
+  }
 });
 
 

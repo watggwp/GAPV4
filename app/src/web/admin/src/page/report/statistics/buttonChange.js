@@ -82,7 +82,7 @@ function NotifyStatistics({
         handleCloseModal();
     };
 
-    const ClickAdd = () => {
+    const ClickAdd = () => { clientMo.post("/api/admin/sendNotifyreport/get", { selectedData })
         console.log("เพิ่มข้อมูลเรียบร้อยแล้ว!");
         handleCloseModal(); 
     };
@@ -111,10 +111,10 @@ function NotifyStatistics({
                     }}>
                         <thead>
                             <tr style={{ backgroundColor: "#60d6cf", color: "white" }}>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>ชื่อโรค/ศัตรูพืช</th>
+                                <th style={{ padding: "10px", border: "1px solid white" }}>โรคพืช/ศัตรูพืช</th>
                                 <th style={{ padding: "10px", border: "1px solid white" }}>พืชที่เกี่ยวข้อง</th>
                                 <th style={{ padding: "10px", border: "1px solid white" }}>จำนวน</th>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>สารเคมีที่ใช้</th>
+                                <th style={{ padding: "10px", border: "1px solid white" }}>สารเคมี</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -150,7 +150,7 @@ const InsertStatistics = () => {
     <div style={{ padding: "10px" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
         <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
-          เลือกระยะเวลา:
+          ระยะเวลา:
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
@@ -198,7 +198,7 @@ const InsertStatistics = () => {
             fontWeight: "900",
           }}
         >
-          เลือกจำนวนขั้นต่ำ:
+          ความถี่ที่พบ:
           <input
             type="number"
             min="0"
@@ -309,7 +309,7 @@ const InsertStatistics = () => {
                       color: "#fff",
                     }}
                   >
-                    {showPlantDiseases ? "ชื่อโรคพืช" : "ชื่อศัตรูพืช"}
+                    {showPlantDiseases ? "โรคพืช" : "ศัตรูพืช"}
                   </th>
                   <th
                     style={{
