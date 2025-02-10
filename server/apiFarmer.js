@@ -568,7 +568,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
     
                                 con.end();
                                 result[0].subjectResult = Object.fromEntries(ResultEdit);
-                                result[0].history = History
+                                result[0].previousData = History
                                 res.send(result);
                             } else {
                                 con.end();
