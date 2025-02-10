@@ -219,7 +219,6 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     }
     
                    // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
-                   console.log(Object.insect)
                    if (Object.insect.length > 0) {
                     setPreviousInsects(Object.insect);
                 } else {
@@ -698,26 +697,23 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             <input onInput={ChangeCHK} ref={History} type="" placeholder="กรอก"></input>
                                         </label>
                                     </div>
-                                    {
-                                        Boolean(previousInsects.length) && 
-                                            <div className="row">
-                                                { getHistoryPlantLoad ? 
-                                                    <div className="block-wait"></div>
-                                                    : <></>
+                                    <div className="row" style={{ display : previousInsects.length ? "block" : "none" }}>
+                                        { getHistoryPlantLoad ? 
+                                            <div className="block-wait"></div>
+                                            : <></>
+                                        }
+                                        <label className="frame-textbox">
+                                            <span>โรค/แมลงที่พบ</span>
+                                            <select onChange={ChangeCHK} ref={Insect} defaultValue="">
+                                            <option disabled value="" selected>เลือก</option> {/* แสดงเป็นค่าเริ่มต้น */}
+                                                {
+                                                    previousInsects.map((insect, index) => (
+                                                            <option key={index} value={insect}>{insect}</option>
+                                                    ))
                                                 }
-                                                <label className="frame-textbox">
-                                                    <span>โรค/แมลงที่พบ</span>
-                                                    <select onChange={ChangeCHK} ref={Insect} defaultValue="">
-                                                    <option disabled value="" selected>เลือก</option> {/* แสดงเป็นค่าเริ่มต้น */}
-                                                    {
-                                                        previousInsects.map((insect, index) => (
-                                                                <option key={index} value={insect}>{insect}</option>
-                                                        ))
-                                                    }
-                                                </select>
-                                                </label>
-                                            </div>
-                                    }
+                                            </select>
+                                        </label>
+                                    </div>
                                     <div className="row">
                                         { getHistoryPlantLoad ? 
                                             <div className="block-wait"></div>
