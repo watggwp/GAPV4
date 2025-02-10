@@ -698,7 +698,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                         </label>
                                     </div>
                                     {
-                                        previousInsects.length && 
+                                        Boolean(previousInsects.length) && 
                                             <div className="row">
                                                 { getHistoryPlantLoad ? 
                                                     <div className="block-wait"></div>
