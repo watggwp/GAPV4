@@ -107,8 +107,12 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
             if (DataIn && DataIn[0]) {
                 setData(DataIn[0]);
                 setDateOut(DataIn[0].date_harvest.split(" ")[0]);
-                if (DataIn[0].insect) {
-                    setPreviousInsects(DataIn[0].insect.split(",")); // แยกเป็น Array
+                if (DataIn[0].previousData) {
+                    const insects = []
+                    DataIn[0].previousData.forEach(({ insect }) => 
+                        insects.push(...insect.split(","))
+                    )
+                    setPreviousInsects(insects) // แยกเป็น Array
                 } else {
                     setPreviousInsects([]);
                 }
