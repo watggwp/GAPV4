@@ -507,6 +507,22 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                     if (!err) {
                         if (result[0]) {
                             if (req.body.id_formplant) {
+                                const History = await new Promise(resolve => {
+                                    con.query(
+                                        `
+                                        SELECT
+                                            GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect
+                                        FROM formplant
+                                        LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
+                                        WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
+                                        GROUP BY formplant.id, formplant.generation
+                                        ORDER BY formplant.generation DESC
+                                        `, [result[0].name_plant , req.body.id_farmhouse],
+                                        async (err, result_history) => {
+                                            resolve(result_history);
+                                        }
+                                    );
+                                }) 
                                 const ResultEdit = await new Promise((resolve, reject) => {
                                     con.query(
                                         `
@@ -552,6 +568,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
     
                                 con.end();
                                 result[0].subjectResult = Object.fromEntries(ResultEdit);
+                                result[0].history = History
                                 res.send(result);
                             } else {
                                 con.end();
