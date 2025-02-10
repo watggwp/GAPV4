@@ -100,23 +100,32 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                 </div>
                 <span>{DataPage.type === "h" ? "การเก็บเกี่ยว" : DataPage.type === "cf" ? "ตรวจสอบแบบฟอร์ม" : DataPage.type === "cp" ? "ตรวจสอบผลผลิต" : ""}</span>
             </div>
-            <div className="menu-success">
-                {!(DataPage.type === "h") ? 
-                    <span onClick={()=>ChangeMenu("h")}>
-                        การเก็บเกี่ยว
-                        {DotSome[0] ? DotSome[0].success ? <div className="dot-someting"></div> : <></> : <></>}
-                    </span> : <></>}
-                {!(DataPage.type === "cf") ? 
-                    <span onClick={()=>ChangeMenu("cf")}>
-                        ผลตรวจแบบฟอร์ม
-                        { DotSome[0] ? DotSome[0].form ? <div className="dot-someting"></div> : <></> : <></>}
-                    </span> : <></>}
-                {!(DataPage.type === "cp") ? 
-                    <span onClick={()=>ChangeMenu("cp")}>
-                        ผลตรวจผลผลิต
-                        { DotSome[0] ? DotSome[0].plant ? <div className="dot-someting"></div> : <></> : <></>}
-                    </span> : <></>}
+            <div className="menu-container">
+                <button 
+                    className={`menu-button harvest ${DataPage.type === "h" ? "active" : ""}`} 
+                    onClick={() => ChangeMenu("h")}
+                >
+                    การเก็บเกี่ยว
+                    {DotSome[0]?.success > 0 && <div className="dot-someting"></div>}
+                </button>
+
+                <button 
+                    className={`menu-button form-check ${DataPage.type === "cf" ? "active" : ""}`} 
+                    onClick={() => ChangeMenu("cf")}
+                >
+                    ผลตรวจแบบฟอร์ม
+                    {DotSome[0]?.form > 0 && <div className="dot-someting"></div>} 
+                </button>
+
+                <button 
+                    className={`menu-button product-check ${DataPage.type === "cp" ? "active" : ""}`} 
+                    onClick={() => ChangeMenu("cp")}
+                >
+                    ผลตรวจผลผลิต
+                    {DotSome[0]?.plant > 0 && <div className="dot-someting"></div>} 
+                </button>
             </div>
+
             <div className="content-success">
                 <div className="list-success">
                     <List liff={liff} setPage={setPage} DetailFetchList={DataPage} OpenPopup={OpenPopup}/>

@@ -17,6 +17,11 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     const [getWait, setWait] = useState(false);
     // const [varieties, setVarieties] = useState([]);
     const [selectedPlantId, setSelectedPlantId] = useState(null); // ประกาศ state อย่างถูกต้อง
+    const [previousInsects, setPreviousInsects] = useState([]); // เก็บข้อมูลโรค/แมลงที่พบ
+    const [selectedInsect, setSelectedInsect] = useState("");
+    const [allInsects, setAllInsects] = useState([]); // เก็บค่าทั้งหมดที่ต้องแสดง
+
+
 
 
     const PopupRef = useRef();
@@ -76,18 +81,37 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
         };
     }, [id_plant]);
 
-    
+ 
+
+    useEffect(() => {
+        if (Data.insect) {
+            setSelectedInsect(Data.insect); // ตั้งค่าเริ่มต้นเป็นค่าที่เคยเลือก
+        }
+
+        // รวมค่าที่มีอยู่ใน previousInsects + ค่าที่เลือกไว้ (ถ้าไม่มีใน previousInsects)
+        if (Data.insect && !previousInsects.includes(Data.insect)) {
+            setAllInsects([Data.insect, ...previousInsects]); // เอาค่าที่เลือกไว้ขึ้นก่อน
+        } else {
+            setAllInsects(previousInsects);
+        }
+    }, [Data.insect, previousInsects]);
+
 
     const FetchData = async () => {
         setLoad(false);
         setData({});
         const result = await clientMo.post("/api/farmer/formplant/select", { id_formplant: id_plant, id_farmhouse: id_house });
-    
+        console.log("API Response:", result);
         if (await CloseAccount(result, setPage)) {
             const DataIn = JSON.parse(result);
             if (DataIn && DataIn[0]) {
                 setData(DataIn[0]);
                 setDateOut(DataIn[0].date_harvest.split(" ")[0]);
+                if (DataIn[0].insect) {
+                    setPreviousInsects(DataIn[0].insect.split(",")); // แยกเป็น Array
+                } else {
+                    setPreviousInsects([]);
+                }
             } else {
                 console.error("DataIn ไม่มีข้อมูลที่ต้องการ");
             }
@@ -696,18 +720,27 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox${Data.subjectResult.insect == 2 ? " not" : ""}`}>
-                                                <span>โรค/แมลงที่พบ</span>
-                                                {StatusEdit ?
-                                                    <select onChange={ChangeEdit} ref={Insect} defaultValue={Data.insect}>
-                                                        <option disabled value="">เลือก</option>
-                                                        <option value={"แมลง"}>แมลง</option>
-                                                        <option value={"ใบจุด"}>ใบจุด</option>
-                                                        <option value={"เพี้ย"}>เพี้ย</option>
-                                                    </select>
-                                                    : <input readOnly defaultValue={Data.insect}></input>
-                                                }
-                                            </label>
+                                        <label className={`frame-textbox${Data.subjectResult.insect == 2 ? " not" : ""}`}>
+                                        <span>โรค/แมลงที่พบ</span>
+                                        {StatusEdit ? (
+                                            <select
+                                                onChange={(e) => {
+                                                    setSelectedInsect(e.target.value); // อัปเดตค่าเมื่อเลือกใหม่
+                                                    ChangeEdit();
+                                                }}
+                                                value={selectedInsect} // กำหนดค่าเริ่มต้นให้เป็นค่าที่เลือกไว้
+                                                ref={Insect}
+                                            >
+                                                <option disabled value="">เลือก</option>
+                                                {previousInsects.map((insect, index) => (
+                                                    <option key={index} value={insect}>{insect}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input readOnly defaultValue={Data.insect}></input>
+                                        )}
+                                    </label>
+
                                         </div>
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.qtyInsect == 2 ? " not" : ""}`}>

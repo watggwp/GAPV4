@@ -870,7 +870,47 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
 
 
 
+app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
+    let con = Database.createConnection(listDB);
 
+    const { id, type } = req.body;
+
+    console.log("Received acknowledge request:", req.body); // ดูข้อมูลที่ได้รับจาก frontend
+
+    if (!id || !type) {
+        console.log("Missing parameters");
+        return res.status(400).json({ success: false, message: "Missing parameters" });
+    }
+
+    let tableName = "";
+    if (type === "cf") {
+        tableName = "check_form_detail";
+    } else if (type === "cp") {
+        tableName = "check_plant_detail";
+    } else {
+        console.log("Invalid type:", type);
+        return res.status(400).json({ success: false, message: "Invalid type" });
+    }
+
+    console.log(`Updating acknowledgment for ${tableName} ID: ${id}`);
+
+    con.query(`UPDATE ${tableName} SET acknowledged = TRUE WHERE id = ?`, [id], (err, result) => {
+        con.end();
+
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ success: false, message: "Database query error", error: err });
+        }
+
+        if (result.affectedRows > 0) {
+            console.log(`Acknowledgment updated for ID ${id}`);
+            return res.json({ success: true, message: "Acknowledged successfully" });
+        } else {
+            console.log(`No record found for ID ${id}`);
+            return res.status(404).json({ success: false, message: "Record not found" });
+        }
+    });
+});
 
 
     app.post('/api/farmer/plant/list' , async (req , res)=>{
@@ -897,55 +937,123 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
         } else res.send("error auth")
     })
 
-    app.post('/api/farmer/formplant/history' , async (req , res)=>{
-        if(req.session.uidFarmer ) {
-            let con = Database.createConnection(listDB)
+    // app.post('/api/farmer/formplant/history' , async (req , res)=>{
+    //     if(req.session.uidFarmer ) {
+    //         let con = Database.createConnection(listDB)
 
+    //         try {
+    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             const QtyDate = await new Promise((resole , reject)=>{
+    //                 con.query(
+    //                     `
+    //                     SELECT qty_harvest
+    //                     FROM plant_list
+    //                     WHERE name = ?
+    //                     ` , [req.body.name_plant_list] , 
+    //                     (err , result)=>{
+    //                         resole(result)
+    //                     }
+    //                 )
+    //             })
+
+    //             con.query(`
+    //                         SELECT formplant.*
+    //                         FROM formplant , 
+    //                             (
+    //                                 SELECT id_farm_house FROM housefarm
+    //                                 WHERE (housefarm.uid_line = ? or housefarm.link_user = ?) and housefarm.id_farm_house = ?
+    //                             ) as houseFarm
+    //                         WHERE formplant.name_plant = ? and houseFarm.id_farm_house = formplant.id_farm_house
+    //                         ORDER BY date_plant DESC
+    //                         LIMIT 1
+    //                     ` , 
+    //                     [
+    //                         auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.name_plant_list
+    //                     ] , 
+    //                     (err , result)=>{
+    //                         con.end()
+    //                         if (!err) {
+    //                             res.send({
+    //                                 FromHistory : result,
+    //                                 qtyDate : QtyDate
+    //                             })
+    //                         } else res.send("error auth")
+    //                     })
+    //         } catch (err) {
+    //             con.end()
+    //             if(err === "no" || err === "no account") res.send("close")
+    //             else res.send("error auth")
+    //         }
+    //     } else res.send("error auth")
+    // })
+
+
+
+    app.post('/api/farmer/formplant/history', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+    
             try {
-                const auth = await authCheck(con , dbpacket , res , req , LINE)
-                const QtyDate = await new Promise((resole , reject)=>{
+                const auth = await authCheck(con, dbpacket, res, req, LINE);
+    
+                // ดึงข้อมูลจำนวนวันที่ใช้เก็บเกี่ยว
+                const QtyDate = await new Promise((resolve) => {
                     con.query(
-                        `
-                        SELECT qty_harvest
-                        FROM plant_list
-                        WHERE name = ?
-                        ` , [req.body.name_plant_list] , 
-                        (err , result)=>{
-                            resole(result)
-                        }
-                    )
-                })
-
-                con.query(`
-                            SELECT formplant.*
-                            FROM formplant , 
-                                (
-                                    SELECT id_farm_house FROM housefarm
-                                    WHERE (housefarm.uid_line = ? or housefarm.link_user = ?) and housefarm.id_farm_house = ?
-                                ) as houseFarm
-                            WHERE formplant.name_plant = ? and houseFarm.id_farm_house = formplant.id_farm_house
-                            ORDER BY date_plant DESC
-                            LIMIT 1
-                        ` , 
-                        [
-                            auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.name_plant_list
-                        ] , 
-                        (err , result)=>{
-                            con.end()
-                            if (!err) {
-                                res.send({
-                                    FromHistory : result,
-                                    qtyDate : QtyDate
-                                })
-                            } else res.send("error auth")
-                        })
+                        `SELECT qty_harvest FROM plant_list WHERE name = ?`,
+                        [req.body.name_plant_list],
+                        (err, result) => resolve(result)
+                    );
+                });
+    
+                // ดึงข้อมูลทุกรุ่นของพืชที่เลือก
+                const sqlQuery = `
+                    SELECT 
+                        formplant.*, 
+                        GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect
+                    FROM formplant
+                    LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
+                    WHERE formplant.name_plant = ? 
+                        AND formplant.id_farm_house = ?
+                    GROUP BY formplant.id, formplant.generation
+                    ORDER BY formplant.generation DESC
+                `;
+    
+                const queryParams = [req.body.name_plant_list, req.body.id_farmhouse];
+    
+                con.query(sqlQuery, queryParams, (err, result) => {
+                    con.end();
+                    if (!err) {
+                        console.log("Debug: API Response =>", {
+                            FromHistory: result.map(f => ({
+                                id: f.id,
+                                generation: f.generation,
+                                name_plant: f.name_plant,
+                                date_plant: f.date_plant,
+                            })),
+                            qtyDate: QtyDate,
+                            insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : []
+                        });
+    
+                        res.send({
+                            FromHistory: result,
+                            qtyDate: QtyDate,
+                            insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : []
+                        });
+                    } else {
+                        res.send("error auth");
+                    }
+                });
             } catch (err) {
-                con.end()
-                if(err === "no" || err === "no account") res.send("close")
-                else res.send("error auth")
+                con.end();
+                if (err === "no" || err === "no account") res.send("close");
+                else res.send("error auth");
             }
-        } else res.send("error auth")
-    })
+        } else res.send("error auth");
+    });
+    
+    
+    
+
 
     app.post('/api/farmer/formplant/insert', async (req, res) => {
         if (req.session.uidFarmer) {

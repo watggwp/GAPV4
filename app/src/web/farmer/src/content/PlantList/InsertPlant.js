@@ -13,6 +13,8 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [selectedPlant, setSelectedPlant] = useState("")
     const [placeholder, setPlaceholder] = useState('')
     const [unit, setUnit] = useState("")
+    const [previousInsects, setPreviousInsects] = useState([]);
+    
 
 
     
@@ -52,6 +54,9 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const BTConfirm = useRef()
 
     const [getWait , setWait] = useState(false)
+
+    const [insectOptions, setInsectOptions] = useState([]);
+    
 
     useEffect(()=>{
         FetchPlant()
@@ -175,14 +180,22 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     }
 
 
+    
+
     const FetchDataForm = async (name_plant_list) => {
         setHistory(true);
         FormContent.current.setAttribute("over", "");
+    
         setTimeOut(setTimeout(async () => {
-            const Data = await clientMo.post("/api/farmer/formplant/history", { id_farmhouse: id_house, name_plant_list: name_plant_list });
+            const Data = await clientMo.post("/api/farmer/formplant/history", {
+                id_farmhouse: id_house,
+                name_plant_list: name_plant_list
+            });
+    
             if (await CloseAccount(Data, setPage)) {
                 try {
                     const Object = JSON.parse(Data);
+    
                     if (Object.qtyDate.length !== 0) {
                         const qtyHarvest = parseInt(Object.qtyDate[0].qty_harvest);
                         MathDateHarvest(DateNowOnForm, qtyHarvest);
@@ -204,10 +217,19 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                         Seft.current.value = Object.FromHistory[0].seft;
                         History.current.value = Object.FromHistory[0].name_plant; // ใช้ค่าจาก FromHistory
                     }
+    
+                   // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
+                   if (Object.insect.length > 0) {
+                    setPreviousInsects(Object.insect);
+                } else {
+                    setPreviousInsects([]); // กรณีไม่มีข้อมูล
+                }
+    
                 } catch (err) {
                     console.error(err);
                 }
             }
+    
             if (name_plant_list !== "") {
                 FormContent.current.removeAttribute("over");
                 setHistory(false);
@@ -216,6 +238,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             ChangeCHK();
         }, 1500));
     };
+    
 
     const Confirm = async () => {
         const type = TypePlantInput.current;
@@ -681,12 +704,13 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                         }
                                         <label className="frame-textbox">
                                             <span>โรค/แมลงที่พบ</span>
-                                            <select onChange={ChangeCHK} ref={Insect} defaultValue={""}>
-                                                <option disabled value="">เลือก</option>
-                                                <option value={"แมลง"}>แมลง</option>
-                                                <option value={"ใบจุด"}>ใบจุด</option>
-                                                <option value={"เพี้ย"}>เพี้ย</option>
-                                            </select>
+                                            <select onChange={ChangeCHK} ref={Insect} defaultValue="">
+                                            <option disabled value="" selected>เลือก</option> {/* แสดงเป็นค่าเริ่มต้น */}
+                                            {previousInsects.map((insect, index) => (
+                                                    <option key={index} value={insect}>{insect}</option>
+                                                ))
+                                            }
+                                        </select>
                                         </label>
                                     </div>
                                     <div className="row">
