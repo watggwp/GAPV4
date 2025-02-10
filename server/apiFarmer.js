@@ -516,7 +516,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                                             ) AS insect
                                         FROM formplant
                                         LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
-                                        WHERE formplant.name_plant = ? AND formplant.id_farm_house = ? AND NOT formchemical.insect = NULL
+                                        WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
                                         GROUP BY formplant.id, formplant.generation
                                         ORDER BY formplant.generation DESC
                                         `, [result[0].name_plant , req.body.id_farmhouse],
