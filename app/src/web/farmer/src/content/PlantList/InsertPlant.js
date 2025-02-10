@@ -219,6 +219,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     }
     
                    // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
+                   console.log(Object.insect)
                    if (Object.insect.length > 0) {
                     setPreviousInsects(Object.insect);
                 } else {

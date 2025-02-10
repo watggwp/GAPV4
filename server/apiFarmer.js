@@ -519,6 +519,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                                         WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
                                         GROUP BY formplant.id, formplant.generation
                                         ORDER BY formplant.generation DESC
+                                        LIMIT 1
                                         `, [result[0].name_plant , req.body.id_farmhouse],
                                         async (err, result_history) => {
                                             resolve(result_history);
