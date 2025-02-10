@@ -289,7 +289,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
         // };
         if (BtConfirm.current.getAttribute("no") == null) {
             const type = TypePlantInput.current;
-            const variety = VarietyInput.current;
+            // const variety = VarietyInput.current;
             const generetion = Generation.current;
             const dateGlow = DateGlow.current;
             const datePlant = DatePlant.current;
@@ -388,13 +388,13 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                 }
             } else {
                 let RefObject = [
-                    type, variety, generetion, dateGlow, datePlant,
+                    type, generetion, dateGlow, datePlant,
                     posiW, posiH, qty, area, unit, dateOut, system,
                     water, waterStep, history, insect, qtyInsect, because
                 ];
                 RefObject.forEach((ele) => {
-                    if (!ele.value && ele) ele.style.border = "2px solid red";
-                    else if (ele.value && ele) ele.style.border = "2px solid transparent";
+                    if (ele && !ele.value) ele.style.border = "2px solid red";
+                    else if (ele && ele.value) ele.style.border = "2px solid transparent";
                 });
             }
         }
