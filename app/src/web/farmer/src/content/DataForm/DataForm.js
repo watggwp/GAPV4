@@ -112,7 +112,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                     DataIn[0].previousData.forEach(({ insect }) => 
                         insects.push(...insect.split(","))
                     )
-                    setPreviousInsects(insects) // แยกเป็น Array
+                    setPreviousInsects([...new Set(insects)]) // แยกเป็น Array
                 } else {
                     setPreviousInsects([]);
                 }
