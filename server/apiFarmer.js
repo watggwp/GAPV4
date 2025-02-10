@@ -511,10 +511,12 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                                     con.query(
                                         `
                                         SELECT
-                                            GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect
+                                            GROUP_CONCAT(
+                                                DISTINCT formchemical.insect ORDER BY formchemical.insect ASC
+                                            ) AS insect
                                         FROM formplant
                                         LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
-                                        WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
+                                        WHERE formplant.name_plant = ? AND formplant.id_farm_house = ? AND NOT formchemical.insect = NULL
                                         GROUP BY formplant.id, formplant.generation
                                         ORDER BY formplant.generation DESC
                                         `, [result[0].name_plant , req.body.id_farmhouse],
