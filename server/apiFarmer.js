@@ -2626,14 +2626,14 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         SELECT EXISTS (
                             SELECT id
                             FROM check_form_detail
-                            WHERE check_form_detail.id_plant = formplant.id AND check_form_detail.acknowledge = 0
+                            WHERE check_form_detail.id_plant = formplant.id AND check_form_detail.acknowledged = 0
                         ) 
                     ) as form , 
                     (
                         SELECT EXISTS (
                             SELECT id
                             FROM check_plant_detail
-                            WHERE check_plant_detail.id_plant = formplant.id AND check_plant_detail.acknowledge = 0
+                            WHERE check_plant_detail.id_plant = formplant.id AND check_plant_detail.acknowledged = 0
                         ) 
                     ) as plant ,
                     (
