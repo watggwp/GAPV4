@@ -2135,7 +2135,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB);
      
         try {
-          const auth = await apifunc.auth(con, username, password, res, "admin");
+          const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
           if (auth['result'] === "pass") {
             con.query(
               `SELECT
@@ -2155,7 +2155,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
                 WHERE af.station = ?
                 GROUP BY fc.insect
-                LIMIT 25;`, [auth['data']['station_admin']] ,
+                LIMIT 25;`, [auth['data']['station_doctor']] ,
               (err, result) => {
                 if (err) {
                   dbpacket.dbErrorReturn(con, err, res);
@@ -2189,7 +2189,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         console.log("Received minCount:", req.body.minCount); // Log ค่า minCount
        
         try {
-            const auth = await apifunc.auth(con, username, password, res, "admin");
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
             if (auth['result'] === "pass") {
                 const { selectedData, minCount } = req.body; // รับค่าจาก request
        
@@ -2222,7 +2222,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                      LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                      LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
                      WHERE af.station = ?
-                     LIMIT 25;`, [auth['data']['station_admin']],
+                     LIMIT 25;`, [auth['data']['station_doctor']],
                     (err, result) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
@@ -2267,7 +2267,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB);
      
         try {
-            const auth = await apifunc.auth(con, username, password, res, "admin");
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
             if (auth['result'] === "pass") {
                 con.query(
                     `
@@ -2336,9 +2336,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB)
        
         try {
-          const auth = await apifunc.auth(con , username , password , res , "admin")
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
           if(auth['result'] === "pass") {
-            const station = auth['data']['station_admin']
+            const station = auth['data']['station_doctor']
             const { search } = req.body
        
             const isNumber = !isNaN(search) && search.trim() !== '';

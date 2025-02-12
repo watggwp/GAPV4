@@ -82,6 +82,19 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                     <div className="value">{data.report_text}</div>
                 </div>
             </div>
+
+            <div className="row">
+                <div className="field column">
+                    <span className="subject">ชื่อเจ้าหน้าที่</span>
+                    <div className="value">{data.name_doctor}</div>
+                </div>
+                <div className="field column">
+                    <span className="subject">รหัสประจำตัว</span>
+                    <div className="value">{data.id_doctor}</div>
+                </div>
+
+            </div>
+
             <div className="row-royal end">
                 { data.image_path ?
                     <div className="field menu-detail" onClick={OpenImg}>
@@ -105,6 +118,9 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                     </div>
                     {/* <button className="edit-report" onClick={()=>PopupEditReport(data , "report")}>แก้ไข</button> */}
                 </div>
+
+
+                
                 { data.report_text ?
                     <div className="field menu-detail" onClick={onOpenPopup}>
                         <svg className="icon-menu" viewBox="0 0 494.936 494.936">
