@@ -1,11 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { AdminContext } from "../../Admin";
-import { PageTemplateContext } from "../PageTemplate";
+import { PageDataContext } from "../data/PageData";
  
 const InsertGraph = () => {
-  const { TabOn } = useContext(AdminContext);
-  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
+  const { textSearch } = useContext(PageDataContext);
   const [plantData, setPlantData] = useState([]);
   const [farmerCount, setFarmerCount] = useState(0);
  
@@ -32,14 +30,13 @@ const InsertGraph = () => {
  
         setPlantData(sortedPlants);
         setFarmerCount(totalFarmers);
-        TabOn.addTimeOut(TabOn.end());
       } else {
         console.error("ไม่มีข้อมูลจาก API");
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
     }
-  }, [TabOn, textSearch]);
+  }, [textSearch]);
  
   useEffect(() => {
     ListGraph();

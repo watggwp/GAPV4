@@ -1,11 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { AdminContext } from "../../Admin";
-import { PageTemplateContext } from "../PageTemplate";
+import { PageDataContext } from "../data/PageData";
  
 const InsertReport = () => {
-  const { TabOn } = useContext(AdminContext);
-  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
+  const { textSearch } = useContext(PageDataContext);
   const [locations, setLocations] = useState([]);
  
   const ListReport = useCallback(async () => {
@@ -47,11 +45,10 @@ const InsertReport = () => {
       });
  
       setLocations(mergedLocations);
-      TabOn.addTimeOut(TabOn.end());
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }, [TabOn, textSearch]);
+  }, [textSearch]);
  
   useEffect(() => {
     ListReport();

@@ -1,12 +1,10 @@
 import { useContext, useState, useEffect, useCallback } from "react";
-import { PageTemplateContext } from "../../PageTemplate";
 import { Modal } from "react-bootstrap";
 import { InsertStatisticsContext } from "./InsertStatistics";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
  
 export default function ButtonChangeStatistics() {
     const { minCount } = useContext(InsertStatisticsContext);
-    const { ChangeStatus } = useContext(PageTemplateContext);
    
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
  
