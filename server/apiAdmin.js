@@ -2015,7 +2015,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
 
           con.query(
               `SELECT 
-                  acc_farmer.uid_line
+                  af.uid_line
                FROM formchemical fc
                LEFT JOIN pests p ON fc.insect = p.pest_name
                LEFT JOIN formplant fp ON fc.id_plant = fp.id
