@@ -2002,10 +2002,12 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
 
           });
           con.query(
-            `INSERT INTO statistic (role, count_day ,id_role) 
-             VALUES (?,?,?) 
-             ON DUPLICATE KEY UPDATE count_day = VALUES(count_day);`,
-            ["admin",minCount,auth,],
+            `
+              INSERT INTO statistic (role, count_day ,id_role) 
+              VALUES (?,?,?) 
+              ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
+            `,
+            ["admin" , minCount , auth['data']['id']],
             (err) => {
                 if (err) {
                     console.error("Database error:", err);
