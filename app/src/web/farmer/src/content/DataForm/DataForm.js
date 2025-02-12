@@ -97,6 +97,15 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     }, [Data.insect, previousInsects]);
 
 
+        useEffect(() => {
+            setPreviousInsects((prev) => {
+                if (!prev.includes("เลือก")) {
+                    return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
+                }
+                return prev;
+            });
+        }, [previousInsects]);
+
     const FetchData = async () => {
         setLoad(false);
         setData({});
@@ -108,13 +117,15 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                 setData(DataIn[0]);
                 setDateOut(DataIn[0].date_harvest.split(" ")[0]);
                 if (DataIn[0].previousData) {
-                    const insects = []
-                    DataIn[0].previousData.forEach(({ insect }) => 
-                        insects.push(...insect.split(","))
-                    )
-                    setPreviousInsects([...new Set(insects)]) // แยกเป็น Array
+                    const insects = [];
+                    DataIn[0].previousData.forEach(({ insect }) => {
+                        if (insect) { // ตรวจสอบว่า insect ไม่ใช่ null หรือ undefined
+                            insects.push(...insect.split(","));
+                        }
+                    });
+                    setPreviousInsects([...new Set(insects)]); // แยกเป็น Array ไม่ซ้ำกัน
                 } else {
-                    setPreviousInsects([]);
+                    setPreviousInsects([]);                
                 }
             } else {
                 console.error("DataIn ไม่มีข้อมูลที่ต้องการ");
@@ -735,7 +746,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                                                 value={selectedInsect} // กำหนดค่าเริ่มต้นให้เป็นค่าที่เลือกไว้
                                                 ref={Insect}
                                             >
-                                                <option disabled value="">เลือก</option>
+                                                {/* <option disabled value="">เลือก</option> */}
                                                 {previousInsects.map((insect, index) => (
                                                     <option key={index} value={insect}>{insect}</option>
                                                 ))}

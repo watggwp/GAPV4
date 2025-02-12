@@ -226,7 +226,7 @@ const House = ({liff , uid}) => {
       
         // หากมีฟิลด์ที่ไม่ครบ ให้แสดง ReportAction แจ้งเตือน
         if (missingFields) {
-          setText(missingFields);
+          setText(missingFields.trim()); // ลบช่องว่างท้ายข้อความ
           setResult(3);
           setOpen(1);
           return;

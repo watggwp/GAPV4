@@ -14,8 +14,19 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [placeholder, setPlaceholder] = useState('')
     const [unit, setUnit] = useState("")
     const [previousInsects, setPreviousInsects] = useState([]);
-    
+   
 
+    
+    
+    useEffect(() => {
+        setPreviousInsects((prev) => {
+            if (!prev.includes("เลือก")) {
+                return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
+            }
+            return prev;
+        });
+    }, [previousInsects]);
+    
 
     
     const FormContent = useRef()
@@ -156,7 +167,12 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         }
     
         setPlaceholder(placeholderText);
-        setUnit(value); 
+        setUnit(value);
+    
+        // ✅ ลบ class 'report-not' ถ้ามีค่า
+        if (event.target.value) {
+            event.target.classList.remove("report-not");
+        }
     };
     
     
@@ -697,7 +713,8 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             <input onInput={ChangeCHK} ref={History} type="" placeholder="กรอก"></input>
                                         </label>
                                     </div>
-                                    <div className="row" style={{ display : previousInsects.length ? "block" : "none" }}>
+                                    {/* <div className="row" style={{ display : previousInsects.length ? "block" : "none" }}> */}
+                                    <div className="row">
                                         { getHistoryPlantLoad ? 
                                             <div className="block-wait"></div>
                                             : <></>
@@ -705,7 +722,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                         <label className="frame-textbox">
                                             <span>โรค/แมลงที่พบ</span>
                                             <select onChange={ChangeCHK} ref={Insect} defaultValue="">
-                                            <option disabled value="" selected>เลือก</option> {/* แสดงเป็นค่าเริ่มต้น */}
+                                            {/* <option disabled value="">เลือก</option> */}
                                                 {
                                                     previousInsects.map((insect, index) => (
                                                             <option key={index} value={insect}>{insect}</option>

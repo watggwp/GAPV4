@@ -12,6 +12,7 @@
             border-radius: 15px;
 
             text-report {
+                white-space: pre-line; /* ทำให้ \n ขึ้นบรรทัดใหม่ */
                 margin-bottom: 10px;
                 font-family: TH-font;
                 font-size: 25px;
@@ -22,6 +23,7 @@
                 padding-top: 6px;
                 border-radius: 20px;
                 box-shadow: 0px 2px 2px gray;
+                line-height: 1.5; /* ปรับระยะห่างบรรทัด */
             }
 
             box-button-report {
