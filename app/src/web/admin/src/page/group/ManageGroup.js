@@ -102,7 +102,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                 Cancel();
                                 break;
                             case 409 :
-                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
+                                alert("ไม่สามารถเพิ่มข้อมูลในระบบได้เนื่องจากมีข้อมูลนี้ในระบบอยู่แล้วหากต้องการแก้ไขวันที่ปลอดภัยให้คลิ้กที่ปุ่มแก้ไข");
                                 fetchGroups()
                                 Cancel();
                                 break;
@@ -130,7 +130,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                 Cancel();
                                 break;
                             case 409 :
-                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
+                                alert("ไม่สามารถเพิ่มข้อมูลในระบบได้เนื่องจากมีข้อมูลนี้ในระบบอยู่แล้ว หากต้องการแก้ไขวันที่ปลอดภัยให้คลิ้กที่ปุ่มแก้ไข");
                                 fetchGroups()
                                 Cancel();
                                 break;
@@ -263,13 +263,17 @@ const ManageGroup = ({ fetchGroups }) => {
                         <div className="modal-body">
                             <div className="table-section">
                                 <span className="table-title">ศัตรูพืช / โรคพืช</span>
-                                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                                    <option value="">กรุณาเลือก</option>
-                                    <option value="โรคพืช">โรคพืช</option>
-                                    <option value="ศัตรูพืช">ศัตรูพืช</option>
-                                </select>
+                                <Autocomplete
+                                    disablePortal
+                                    options={[
+                                        { label: "โรคพืช", value: "โรคพืช" },
+                                        { label: "ศัตรูพืช", value: "ศัตรูพืช" }
+                                    ]}
+                                    value={filterType ? { label: filterType, value: filterType } : null}
+                                    onChange={(e, value) => setFilterType(value?.value || "")}
+                                    renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : { fontFamily: "Sans-font" } } }}/>}
+                                />
                             </div>
-
                             <div className="table-section">
                                 <span className="table-title">ชื่อโรคพืช / ศัตรูพืช</span>
                                 <Autocomplete

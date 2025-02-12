@@ -482,151 +482,153 @@ app.get('/api/admin/profile/get', (req, res) => {
 });
 
 
-  app.post('/api/admin/add' , async (req , res)=>{
-    console.log(req.body)
-    if(req.body['id'] && req.body['passwordAdNew'] && req.body['passwordAd']) {    
-      let username = req.session.user_admin
-      let password = req.body['passwordAd']
+app.post('/api/admin/add', async (req, res) => {
+  console.log(req.body);
   
-      if(username === '') {
-        res.redirect('/api/logout')
-        return 0
+  if (req.body['id'] && req.body['passwordAdNew'] && req.body['passwordAd']) {
+      let username = req.session.user_admin;
+      let password = req.body['passwordAd'];
+
+      if (username === '') {
+          res.redirect('/api/logout');
+          return;
       }
-  
-      let con = Database.createConnection(listDB)
-  
+
+      let con = Database.createConnection(listDB);
+
       try {
-        let auth = await apifunc.auth(con , username , password , res , "admin")
-        if(auth['result'] === "pass") {
-          con.query(`
-                    SELECT id
-                    FROM admin 
-                    WHERE id = ? and status_delete = 0
-                    ` , 
-          [req.body['id']] , 
-          (err , account)=>{
-
-            if(err) {
-              dbpacket.dbErrorReturn(con , err , res)
-              console.log("check admin")
-              return 0
-            }
-
-            if(account[0]) {
-              con.end()
-              res.send("overflow")
-            } else {
-              con.query(`INSERT INTO admin
-                            (
-                              username , 
-                              password , 
-                              img_admin , 
-                              station_admin , 
-                              status_account , 
-                              status_delete ,
-                              time_online
-                            ) 
-                            VALUES (?,SHA2(?,256),'','',1,0,"")` , 
-                [req.body['id'],req.body['passwordAdNew']] , 
-                (err , result)=>{
-                  if(err) {
-                    dbpacket.dbErrorReturn(con , err , res)
-                    console.log("insert admin")
-                    return 0
+          let auth = await apifunc.auth(con, username, password, res, "admin");
+          if (auth['result'] === "pass") {
+              // ตรวจสอบว่า username ซ้ำหรือไม่
+              con.query(`
+                  SELECT COUNT(*) as count
+                  FROM admin 
+                  WHERE username = ? AND status_delete = 0
+              `, [req.body['id']], (err, result) => {
+                  
+                  if (err) {
+                      dbpacket.dbErrorReturn(con, err, res);
+                      console.log("Error checking admin existence");
+                      return;
                   }
-                  con.end()
-                  res.send(result.affectedRows.toString())
-              })
-            }
-          })   
-        }
+
+                  if (result[0].count > 0) {
+                      con.end();
+                      res.status(400).send("Username already exists");
+                      return;
+                  }
+
+                  // ทำการ INSERT ข้อมูล
+                  con.query(`
+                      INSERT INTO admin
+                      (
+                          username, 
+                          password, 
+                          img_admin, 
+                          station_admin, 
+                          status_account, 
+                          status_delete,
+                          time_online
+                      ) 
+                      VALUES (?, SHA2(?,256), '', '', 1, 0, "")
+                  `, [req.body['id'], req.body['passwordAdNew']], (err, result) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("Error inserting admin");
+                          return;
+                      }
+                      con.end();
+                      res.send(result.affectedRows.toString());
+                  });
+              });
+          }
       } catch (err) {
-        if(err == "not pass") {
-          con.end()
-          res.send("incorrect")
-        }
+          if (err == "not pass") {
+              con.end();
+              res.send("incorrect");
+          }
       }
-    }
-    else {
-      res.send('error session')
-    }
-  })
+  } else {
+      res.send('error session');
+  }
+});
+
 
   app.post('/api/admin/add/doctor' , async (req , res)=>{
     if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {
         
-      let username = req.session.user_admin
-      let password = req.body['passwordAd']
-  
-      if(username === '') {
-        res.redirect('/api/logout')
-        return 0
-      }
-  
-      let con = Database.createConnection(listDB)
-  
-      try {
-        let auth = await apifunc.auth(con , username , password , res , "admin")
-        if(auth['result'] === "pass") {
-          con.query(`
-                    SELECT id_table_doctor
+        let username = req.session.user_admin;
+        let password = req.body['passwordAd'];
+    
+        if(username === '') {
+            res.redirect('/api/logout');
+            return;
+        }
+    
+        let con = Database.createConnection(listDB);
+    
+        try {
+            let auth = await apifunc.auth(con , username , password , res , "admin");
+            if(auth['result'] === "pass") {
+                con.query(`
+                    SELECT COUNT(*) as count
                     FROM acc_doctor 
-                    WHERE id_doctor = ? and status_delete = 0
-                    ` , 
-          [req.body['id_doctor']] , 
-          (err , account)=>{
+                    WHERE id_doctor = ? AND status_delete = 0
+                `, [req.body['id_doctor']], (err, result) => {
+                    
+                    if(err) {
+                        dbpacket.dbErrorReturn(con , err , res);
+                        console.log("Error checking doctor existence");
+                        return;
+                    }
 
-            if(err) {
-              dbpacket.dbErrorReturn(con , err , res)
-              console.log("check doctor")
-              return 0
-            }
+                    if(result[0].count > 0) {
+                        con.end();
+                        res.status(400).send("Doctor ID already exists");
+                        return;
+                    } 
 
-            if(account[0]) {
-              con.end()
-              res.send("overflow")
-            } else {
-              const { role2 , role3 ,role4 } = req.body
-              con.query(`INSERT INTO acc_doctor
-                            (
-                              fullname_doctor , 
-                              id_doctor , 
-                              uid_line_doctor , 
-                              password_doctor , 
-                              img_doctor , 
-                              station_doctor , 
-                              status_account , 
-                              status_delete ,
-                              time_online,
-                              doctor_role,
-                              analyst_role,
-                              consultant_role
-                            ) 
-                            VALUES ('',?,'',SHA2(?,256),'','',1,0,"" , ? , ? , ?)` , 
-                [req.body['id_doctor'],req.body['passwordDT'] , role2 , role3 ,role4] , 
-                (err , result)=>{
-                  if(err) {
-                    dbpacket.dbErrorReturn(con , err , res)
-                    console.log("insert doctor")
-                    return 0
-                  }
-                  con.end()
-                  res.send(result.affectedRows.toString())
-              })
+                    const { role2 , role3 , role4 } = req.body;
+                    con.query(`
+                        INSERT INTO acc_doctor
+                        (
+                            fullname_doctor, 
+                            id_doctor, 
+                            uid_line_doctor, 
+                            password_doctor, 
+                            img_doctor, 
+                            station_doctor, 
+                            status_account, 
+                            status_delete,
+                            time_online,
+                            doctor_role,
+                            analyst_role,
+                            consultant_role
+                        ) 
+                        VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?)
+                    `, [req.body['id_doctor'], req.body['passwordDT'], role2, role3, role4], 
+                    (err, result) => {
+                        if(err) {
+                            dbpacket.dbErrorReturn(con , err , res);
+                            console.log("Error inserting doctor");
+                            return;
+                        }
+                        con.end();
+                        res.send(result.affectedRows.toString());
+                    });
+                });
             }
-          })   
+        } catch (err) {
+            if(err == "not pass") {
+                con.end();
+                res.send("incorrect");
+            }
         }
-      } catch (err) {
-        if(err == "not pass") {
-          con.end()
-          res.send("incorrect")
-        }
-      }
+    } else {
+        res.send('error session');
     }
-    else {
-      res.send('error session')
-    }
-  })
+});
+
 
   app.post('/api/admin/manage/doctor' , async (req,res)=>{
     let username = req.session.user_admin
@@ -1208,63 +1210,64 @@ app.get('/api/admin/profile/get', (req, res) => {
 
 
 // data page
-  app.post('/api/admin/data/list' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
-  
-    if(username === '' || password === '') {
-      res.redirect('/api/logout')
-      return 0
-    }
-    let con = Database.createConnection(listDB)
-    try {
-      const auth = await apifunc.auth(con , username , password , res , "admin")
-      if(auth['result'] === "pass") {
-        let data = req.body
+app.post('/api/admin/data/list', async (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
 
-        const type_data = (
-          data.type === "plant" ? "plant_list" : 
-          data.type === "station" ? "station_list" :
-          data.type === "chemical" ? "chemical_list" :
-          data.type === "pest" ? "pests" : 
-          ""
-        );
-        const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
-        const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
-        if(!type_data) {
-          res.send([])
-        }
+  if (username === '' || password === '') {
+      res.redirect('/api/logout');
+      return;
+  }
 
+  let con = Database.createConnection(listDB);
+  try {
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] === "pass") {
+          let data = req.body;
 
+          const type_data = (
+              data.type === "plant" ? "plant_list" :
+              data.type === "station" ? "station_list" :
+              data.type === "chemical" ? "chemical_list" :
+              data.type === "pest" ? "pests" : 
+              ""
+          );
 
-        const columnName = (
-          data.type === "pest" ? "pest_name" : "name"
-        )
-
-        con.query(
-          `
-          SELECT * FROM ${type_data}
-          WHERE INSTR( ${columnName} , ? )
-          ORDER BY is_use DESC , ${columnName} ASC
-          LIMIT ${Limit} OFFSET ${StartRow}
-          ` , [data.textSearch]
-          , (err , result)=>{
-          if(err) {
-            dbpacket.dbErrorReturn(con , err , res)
-            console.log(`select ${type_data} err`)
-            return 0
+          if (!type_data) {
+              res.send([]);
+              return;
           }
-          con.end()
-          res.send(result)
-        })
+
+          const columnName = (data.type === "pest" ? "pest_name" : "name");
+          const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
+          const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
+
+          const query = `
+              SELECT * FROM ${type_data} 
+              WHERE INSTR(${columnName}, ?) 
+              GROUP BY ${columnName} 
+              ORDER BY is_use DESC, ${columnName} ASC 
+              LIMIT ${Limit} OFFSET ${StartRow}
+          `;
+
+          con.query(query, [data.textSearch], (err, result) => {
+              if (err) {
+                  dbpacket.dbErrorReturn(con, err, res);
+                  console.log(`SELECT ${type_data} error:`, err);
+                  return;
+              }
+              con.end();
+              res.send(result);
+          });
       }
-    } catch (err) {
-      con.end()
-      if(err == "not pass") {
-        res.redirect('/api/logout')
+  } catch (err) {
+      con.end();
+      if (err == "not pass") {
+          res.redirect('/api/logout');
       }
-    }
-  })
+  }
+});
+
 
   app.post('/api/admin/data/get' , async (req , res)=>{
     let username = req.session.user_admin
@@ -1926,7 +1929,8 @@ app.post('/api/admin/report/list', async(req, res) => {
                     pc.pest_id AS pest_id,
                     pc.chemical_id AS chemical_id,
                     p.pest_name AS pest_name,
-                    c.name AS chemical_name
+                    c.name AS chemical_name,
+                    c.name_formula AS chemical_formula
                 FROM pest_chemical AS pc
                 LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
                 LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
@@ -1948,8 +1952,16 @@ app.post('/api/admin/report/list', async(req, res) => {
                         return;
                     }
 
-                    // ส่งเฉพาะชื่อสารเคมีที่ใช้
-                    const chemicalNames = results.map(item => item.chemical_name).join(", ");
+                    // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+                    const uniqueChemicalNames = new Set();
+                    results.forEach(item => {
+                        if (!uniqueChemicalNames.has(item.chemical_name)) {
+                            uniqueChemicalNames.add(item.chemical_name);
+                        }
+                    });
+
+                    // แปลงเป็น string พร้อมส่งไปยัง frontend
+                    const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
 
                     console.log("Data retrieved successfully:", chemicalNames);
                     con.end();
@@ -1970,49 +1982,79 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
   let username = req.session.user_admin;
   let password = req.session.pass_admin;
 
-  if (username === '' || password === '') {
-    res.redirect('/api/logout');
-    return;
+  if (!username || !password) {
+      res.redirect('/api/logout');
+      return;
   }
 
   let con = Database.createConnection(listDB);
-
-  req.body.selectedData
+  console.log("Received selectedData:", req.body.selectedData);
+  console.log("Received minCount:", req.body.minCount); // Log ค่า minCount
 
   try {
-    const auth = await apifunc.auth(con, username, password, res, "admin");
-    if (auth['result'] === "pass") {
-      con.query(
-        `SELECT 
-           acc_farmer.uid_line
-          FROM formchemical fc
-          LEFT JOIN pests p ON fc.insect = p.pest_name
-          LEFT JOIN formplant fp ON fc.id_plant = fp.id
-          LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
-          LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-          WHERE af.station = ?
-          LIMIT 25;`, [auth['data']['station_admin']] ,
-        (err, result) => {
-          if (err) {
-            dbpacket.dbErrorReturn(con, err, res);
-            return;
-          }
-          try {
-            Line.multicast([...(new Set(uid))] , {type : "text" , text : `${textSend}`})
-        } catch(e) {}
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] === "pass") {
+          const { selectedData, minCount } = req.body; // รับค่าจาก request
 
-          con.end();
-          res.send(result); 
-        }
-      );
-    }
+          // บันทึกค่า minCount ลงในตาราง statistic
+          selectedData.forEach((item) => {
+              con.query(
+                  `INSERT INTO statistic (id, count_day) 
+                   VALUES (?, ?) 
+                   ON DUPLICATE KEY UPDATE count_day = VALUES(count_day);`,
+                  [item.id, minCount],
+                  (err) => {
+                      if (err) {
+                          console.error("Database error:", err);
+                          dbpacket.dbErrorReturn(con, err, res);
+                          return;
+                      }
+                  }
+              );
+          });
+
+          con.query(
+              `SELECT 
+                  acc_farmer.uid_line
+               FROM formchemical fc
+               LEFT JOIN pests p ON fc.insect = p.pest_name
+               LEFT JOIN formplant fp ON fc.id_plant = fp.id
+               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+               LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+               WHERE af.station = ? 
+               LIMIT 25;`, [auth['data']['station_admin']],
+              (err, result) => {
+                  if (err) {
+                      dbpacket.dbErrorReturn(con, err, res);
+                      return;
+                  }
+
+                  try {
+                      console.log("Query Result:", result);
+                      let uid = result.map(row => row.uid_line);
+                      let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
+
+                      console.log("UIDs to send:", uid);
+                      console.log("Text to send:", textSend);
+
+                      Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                  } catch (e) {
+                      console.error("Error sending Line message:", e);
+                  }
+
+                  con.end();
+                  res.send(result);
+              }
+          );
+      }
   } catch (err) {
-    con.end();
-    if (err == "not pass") {
-      res.redirect('/api/logout');
-    }
+      con.end();
+      if (err == "not pass") {
+          res.redirect('/api/logout');
+      }
   }
 });
+
 
 
 
@@ -2061,7 +2103,6 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
         }
     })
   }
-
 }
 
   // app.post('/api/admin/chkOver' , (req , res)=>{

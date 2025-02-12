@@ -82,10 +82,18 @@ function NotifyStatistics({
         handleCloseModal();
     };
 
-    const ClickAdd = () => { clientMo.post("/api/admin/sendNotifyreport/get", { selectedData })
-        console.log("เพิ่มข้อมูลเรียบร้อยแล้ว!");
-        handleCloseModal(); 
+    const ClickAdd = () => { 
+        clientMo.post("/api/admin/sendNotifyreport/get", { 
+            selectedData, 
+            minCount 
+        }).then(() => {
+            console.log("ส่งข้อมูลเรียบร้อยแล้ว!");
+            handleCloseModal();
+        }).catch(error => {
+            console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
+        });
     };
+    
 
     useEffect(() => {
         if(minCount >= 1) {
@@ -166,8 +174,7 @@ function NotifyStatistic({
             </td>
             <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.name_plants}</td>
             <td style={{ padding: "10px", border: "1px solid #ddd" }}>{item.count}</td>
-            <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                {chemical || "-"}
+            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{chemical || "-"}
             </td>
         </tr>
     )
