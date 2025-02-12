@@ -2124,6 +2124,341 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     })
 
+    app.post('/api/doctor/statistic/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+       if (username === '' || password === '') {
+          res.redirect('/api/logout');
+          return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+          const auth = await apifunc.auth(con, username, password, res, "admin");
+          if (auth['result'] === "pass") {
+            con.query(
+              `SELECT
+                  p.pest_id,
+                  p.pest_name,
+                  p.type_pest,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year,
+                  GROUP_CONCAT(DISTINCT fp.name_plant SEPARATOR ', ') AS name_plants
+                FROM formchemical fc
+                LEFT JOIN pests p ON fc.insect = p.pest_name
+                LEFT JOIN formplant fp ON fc.id_plant = fp.id
+                LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+                WHERE af.station = ?
+                GROUP BY fc.insect
+                LIMIT 25;`, [auth['data']['station_admin']] ,
+              (err, result) => {
+                if (err) {
+                  dbpacket.dbErrorReturn(con, err, res);
+                  return;
+                }
+     
+                con.end();
+                res.send(result);
+              }
+            );
+          }
+        } catch (err) {
+          con.end();
+          if (err == "not pass") {
+            res.redirect('/api/logout');
+          }
+        }
+      });
+
+    app.post('/api/doctor/sendNotifyreport/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+       
+        if (!username || !password) {
+            res.redirect('/api/logout');
+            return;
+        }
+       
+        let con = Database.createConnection(listDB);
+        console.log("Received selectedData:", req.body.selectedData);
+        console.log("Received minCount:", req.body.minCount); // Log ค่า minCount
+       
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "admin");
+            if (auth['result'] === "pass") {
+                const { selectedData, minCount } = req.body; // รับค่าจาก request
+       
+                // บันทึกค่า minCount ลงในตาราง statistic
+                selectedData.forEach((item) => {
+       
+                });
+                con.query(
+                  `
+                    INSERT INTO statistic (role, count_day ,id_role)
+                    VALUES (?,?,?)
+                    ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
+                  `,
+                  ["doctor" , minCount , auth['data']['id']],
+                  (err) => {
+                      if (err) {
+                          console.error("Database error:", err);
+                          dbpacket.dbErrorReturn(con, err, res);
+                          return;
+                      }
+                  }
+              );
+       
+                con.query(
+                    `SELECT
+                        af.uid_line
+                     FROM formchemical fc
+                     LEFT JOIN pests p ON fc.insect = p.pest_name
+                     LEFT JOIN formplant fp ON fc.id_plant = fp.id
+                     LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                     LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+                     WHERE af.station = ?
+                     LIMIT 25;`, [auth['data']['station_admin']],
+                    (err, result) => {
+                        if (err) {
+                            dbpacket.dbErrorReturn(con, err, res);
+                            return;
+                        }
+       
+                        try {
+                            console.log("Query Result:", result);
+                            let uid = result.map(row => row.uid_line);
+                            let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
+       
+                            console.log("UIDs to send:", uid);
+                            console.log("Text to send:", textSend);
+       
+                            Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                        } catch (e) {
+                            console.error("Error sending Line message:", e);
+                        }
+       
+                        con.end();
+                        res.send(result);
+                    }
+                );
+            }
+        } catch (err) {
+            con.end();
+            if (err == "not pass") {
+                res.redirect('/api/logout');
+            }
+        }
+      });
+
+    app.post('/api/doctor/chemical_pest/get', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor;
+     
+        if (!username || !password) {
+            res.redirect('/api/logout');
+            return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "admin");
+            if (auth['result'] === "pass") {
+                con.query(
+                    `
+                    SELECT
+                        pc.pest_id AS pest_id,
+                        pc.chemical_id AS chemical_id,
+                        p.pest_name AS pest_name,
+                        c.name AS chemical_name,
+                        c.name_formula AS chemical_formula
+                    FROM pest_chemical AS pc
+                    LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+                    LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+                    WHERE pc.pest_id = ? AND pc.status = 1
+                    `,
+                    [req.body.pest_id],
+                    (err, results) => {
+                        if (err) {
+                            console.error("Database query error:", err);
+                            con.end();
+                            res.status(500).json({ error: "Database query failed" });
+                            return;
+                        }
+     
+                        if (results.length === 0) {
+                            console.log("No data found");
+                            con.end();
+                            res.status(404).json({ message: "No data found" });
+                            return;
+                        }
+     
+                        // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+                        const uniqueChemicalNames = new Set();
+                        results.forEach(item => {
+                            if (!uniqueChemicalNames.has(item.chemical_name)) {
+                                uniqueChemicalNames.add(item.chemical_name);
+                            }
+                        });
+     
+                        // แปลงเป็น string พร้อมส่งไปยัง frontend
+                        const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
+     
+                        console.log("Data retrieved successfully:", chemicalNames);
+                        con.end();
+                        res.status(200).send({ chemical_used: chemicalNames });
+                    }
+                );
+            } else {
+                res.status(401).json({ error: "Unauthorized access" });
+            }
+        } catch (err) {
+            console.error("Unexpected error:", err);
+            con.end();
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+    app.post('/api/doctor/report/list', async(req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+       
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+       
+        let con = Database.createConnection(listDB)
+       
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "admin")
+          if(auth['result'] === "pass") {
+            const station = auth['data']['station_admin']
+            const { search } = req.body
+       
+            const isNumber = !isNaN(search) && search.trim() !== '';
+       
+          // ดึงข้อมูลเกษตรกรและพืชใน station
+          const farmerQuery = `
+                          SELECT
+                              acc_farmer.station,
+                              COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                              COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                              GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                              CONCAT(
+                                  '[',
+                                  GROUP_CONCAT(
+                                      DISTINCT CONCAT(
+                                          '{"plantName":"', subquery.name_plant, '",' ,
+                                          '"id":"', subquery.id, '",' ,
+                                          '"farmersCount":', subquery.total_qty, '}'
+                                      )
+                                  ),
+                                  ']'
+                              ) AS plantDetails
+                          FROM acc_farmer
+                          LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                          LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                          LEFT JOIN (
+                              SELECT
+                                  formplant.id,
+                                  formplant.name_plant,
+                                  COUNT(formplant.name_plant) AS total_qty,
+                                  id_farm_house
+                              FROM formplant
+                              WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
+                              GROUP BY id_farm_house , formplant.name_plant
+                          ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+                          WHERE acc_farmer.station = ?
+                          AND (formplant.name_plant LIKE ?)
+                          GROUP BY acc_farmer.station;
+                      `;
+       
+                      con.query(farmerQuery, [station, `%${search}%`], (err, farmerStatistics) => {
+                            if (err) {
+                                console.error('Error fetching farmer statistics:', err);
+                                res.status(500).json({ status: "error", message: "Database query error" });
+                                return;
+                            }
+       
+                            console.log('Farmer Statistics:', farmerStatistics);
+       
+                            // ดึงรายชื่อหมอพืช (เฉพาะที่ doctor_role = 1)
+                            const doctorQuery = `
+                            SELECT id_doctor, fullname_doctor, station_doctor, 'หมอพืช' AS role
+                            FROM acc_doctor
+                            WHERE station_doctor = ?
+                            AND doctor_role = 1
+                            AND (fullname_doctor LIKE ? OR 'หมอพืช' LIKE ?);
+                        `;
+       
+                          con.query(doctorQuery, [station, `%${search}%`, `%${search}%`], (err, doctors) => {
+                              if (err) {
+                                  console.error('Error fetching doctor data:', err);
+                                  res.status(500).json({ status: "error", message: "Database query error" });
+                                  return;
+                              }
+       
+                              console.log('Doctors:', doctors);
+       
+                              // ดึงรายชื่อที่ปรึกษาเกษตรกร (เฉพาะที่ consultant_role = 1)
+                              const consultantQuery = `
+                                  SELECT id_doctor, fullname_doctor, station_doctor, 'ที่ปรึกษาเกษตรกร' AS role
+                                  FROM acc_doctor
+                                  WHERE station_doctor = ?
+                                  AND consultant_role = 1
+                                  AND (fullname_doctor LIKE ? OR 'ที่ปรึกษาเกษตรกร' LIKE ?);
+                              `;
+       
+                              con.query(consultantQuery, [station, `%${search}%`, `%${search}%`], (err, consultants) => {
+                                  if (err) {
+                                      console.error('Error fetching consultant data:', err);
+                                      res.status(500).json({ status: "error", message: "Database query error" });
+                                      return;
+                                  }
+       
+                                    console.log('Consultants:', consultants);
+       
+                                    // ส่งผลลัพธ์กลับไป
+                                    res.status(200).json({
+                                        status: "success",
+                                        data: {
+                                            farmerStatistics: farmerStatistics.map((stat) => ({
+                                                station: stat.station,
+                                                totalFarmers: stat.total_farmers,
+                                                totalPlants: stat.total_plants,
+                                                plants: stat.plants,
+                                                plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev, curr) => {
+                                                    const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"]);
+                                                    if (indexFind >= 0) {
+                                                        prev[indexFind]["farmersCount"] += curr["farmersCount"];
+                                                    } else {
+                                                        prev.push({
+                                                            plantName: curr["plantName"],
+                                                            farmersCount: curr["farmersCount"]
+                                                        });
+                                                    }
+                                                    return prev;
+                                                }, []),
+                                            })),
+                                            doctors,
+                                            consultants,
+                                        },
+                                    });
+                                });
+                            });
+                        });
+                    }
+            } catch (error) {
+                console.error("Unexpected error:", error);
+                res.status(500).json({ status: "error", message: "Internal Server Error" });
+            }
+        });
 
     app.get('/api/doctor/form/report/edit/gets' , async (req , res)=>{
         let username = req.session.user_doctor
