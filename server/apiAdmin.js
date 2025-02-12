@@ -92,7 +92,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             (
               SELECT name FROM station_list WHERE admin.station_admin=station_list.id
             ) as station
-            , id , username, img_admin ${select}
+            , id , username, fullname_admin ,img_admin ${select}
             FROM admin
             WHERE status_delete = ? AND ( INSTR( id , ? ) OR INSTR( username , ? ) )
             ORDER BY status_account DESC , id DESC

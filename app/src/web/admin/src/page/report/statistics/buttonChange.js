@@ -35,12 +35,7 @@ export default function ButtonChangeStatistics() {
                 แจ้งเตือน
             </button>
 
-            <button 
-                className="bt-listlocation" 
-                onClick={() => ChangeStatus("listlocation")}
-            >
-                แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร
-            </button>
+
 
             <Modal
                 show={popupDataManage.open}

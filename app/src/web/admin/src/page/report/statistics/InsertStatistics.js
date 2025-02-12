@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
+import ButtonChangeStatistics from "./buttonChange";
 
 export const InsertStatisticsContext = createContext({
   minCount: 0, 
@@ -149,6 +150,7 @@ const InsertStatistics = () => {
   return (
     <div style={{ padding: "10px" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+      <ButtonChangeStatistics/> 
         <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
           ระยะเวลา:
           <select

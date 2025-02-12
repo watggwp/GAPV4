@@ -131,7 +131,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                             <button className="bt-delete" onClick={()=>ChangeStatus("delete")}>แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</button> : 
                         StateOnPage.status === "delete" ? 
                             <button className="bt-admin" onClick={()=>ChangeStatus("admin")}>แสดงบัญชีผู้ดูแลระบบที่ยังไม่ถูกลบ</button> :
-                            StateOnPage.status === "admin" ? 
+                        StateOnPage.status === "admin" ? 
                             <button className="bt-deleteAdmin" onClick={()=>ChangeStatus("deleteAdmin")}>แสดงบัญชีผู้ดูแลระบบที่ถูกลบ</button> :
                         StateOnPage.status === "deleteAdmin" ? 
                             <button className="bt-default" onClick={()=>ChangeStatus("default")}>แสดงบัญชีผู้ส่งเสริมที่ยังไม่ถูกลบ</button> :
@@ -153,7 +153,12 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         StateOnPage.status === "graph" ? 
                             <button className="bt-statistics" onClick={() => ChangeStatus("statistics")}>แสดงสถิติโรคพืช / ศัตรูพืช</button> :
                         StateOnPage.status === "statistics" ? 
-                                <ButtonChangeStatistics/> :
+                        <button 
+                        className="bt-listlocation" 
+                        onClick={() => ChangeStatus("listlocation")}
+                    >
+                        แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร
+                    </button> :
                         <></>
                         }
                         
