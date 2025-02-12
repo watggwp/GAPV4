@@ -96,15 +96,8 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
             </div>
 
             <div className="row-royal end">
-                { data.image_path ?
-                    <div className="field menu-detail" onClick={OpenImg}>
-                        <svg className="icon-menu" viewBox="0 0 16 16" >
-                            <path id="rect4082" d="M1 1v14h14V1zm1 1h12v12H2z"/>
-                            <path id="path847" d="M5 3a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2zm0 1a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1z" /><path id="path869" d="m3 12 1 1 3-3 1 1 2-2 2 2 1-1-3-3-2 2-1-1z" />
-                        </svg>
-                    </div> : <></>
-                }
-                <div className="field menu-detail">
+                
+                {/* <div className="field menu-detail">
                     <svg ref={SvgMenu} onClick={onOpenMenu} className="icon-menu" viewBox="0 0 1024 1024">
                         <path ref={PathMenu} d="M160 448a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H608zM160 896a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H608z"/>
                     </svg>
@@ -116,11 +109,29 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                             : <></>
                         }
                     </div>
-                    {/* <button className="edit-report" onClick={()=>PopupEditReport(data , "report")}>แก้ไข</button> */}
-                </div>
+                    {/* <button className="edit-report" onClick={()=>PopupEditReport(data , "report")}>แก้ไข</button> 
+                </div> 
+                */}
 
+                <div className="field menu-detail">
+                        {
+                            data.check_doctor ?
+                            <span ref={ListMenuEditRef} onClick={()=>EditReport(data , "report")}>
+                                <svg ref={SvgMenu} onClick={onOpenMenu} className="icon-menu" viewBox="0 0 1024 1024"><path ref={PathMenu} d="M160 448a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H608zM160 896a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H608z"/></svg>
+                            </span> 
+                            : <></>
+                        }
+                </div> 
 
-                
+                { data.image_path ?
+                                    <div className="field menu-detail" onClick={OpenImg}>
+                                        <svg className="icon-menu" viewBox="0 0 16 16" >
+                                            <path id="rect4082" d="M1 1v14h14V1zm1 1h12v12H2z"/>
+                                            <path id="path847" d="M5 3a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2zm0 1a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1z" /><path id="path869" d="m3 12 1 1 3-3 1 1 2-2 2 2 1-1-3-3-2 2-1-1z" />
+                                        </svg>
+                                    </div> : <></>
+                }
+
                 { data.report_text ?
                     <div className="field menu-detail" onClick={onOpenPopup}>
                         <svg className="icon-menu" viewBox="0 0 494.936 494.936">

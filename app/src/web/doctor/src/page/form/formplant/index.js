@@ -29,7 +29,8 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืช</span>
-                            <span className="data-show">{data.type_main}</span>
+                            {/* <span className="data-show">{data.type_main}</span> */}
+                            <input className="data-show" value={data.type_main} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชื่อพืช</span>
@@ -60,17 +61,19 @@ export default function FormPlant({
                     </div>
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+                            {/* มีตรงนี้ไม่รู้ต้องเขียนยังไงครับพี่ */}
                             <span className="head-data">พื้นที่</span>
                             <span className="data-show">
                                 {data.area}
                                 <div className="unit">
-                                    ตารางเมตร
+                                    {data.unit}
                                 </div>
                             </span>
                         </div>
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">จำนวนต้น</span>
-                            <span className="data-show">{data.qty}</span>
+                            {/* <span className="data-show">{data.qty}</span> */}
+                            <input className="data-show" value={data.qty} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                     <div className="row">
@@ -78,18 +81,21 @@ export default function FormPlant({
                         <div className="text-body">
                             <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
                                 <span className="head-data">ระหว่างต้น</span>
-                                <span className="data-show">{data.posi_w}</span>
+                                {/* <span className="data-show">{data.posi_w}</span> */}
+                                <input className="data-show" value={data.posi_w} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                             </div>
                             <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
                                 <span className="head-data">ระหว่างแถว</span>
-                                <span className="data-show">{data.posi_h}</span>
+                                {/* <span className="data-show">{data.posi_h}</span> */}
+                                <input className="data-show" value={data.posi_h} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                             </div>
                         </div>
                     </div>
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">รุ่นที่ปลูก</span>
-                            <span className="data-show">{data.generation}</span>
+                            {/* <span className="data-show">{data.generation}</span> */}
+                            <input className="data-show" value={data.generation} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                 </div>
@@ -100,7 +106,8 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main in-1 column ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>รูปแบบการปลูก</span>
-                            <span className="data-show">{data.system_glow}</span>
+                            {/* <span className="data-show">{data.system_glow}</span> */}
+                            <input className="data-show" value={data.system_glow} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                 </div>
@@ -111,7 +118,8 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>แหล่งน้ำ</span>
-                            <span className="data-show">{data.water}</span>
+                            {/* <span className="data-show">{data.water}</span> */}
+                            <input className="data-show" value={data.water} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                 </div>
@@ -122,7 +130,8 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>วิธีการให้น้ำ</span>
-                            <span className="data-show">{data.water_flow}</span>
+                            {/* <span className="data-show">{data.water_flow}</span> */}
+                            <input className="data-show" value={data.water_flow} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                 </div>
@@ -138,21 +147,25 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืชก่อนหน้า</span>
-                            <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span>
+                            {/* <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span> */}
+                            <input className="data-show" value={data.history ? data.history : "ไม่ระบุ"} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">โรค/แมลงที่พบ</span>
-                            <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span>
+                            {/* <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span> */}
+                            <input className="data-show" value={data.insect ? data.insect : "ไม่ระบุ"} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ปริมาณการเกิด</span>
-                            <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span>
+                            {/* <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span> */}
+                            <input className="data-show" value={data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">การป้องกันกำจัด</span>
-                            <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span>
+                            {/* <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span> */}
+                            <input className="data-show" value={data.seft ? data.seft : "ไม่ระบุ"} readOnly={mode==="view"} onChange={(event) => onEdit("name_plant" , event.target.value)} />
                         </div>
                     </div>
                 </div>
