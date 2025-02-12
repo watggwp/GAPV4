@@ -1999,20 +1999,21 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
 
           // บันทึกค่า minCount ลงในตาราง statistic
           selectedData.forEach((item) => {
-              con.query(
-                  `INSERT INTO statistic (id, count_day) 
-                   VALUES (?, ?) 
-                   ON DUPLICATE KEY UPDATE count_day = VALUES(count_day);`,
-                  [item.id, minCount],
-                  (err) => {
-                      if (err) {
-                          console.error("Database error:", err);
-                          dbpacket.dbErrorReturn(con, err, res);
-                          return;
-                      }
-                  }
-              );
+
           });
+          con.query(
+            `INSERT INTO statistic (role, count_day ,id_role) 
+             VALUES (?,?,?) 
+             ON DUPLICATE KEY UPDATE count_day = VALUES(count_day);`,
+            ["admin",minCount,auth,],
+            (err) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    dbpacket.dbErrorReturn(con, err, res);
+                    return;
+                }
+            }
+        );
 
           con.query(
               `SELECT 
