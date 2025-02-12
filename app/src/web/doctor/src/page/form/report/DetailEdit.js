@@ -100,8 +100,9 @@ const DetailEdit = ({Ref , setRef , id_report}) => {
                                             <div class="section old-advice">
                                                 <div>คำแนะนำ</div>
                                                 <div>{reportHistory.report_text}</div>
-                                                <div class="image-box">รูปภาพ</div>
-                                                <img src={`/doctor/report/${reportHistory.image_path}`} width={"200px"} style={{ aspectRatio : "1/1" }} />
+                                                <div class="image-box">
+                                                    <img src={`/doctor/report/${reportHistory.image_path}`} width={"200px"} style={{ aspectRatio : "1/1" }} />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

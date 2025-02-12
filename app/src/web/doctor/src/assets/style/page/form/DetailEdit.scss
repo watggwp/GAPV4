@@ -221,7 +221,7 @@
 
                     .body {
                         overflow-y: scroll;
-                        max-height: 110.8px;
+                        max-height: 210.8px;
                         .list-detail {
                             display: flex;
                             flex-direction: column;
@@ -403,7 +403,7 @@ body {
     background: #65d7b8;
 }
 .image-box {
-    height: 150px;
+    // height: 150px;
     background: rgba(255, 255, 255, 0.5);
     border-radius: 5px;
     margin-top: 5px;
