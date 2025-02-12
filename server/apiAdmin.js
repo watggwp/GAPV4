@@ -1,9 +1,10 @@
 const { request } = require('axios');
+const LINE = require('./configLine');
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
-module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB , socket , line) {
+module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB , socket , Line = LINE) {
   
   app.post('/api/admin/check' , (req , res)=>{
     res.redirect('/api/admin/auth');
