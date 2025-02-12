@@ -6,6 +6,7 @@ import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
 import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "./ListManageDoctor"
 import { DoctorContext } from "../../Doctor"
+import FormPlant from "./formplant"
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
 
@@ -25,6 +26,9 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
     
     const [StateMenuShow , setStateMenuShow] = useState(false)
     const [getResize , setResize] = useState(window.innerWidth)
+
+    const [ mode , setMode ] = useState("view")
+    const [ editValue , setEditValue ] = useState({})
 
     useEffect(()=>{
         RefPop.current.style.opacity = "1"
@@ -58,157 +62,14 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                             // setID_farmer(data.id_farmer)
                             setCountEdit(data.countStatus)
                             return (
-                                <section key={key} className="detail-main-form">
-                                    <div className="content-data">
-                                        <div className="number">1.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชนิดพืช</span>
-                                                    <span className="data-show">{data.type_main}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชื่อพืช</span>
-                                                    <span className="data-show">{data.name_plant}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่เพาะกล้า</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_glow}/>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่ปลูก</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_plant}/>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่คาดว่าจะเก็บเกี่ยว</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_harvest}/>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่เก็บเกี่ยว</span>
-                                                    { data.date_success ? 
-                                                        <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_success}/> 
-                                                        : <span className="data-show">ยังไม่เก็บเกี่ยว</span>}
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">พื้นที่</span>
-                                                    <span className="data-show">
-                                                        {data.area}
-                                                        <div className="unit">
-                                                            ตารางเมตร
-                                                        </div>
-                                                    </span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">จำนวนต้น</span>
-                                                    <span className="data-show">{data.qty}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <span className="head-text">ระยะการปลูก</span>
-                                                <div className="text-body">
-                                                    <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
-                                                        <span className="head-data">ระหว่างต้น</span>
-                                                        <span className="data-show">{data.posi_w}</span>
-                                                    </div>
-                                                    <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
-                                                        <span className="head-data">ระหว่างแถว</span>
-                                                        <span className="data-show">{data.posi_h}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">รุ่นที่ปลูก</span>
-                                                    <span className="data-show">{data.generation}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">2.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 column ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>รูปแบบการปลูก</span>
-                                                    <span className="data-show">{data.system_glow}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">3.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>แหล่งน้ำ</span>
-                                                    <span className="data-show">{data.water}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">4.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>วิธีการให้น้ำ</span>
-                                                    <span className="data-show">{data.water_flow}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">5.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span style={{width : "100%"}} className="head-data">ประวัติการใช้พื้นที่และการเกิดโรค</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชนิดพืชก่อนหน้า</span>
-                                                    <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">โรค/แมลงที่พบ</span>
-                                                    <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ปริมาณการเกิด</span>
-                                                    <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">การป้องกันกำจัด</span>
-                                                    <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    { 
-                                        data.location_house ?
-                                            data.location_house.x && data.location_house.x ?
-                                            <div className="content-data">
-                                                <div className="data-row">
-                                                    <div className="row">
-                                                        <div className="data-main in-1 column">
-                                                            <span className="head-data">ตำแหน่งที่ทำการเกษตรกร</span>
-                                                            <MapsJSX lat={data.location_house.x} lng={data.location_house.y}/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> : <></> 
-                                        : <></>
-                                    }
-                                </section>
+                                <FormPlant
+                                    key={key}
+                                    data={data}
+                                    mode={mode}
+                                    setMode={setMode}
+                                    setEditValue={setEditValue}
+                                    getResize={getResize}
+                                />
                             )
                         } else if(type_form === 1) {
                             return (
