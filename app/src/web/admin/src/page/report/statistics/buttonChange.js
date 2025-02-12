@@ -23,19 +23,12 @@ export default function ButtonChangeStatistics() {
     return (
         <div style={{ display: "flex" }}>
             <button 
-                style={{ 
-                    marginRight: "10px", 
-                    backgroundColor: minCount >= 1 ? "red" : "gray", 
-                    color: "white", 
-                    cursor: minCount >= 1 ? "pointer" : "not-allowed"
-                }} 
+                className={`report-button ${minCount >= 1 ? "active" : "disabled"}`}
                 onClick={handleOpenModal}
-                disabled={minCount < 1} 
+                disabled={minCount < 1}
             >
                 แจ้งเตือน
             </button>
-
-
 
             <Modal
                 show={popupDataManage.open}

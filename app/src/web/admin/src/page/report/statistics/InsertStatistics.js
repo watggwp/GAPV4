@@ -149,31 +149,31 @@ const InsertStatistics = () => {
 
   return (
     <div style={{ padding: "10px" }}>
-      <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-      <ButtonChangeStatistics/> 
-        <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
-          ระยะเวลา:
-          <select
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            style={{
-              marginLeft: "10px",
-              padding: "8px",
-              fontFamily: "Sans-font",
-              fontWeight: "900",
-              borderRadius: "8px", 
-              border: "2px solid #22C7A9", 
-              backgroundColor: "white", 
-              outline: "none", 
-            }}
-          >
-            <option value="1_week">1 สัปดาห์</option>
-            <option value="1_month">1 เดือน</option>
-            <option value="3_months">3 เดือน</option>
-            <option value="6_months">6 เดือน</option>
-            <option value="1_year">1 ปี</option>
-          </select>
-        </label>
+  <div style={{ marginBottom: "1rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+    <ButtonChangeStatistics />
+    <label style={{ fontFamily: "Sans-font", fontWeight: "900", display: "flex", alignItems: "center" }}>
+      ระยะเวลา:
+      <select
+        value={duration}
+        onChange={(e) => setDuration(e.target.value)}
+        style={{
+          marginLeft: "10px",
+          padding: "8px",
+          fontFamily: "Sans-font",
+          fontWeight: "900",
+          borderRadius: "8px",
+          border: "2px solid #22C7A9",
+          backgroundColor: "white",
+          outline: "none",
+        }}
+      >
+        <option value="1_week">1 สัปดาห์</option>
+        <option value="1_month">1 เดือน</option>
+        <option value="3_months">3 เดือน</option>
+        <option value="6_months">6 เดือน</option>
+        <option value="1_year">1 ปี</option>
+      </select>
+    </label>
 
         {/* กล่องแสดงช่วงวันที่ */}
         <div

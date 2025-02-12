@@ -812,6 +812,14 @@ const ManageList = ({
             )}
           </div>
 
+          <div className= "station" w={status.status === "station" ? "name" : ""}>
+            {status.status === "station" && (
+              <>
+                <div className="text-data">{data.name}</div>
+              </>
+            )}
+          </div>
+
           <div className= "chemical" w={status.status === "chemical" ? "name_formula" : ""}>
             {status.status === "chemical" && (
               <>

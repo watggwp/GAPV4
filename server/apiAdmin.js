@@ -1354,73 +1354,83 @@ app.post('/api/admin/data/list', async (req, res) => {
                     data.type === "pest" ? "pest_name" : "name"
                 );
 
-                con.query(
-                    `
-                    SELECT * FROM ${From} WHERE ${columnName} = ? 
-                    ${data.type === "plant" ? "AND variety_name = ?" : ""} 
-                    AND is_use = 1;
+                let checkQuery = `SELECT * FROM ${From} WHERE ${columnName} = ? `;
+                let checkParams = [data.name];
 
-                    `,
-                    data.type === "plant" ? [data.name, data.variety_name] : [data.name],
-                    (err, result) => {
-                        if (!err) {
-                            if (!result.length) {
-                                if (From) {
-                                    con.query(
-                                        `
-                                        INSERT INTO ${From} 
-                                        (
-                                            ${columnName}, 
-                                            is_use 
-                                            ${
-                                                data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
-                                                data.type === "station" ? ", location, id_station" : 
-                                                data.type === "chemical" ? ", name_formula , how_use , date_safe_list" : 
-                                                data.type === "pest" ? ", type_pest" :
-                                                ""
-                                            }
-                                        ) 
-                                        VALUES 
-                                        (
-                                            ?, 
-                                            1 
-                                            ${
-                                                data.type === "plant" ? `, ?, ?, ?` : 
-                                                data.type === "station" ? `, POINT(?, ?), ?` : 
-                                                data.type === "chemical" ? ", ?, ?, ?" : 
-                                                data.type === "pest" ? ", ?" :
-                                                ""
-                                            }
-                                        )
-                                        `,
-                                        data.type === "plant" ? [data.name, data.type_plant, data.qtyDate, data.variety_name] :
-                                        data.type === "station" ? [data.name, data.lat, data.lng, data.id_station] :
-                                        data.type === "chemical" ? [data.name, data.name_formula, data.how_use, data.date_safe] :
-                                        data.type === "pest" ? [data.name, data.type_pest] : []
-                                        ,
-                                        (err, insert) => {
-                                            if (err) {
-                                                dbpacket.dbErrorReturn(con, err, res);
-                                                console.log(`insert ${data.type} err`);
-                                                return 0;
-                                            }
+                if (data.type === "plant") {
+                    checkQuery += "AND variety_name = ? ";
+                    checkParams.push(data.variety_name);
+                }
 
-                                            con.end();
-                                            res.send(insert.affectedRows.toString());
+                if (data.type === "station") {
+                    checkQuery += "OR id_station = ? ";
+                    checkParams.push(data.id_station);
+                }
+
+                checkQuery += "AND is_use = 1;";
+
+                con.query(checkQuery, checkParams, (err, result) => {
+                    if (!err) {
+                        if (!result.length) {
+                            if (From) {
+                                con.query(
+                                    `
+                                    INSERT INTO ${From} 
+                                    (
+                                        ${columnName}, 
+                                        is_use 
+                                        ${
+                                            data.type === "plant" ? ", type_plant , qty_harvest , variety_name" : 
+                                            data.type === "station" ? ", location, id_station" : 
+                                            data.type === "chemical" ? ", name_formula , how_use , date_safe_list" : 
+                                            data.type === "pest" ? ", type_pest" :
+                                            ""
                                         }
-                                    );
-                                }
-                            } else {
-                                con.end();
-                                res.send("overflow");
+                                    ) 
+                                    VALUES 
+                                    (
+                                        ?, 
+                                        1 
+                                        ${
+                                            data.type === "plant" ? `, ?, ?, ?` : 
+                                            data.type === "station" ? `, POINT(?, ?), ?` : 
+                                            data.type === "chemical" ? ", ?, ?, ?" : 
+                                            data.type === "pest" ? ", ?" :
+                                            ""
+                                        }
+                                    )
+                                    `,
+                                    data.type === "plant" ? [data.name, data.type_plant, data.qtyDate, data.variety_name] :
+                                    data.type === "station" ? [data.name, data.lat, data.lng, data.id_station] :
+                                    data.type === "chemical" ? [data.name, data.name_formula, data.how_use, data.date_safe] :
+                                    data.type === "pest" ? [data.name, data.type_pest] : []
+                                    ,
+                                    (err, insert) => {
+                                        if (err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log(`insert ${data.type} err`);
+                                            return 0;
+                                        }
+
+                                        con.end();
+                                        res.send(insert.affectedRows.toString());
+                                    }
+                                );
                             }
                         } else {
                             con.end();
-                            res.send('error session');
-                            console.log(`select ${From} err`);
+                            if (data.type === "station" && result.some(row => row.id_station === data.id_station)) {
+                                res.send("duplicate_id_station");
+                            } else {
+                                res.send("overflow");
+                            }
                         }
+                    } else {
+                        con.end();
+                        res.send('error session');
+                        console.log(`select ${From} err`);
                     }
-                );
+                });
             }
         } catch (err) {
             if (err == "not pass") {
@@ -1432,6 +1442,7 @@ app.post('/api/admin/data/list', async (req, res) => {
         res.send('error session');
     }
 });
+
 
 
 

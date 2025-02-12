@@ -284,27 +284,6 @@ const ManageGroup = ({ fetchGroups }) => {
                                     options={PestsData}
                                     renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : { fontFamily: "Sans-font" } } }}/>}
                                 />
-                                
-                                {/* <input
-                                    type="text"
-                                    placeholder="ค้นหา..."
-                                    value={pestID}
-                                    onChange={(e) => setPestID(e.target.value)}
-                                    list="pest-options"
-                                />
-                                <datalist id="pest-options">
-                                    {
-                                        pests
-                                            .filter((pest) => (filterType === "" || pest.type_pest === filterType))
-                                            .filter((pest) => pest.pest_name.includes(pestID))
-                                            .sort((a, b) => a.pest_name.localeCompare(b.pest_name, 'th'))
-                                            .map((pest, index) => (
-                                                <option key={index} value={pest.pest_name}>
-                                                    {pest.pest_name}
-                                                </option>
-                                            ))
-                                    }
-                                </datalist> */}
                             </div>
 
 
@@ -321,25 +300,6 @@ const ManageGroup = ({ fetchGroups }) => {
                                     options={ChemicalsData}
                                     renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : {fontFamily: "Sans-font"  } } }}/>}
                                 />
-                                {/* <input
-                                    type="text"
-                                    placeholder="ค้นหา..."
-                                    value={chemicalID}
-                                    onChange={(e) => setChemicalID(e.target.value)}
-                                    list="chemical-options"
-                                />
-                                <datalist id="chemical-options">
-                                    {
-                                        chemicals
-                                            .filter((chemical) => chemical.name.includes(chemicalID))
-                                            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
-                                            .map((chemical, index) => (
-                                                <option key={index} value={chemical.name}>
-                                                    {chemical.name}
-                                                </option>
-                                            ))
-                                    }
-                                </datalist> */}
                             </div>
 
                             <div className="table-section">
@@ -355,25 +315,6 @@ const ManageGroup = ({ fetchGroups }) => {
                                     options={PlantsData}
                                     renderInput={(params) => <TextField {...params} slotProps={{ htmlInput : { ...params.inputProps ,  sx : {fontFamily: "Sans-font" } } }}/>}
                                 />
-                                {/* <input
-                                    type="text"
-                                    placeholder="ค้นหา..."
-                                    value={plantID}
-                                    onChange={(e) => setPlantID(e.target.value)}
-                                    list="plant-options"
-                                />
-                                <datalist id="plant-options">
-                                    {
-                                        plants
-                                            .filter((plant) => plant.name.includes(plantID))
-                                            .sort((a, b) => a.name.localeCompare(b.name, 'th'))
-                                            .map((plant, index) => (
-                                                <option key={index} value={plant.name}>
-                                                    {plant.name}
-                                                </option>
-                                            ))
-                                    }
-                                </datalist> */}
                             </div>
 
                             <div className="table-section">

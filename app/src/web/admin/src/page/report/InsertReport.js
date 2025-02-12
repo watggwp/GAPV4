@@ -64,6 +64,7 @@ const InsertReport = () => {
           width: "100%",
           borderCollapse: "collapse",
           fontFamily: "Sans-font",
+          tableLayout: "fixed",
         }}
       >
        <thead>
