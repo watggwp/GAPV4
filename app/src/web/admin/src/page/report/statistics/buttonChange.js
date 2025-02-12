@@ -71,8 +71,15 @@ function NotifyStatistics({
     };
 
     const ClickAdd = () => { 
+        const updatedSelectedData = selectedData.map(item => ({
+            name_plants: item.name_plants,
+            count: item.count,
+            pest_name: item.name || item.insect,  // เพิ่ม pest_name
+            chemical_used: item.chemical_used || "-"  // เพิ่ม chemical_used
+        }));
+    
         clientMo.post("/api/admin/sendNotifyreport/get", { 
-            selectedData, 
+            selectedData: updatedSelectedData, 
             minCount 
         }).then(() => {
             console.log("ส่งข้อมูลเรียบร้อยแล้ว!");
@@ -81,6 +88,7 @@ function NotifyStatistics({
             console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
         });
     };
+    
     
 
     useEffect(() => {

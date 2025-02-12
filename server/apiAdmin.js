@@ -1991,85 +1991,90 @@ app.post('/api/admin/report/list', async(req, res) => {
 });
 
 app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
+    let username = req.session.user_admin;
+    let password = req.session.pass_admin;
 
-  if (!username || !password) {
-      res.redirect('/api/logout');
-      return;
-  }
+    if (!username || !password) {
+        res.redirect('/api/logout');
+        return;
+    }
 
-  let con = Database.createConnection(listDB);
-  console.log("Received selectedData:", req.body.selectedData);
-  console.log("Received minCount:", req.body.minCount); // Log ค่า minCount
+    let con = Database.createConnection(listDB);
+    console.log("Received selectedData:", req.body.selectedData);
+    console.log("Received minCount:", req.body.minCount); 
 
-  try {
-      const auth = await apifunc.auth(con, username, password, res, "admin");
-      if (auth['result'] === "pass") {
-          const { selectedData, minCount } = req.body; // รับค่าจาก request
+    try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] === "pass") {
+            const { selectedData, minCount } = req.body; 
 
-          // บันทึกค่า minCount ลงในตาราง statistic
-          selectedData.forEach((item) => {
-
-          });
-          con.query(
-            `
-              INSERT INTO statistic (role, count_day ,id_role) 
-              VALUES (?,?,?) 
-              ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
-            `,
-            ["admin" , minCount , auth['data']['id']],
-            (err) => {
-                if (err) {
-                    console.error("Database error:", err);
-                    dbpacket.dbErrorReturn(con, err, res);
-                    return;
+            // บันทึกค่า minCount ลงในตาราง statistic
+            con.query(
+                `
+                INSERT INTO statistic (role, count_day ,id_role) 
+                VALUES (?,?,?) 
+                ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
+                `,
+                ["admin" , minCount , auth['data']['id']],
+                (err) => {
+                    if (err) {
+                        console.error("Database error:", err);
+                        dbpacket.dbErrorReturn(con, err, res);
+                        return;
+                    }
                 }
-            }
-        );
+            );
 
-          con.query(
-              `SELECT 
-                  af.uid_line
-               FROM formchemical fc
-               LEFT JOIN pests p ON fc.insect = p.pest_name
-               LEFT JOIN formplant fp ON fc.id_plant = fp.id
-               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
-               LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-               WHERE af.station = ? 
-               LIMIT 25;`, [auth['data']['station_admin']],
-              (err, result) => {
-                  if (err) {
-                      dbpacket.dbErrorReturn(con, err, res);
-                      return;
-                  }
+            // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
+            con.query(
+                `SELECT 
+                    af.uid_line
+                 FROM formchemical fc
+                 LEFT JOIN pests p ON fc.insect = p.pest_name
+                 LEFT JOIN formplant fp ON fc.id_plant = fp.id
+                 LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+                 LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+                 WHERE af.station = ? 
+                 LIMIT 25;`, [auth['data']['station_admin']],
+                (err, result) => {
+                    if (err) {
+                        dbpacket.dbErrorReturn(con, err, res);
+                        return;
+                    }
 
-                  try {
-                      console.log("Query Result:", result);
-                      let uid = result.map(row => row.uid_line);
-                      let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
+                    try {
+                        console.log("Query Result:", result);
+                        let uid = result.map(row => row.uid_line);
+                        
+                        // ✅ อัปเดต textSend ให้รวม chemical_used
+                        let textSend = selectedData.map(item => 
+                            `พืช: ${item.name_plants}\n` +
+                            `ศัตรูพืชที่พบ: ${item.pest_name}\n` +
+                            `จำนวน: ${item.count}\n` +
+                            `สารเคมีที่ใช้: ${item.chemical_used || "-"}`
+                        ).join("\n\n");
 
-                      console.log("UIDs to send:", uid);
-                      console.log("Text to send:", textSend);
+                        console.log("UIDs to send:", uid);
+                        console.log("Text to send:", textSend);
 
-                      Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
-                  } catch (e) {
-                      console.error("Error sending Line message:", e);
-                  }
+                        // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
+                        Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                    } catch (e) {
+                        console.error("Error sending Line message:", e);
+                    }
 
-                  con.end();
-                  res.send(result);
-              }
-          );
-      }
-  } catch (err) {
-      con.end();
-      if (err == "not pass") {
-          res.redirect('/api/logout');
-      }
-  }
+                    con.end();
+                    res.send(result);
+                }
+            );
+        }
+    } catch (err) {
+        con.end();
+        if (err == "not pass") {
+            res.redirect('/api/logout');
+        }
+    }
 });
-
 
 
 
