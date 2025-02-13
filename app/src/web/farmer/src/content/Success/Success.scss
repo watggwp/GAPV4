@@ -94,7 +94,7 @@ $font-Page : 4.5vw;
 
             /* ปรับสไตล์ปุ่ม "รับทราบข้อมูล" ให้เหมือนปุ่ม "แสดงรหัส" */
             .ack-button {
-                font-size: 16px;
+                font-size: 18px;
                 padding: 8px 15px;
                 font-weight: 900;
                 background-color: white;
@@ -112,6 +112,7 @@ $font-Page : 4.5vw;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                font-family: Sans-font;
             }
 
             /* ปรับสีปุ่มเมื่อ Hover */

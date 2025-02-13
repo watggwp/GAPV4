@@ -75,6 +75,7 @@ const List = ({ liff, setPage, DetailFetchList, setDotSome }) => {
 
             if (await CloseAccount(result, setPage)) {
                 const data = JSON.parse(result);
+                data.sort((a, b) => new Date(b.date_report) - new Date(a.date_report));
                 console.log("Updated Data After Fetch:", data); // ตรวจสอบข้อมูลใหม่
                 setListData(data);
             }

@@ -13,6 +13,8 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
     const [PopupState , setPopup] = useState(<></>)
 
     const [DotSome , setDotSome] = useState([])
+    const [listData, setListData] = useState([]);
+
     const [DataPage , setDataPage] = useState({
         id_house : id_house,
         id_plant : id_plant,
@@ -65,7 +67,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                                     Data={{
                                         id_success : ob[0].id_success,
                                         name_station : name_station
-                                    }} />)
+                                    }} setListData={setListData}/>)
             else setPopup(<PopupSuccess Ref={Popup} setPopup={setPopup} setPage={setPage} Dom={Dom}
                             Data={{
                                 id_table : id_table_success,
@@ -75,7 +77,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                             MainData={{
                                 id_house : id_house,
                                 id_plant : id_plant
-                            }}/>)
+                            }}setListData={setListData}/>)
         }
     }
 
@@ -128,7 +130,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
 
             <div className="content-success">
                 <div className="list-success">
-                    <List liff={liff} setPage={setPage} DetailFetchList={DataPage} OpenPopup={OpenPopup}/>
+                    <List liff={liff} setPage={setPage} DetailFetchList={DataPage} OpenPopup={OpenPopup} setListData={setListData}/>
                 </div>
             </div>
             <div ref={Popup} className="popup">
@@ -139,7 +141,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
     )
 }
 
-const PopupSuccess = ({Ref , setPopup , setPage , Dom ,
+const PopupSuccess = ({Ref , setPopup , setPage , Dom ,setListData,
     Data = {type : "" , id_table : "" , id_success : "" , name_station : ""} , 
     MainData = {id_plant : "" , id_house : ""}}) => {
         
@@ -167,6 +169,11 @@ const PopupSuccess = ({Ref , setPopup , setPage , Dom ,
         const result = await clientMo.post("/api/farmer/success/update" , data)
         if(await CloseAccount(result , setPage)){
             Dom.target.innerHTML = "แสดงรหัส"
+            setListData(prevData =>
+                prevData.map(item =>
+                    item.id === Data.id_table ? { ...item, date_of_farmer: new Date().toISOString() } : item
+                )
+            );
             cancel()
         }
     }

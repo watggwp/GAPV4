@@ -27,6 +27,16 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
 
             if (await CloseAccount(result, setPage)) {
                 const data = JSON.parse(result);
+                console.log("Raw Data:", data);
+                data.sort((a, b) => {
+                    if (a.date_of_farmer || a.date_of_doctor) {
+                        //ใช้ date_of_farmer หรือ date_of_doctor ถ้ามี
+                        return new Date(b.date_of_farmer || b.date_of_doctor) - new Date(a.date_of_farmer || a.date_of_doctor);
+                    } else {
+                        //ถ้าไม่มีให้ใช้ id แทน
+                        return b.id - a.id;
+                    }
+                });
                 console.log("Parsed Data:", data);
                 setListData(data);
             }
@@ -75,10 +85,15 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
     return (
         <>
             {listData.map((val, key) => (
-                <div
-                    className={`list-in-${DetailFetchList.type} ${val.acknowledged ? "acknowledged-card" : ""}`}
-                    key={val.id}
-                >
+               <div
+               className={`list-in-${DetailFetchList.type} ${
+                   (DetailFetchList.type === "h" && val.date_of_farmer) || 
+                   (DetailFetchList.type !== "h" && val.acknowledged) 
+                       ? "acknowledged-card" 
+                       : ""
+               }`}
+               key={val.id}
+           >           
                     {DetailFetchList.type === "h" ? (
                         <>
                             <div className="row first">
@@ -149,7 +164,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                         </>
                     ) : null}
     
-                    {/* ✅ Show 'ผู้ตรวจสอบ' ONLY for cf and cp types */}
+                    {/*Show 'ผู้ตรวจสอบ' ONLY for cf and cp types */}
                     {DetailFetchList.type !== "h" && (
                         <div className="row">
                             <div className="in-row">
