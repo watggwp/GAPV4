@@ -628,147 +628,161 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     })
     
-    app.post('/api/doctor/farmer/list' , (req , res)=>{
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
+    app.post('/api/doctor/farmer/list', (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
     
-        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
-            res.redirect('/api/logout')
-            return 0
+        console.log("🔹 Received API Request: /api/doctor/farmer/list");
+        console.log("🔹 Request Body:", req.body);
+        console.log("🔹 Session Data - Username:", username, "Password:", password ? "******" : "Not Set");
+    
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            console.log("🔴 Authentication Failed: Redirecting to Logout");
+            res.redirect('/api/logout');
+            return;
         }
     
-        let con = Database.createConnection(listDB)
+        let con = Database.createConnection(listDB);
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
-            if(result['result'] === "pass") {
-                const Limit = isNaN(parseInt(req.body.limit)) ? 0 : req.body.limit;
-                const queryType = req.body.approve === 0 ?
-                    `
+        apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
+            if (result['result'] === "pass") {
+                console.log("✅ Authentication Successful:", result['data']);
+    
+                const Limit = isNaN(parseInt(req.body.limit)) ? 10 : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
+                console.log("🔹 Query Limit:", Limit);
+    
+                let queryType;
+                let queryParams;
+    
+                if (req.body.approve === 0) {
+                    queryType = `
                     SELECT filterFarmer.* , 
                     (
-                        SELECT date
-                        FROM message_user
+                        SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                                and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                                and type = ""
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
-                    FROM acc_farmer , 
+                    FROM acc_farmer, 
                     (
-                        SELECT id_table , img , date_register , fullname , link_user , uid_line , 
+                        SELECT id_table, img, date_register, fullname, link_user, uid_line, 
                         (
                             SELECT EXISTS (
-                                SELECT id_table 
-                                FROM acc_farmer as farmer
-                                WHERE farmer.uid_line = acc_farmer.uid_line and 
-                                        station = ? and 
-                                        register_auth = 1
+                                SELECT id_table FROM acc_farmer AS farmer
+                                WHERE farmer.uid_line = acc_farmer.uid_line 
+                                      AND station = ? 
+                                      AND register_auth = 1
                             )
                         ) as CheckOver
                         FROM acc_farmer 
-                        WHERE 
-                            station = ? and 
-                            register_auth = 0
+                        WHERE station = ? 
+                              AND register_auth = 0
                     ) as filterFarmer
-                    WHERE filterFarmer.id_table = acc_farmer.id_table and filterFarmer.CheckOver != 1
-                                and ( INSTR( acc_farmer.id_farmer , ?) || INSTR( acc_farmer.fullname , ? ))
-                    ORDER BY is_msg DESC , filterFarmer.date_register ASC
-                    LIMIT ${Limit};
-                    `: 
-                    req.body.approve === 1 ?
-                    `
-                    SELECT acc_farmer.id_table , acc_farmer.img , acc_farmer.fullname , acc_farmer.link_user , acc_farmer.date_register
-                        , farmer_main.Count , acc_farmer.date_doctor_confirm , acc_farmer.uid_line ,
+                    WHERE filterFarmer.id_table = acc_farmer.id_table 
+                          AND filterFarmer.CheckOver != 1
+                          AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
+                    ORDER BY is_msg DESC, filterFarmer.date_register ASC
+                    LIMIT ${Limit};`;
+                    
+                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                } else if (req.body.approve === 1) {
+                    queryType = `
+                    SELECT acc_farmer.id_table, acc_farmer.img, acc_farmer.fullname, acc_farmer.link_user, acc_farmer.date_register,
+                           farmer_main.Count, acc_farmer.date_doctor_confirm, acc_farmer.uid_line,
                     (
                         SELECT fullname_doctor
                         FROM acc_doctor
                         WHERE acc_doctor.id_table_doctor = acc_farmer.id_table_doctor
-                    ) as name_doctor ,
+                    ) as name_doctor,
                     (
-                        SELECT date
-                        FROM message_user
+                        SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = (
-                                    SELECT uid_line
-                                    FROM acc_farmer as farmer_check
-                                    WHERE farmer_check.link_user = acc_farmer.link_user
-                                    ORDER BY date_register DESC
-                                    LIMIT 1
-                                )
-                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                            and type = ""
+                                  SELECT uid_line FROM acc_farmer AS farmer_check
+                                  WHERE farmer_check.link_user = acc_farmer.link_user
+                                  ORDER BY date_register DESC
+                                  LIMIT 1
+                              )
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
-                    FROM acc_farmer , 
+                    FROM acc_farmer, 
                     (
-                        SELECT MAX(date_register) as DateLast , link_user , COUNT(link_user) as Count
+                        SELECT MAX(date_register) as DateLast, link_user, COUNT(link_user) as Count
                         FROM acc_farmer 
-                        WHERE station = ? and register_auth = 1
+                        WHERE station = ? AND register_auth = 1
                         GROUP BY link_user
                     ) as farmer_main
                     WHERE acc_farmer.link_user = farmer_main.link_user 
-                        and acc_farmer.date_register = farmer_main.DateLast
-                        and ( INSTR( acc_farmer.id_farmer , ?) || INSTR( acc_farmer.fullname , ? ))
-                    ORDER BY is_msg DESC , date_register DESC
-                    LIMIT ${Limit};
-                    ` :
-                    `
-                    SELECT filterFarmer.* , 
+                          AND acc_farmer.date_register = farmer_main.DateLast
+                          AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
+                    ORDER BY is_msg DESC, date_register DESC
+                    LIMIT ${Limit};`;
+    
+                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                } else {
+                    queryType = `
+                    SELECT filterFarmer.*, 
                     (
-                        SELECT date
-                        FROM message_user
+                        SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                                and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                                and type = ""
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
-                    FROM acc_farmer , 
+                    FROM acc_farmer, 
                     (
-                        SELECT id_table , img , date_register , fullname , link_user , uid_line , 
+                        SELECT id_table, img, date_register, fullname, link_user, uid_line, 
                         (
                             SELECT EXISTS (
-                                SELECT id_table 
-                                FROM acc_farmer as farmer
-                                WHERE farmer.uid_line = acc_farmer.uid_line and 
-                                        (register_auth = 1 || register_auth = 0)
+                                SELECT id_table FROM acc_farmer AS farmer
+                                WHERE farmer.uid_line = acc_farmer.uid_line 
+                                      AND (register_auth = 1 OR register_auth = 0)
                             )
                         ) as CheckOver
                         FROM acc_farmer 
-                        WHERE 
-                            station = ? and 
-                            register_auth = 2
+                        WHERE station = ? 
+                              AND register_auth = 2
                     ) as filterFarmer
-                    WHERE filterFarmer.id_table = acc_farmer.id_table and filterFarmer.CheckOver != 1
-                        and ( INSTR( acc_farmer.id_farmer , ?) || INSTR( acc_farmer.fullname , ? ))
-                    ORDER BY is_msg DESC , filterFarmer.date_register ASC
-                    LIMIT ${Limit};
-                    `;
-                
-                const queryParams = req.body.approve === 0 ? [ result['data']['id_table_doctor'] , result['data']['station_doctor'] , result['data']['station_doctor'] , req.body.textSearch , req.body.textSearch ] :
-                                    req.body.approve === 1 ? [ result['data']['id_table_doctor'] , result['data']['station_doctor'] , req.body.textSearch , req.body.textSearch] :
-                                    [ result['data']['id_table_doctor'] , result['data']['station_doctor'] , req.body.textSearch , req.body.textSearch ]
-                
-                con.query(queryType , queryParams ,  (err , result)=>{
-                    if (!err){
-                        const listFarmer = ProfileConvertImg(result , "img")
-                        con.end()
-                        res.send(listFarmer)
+                    WHERE filterFarmer.id_table = acc_farmer.id_table 
+                          AND filterFarmer.CheckOver != 1
+                          AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
+                    ORDER BY is_msg DESC, filterFarmer.date_register ASC
+                    LIMIT ${Limit};`;
+    
+                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                }
+    
+                console.log("🔹 SQL Query:", queryType);
+                console.log("🔹 Query Parameters:", queryParams);
+    
+                con.query(queryType, queryParams, (err, result) => {
+                    if (!err) {
+                        console.log("✅ Query Successful: Records Found:", result.length);
+                        const listFarmer = ProfileConvertImg(result, "img");
+                        con.end();
+                        res.send(listFarmer);
                     } else {
-                        con.end()
-                        res.send("")
+                        console.error("❌ SQL Error:", err);
+                        con.end();
+                        res.send("");
                     }
-                    
-                })
+                });
+    
             }
-        }).catch((err)=>{
-            con.end()
-            if(err == "not pass") {
-                res.redirect('/api/logout')
+        }).catch((err) => {
+            con.end();
+            console.error("❌ Authentication Error:", err);
+            if (err == "not pass") {
+                res.redirect('/api/logout');
             }
-        })
-    })
+        });
+    });
+    
 
     app.post('/api/doctor/farmer/account/comfirm' , async (req , res)=>{
         let username = req.session.user_doctor
@@ -1604,6 +1618,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 SELECT type_plant
                                 FROM plant_list
                                 WHERE name = formplant.name_plant
+                                LIMIT 1
                             ) as type_main ,
                             (
                                 SELECT id_plant

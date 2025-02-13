@@ -459,7 +459,8 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                         SELECT EXISTS (
                             SELECT id
                             FROM report_detail
-                            WHERE report_detail.id_plant = formplant.id
+                            WHERE report_detail.id_plant = formplant.id 
+                            AND report_detail.is_read = 0
                         )
                     ) as report,
                     (
@@ -895,7 +896,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
 
     const { id, type } = req.body;
 
-    console.log("Received acknowledge request:", req.body); // ดูข้อมูลที่ได้รับจาก frontend
+    console.log("Received acknowledge request:", req.body);
 
     if (!id || !type) {
         console.log("Missing parameters");
@@ -903,10 +904,17 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     }
 
     let tableName = "";
+    let updateField = "";
+
     if (type === "cf") {
         tableName = "check_form_detail";
+        updateField = "acknowledged";
     } else if (type === "cp") {
         tableName = "check_plant_detail";
+        updateField = "acknowledged";
+    } else if (type === "report") {
+        tableName = "report_detail";
+        updateField = "is_read";
     } else {
         console.log("Invalid type:", type);
         return res.status(400).json({ success: false, message: "Invalid type" });
@@ -914,7 +922,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
 
     console.log(`Updating acknowledgment for ${tableName} ID: ${id}`);
 
-    con.query(`UPDATE ${tableName} SET acknowledged = TRUE WHERE id = ?`, [id], (err, result) => {
+    con.query(`UPDATE ${tableName} SET ${updateField} = 1 WHERE id = ?`, [id], (err, result) => {
         con.end();
 
         if (err) {
@@ -2619,7 +2627,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         SELECT EXISTS (
                             SELECT id
                             FROM report_detail
-                            WHERE report_detail.id_plant = formplant.id
+                            WHERE report_detail.id_plant = formplant.id AND report_detail.is_read = 0
                         ) 
                     ) as report ,
                     (
@@ -2850,7 +2858,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         WHERE success_detail.id_plant = formPlant.id
                         ` :       
                             `SELECT 
-                                ${Type === "report_detail" ? `${Type}.date_report , ${Type}.report_text , ${Type}.image_path` : `${Type}.*`} , 
+                                ${Type === "report_detail" ? `${Type}.date_report , ${Type}.report_text , ${Type}.image_path,${Type}.id,${Type}.is_read` : `${Type}.*`} , 
                                 acc_doctor.fullname_doctor AS name_doctor,
                                 acc_doctor.doctor_role,
                                 acc_doctor.consultant_role

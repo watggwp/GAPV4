@@ -5,9 +5,8 @@ import { DayJSX } from "../../../../../assets/js/module";
 
 const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
     const [listData, setListData] = useState([]);
-    const [DotSome , setDotSome] = useState([])
+    const [DotSome , setDotSome] = useState([]);
     
-
     useEffect(() => {
         StartLoad(DetailFetchList);
     }, [DetailFetchList]);
@@ -47,27 +46,24 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
         if (await CloseAccount(result, setPage)) {
             console.log("Acknowledged successfully:", result);
     
-            //อัปเดตค่ารายการที่รับทราบแล้ว
             setListData(prevData =>
                 prevData.map(item =>
                     item.id === id ? { ...item, acknowledged: 1 } : item
                 )
             );
     
-            //อัปเดต `DotSome` เพื่อลดค่าที่เกี่ยวข้อง
             setDotSome(prevDot => {
-                if (!prevDot[0]) return prevDot; // ป้องกันข้อผิดพลาดถ้า `prevDot` เป็นค่าว่าง
+                if (!prevDot[0]) return prevDot;
     
                 let newDot = { ...prevDot[0] };
     
                 if (type === "cf" && newDot.form > 0) newDot.form -= 1;
                 if (type === "cp" && newDot.plant > 0) newDot.plant -= 1;
     
-                console.log("Updated DotSome:", newDot); // ตรวจสอบค่าหลังจากอัปเดต
+                console.log("Updated DotSome:", newDot);
                 return [newDot];
             });
     
-            //ตรวจสอบค่า DotSome หลังจากอัปเดต
             setTimeout(() => {
                 console.log("DotSome after update:", DotSome);
             }, 1000);
@@ -75,11 +71,6 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
             console.log("Acknowledge failed:", result);
         }
     };
-    
-    
-    
-    
-    
 
     return (
         <>
@@ -93,7 +84,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                             <div className="row first">
                                 <div className="type-head">{val.type_success ? "เก็บผลผลิต" : "เก็บผลตัวอย่าง"}</div>
                                 <div className="date">
-                                    <DayJSX DATE={val.date_of_doctor ? val.date_of_doctor.toString() : "ไม่ระบุ"} TYPE="normal" />
+                                    <DayJSX DATE={String(val.date_of_doctor)} TYPE="normal" />
                                 </div>
                             </div>
                             <div className="row">
@@ -109,16 +100,16 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                                 </div>
                             </div>
                         </>
-                    ) : DetailFetchList.type === "cf" || DetailFetchList.type === "cp" ? (
+                    ) : DetailFetchList.type === "cf" ? (
                         <>
                             <div className="row">
                                 <div className="in-row column">
-                                    <span>{DetailFetchList.type === "cf" ? "ผลตรวจสอบ" : "ผลวิเคราะห์"}</span>
+                                    <span>ผลตรวจสอบ</span>
                                     <div>{val.status_check ? "ผ่าน" : "ไม่ผ่าน"}</div>
                                 </div>
                                 <div className="in-row column end frame">
                                     <span>วันที่</span>
-                                    <DayJSX DATE={val.date_check ? val.date_check.toString() : "ไม่ระบุ"} TYPE="small" />
+                                    <DayJSX DATE={String(val.date_check)} TYPE="small" />
                                 </div>
                             </div>
                             {!val.status_check && (
@@ -129,23 +120,54 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                                     </div>
                                 </div>
                             )}
-                            <div className="row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <div className="in-row">
-                                    <span>ผู้ตรวจสอบ</span>
-                                    <div>{val.name_doctor}</div>
+                        </>
+                    ) : DetailFetchList.type === "cp" ? (
+                        <>
+                            <div className="row">
+                                <div className="in-row column">
+                                    <span>ผลวิเคราะห์</span>
+                                    <div>
+                                        <span>{val.state_check ? "หลัง : " : "ก่อน : "}</span>
+                                        {val.status_check}
+                                    </div>
                                 </div>
-                                {!val.acknowledged && (
-                                    <button onClick={() => AcknowledgeData(val.id, DetailFetchList.type)} className="ack-button">
-                                        รับทราบ
-                                    </button>
-                                )}
+                                <div className="in-row column end frame">
+                                    <span>วันที่</span>
+                                    {val.date_check ? (
+                                        <DayJSX DATE={String(val.date_check)} TYPE="small" />
+                                    ) : (
+                                        <span>ไม่ระบุ</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="in-row column">
+                                    <span>หมายเหตุ</span>
+                                    <div>{val.note_text ? val.note_text : "ไม่ระบุ"}</div>
+                                </div>
                             </div>
                         </>
                     ) : null}
+    
+                    {/* ✅ Show 'ผู้ตรวจสอบ' ONLY for cf and cp types */}
+                    {DetailFetchList.type !== "h" && (
+                        <div className="row">
+                            <div className="in-row">
+                                <span>ผู้ตรวจสอบ</span>
+                                <div>{val.name_doctor}</div>
+                            </div>
+                        </div>
+                    )}
+    
+                    {DetailFetchList.type !== "h" && !val.acknowledged && (
+                        <button onClick={() => AcknowledgeData(val.id, DetailFetchList.type)} className="ack-button">
+                            รับทราบ
+                        </button>
+                    )}
                 </div>
             ))}
         </>
     );
-};
+}    
 
 export default List;
