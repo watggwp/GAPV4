@@ -198,11 +198,11 @@
                                     }
     
                                     .dot.old {
-                                        background-color: red;
+                                        background-color: green;
                                     }
     
                                     .dot.new {
-                                        background-color: green;
+                                        background-color: red;
                                     }
                                 }
                             }
@@ -231,14 +231,14 @@
                                         padding: 1vw 2vw;
                                         width: 45%;
                                         border-radius: 10px;
-                                        border: 1.5px solid red;
+                                        border: 1.5px solid green;
                                     }
     
                                     .new {
                                         padding: 1vw 2vw;
                                         width: 45%;
                                         border-radius: 10px;
-                                        border: 1.5px solid green;
+                                        border: 1.5px solid red;
                                     }
 
                                     input {

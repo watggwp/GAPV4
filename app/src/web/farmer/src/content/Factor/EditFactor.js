@@ -837,7 +837,7 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className="frame-textbox colume">
+                                          <label className={`frame-textbox colume${ObjectData.subjectResult.name == 2 ? " not" : ""}`}>
                                                 <span className="full">ชื่อสารเคมี (ชื่อการค้า, ตรา)</span>
                                                 <div className="content-colume-input">
                                                     <div className="input-select-popup">
@@ -878,7 +878,7 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className="frame-textbox">
+                                            <label className={`frame-textbox${ObjectData.subjectResult.formula_name == 2 ? " not" : ""}`}>
                                                 <span>ชื่อสามัญสารเคมี</span>
                                                 <div className="input-select-other">
                                                     <input
@@ -914,7 +914,7 @@ const ResetListPestsPopup = () => {
                                             </label>
                                         </div>
                                         <div className="row">
-                                        <label className="frame-textbox colume">
+                                         <label className={`frame-textbox colume${ObjectData.subjectResult.insect == 2 ? " not" : ""}`}>
                                             <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
                                             <div className="content-colume-input">
                                             <div className="input-select-popup">

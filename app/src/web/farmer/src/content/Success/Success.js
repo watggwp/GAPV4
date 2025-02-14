@@ -51,11 +51,21 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
     }
 
     const FetchCheck = async () => {
-        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${id_house}&id_plant=${id_plant}`)
-        if(await CloseAccount(result , setPage)) {
-            setDotSome(JSON.parse(result))
+        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${id_house}&id_plant=${id_plant}`);
+        if (await CloseAccount(result, setPage)) {
+            setDotSome(JSON.parse(result)); // อัปเดต DotSome
         }
-    }
+    };
+    
+    useEffect(() => {
+        setPage("Success");
+    
+        FetchCheck(); // โหลดข้อมูลครั้งแรก
+        const interval = setInterval(FetchCheck, 5000); // ดึงข้อมูลทุก 5 วินาที
+    
+        return () => clearInterval(interval); // ล้างเมื่อออกจากหน้านี้
+    }, [id_house, id_plant]);
+    
 
     const OpenPopup = async (id_table_success , type , name_station , Dom) => {
         const result = await clientMo.post("/api/farmer/success/get" , {

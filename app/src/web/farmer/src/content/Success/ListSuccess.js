@@ -47,7 +47,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
 
     const AcknowledgeData = async (id, type) => {
         console.log("Sending acknowledge request for ID:", id, "Type:", type);
-    
+        
         const result = await clientMo.post("/api/farmer/report/acknowledge", {
             id: id,
             type: type
@@ -70,17 +70,12 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                 if (type === "cf" && newDot.form > 0) newDot.form -= 1;
                 if (type === "cp" && newDot.plant > 0) newDot.plant -= 1;
     
-                console.log("Updated DotSome:", newDot);
                 return [newDot];
             });
-    
-            setTimeout(() => {
-                console.log("DotSome after update:", DotSome);
-            }, 1000);
-        } else {
-            console.log("Acknowledge failed:", result);
         }
     };
+    
+    
 
     return (
         <>

@@ -617,7 +617,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
                                             </label>
                                         </div>
                                         <div className="row">
-                                            <label className={`frame-textbox colume${Data.subjectResult.area == 2 ? " not" : ""}`}>
+                                             <label className={`frame-textbox colume${(Data.subjectResult.area == 2 || Data.subjectResult.unit == 2) ? " not" : ""}`}> 
                                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                                     <span style={{ marginRight: '1px' }}>พื้นที่</span>
                                                     <input
