@@ -2,6 +2,7 @@ import { Grid2, TextField } from "@mui/material";
 import React, { useContext } from "react";
 import { PopupManagePageContext } from "../ManagePage";
 
+
 export default function Plant() {
     const { Data } = useContext(PopupManagePageContext)
     return(
