@@ -6,6 +6,8 @@ import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module"
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 
+
+
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
   const [groupData, setGroupData] = useState([]);
@@ -16,6 +18,11 @@ const PageGroup = () => {
   const [selectedToggleId, setSelectedToggleId] = useState(null);
   const [status, setStatus] = useState(null);
   const PasswordRef = useRef(null);
+  const [ stateOnBt, setStateOnBt ] = useState(true);
+
+  const [Open, setOpen] = useState(false);
+  const [Text, setText] = useState("");
+  const [Status, setStatusReport] = useState(null);
 
   const fetchGroupData = useCallback(async () => {
     try {
@@ -63,39 +70,59 @@ const PageGroup = () => {
       alert("กรุณากรอกรหัสผ่าน");
       return;
     }
-
+  
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
         id: selectedToggleId,
         status: status,
         password: password,
       });
-
+  
       const result = JSON.parse(response);
-
-      switch(result.status) {
-        case 200 :
-          setGroupData((group => {
-            const { index } = groupMapping.get(selectedToggleId)
-            if(group[index]) {
-              group[index]["status"] = status
+  
+      switch (result.status) {
+        case 200:
+          setGroupData((group) => {
+            const { index } = groupMapping.get(selectedToggleId);
+            if (group[index]) {
+              group[index]["status"] = status;
             }
-            return group
-          }))
-          alert("อัปเดตสถานะสำเร็จ");
+            return [...group];  // Ensure React re-renders the updated state
+          });
+  
+          // Show success message
+          setText("อัปเดตสถานะสำเร็จ!");
+          setStatusReport("success");
+          setOpen(true); // Open popup
+  
+          // Automatically close the message after 3 seconds
+          setTimeout(() => {
+            setOpen(false);
+          }, 3000);
           break;
-        default :
-          alert("เกิดข้อผิดพลาด: " + result.message);
+        default:
+          // Show error message
+          setText(`เกิดข้อผิดพลาด: ${result.message}`);
+          setStatusReport("error");
+          setOpen(true);
+          setTimeout(() => {
+            setOpen(false);
+          }, 3000);
           break;
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("ไม่สามารถอัปเดตสถานะได้");
+      setText("ไม่สามารถอัปเดตสถานะได้");
+      setStatusReport("error");
+      setOpen(true);
+      setTimeout(() => {
+        setOpen(false);
+      }, 3000);
     }
-
+  
     setShowConfirmModal(false);
   };
-
+  
   return (
     <div className="data-table">
       <table
@@ -170,6 +197,19 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
+      <div className="Load-insert">
+        <ReportAction
+          Open={Open}
+          Text={Text}
+          Status={Status}
+          setOpen={setOpen}
+          setStatus={setStatusReport}
+          setText={setText}
+          sizeLoad={73}
+          BorderLoad={8}
+          color={"white"}
+        />
+      </div>
 
       {showConfirmModal && (
         <div className="manage-overlay">

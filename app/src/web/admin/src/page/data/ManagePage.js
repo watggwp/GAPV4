@@ -92,7 +92,6 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                 PasswordRef.current.value = ""
             } else {
                 setOpen(0)
-                session()
             }
         }
     }
@@ -154,72 +153,6 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                                 }
                             </Grid2>
                         </PopupManagePageContext.Provider>
-                        {/* <div className={type === "plant" ? "type_plant" : "location"}>
-                            {
-                                type === "plant" ? <span>ชนิดพืช</span> : <></>
-                            }
-                            {
-                                type === "plant" ? <div>{Data.dataOther}</div> :
-                                Data.dataOther ? 
-                                    <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
-                                    ""
-                            }
-                        </div>
-                        <div className={type === "plant" ? "variety_name" : "location"}>
-                            {
-                                type === "plant" ? <span>สายพันธุ์พืช</span> : <></>
-                            }
-                            {
-                                type === "plant" ? 
-                                    <div>{Data.dataOther}</div> :
-                                    Data.dataOther ? 
-                                        <MapsJSX lat={Data.dataOther.x} lng={Data.dataOther.y} w={"300vw"} h={"80vw"}/> : 
-                                        ""
-                            }
-                        </div>
-                        <div className="namechemical" w={type}>
-                            {
-                                type === "chemical" ? 
-                                    <span className={type}>ชื่อสารเคมี</span> 
-                                    : <></>
-                            }
-                            <div>{Data.name}</div>
-                        </div>
-                        <div className={type === "chemical" ? "name_formula" : ""}>
-                            {
-                                type === "chemical" ? 
-                                    <>
-                                    <span>ชื่อสามัญสารเคมี</span>
-                                    <div>{Data.name_formula}</div>
-                                    </> : 
-                                    <></>
-                            }
-                            
-                        </div>
-                        <div className={type === "chemical" ? "how_use" : ""}>
-                            {
-                                type === "chemical" ? 
-                                    <>
-                                    <span>วิธีการใช้</span> 
-                                    <div>{Data.how_use}</div>
-                                    </>
-                                    : <></>
-                            }
-                            
-                        </div>
-
-                        <div className="namepest" w={type}>
-                        {type === "pest" ? (
-                            <span className={type}>
-                                {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
-                            </span>
-                        ) : (
-                            <></>
-                        )}
-                        <div className={`text-data ${type}`}>
-                            {Data.pest_name}
-                        </div>
-                        </div> */}
                     </div>
                 </div>   
             </div>

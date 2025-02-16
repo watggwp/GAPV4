@@ -19,6 +19,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
     const [Profile , setProfile] = useState({
         // id_table : "", 
         id : "" ,
+        username : "",
         fullname : "",
         img : "",
         station : "",
@@ -47,6 +48,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
             // id_table : profile.id,
             id : profile.id,
             username : profile.username,
+            fullname : profile.fullname_admin,
             img :  profile.img_admin !== "" ? profile.img_admin : "/admin-svgrepo-com.svg",
             station : profile.station,
             isdelete : profile.status_delete
@@ -145,7 +147,7 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
                 }
                 <div onLoad={()=>setLoading(false)} className="detail-data-report">
                     {
-                    Profile.id_table ?
+                    Profile.id ?
                         Profile.isdelete ? 
                             <div className="data-delete">
                                 <img src="/error-cross-svgrepo-com.svg"></img>
@@ -158,11 +160,11 @@ const ManageAdminPage = ({RefOnPage , id_table , type , status , setBecause , Ta
                                 </div>
                                 <div className="detail-text">
                                     <div className="text-preview">
-                                        <span className="fullname">{Profile.fullname ? Profile.fullname : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}</span>
+                                        <span className="fullname">{Profile.fullname ? Profile.fullname : "ผู้ดูแลระบบยังไม่ระบุชื่อ"}</span>
                                     </div>
                                     <div className="text-preview">
                                         <span className="head-data">รหัสประจำตัว</span>
-                                        <div>{Profile.id}</div>
+                                        <div>{Profile.username}</div>
                                     </div>
                                     <div className="text-preview">
                                         <span className="head-data">ศูนย์</span> 

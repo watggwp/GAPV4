@@ -158,7 +158,7 @@ const ManageDoctorPage = ({RefOnPage , id_table , type , status , setBecause , T
                                 </div>
                                 <div className="detail-text">
                                     <div className="text-preview">
-                                        <span className="fullname">{Profile.fullname ? Profile.fullname : "เจ้าหน้าที่ส่งเสริมยังไม่ทำการระบุชื่อ"}</span>
+                                        <span className="fullname">{Profile.fullname ? Profile.fullname : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุชื่อ"}</span>
                                     </div>
                                     <div className="text-preview">
                                         <span className="head-data">รหัสประจำตัว</span>

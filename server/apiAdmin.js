@@ -166,6 +166,136 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
     }
   })
 
+  app.post('/api/admin/role/get', async (req, res) => {
+    let username = req.session.user_admin;
+    let password = req.session.pass_admin;
+
+    if (!username || !password) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    let con = Database.createConnection(listDB);
+
+    try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] !== "pass") {
+            return res.status(403).json({ error: "Forbidden" });
+        }
+
+        let data = req.body;
+        con.query(
+          `SELECT 
+              id_table_doctor, 
+              doctor_role,
+              analyst_role,
+              consultant_role
+          FROM acc_doctor 
+          WHERE id_table_doctor = ? 
+          LIMIT 1;`,
+          [data.id_table],
+          (err, result) => {
+              if (err) {
+                  console.error("❌ Database Error:", err);
+                  return res.status(500).json({ error: "Database Error" });
+              }
+
+              if (result.length === 0) {
+                  console.warn("⚠️ No data found for id_table:", data.id_table);
+                  return res.status(404).json({ message: "No data found" });
+              }
+
+              console.log("🔍 Raw Database Result:", result);
+
+              // ฟังก์ชันช่วย parse ค่า Buffer ให้เป็น 0 หรือ 1
+              const parseRole = (val) => {
+                  if (Buffer.isBuffer(val)) {
+                      // ถ้าเป็น buffer เช่น <00> หรือ <01>
+                      return val[0] === 1 ? 1 : 0;
+                  }
+                  // ถ้าเป็นตัวเลขอยู่แล้ว
+                  return val == 1 ? 1 : 0;
+              };
+
+              const formattedResult = result.map(row => ({
+                  id_table_doctor: row.id_table_doctor,
+                  doctor_role: parseRole(row.doctor_role),
+                  analyst_role: parseRole(row.analyst_role),
+                  consultant_role: parseRole(row.consultant_role),
+              }));
+
+              console.log("✅ API Returning Data:", formattedResult);
+
+              res.json(formattedResult);
+          }
+      );
+  } catch (err) {
+      console.error("❌ Error in API:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+      con.end(); // ปิด connection
+  }
+});
+
+app.post('/api/admin/role/update', async (req, res) => {
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
+
+  if (!username || !password) {
+      return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  let con = Database.createConnection(listDB);
+
+  try {
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] !== "pass") {
+          return res.status(403).json({ error: "Forbidden" });
+      }
+
+      const { 
+          id_table_doctor, 
+          doctor_role, 
+          analyst_role, 
+          consultant_role 
+      } = req.body;
+
+      // อัปเดต role
+      const sql = `
+          UPDATE acc_doctor
+          SET 
+              doctor_role = ?, 
+              analyst_role = ?, 
+              consultant_role = ?
+          WHERE id_table_doctor = ?
+      `;
+
+      con.query(
+          sql,
+          [doctor_role, analyst_role, consultant_role, id_table_doctor],
+          (err, result) => {
+              if (err) {
+                  console.error("❌ Database Error:", err);
+                  return res.status(500).json({ error: "Database Error" });
+              }
+
+              // ถ้าไม่มี row ไหนโดน update => แปลว่าไม่พบ id_table_doctor นี้
+              if (result.affectedRows === 0) {
+                  return res.status(404).json({ message: "No data found to update" });
+              }
+
+              res.json({ message: "Roles updated successfully" });
+          }
+      );
+
+  } catch (err) {
+      console.error("❌ Error in API:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+      con.end();
+  }
+});
+
+
   app.post('/api/admin/admin/get' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.session.pass_admin
@@ -187,7 +317,7 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
             (
               SELECT name FROM station_list WHERE admin_main.station_admin=station_list.id
             ) as station , 
-            id , username , img_admin , status_account , status_delete
+            id , fullname_admin , username , img_admin , status_account , status_delete
             FROM admin as admin_main
             WHERE id = ? LIMIT 25;
           ` 
@@ -1461,7 +1591,8 @@ app.post('/api/admin/data/list', async (req, res) => {
       const auth = await apifunc.auth(con , username , password , res , "admin")
       if(auth['result'] === "pass") {
         const data = req.body
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : "";
+        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" 
+        : data.type === "chemical" ? "chemical" : data.type === "pest" ? "pest" : "";
         if(From) {
           try {
             const verify = data.state_use ? await new Promise((resole , reject)=> {
@@ -1694,38 +1825,50 @@ app.post('/api/admin/data/list', async (req, res) => {
   })
 
   // check Login
-  app.all('/api/admin/auth' , async (req , res)=>{
-    
+  app.all('/api/admin/auth', async (req, res) => {
     // เช็คการเข้าสู่ระบบจริงๆ
     let username = req.session.user_admin ?? req.body['username'] ?? '';
     let password = req.session.pass_admin ?? req.body['password'] ?? '';
 
-    if(username === '' || password === '') {
-      res.redirect('/api/logout')
-      return 0
+    if (username === '' || password === '') {
+        res.redirect('/api/logout');
+        return;
     }
-  
-    let con = Database.createConnection(listDB)
-  
-    // Database.resume()
+
+    let con = Database.createConnection(listDB);
+
     try {
-      let auth = await apifunc.auth(con , username , password , res , "admin")
-      con.end()
-      if(auth['result'] === "pass") {
-        req.session.user_admin = username
-        req.session.pass_admin = password
-        req.session.tokenSession = apifunc.getTokenCsurf(req)
-        res.send('1')
-      }
+        let auth = await apifunc.auth(con, username, password, res, "admin");
+
+        // ตรวจสอบว่าผลลัพธ์เป็น "pass" และมีข้อมูลของบัญชี
+        if (auth['result'] === "pass" && auth['data']) {
+            let status_account = auth['data']['status_account'];
+            let status_delete = auth['data']['status_delete'];
+
+            // ถ้าบัญชีถูกปิดใช้งานหรือถูกลบ -> ไม่อนุญาตให้เข้าสู่ระบบ
+            if (status_account == 0 || status_delete == 1) {
+                con.end();
+                res.send('account_disabled');  // ส่งข้อความแจ้งเตือนให้ผู้ใช้
+                return;
+            }
+
+            // บัญชีปกติ สามารถเข้าสู่ระบบได้
+            req.session.user_admin = username;
+            req.session.pass_admin = password;
+            req.session.tokenSession = apifunc.getTokenCsurf(req);
+
+            con.end();
+            res.send('1'); // ส่งค่ากลับแจ้งว่าเข้าสู่ระบบสำเร็จ
+        } else {
+            con.end();
+            res.redirect('/api/logout');
+        }
     } catch (err) {
-      con.end()
-      if(err == "not pass") {
-        res.redirect('/api/logout')
-      } else if( err == "connect" ) {
-        res.redirect('/api/logout')
-      }
+        con.end();
+        res.redirect('/api/logout');
     }
-  })
+});
+
   
   app.get('/api/logout' , (req , res) => {
     req.session.destroy()
@@ -1990,91 +2133,208 @@ app.post('/api/admin/report/list', async(req, res) => {
     }
 });
 
+// app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
+//     console.log(" Raw body received:", req.body);
+//     console.log(" selectedData:", req.body.selectedData);
+//     console.log(" minCount:", req.body.minCount);
+    
+//     let username = req.session.user_admin;
+//     let password = req.session.pass_admin;
+
+//     if (!username || !password) {
+//         res.redirect('/api/logout');
+//         return;
+//     }
+
+//     let con = Database.createConnection(listDB);
+//     console.log("Received selectedData:", req.body.selectedData);
+//     console.log("Received minCount:", req.body.minCount); 
+
+//     try {
+//         const auth = await apifunc.auth(con, username, password, res, "admin");
+//         if (auth['result'] === "pass") {
+//             const { selectedData, minCount } = req.body; 
+
+//             // บันทึกค่า minCount ลงในตาราง statistic
+//             con.query(
+//                 `
+//                 INSERT INTO statistic (role, count_day ,id_role) 
+//                 VALUES (?,?,?) 
+//                 ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
+//                 `,
+//                 ["admin" , minCount , auth['data']['id']],
+//                 (err) => {
+//                     if (err) {
+//                         console.error("Database error:", err);
+//                         dbpacket.dbErrorReturn(con, err, res);
+//                         return;
+//                     }
+//                 }
+//             );
+
+//             // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
+//             con.query(
+//                 `SELECT 
+//                     af.uid_line
+//                  FROM formchemical fc
+//                  LEFT JOIN pests p ON fc.insect = p.pest_name
+//                  LEFT JOIN formplant fp ON fc.id_plant = fp.id
+//                  LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+//                  LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+//                  WHERE af.station = ? 
+//                  LIMIT 25;`, [auth['data']['station_admin']],
+//                 (err, result) => {
+//                     if (err) {
+//                         dbpacket.dbErrorReturn(con, err, res);
+//                         return;
+//                     }
+
+//                     try {
+//                         console.log("Query Result:", result);
+//                         let uid = result.map(row => row.uid_line);
+//                         let textSend = selectedData.map(item => 
+//                             `พืช: ${item.name_plants}\n` +
+//                             `ศัตรูพืชที่พบ: ${item.pest_name}\n` +
+//                             `จำนวน: ${item.count}\n` +
+//                             `สารเคมีที่ใช้: ${item.chemical_used || "-"}`
+//                         ).join("\n\n");
+
+//                         console.log("UIDs to send:", uid);
+//                         console.log("Text to send:", textSend);
+
+//                         // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
+//                         Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+//                     } catch (e) {
+//                         console.error("Error sending Line message:", e);
+//                     }
+
+//                     con.end();
+//                     res.send(result);
+//                 }
+//             );
+//         }
+//     } catch (err) {
+//         con.end();
+//         if (err == "not pass") {
+//             res.redirect('/api/logout');
+//         }
+//     }
+// });
+
 app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+  console.log("Raw body received:", req.body);
+  console.log("selectedData:", req.body.selectedData);
+  console.log("minCount:", req.body.minCount);
 
-    if (!username || !password) {
-        res.redirect('/api/logout');
-        return;
-    }
+  let username = req.session.user_admin;
+  let password = req.session.pass_admin;
 
-    let con = Database.createConnection(listDB);
-    console.log("Received selectedData:", req.body.selectedData);
-    console.log("Received minCount:", req.body.minCount); 
+  if (!username || !password) {
+      res.redirect('/api/logout');
+      return;
+  }
 
-    try {
-        const auth = await apifunc.auth(con, username, password, res, "admin");
-        if (auth['result'] === "pass") {
-            const { selectedData, minCount } = req.body; 
+  let con = Database.createConnection(listDB);
+  console.log("Received selectedData:", req.body.selectedData);
+  console.log("Received minCount:", req.body.minCount);
 
-            // บันทึกค่า minCount ลงในตาราง statistic
-            con.query(
-                `
-                INSERT INTO statistic (role, count_day ,id_role) 
-                VALUES (?,?,?) 
-                ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
-                `,
-                ["admin" , minCount , auth['data']['id']],
-                (err) => {
-                    if (err) {
-                        console.error("Database error:", err);
-                        dbpacket.dbErrorReturn(con, err, res);
-                        return;
-                    }
-                }
-            );
+  try {
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] === "pass") {
+          const { selectedData, minCount } = req.body;
 
-            // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
-            con.query(
-                `SELECT 
-                    af.uid_line
-                 FROM formchemical fc
-                 LEFT JOIN pests p ON fc.insect = p.pest_name
-                 LEFT JOIN formplant fp ON fc.id_plant = fp.id
-                 LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
-                 LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-                 WHERE af.station = ? 
-                 LIMIT 25;`, [auth['data']['station_admin']],
-                (err, result) => {
-                    if (err) {
-                        dbpacket.dbErrorReturn(con, err, res);
-                        return;
-                    }
+          // บันทึกค่า minCount ลงในตาราง statistic
+          con.query(
+              `INSERT INTO statistic (role, count_day, id_role) 
+               VALUES (?, ?, ?) 
+               ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
+              ["admin", minCount, auth['data']['id']],
+              (err) => {
+                  if (err) {
+                      console.error("Database error:", err);
+                      dbpacket.dbErrorReturn(con, err, res);
+                      return;
+                  }
+              }
+          );
 
-                    try {
-                        console.log("Query Result:", result);
-                        let uid = result.map(row => row.uid_line);
-                        
-                        // ✅ อัปเดต textSend ให้รวม chemical_used
-                        let textSend = selectedData.map(item => 
-                            `พืช: ${item.name_plants}\n` +
-                            `ศัตรูพืชที่พบ: ${item.pest_name}\n` +
-                            `จำนวน: ${item.count}\n` +
-                            `สารเคมีที่ใช้: ${item.chemical_used || "-"}`
-                        ).join("\n\n");
+          // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
+          con.query(
+              `SELECT af.uid_line 
+               FROM formchemical fc
+               LEFT JOIN pests p ON fc.insect = p.pest_name
+               LEFT JOIN formplant fp ON fc.id_plant = fp.id
+               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+               LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+               WHERE af.station = ? 
+               LIMIT 25`, 
+              [auth['data']['station_admin']],
+              (err, result) => {
+                  if (err) {
+                      dbpacket.dbErrorReturn(con, err, res);
+                      return;
+                  }
 
-                        console.log("UIDs to send:", uid);
-                        console.log("Text to send:", textSend);
+                  try {
+                      console.log("Query Result:", result);
+                      let uid = result.map(row => row.uid_line);
 
-                        // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
-                        Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
-                    } catch (e) {
-                        console.error("Error sending Line message:", e);
-                    }
+                      // ดึงข้อมูลศัตรูพืชและสารเคมีที่ใช้
+                      con.query(
+                        `SELECT pc.pest_id, pc.chemical_id, 
+                                p.pest_name, c.name AS chemical_name
+                         FROM pest_chemical pc
+                         LEFT JOIN pests p ON pc.pest_id = p.pest_id  
+                         LEFT JOIN chemical_list c ON pc.chemical_id = c.id`, 
+                          (err, pestChemicalResult) => {
+                              if (err) {
+                                  dbpacket.dbErrorReturn(con, err, res);
+                                  return;
+                              }
 
-                    con.end();
-                    res.send(result);
-                }
-            );
-        }
-    } catch (err) {
-        con.end();
-        if (err == "not pass") {
-            res.redirect('/api/logout');
-        }
-    }
+                              // จัดกลุ่มศัตรูพืชให้จับคู่กับสารเคมีที่ใช้
+                              let pestChemicalMap = {};
+                              pestChemicalResult.forEach(row => {
+                                  if (!pestChemicalMap[row.pest_name]) {
+                                      pestChemicalMap[row.pest_name] = [];
+                                  }
+                                  pestChemicalMap[row.pest_name].push(row.chemical_name);
+                              });
+
+                              let textSend = selectedData.map(item => {
+                                  let pestName = item.pest_name;
+                                  let chemicals = pestChemicalMap[pestName] || ["-"];
+                                  let chemicalsText = chemicals.join(", "); 
+
+                                  return `พืช: ${item.name_plants}\n` +
+                                         `ศัตรูพืชที่พบ: ${pestName}\n` +
+                                         `จำนวน: ${item.count}\n` +
+                                         `สารเคมีที่ใช้: ${chemicalsText}`;
+                              }).join("\n\n");
+
+                              console.log("UIDs to send:", uid);
+                              console.log("Text to send:", textSend);
+
+                              // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
+                              Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                              con.end();
+                              res.send(result);
+                          }
+                      );
+                  } catch (e) {
+                      console.error("Error sending Line message:", e);
+                  }
+              }
+          );
+      }
+  } catch (err) {
+      con.end();
+      if (err == "not pass") {
+          res.redirect('/api/logout');
+      }
+  }
 });
+
 
 
 

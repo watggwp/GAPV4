@@ -5,8 +5,8 @@ import { InsertStatisticsContext } from "./InsertStatistics";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 export default function ButtonChangeStatistics() { 
-    const { minCount } = useContext(InsertStatisticsContext);
-    const { ChangeStatus } = useContext(PageTemplateContext);
+    const { selectedRows } = useContext(InsertStatisticsContext);
+
     
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
 
@@ -23,9 +23,9 @@ export default function ButtonChangeStatistics() {
     return (
         <div style={{ display: "flex" }}>
             <button 
-                className={`report-button ${minCount >= 1 ? "active" : "disabled"}`}
+                className={`report-button ${selectedRows.size > 0 ? "active" : "disabled"}`}
                 onClick={handleOpenModal}
-                disabled={minCount < 1}
+                disabled={selectedRows.size === 0}
             >
                 แจ้งเตือน
             </button>
@@ -75,27 +75,29 @@ function NotifyStatistics({
             name_plants: item.name_plants,
             count: item.count,
             pest_name: item.name || item.insect,  // เพิ่ม pest_name
-            chemical_used: item.chemical_used || "-"  // เพิ่ม chemical_used
+            chemical_used: item.chemical || "-"  
         }));
+    
+        console.log("Data before sending:", updatedSelectedData); // ตรวจสอบก่อนส่ง
     
         clientMo.post("/api/admin/sendNotifyreport/get", { 
             selectedData: updatedSelectedData, 
             minCount 
         }).then(() => {
-            console.log("ส่งข้อมูลเรียบร้อยแล้ว!");
+            console.log("Data sent successfully!");
             handleCloseModal();
         }).catch(error => {
-            console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
+            console.error("Error sending data:", error);
         });
     };
     
     
 
     useEffect(() => {
-        if(minCount >= 1) {
+        if(selectedRows.size > 0) {
             fetchStatistics()
         }
-    }, [fetchStatistics , minCount]);
+    }, [fetchStatistics , selectedRows]);
 
     return(
         <div className="modal-content">

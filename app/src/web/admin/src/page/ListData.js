@@ -16,6 +16,7 @@ import EditPage from "./data/EditPage";
 import ManageDataPage from "./data/ManagePage";
 import ManageDoctorPage from "./doctor/ManagePage";
 import ManageAdminPage from "./admin/ManagePage";
+import ManageRole from "./doctor/ManageRole";
 import { PageTemplateContext } from "./PageTemplate";
 import InsertReport from "./report/InsertReport";
 import InsertGraph from "./report/InsertGraph";
@@ -371,6 +372,29 @@ const ManageList = ({
     manageList(maxC);
   };
 
+  const OpenManageRole = async (id_table_doctor, doctor_role, analyst_role, consultant_role) => {
+    if (await auth(true)) {
+
+        setBecause(null);
+
+        // รอให้ React อัปเดตสถานะก่อนเปิดใหม่
+        setTimeout(() => {
+            setBecause(
+                <ManageRole
+                    RefOnPage={RefBe}
+                    id_table={id_table_doctor}  // ส่งค่า id_table ไปยัง ManageRole
+                    doctor_role={doctor_role}
+                    analyst_role={analyst_role}
+                    consultant_role={consultant_role}
+                    setBecause={setBecause}
+                    ReloadFetch={Fetch} // ใช้สำหรับรีโหลดข้อมูลหลังอัปเดต
+                />
+            );
+        }, 100); 
+    }
+};
+
+
   const OpenConfirmDoctor = async (id_table_doctor, typeStatus) => {
     if (await auth(true)) {
       const status = parseInt(
@@ -535,7 +559,7 @@ const ManageList = ({
                     />
                   )
                 ) : (
-                  "ยังไม่ทำการเข้าระบบ"
+                  "ยังไม่เข้าระบบ"
                 )}
               </div>
             </div>
@@ -557,7 +581,7 @@ const ManageList = ({
                 <span>
                   {data.fullname_doctor
                     ? data.fullname_doctor
-                    : "เจ้าหน้าที่ส่งเสริมยังไม่ทำการระบุชื่อ"}
+                    : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุชื่อ"}
                 </span>
               </detail-in-fullname>
               <detail-in>
@@ -577,6 +601,20 @@ const ManageList = ({
           <action-bt>
             {status.status === "default" ? (
               <>
+                <bt-role>
+                    <button
+                        onClick={() =>
+                            OpenManageRole(
+                                data.id_table_doctor, 
+                                data.doctor_role, 
+                                data.analyst_role, 
+                                data.consultant_role
+                            )
+                        }
+                    >
+                        สิทธิ์การใช้งาน
+                    </button>
+                </bt-role>
                 <content-status because={1}>
                   <bt-because>
                     <button
@@ -666,7 +704,7 @@ const ManageList = ({
                     />
                   )
                 ) : (
-                  "ยังไม่ทำการเข้าระบบ"
+                  "ยังไม่เข้าระบบ"
                 )}
               </div>
             </div>
@@ -686,7 +724,7 @@ const ManageList = ({
                 <span>
                   {data.fullname_admin
                     ? data.fullname_admin
-                    : "ผู้ดูแลระบบยังไม่ทำการระบุชื่อ"}
+                    : "ผู้ดูแลระบบยังไม่ระบุชื่อ"}
                 </span>
               </detail-in-fullname>
               <detail-in>
@@ -789,28 +827,48 @@ const ManageList = ({
                 ""
               )}
             </div>
-            <div
-              className={
-              status.status === "plant" ? "variety_name" : ""
-              }
-                >
-              {status.status === "plant" ? <span>สายพันธุ์พืช</span> : <></>}
-              {status.status === "plant" ? (
-              <div className="text-data">{data.variety_name}</div>
-              ) : (
-                <></>
+        
+
+
+            <div className= "chemical" w={status.status === "chemical" ? "chemical" : ""}>
+              {status.status === "chemical" && (
+                <>
+                  <span>ชื่อสารเคมี</span>
+                  <div className="text-data">{data.name}</div>
+                </>
               )}
             </div>
 
-            <div className={status.status}>
+            {/* <div className="chemical" w={status.status}>
             {status.status === "chemical" && (
               <> 
                 <span className={status.status}>ชื่อสารเคมี</span>
-                {/* แสดงชื่อสารเคมีเฉพาะที่นี่ */}
                 <div className="text-data">{data.name}</div>
               </>
             )}
+            </div> */}
+
+<div className= "name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
+            {status.status === "chemical" && (
+              <>
+                <span>ชื่อสามัญสารเคมี</span>
+                <div className="text-data">{data.name_formula}</div>
+              </>
+            )}
           </div>
+
+            {/* <div className="pest" w={status.status}>
+              {status.status === "pest" ? (
+                <span className={status.status}>
+                  {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
+                </span>
+              ) : (
+                <></>
+              )}
+              <div className={`text-data ${status.status}`}>
+                {data.pest_name}
+              </div>
+            </div> */}
 
           <div className= "station" w={status.status === "station" ? "name" : ""}>
             {status.status === "station" && (
@@ -820,26 +878,7 @@ const ManageList = ({
             )}
           </div>
 
-          <div className= "chemical" w={status.status === "chemical" ? "name_formula" : ""}>
-            {status.status === "chemical" && (
-              <>
-                <span>ชื่อสามัญสารเคมี</span>
-                <div className="text-data">{data.name_formula}</div>
-              </>
-            )}
-          </div>
-
-          <div className={status.status === "chemical" ? "how_use" : ""}>
-            {status.status === "chemical" && (
-              <>
-                <span>วิธีการใช้</span>
-                <div className="text-data">{data.how_use}</div>
-              </>
-            )}
-          </div>
-
-
-            <div className="name" w={status.status}>
+          <div className="pest" w={status.status}>
               {status.status === "pest" ? (
                 <span className={status.status}>
                   {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
@@ -852,37 +891,47 @@ const ManageList = ({
               </div>
             </div>
 
+          {/* <div className= "name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
+            {status.status === "chemical" && (
+              <>
+                <span>ชื่อสามัญสารเคมี</span>
+                <div className="text-data">{data.name_formula}</div>
+              </>
+            )}
+          </div> */}
           </detail-data>
 
-          {status.status === "plant" ? (
-            <detail-data maxsize="">
-              <div className="name">
-                <span className={status.status}>
-                  จำนวนวันที่จะเก็บเกี่ยว
-                </span>
-                <div
-                  className={`text-data`}
-                >{`${data.qty_harvest} วัน`}</div>
-              </div>
-            </detail-data>
-          ) : (
-            <></>
-          )}
+        {status.status === "plant" ? (
+          <detail-data maxsize="">
+            <div className="name">
+              <span className={status.status}>สายพันธุ์พืช</span>
+              <div className="text-data">{data.variety_name}</div>
+            </div>
+            <div className="name">
+              <span className={status.status}>จำนวนวันที่จะเก็บเกี่ยว</span>
+              <div className="text-data">{`${data.qty_harvest} วัน`}</div>
+            </div>
 
-          {status.status === "chemical" ? (
-            <detail-data maxsize="">
-              <div className="name">
-                <span className={status.status}>
-                  จำนวนวันที่ปลอดภัย
-                </span>
-                <div
-                  className={`text-data`}
-                >{`${data.date_safe_list} วัน`}</div>
-              </div>
-            </detail-data>
-          ) : (
-            <></>
-          )}
+          </detail-data>
+        ) : (
+          <></>
+        )}
+
+        {status.status === "chemical" ? (
+          <detail-data maxsize="">
+            <div className="chemical">
+              <span className={status.status}>วิธีการใช้</span>
+              <div className="text-data">{data.how_use}</div>
+            </div>
+            <div className="chemical">
+              <span className={status.status}>จำนวนวันที่ปลอดภัย</span>
+              <div className="text-data">{`${data.date_safe_list} วัน`}</div>
+            </div>
+
+          </detail-data>
+        ) : (
+          <></>
+        )}
 
             <div 
               className={
@@ -1114,18 +1163,10 @@ const InsertPage = ({ ReloadAccount, type }) => {
               ? "ชนิดพืช"
               : type === "station"
               ? "ศูนย์ส่งเสริม"
-              : type === "gruop"
-              ? "จัดกลุ่มข้อมูล"
               : type === "chemical"
               ? "สารเคมี"
               : type === "pest"
-              ? "ศัตรูพืช"
-              : type === "listlocation"
-              ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
-              : type === "graph"
-              ? "จำนวนเกษตรกรและพืช"
-              : type === "statistics"
-              ? "สถิติโรคพืช / ศัตรูพืช"
+              ? "ศัตรูพืช/โรคพืช"
               : ""
           }สำเร็จ`
         );
@@ -1146,21 +1187,13 @@ const InsertPage = ({ ReloadAccount, type }) => {
               : type === "admin"
               ? "บัญชีผู้ดูแลระบบ"
               : type === "plant"
-              ? "ชนิดพืช"
+              ? "พืชสายพันธุ์"
               : type === "station"
               ? "ศูนย์ส่งเสริม"
-              : type === "gruop"
-              ? "จัดกลุ่มข้อมูล"
               : type === "chemical"
               ? "สารเคมี"
               : type === "pest"
               ? "ศัตรูพืช"
-              : type === "listlocation"
-              ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร"
-              : type === "graph"
-              ? "จำนวนเกษตรกรและพืช"
-              : type === "statistics"
-              ? "สถิติโรคพืช / ศัตรูพืช"
               : ""
           }นี้แล้ว`
         );

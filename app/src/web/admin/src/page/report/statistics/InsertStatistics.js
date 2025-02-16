@@ -227,37 +227,38 @@ const InsertStatistics = () => {
       </div>
 
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-        <button
-          onClick={() => setShowPlantDiseases(true)}
-          style={{
-            padding: "10px 20px",
-            marginRight: "10px",
-            backgroundColor: showPlantDiseases === true ? "#22C7A9" : "#ddd",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontFamily: "Sans-font",
-            fontWeight: "900",
-          }}
-        >
-          โรคพืช
-        </button>
-        <button
-          onClick={() => setShowPlantDiseases(false)}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: showPlantDiseases === false ? "#22C7A9" : "#ddd",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontFamily: "Sans-font",
-            fontWeight: "900",
-          }}
-        >
-          ศัตรูพืช
-        </button>
+      <button
+        onClick={() => setShowPlantDiseases(true)}
+        style={{
+          padding: "10px 20px",
+          marginRight: "10px",
+          backgroundColor: showPlantDiseases === null || showPlantDiseases === true ? "#22C7A9" : "#ddd",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontFamily: "Sans-font",
+          fontWeight: "900",
+        }}
+      >
+        โรคพืช
+      </button>
+      <button
+        onClick={() => setShowPlantDiseases(false)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: showPlantDiseases === false ? "#22C7A9" : "#ddd",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontFamily: "Sans-font",
+          fontWeight: "900",
+        }}
+      >
+        ศัตรูพืช
+      </button>
+
       </div>
 
       {showPlantDiseases !== null && (
