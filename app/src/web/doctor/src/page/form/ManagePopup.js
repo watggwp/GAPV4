@@ -21,6 +21,10 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
     
     const [StateMenuShow , setStateMenuShow] = useState(false)
     const [getResize , setResize] = useState(window.innerWidth)
+    const [data, setData] = useState(null); // ข้อมูลจาก API
+    const [editMode, setEditMode] = useState(true); // เปิด/ปิดโหมดแก้ไข
+    const [editedData, setEditedData] = useState(null); // เก็บค่าที่แก้ไข
+
 
     useEffect(()=>{
         RefPop.current.style.opacity = "1"
@@ -41,11 +45,61 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
         // console.log(window.innerWidth)
     }
 
+
+    useEffect(() => {
+        if (data && Object.keys(data).length > 0) {
+            console.log("ข้อมูล data ถูกโหลดแล้ว:", data);
+        }
+    }, [data]);
+    
+
+    const handleEdit = () => {
+        setTimeout(() => {
+            if (!data || Object.keys(data).length === 0) {
+                console.warn("ไม่มีข้อมูล data, อาจยังโหลดไม่เสร็จ");
+                return;
+            }
+            console.log("กำลังเข้าสู่โหมดแก้ไข:", data);
+            setEditMode(true);
+            setEditedData({ ...data });
+        }, 500); // รอ 500ms เพื่อให้ React อัปเดตค่า state
+    };
+    
+    useEffect(() => {
+        console.log("ค่า editMode เปลี่ยน:", editMode);
+    }, [editMode]);
+    
+
+    // กดปุ่มยกเลิก
+    const handleCancel = () => {
+        setEditMode(false);
+        setEditedData(data); // คืนค่าเดิม
+    };
+
+    // กดปุ่มบันทึก
+    const handleSave = async () => {
+        try {
+            const response = await clientMo.post(`/api/doctor/form/edit`, {
+                ...editedData, // ส่งข้อมูลที่แก้ไขไป API
+            });
+            console.log("บันทึกสำเร็จ:", response.data);
+
+            setEditMode(false); // กลับไปโหมดดูข้อมูล
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+        }
+    };
+
     const FetchContent = async (type_form) => {
         setLoadContent(true)
         const Data = await clientMo.get(`/api/doctor/form/get/detail?id_form=${id_form}&type=${type_form}`)
         try {
             const JsonData = JSON.parse(Data)
+            console.log("API Response:data");
+            setData(JsonData[0]); // ตั้งค่าข้อมูลหลัก
+            setData(editedData); // อัปเดตข้อมูลที่แสดงในฟอร์ม
+            setEditMode(false); // กลับไปโหมดดูข้อมูล
+            console.log("ข้อมูลที่ดึงมา:", JsonData[0]); // ตรวจสอบว่ามีข้อมูล
             if(!type_form) setNameFarmer(JsonData[0].fullname)
             setContent(
                 JsonData.map((data , key)=>
@@ -55,107 +109,147 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                             setCountEdit(data.countStatus)
                             return (
                                 <section key={key} className="detail-main-form">
+                                    <div className="row">
+                        {!editMode ? (
+                            <button onClick={() => {
+                                console.log("กดปุ่มแก้ไข");
+                                handleEdit();
+                            }}>แก้ไข</button>
+                            
+                        ) : (
+                            <>
+                                <button onClick={handleSave} className="save-button">บันทึก</button>
+                                <button onClick={handleCancel} className="cancel-button">ยกเลิก</button>
+                            </>
+                        )}
+                    </div>
                                     <div className="content-data">
                                         <div className="number">1.</div>
                                         <div className="data-row">
                                             <div className="row">
                                                 <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชนิดพืช</span>
-                                                    <span className="data-show">{data.type_main}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชื่อพืช</span>
-                                                    <span className="data-show">{data.name_plant}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่เพาะกล้า</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_glow}/>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่ปลูก</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_plant}/>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่คาดว่าจะเก็บเกี่ยว</span>
-                                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_harvest}/>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">วันที่เก็บเกี่ยว</span>
-                                                    { data.date_success ? 
-                                                        <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_success}/> 
-                                                        : <span className="data-show">ยังไม่เก็บเกี่ยว</span>}
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">พื้นที่</span>
-                                                    <span className="data-show">
-                                                        {data.area}
-                                                        <div className="unit">
-                                                            ตารางเมตร
-                                                        </div>
-                                                    </span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">จำนวนต้น</span>
-                                                    <span className="data-show">{data.qty}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <span className="head-text">ระยะการปลูก</span>
-                                                <div className="text-body">
-                                                    <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
-                                                        <span className="head-data">ระหว่างต้น</span>
-                                                        <span className="data-show">{data.posi_w}</span>
-                                                    </div>
-                                                    <div className={`data-main ${getResize >= 450 ? "in-2 column" : "in-1 screen-small"}`}>
-                                                        <span className="head-data">ระหว่างแถว</span>
-                                                        <span className="data-show">{data.posi_h}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">รุ่นที่ปลูก</span>
-                                                    <span className="data-show">{data.generation}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">2.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 column ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>รูปแบบการปลูก</span>
-                                                    <span className="data-show">{data.system_glow}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">3.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>แหล่งน้ำ</span>
-                                                    <span className="data-show">{data.water}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">4.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span className="head-data" style={{width : "110px"}}>วิธีการให้น้ำ</span>
-                                                    <span className="data-show">{data.water_flow}</span>
-                                                </div>
+                                                <span className="head-data">ชนิดพืช</span>
+                            {editMode ? (
+                                <input
+                                    type="text"
+                                    value={editedData?.type_main}
+                                    onChange={(e) => setEditedData({ ...editedData, type_main: e.target.value })}
+                                />
+                            ) : (
+                                <span className="data-show">{data.type_main}</span>
+                            )}
+                        </div>
+                        <div className="data-main">
+                            <span className="head-data">ชื่อพืช</span>
+                            {editMode ? (
+                                <input
+                                    type="text"
+                                    value={editedData?.name_plant}
+                                    onChange={(e) => setEditedData({ ...editedData, name_plant: e.target.value })}
+                                />
+                            ) : (
+                                <span className="data-show">{data.name_plant}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="data-main">
+                            <span className="head-data">วันที่เพาะกล้า</span>
+                            {editMode ? (
+                                <input
+                                    type="date"
+                                    value={editedData?.date_glow}
+                                    onChange={(e) => setEditedData({ ...editedData, date_glow: e.target.value })}
+                                />
+                            ) : (
+                                <DayJSX TYPE="small" DATE={data.date_glow} />
+                            )}
+                        </div>
+                        <div className="data-main">
+                            <span className="head-data">วันที่ปลูก</span>
+                            {editMode ? (
+                                <input
+                                    type="date"
+                                    value={editedData?.date_plant}
+                                    onChange={(e) => setEditedData({ ...editedData, date_plant: e.target.value })}
+                                />
+                            ) : (
+                                <DayJSX TYPE="small" DATE={data.date_plant} />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="data-main">
+                            <span className="head-data">พื้นที่ (ตารางเมตร)</span>
+                            {editMode ? (
+                                <input
+                                    type="number"
+                                    value={editedData?.area}
+                                    onChange={(e) => setEditedData({ ...editedData, area: e.target.value })}
+                                />
+                            ) : (
+                                <span className="data-show">{data.area}</span>
+                            )}
+                        </div>
+                        <div className="data-main">
+                            <span className="head-data">จำนวนต้น</span>
+                            {editMode ? (
+                                <input
+                                    type="number"
+                                    value={editedData?.qty}
+                                    onChange={(e) => setEditedData({ ...editedData, qty: e.target.value })}
+                                />
+                            ) : (
+                                <span className="data-show">{data.qty}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <span className="head-text">ระยะการปลูก</span>
+                        <div className="text-body">
+                            <div className="data-main">
+                                <span className="head-data">ระหว่างต้น</span>
+                                {editMode ? (
+                                    <input
+                                        type="number"
+                                        value={editedData?.posi_w}
+                                        onChange={(e) => setEditedData({ ...editedData, posi_w: e.target.value })}
+                                    />
+                                ) : (
+                                    <span className="data-show">{data.posi_w}</span>
+                                )}
+                            </div>
+                            <div className="data-main">
+                                <span className="head-data">ระหว่างแถว</span>
+                                {editMode ? (
+                                    <input
+                                        type="number"
+                                        value={editedData?.posi_h}
+                                        onChange={(e) => setEditedData({ ...editedData, posi_h: e.target.value })}
+                                    />
+                                ) : (
+                                    <span className="data-show">{data.posi_h}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="data-main">
+                            <span className="head-data">วิธีการให้น้ำ</span>
+                            {editMode ? (
+                                <input
+                                    type="text"
+                                    value={editedData?.water_flow}
+                                    onChange={(e) => setEditedData({ ...editedData, water_flow: e.target.value })}
+                                />
+                            ) : (
+                                <span className="data-show">{data.water_flow}</span>
+                            )}
+                        </div>
                                             </div>
                                         </div>
                                     </div>
@@ -170,22 +264,60 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                             <div className="row">
                                                 <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                                                     <span className="head-data">ชนิดพืชก่อนหน้า</span>
-                                                    <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">โรค/แมลงที่พบ</span>
-                                                    <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ปริมาณการเกิด</span>
-                                                    <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span>
-                                                </div>
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">การป้องกันกำจัด</span>
-                                                    <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span>
-                                                </div>
+        {editMode ? (
+            <input
+                type="text"
+                value={editedData?.history || ""}
+                onChange={(e) => setEditedData({ ...editedData, history: e.target.value })}
+            />
+        ) : (
+            <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span>
+        )}
+    </div>
+
+    {/* โรค/แมลงที่พบ */}
+    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+        <span className="head-data">โรค/แมลงที่พบ</span>
+        {editMode ? (
+            <input
+                type="text"
+                value={editedData?.insect || ""}
+                onChange={(e) => setEditedData({ ...editedData, insect: e.target.value })}
+            />
+        ) : (
+            <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span>
+        )}
+    </div>
+</div>
+
+<div className="row">
+    {/* ปริมาณการเกิด */}
+    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+        <span className="head-data">ปริมาณการเกิด</span>
+        {editMode ? (
+            <input
+                type="number"
+                value={editedData?.qtyInsect || ""}
+                onChange={(e) => setEditedData({ ...editedData, qtyInsect: e.target.value })}
+            />
+        ) : (
+            <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span>
+        )}
+    </div>
+
+    {/* การป้องกันกำจัด */}
+    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+        <span className="head-data">การป้องกันกำจัด</span>
+        {editMode ? (
+            <textarea
+                value={editedData?.seft || ""}
+                onChange={(e) => setEditedData({ ...editedData, seft: e.target.value })}
+                rows={2}
+            />
+        ) : (
+            <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span>
+        )}
+    </div>
                                             </div>
                                         </div>
                                     </div>
