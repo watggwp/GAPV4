@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { PageDataContext } from "../data/PageData";
- 
+
 const InsertGraph = () => {
   const { textSearch } = useContext(PageDataContext);
   const [plantData, setPlantData] = useState([]);

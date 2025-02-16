@@ -17,6 +17,138 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         else res.clearCookie(process.env.cookieName).send("")
     })
 
+
+    // API: ดึงข้อมูลการแก้ไขฟอร์มการปลูกพืช
+        app.post('/api/doctor/formplant/edit/select', async (req, res) => {
+        if (req.session.uidFarmer) {
+        let con = Database.createConnection();
+
+        try {
+            const auth = await authCheck(con, res, req);
+            const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
+
+            con.query(
+                `
+                SELECT editform.*, COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                FROM editform
+                LEFT JOIN formplant ON editform.id_form = formplant.id
+                LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                WHERE formplant.id_farm_house = ?
+                AND formplant.id = ?
+                AND editform.type_form = "plant" \${where}
+                ORDER BY editform.date DESC
+                `,
+                [req.body.id_farmhouse, req.body.id_plant],
+                (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        con.end();
+                        res.send("error auth");
+                        return;
+                    }
+
+                    if (req.body.id_edit) {
+                        con.query(
+                            `SELECT * FROM detailedit WHERE id_edit = ?`,
+                            [req.body.id_edit],
+                            (err, detail) => {
+                                if (err) {
+                                    console.error("select detailedit", err);
+                                    con.end();
+                                    res.send("error");
+                                    return;
+                                }
+
+                                con.end();
+                                res.send({
+                                    head: result[0],
+                                    detail: detail,
+                                });
+                            }
+                        );
+                    } else {
+                        con.end();
+                        res.send(result);
+                    }
+                }
+            );
+        } catch (err) {
+            console.error("Authorization error:", err);
+            con.end();
+            res.send("error auth");
+        }
+    } else {
+        res.send("error auth");
+    }
+});
+
+// API: บันทึกการแก้ไขข้อมูลฟอร์มการปลูกพืช
+app.post('/api/doctor/formplant/edit', async (req, res) => {
+    if (req.session.uidDoctor) {
+        let con = Database.createConnection();
+        try {
+            const auth = await authCheck(con, res, req);
+
+            con.query(
+                `SELECT * FROM formplant WHERE id_farm_house = ? AND id = ?`,
+                [req.body.id_farmhouse, req.body.id_plant],
+                (err, result) => {
+                    if (err) {
+                        con.end();
+                        res.send("error auth");
+                        return;
+                    }
+                    if (!result[0]) {
+                        con.end();
+                        res.send("not found");
+                        return;
+                    }
+
+                    const data = req.body;
+                    const changes = Object.entries(data.dataChange).map(([key, value]) => [result[0][key], value, key]);
+                    const queries = changes.map(([oldContent, newContent, subject]) =>
+                        con.query(
+                            `INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) VALUES (?, ?, ?, ?)`,
+                            [data.id_plant, subject, oldContent, newContent]
+                        )
+                    );
+
+                    Promise.all(queries)
+                        .then(() => {
+                            const updates = changes.map(([_, newContent, subject]) => `${subject}="${newContent}"`).join(", ");
+                            con.query(
+                                `UPDATE formplant SET ${updates} WHERE id = ?`,
+                                [data.id_plant],
+                                (err) => {
+                                    if (err) {
+                                        console.error("update formplant", err);
+                                        con.end();
+                                        res.send("error");
+                                        return;
+                                    }
+                                    con.end();
+                                    res.send("success");
+                                }
+                            );
+                        })
+                        .catch((err) => {
+                            console.error("insert detailedit", err);
+                            con.end();
+                            res.send("error");
+                        });
+                }
+            );
+        } catch (err) {
+            console.error(err);
+            con.end();
+            res.send("error auth");
+        }
+    } else {
+        res.send("error auth");
+    }
+});
+
+
     app.get('/api/doctor/name' , (req , res)=>{
       
         let username = req.session.user_doctor
@@ -4361,4 +4493,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
           }
         }
     });
+
+    
+
 }

@@ -256,6 +256,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         Search.current.removeAttribute("show")
     }
 
+    // const searchRef = DataProcess.get("type") !== "group" ? Search : null;
+
+    console.log("Current type:", DataProcess.get("type"));
+
     return(
         <PageDataContext.Provider
             value={{ 
@@ -266,9 +270,12 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         >
             <section className="data-list-content-page data-page">
                 {
-                    DataProcess.get("type") !== "report" &&
-                        <div className="search-form" ref={Search}>
+                    // DataProcess.get("type") !== "report" &&
+                    <div className="search-form" ref={Search}>
                             <div className="bt-select-option">
+
+
+                                
                                 <a title="ค้นหา" className="bt-search-show" onClick={()=>OpenOption(Search , 0)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                                         <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -277,12 +284,33 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                         </g>
                                     </svg>
                                 </a>
+                                {
+                                DataProcess.get("type") !== "report" &&
                                 <a style={{padding : "0"}} title="เพิ่มข้อมูล" className="bt-search-show" onClick={()=>OpenOption(Search , 1)}>
                                     <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                                 </a>
+                                }
+                                {DataProcess.get("type") === "report" && (
+                                    <select 
+                                        onChange={(e) => {
+                                            searchList(e.target, e.target.value, "type");
+                                        }} 
+                                        ref={SelectType} 
+                                        value={DataProcess.get("type")}
+                                    >
+                                        <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
+                                        <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
+                                        <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
+                                    </select>
+                                )}
+
+
                             </div>
+                            
                             <div className="content-option">
                                 <div className="field-option">
+                                {
+                                    DataProcess.get("type") !== "group" && DataProcess.get("type") !== "report" && 
                                     <div className="row head-row">
                                         <label className="field-select">
                                             <span>ชนิดข้อมูล</span>
@@ -298,6 +326,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                             </select>
                                         </label>
                                     </div>
+                                }
                                     { !TypeSelectMenu ? 
                                         <>
                                             <span className="head">
@@ -345,7 +374,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                             }
                                         </>
                                         :
-                                        <>
+                                        <>                               
                                             <span className="head">
                                             เพิ่ม{
                                                 DataProcess.get("type") === "plant" ? "ชนิดพืช" : 
