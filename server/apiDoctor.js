@@ -722,6 +722,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 )
                             and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
                             and type = ""
+<<<<<<< HEAD
+>>>>>>> gap1164
+=======
 >>>>>>> gap1164
                         ORDER BY message_user.date DESC
                         LIMIT 1

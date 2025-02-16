@@ -73,13 +73,12 @@ const ListData = ({
     }
   }, [textSearch]);
 
- const removePopup = () => {
+  const removePopup = () => {
     if (RefBe.current) {
       RefBe.current.removeAttribute("style");
       setTimeout(() => {
         setBecause(<></>);
       }, 500);
-   
     }
   };
 
