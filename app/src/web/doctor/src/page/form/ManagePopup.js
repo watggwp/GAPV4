@@ -26,11 +26,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
     const [editedData, setEditedData] = useState(null); // เก็บค่าที่แก้ไข
 
 
-    useEffect(()=>{
-        RefPop.current.style.opacity = "1"
-        RefPop.current.style.visibility = "visible"
-        FetchContent(0)
-    } , [])
+ 
 
     useEffect(()=>{
         window.addEventListener("resize" , reSize)
