@@ -4,7 +4,7 @@ import "../../assets/style/page/form/ManagePopup.scss"
 import { DayJSX, Loading, MapsJSX, PopupDom, ResizeImg } from "../../../../../assets/js/module"
 import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
-import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "./ListManageDoctor"
+
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
     const [Content , setContent] = useState(<></>)
