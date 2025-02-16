@@ -73,82 +73,13 @@ const ListData = ({
     }
   }, [textSearch]);
 
-<<<<<<< HEAD
-    const fetchDataList = async (StartRow , Limit , textSearch = "") => {
-        socket.emit("unconnect-doctor-list")
-        socket.removeListener("update-online")
-        clearInterval(getInterval)
-
-        const ObjectData = 
-                HrefPage.get().split("?")[0] === "list" ? await clientMo.post("/api/admin/doctor/list" , {
-                    typeDelete : (status.status === "default" ? 0 : status.status === "delete" ? 1 : -1) , 
-                    limit : Limit ? Limit : 10,
-                    startRow : StartRow,
-                    textSearch : textSearch
-                }) :
-                HrefPage.get().split("?")[0] === "data" ? await clientMo.post("/api/admin/data/list" , {
-                    type : status.status,
-                    limit : Limit ? Limit : 10,
-                    startRow : StartRow,
-                    textSearch : textSearch
-                }) : null
-
-        if(ObjectData) {
-            const List = JSON.parse(ObjectData)
-            let DataSocket = []
-            // console.log(List)
-            if(StartRow != 0) {
-                setDataFetch([...DataFetch , ...List])
-                setRowList([...DataFetch , ...List].length)
-                DataSocket = [...DataFetch , ...List]
-            } else {
-                setDataFetch(List)
-                DataSocket = List
-            }
-            
-            modify(70 , 30 , 
-                ["หน้าแรก" , 
-                    (HrefPage.get().split("?")[0] === "list") ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-                    (HrefPage.get().split("?")[0] === "data") ? "ข้อมูลเพิ่มเติม" : "" 
-                    ,
-                    (HrefPage.get().indexOf("delete") >= 0) ? "บัญชีที่ถูกลบ" : 
-                    (HrefPage.get().indexOf("plant") >= 0) ? "ชนิดพืช" :
-                    (HrefPage.get().indexOf("station") >= 0) ? "ศูนย์ส่งเสริม" : ""
-                ])
-            setStateOnPage({status : status.status})
-
-            if(HrefPage.get().split("?")[0] === "list" && status.status === "default") {
-                socket.emit("connect-doctor-list")
-                socket.on("update-online" , (id_table , newTimeSocket)=>{
-                    const newList = DataSocket.map((DataList)=>{
-                        if(DataList.id_table_doctor == id_table) {
-                            DataList.time_online = isNaN(newTimeSocket) ? newTimeSocket : "offline"
-                        }
-                        return DataList
-                    })
-                    setDataFetch(newList)
-                })
-
-                // setInterval(()=>{
-                //     setDataFetch(DataSocket.map((DataList)=>{
-                //         DataList.timeStamp = new Date().getTime()
-                //         return DataList
-                //     }))
-                // } , 2000)
-            }
-            return List
-        } else {
-            session()
-            return 0
-        }
-=======
-  const removePopup = () => {
+ const removePopup = () => {
     if (RefBe.current) {
       RefBe.current.removeAttribute("style");
       setTimeout(() => {
         setBecause(<></>);
       }, 500);
->>>>>>> gap1164
+   
     }
   };
 

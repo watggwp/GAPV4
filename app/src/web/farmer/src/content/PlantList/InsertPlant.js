@@ -13,7 +13,8 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [selectedPlant, setSelectedPlant] = useState("")
     const [placeholder, setPlaceholder] = useState('')
     const [unit, setUnit] = useState("")
-<<<<<<< HEAD
+
+
     const [previousInsects, setPreviousInsects] = useState([]);
    
 
@@ -28,11 +29,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         });
     }, [previousInsects]);
     
-=======
-
->>>>>>> gap1164
-
-    
+ 
     const FormContent = useRef()
     // const TypevarietiesInput = useRef()
     const TypePlantInput = useRef()
@@ -171,16 +168,16 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         }
     
         setPlaceholder(placeholderText);
-<<<<<<< HEAD
+
+
         setUnit(value);
     
-        // ✅ ลบ class 'report-not' ถ้ามีค่า
+        //ลบ class 'report-not' ถ้ามีค่า
         if (event.target.value) {
             event.target.classList.remove("report-not");
         }
-=======
-        setUnit(value); 
->>>>>>> gap1164
+
+
     };
     
     
@@ -204,8 +201,8 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     }
 
 
-<<<<<<< HEAD
-    
+
+
 
     const FetchDataForm = async (name_plant_list) => {
         setHistory(true);
@@ -221,16 +218,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                 try {
                     const Object = JSON.parse(Data);
     
-=======
-    const FetchDataForm = async (name_plant_list) => {
-        setHistory(true);
-        FormContent.current.setAttribute("over", "");
-        setTimeOut(setTimeout(async () => {
-            const Data = await clientMo.post("/api/farmer/formplant/history", { id_farmhouse: id_house, name_plant_list: name_plant_list });
-            if (await CloseAccount(Data, setPage)) {
-                try {
-                    const Object = JSON.parse(Data);
->>>>>>> gap1164
+
                     if (Object.qtyDate.length !== 0) {
                         const qtyHarvest = parseInt(Object.qtyDate[0].qty_harvest);
                         MathDateHarvest(DateNowOnForm, qtyHarvest);
@@ -248,10 +236,11 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                         WaterStep.current.value = Object.FromHistory[0].water_flow;
                         History.current.value = Object.FromHistory[0].history;
                         Insect.current.value = Object.FromHistory[0].insect;
-                        QtyInsect.current.value = Object.FromHistory[0].qtyInsect;
+                        QtyInsect.current.value = Object.FromHistory[0].qtyInsect; 
                         Seft.current.value = Object.FromHistory[0].seft;
-<<<<<<< HEAD
+                        
                         History.current.value = Object.FromHistory[0].name_plant; // ใช้ค่าจาก FromHistory
+
                     }
     
                    // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
@@ -261,17 +250,13 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     setPreviousInsects([]); // กรณีไม่มีข้อมูล
                 }
     
-=======
-                    }
->>>>>>> gap1164
-                } catch (err) {
+              
+            } catch (err) {
                     console.error(err);
                 }
             }
-<<<<<<< HEAD
     
-=======
->>>>>>> gap1164
+
             if (name_plant_list !== "") {
                 FormContent.current.removeAttribute("over");
                 setHistory(false);
@@ -280,11 +265,10 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             ChangeCHK();
         }, 1500));
     };
-<<<<<<< HEAD
+   
     
-=======
->>>>>>> gap1164
 
+    
     const Confirm = async () => {
         const type = TypePlantInput.current;
         // const varietiesInput = TypevarietiesInput.current;
