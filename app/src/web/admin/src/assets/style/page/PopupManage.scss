@@ -252,6 +252,83 @@
                         }
                     }
 
+                    .variety_name {
+                        display: flex;
+                        span {
+                            font-weight: 900;
+                            font-size: 18px;
+                            font-family: Sans-font;
+                        }
+
+                        div {
+                            display: flex;
+                            font-family: Sans-font;
+                            font-size: 18px;
+                            align-items: center;
+                            margin-left: 5px;
+                        }
+                    }
+
+                    .namechemical {
+                        display: flex;
+                        span {
+                            font-weight: 900;
+                            font-size: 18px;
+                            font-family: Sans-font;
+                        }
+                        span.chemical {
+                            display: flex;
+                            // width: 35%;
+                        }
+
+                        span.station {
+                            display: flex;
+                            width: 100%;
+                        }
+
+                        div {
+                            display: flex;
+                            font-family: Sans-font;
+                            font-size: 18px;
+                            align-items: center;
+                            margin-left: 5px;
+                        }
+                    }
+
+                    .name_formula {
+                        display: flex;
+                        span {
+                            font-weight: 900;
+                            font-size: 18px;
+                            font-family: Sans-font;
+                        }
+
+                        div {
+                            display: flex;
+                            font-family: Sans-font;
+                            font-size: 18px;
+                            align-items: center;
+                            margin-left: 5px;
+                        }
+                    }
+
+                    .how_use {
+                        display: flex;
+                        span {
+                            font-weight: 900;
+                            font-size: 18px;
+                            font-family: Sans-font;
+                        }
+
+                        div {
+                            display: flex;
+                            font-family: Sans-font;
+                            font-size: 18px;
+                            align-items: center;
+                            margin-left: 5px;
+                        }
+                    }
+
                     .location {
                         display: flex;
                         justify-content: center;

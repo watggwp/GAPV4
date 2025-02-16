@@ -1,4 +1,4 @@
-import React, { createElement, createRef, useEffect, useMemo, useRef, useState } from "react";
+import React, { createElement, createRef, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DayJSX, DownLoadImage, Loading, MapsJSX, PopupDom, ReportAction, ResizeImg, TimeJSX } from "../../../../../assets/js/module";
 import "../../assets/style/page/farmer/ManagePopup.scss"
@@ -6,11 +6,15 @@ import "../../assets/style/page/farmer/ManagePopup.scss"
 import SelectConvert from "./SelectConvert";
 import Messageing from "./message/Message";
 import EditProfile from "./editProfile/editProfile";
+import { DoctorContext } from "../../Doctor";
 
 const ManagePopup = ({setPopup , RefPop , resultPage = {
     id_table : "",
     link_user : ""
 } , status , session , countLoad , Fecth , socket}) => {
+
+    const { profile } = useContext(DoctorContext) 
+
     const [DetailFarmer , setDetailFarmer] = useState(<></>)
     const [DetailDoctor , setDetailDoctor] = useState(<></>)
     // const [DetailMsg , setDetailMsg] = useState(<></>)
@@ -469,7 +473,7 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
             }
             { !StateEdit ?
                 <div className="option-account" top={resultDate.length !== 1 ? "n" : "y"}>
-                    { TypeDetail === "doctor" || TypeDetail === "farmer" ?
+                    { profile.recommend && (TypeDetail === "doctor" || TypeDetail === "farmer") ?
                         <a title="พูดคุยกับเกษตรกร" className="list-type" onClick={()=>MessagePopup(DetailFarmer.id_table , DetailFarmer.link_user)}>
                             {   messageCount > 0 ?
                                 <div className="count-msg">

@@ -3,6 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { GetLinkUrlOfSearch, Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
+import { Grid2, TextField } from "@mui/material";
 const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -28,7 +29,8 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
     const [Data , setData] = useState({
         id : "", 
         name : "",
-        dataOther : null
+        dataOther : null,
+        status : "loading"
     })
 
     useEffect(()=>{
@@ -54,7 +56,8 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
         setData({
             id : data.id,
             name : data.name,
-            dataOther : type === "plant" ? data.type_plant : type === "station" ? data.location : ""
+            dataOther : type === "plant" ? data.type_plant :type === "plant" ? data.variety_name : type === "station" ? data.location : "",
+            status : "finish"
         })
 
         if(type === "station") {
@@ -84,10 +87,10 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
             setOpen(1)
             const result = await clientMo.post("/api/admin/data/edit" , Validate)
             if(result === "133") {
-                setText(`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}สำเร็จ`)
+                setText(`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" :  type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}สำเร็จ`)
                 setStatus(1)
             } else if(result === "over") {
-                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}ใช้งานอยู่`)
+                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}ใช้งานอยู่`)
                 setStatus(3)
             } else if(result === "because") {
                 setText("เกิดปัญหาทางเซิร์ฟเวอร์")
@@ -176,23 +179,51 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                         color="#1CFFF1" action={AfterConfirm}/>
         <div className="manage-page">
             <div className="head-page">
-                {`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}`}
+                {`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" :""}`}
             </div>
             <div className="detail-content">
                 {LoadingStatus ? 
                     <div className="Loading">
                         <Loading size={4/100 * ScreenW >= 41 ? 4/100 * ScreenW : 41} border={0.5/100 * ScreenW >= 5 ? 0.5/100 * ScreenW : 5} color="#1CFFF1" animetion={LoadingStatus}/>
-                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : ""}</span>
+                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}</span>
                     </div>
                     : <></>
                 }
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
                         <div className="name column">
-                            {type === "plant" ? <span className={type}>ชื่อพืช</span> : <span className={type}>ชื่อศูนย์</span>}
-                            <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input>
+                            {
+                                Data.status === "finish" &&
+                                    <TextField
+                                        label={
+                                            type === "plant" ?
+                                                "ชื่อพืช" :
+                                                "ชื่อศูนย์"
+                                        }
+                                        defaultValue={Data.name}
+                                        slotProps={{
+                                            htmlInput : {
+                                                ref : NameRef
+                                            }
+                                        }}
+                                        onChange={validateValue}
+                                        placeholder={
+                                            type === "plant" ?
+                                                "ชื่อพืช" :
+                                                "ชื่อศูนย์ในโครงการ"
+                                        }
+                                        size="small"
+                                        fullWidth
+                                    />
+                            }
+                            {/* {
+                                type === "plant" ? 
+                                    <span className={type}>ชื่อพืช</span> : 
+                                    <span className={type}>ชื่อศูนย์</span>
+                            } */}
+                            {/* <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input> */}
                         </div>
-                        <div className={type === "plant" ? "type_plant" : "location column"}>
+                        <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
                             }
@@ -200,18 +231,24 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                 type === "plant" ? <div>{Data.dataOther}</div> :
                                 Data.dataOther ? 
                                     <>
-                                    <div className="flied-location-edit" w={type}>
-                                        <span className="head-flied">ตำแหน่งที่ตั้ง</span>
-                                        <input onChange={ async (e)=>{
-                                            clearTimeout(getTimeOutChange)
-                                            await GenerateMap(e)
-                                            setTimeOutChange(setTimeout(()=>{
-                                                validateValue()
-                                            } , 1))
-                                        }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
-                                        <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
-                                    </div>
-                                    <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
+                                    <Grid2 container width={"100%"}>
+                                        <Grid2 size={{ xs : 12 }}>
+                                            <div className="flied-location-edit" w={type}>
+                                                <span className="head-flied">ตำแหน่งที่ตั้ง</span>
+                                                <input onChange={ async (e)=>{
+                                                    clearTimeout(getTimeOutChange)
+                                                    await GenerateMap(e)
+                                                    setTimeOutChange(setTimeout(()=>{
+                                                        validateValue()
+                                                    } , 1))
+                                                }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
+                                                <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
+                                            </div>
+                                        </Grid2>
+                                        <Grid2 size={{ xs : 12 }}>
+                                            <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
+                                        </Grid2>
+                                    </Grid2>
                                     </>
                                     : 
                                     <></>

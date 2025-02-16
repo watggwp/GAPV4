@@ -62,6 +62,24 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
         else setSession()
     }
 
+    const group = async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<PageData setMain={setMain}
+                        socket={socket} LoadType={"group"} session={setSession} type={true} 
+                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+        else setSession()
+    }
+
+    const report = async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<PageData setMain={setMain}
+                        socket={socket} LoadType={"report"} session={setSession} type={true} 
+                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+        else setSession()
+    }
+
     return (
         <section className="nav-first" onLoad={clientMo.unLoadingPage}>
             <div className="head">
@@ -80,6 +98,8 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                     </div>
                 }
                 <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
+                <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                <ButtonMenu type={"report"} textRow1={"แจ้งเตือน"} textRow2={"โรคระบาด"} action={report}/>
             </div>
         </section>
     )

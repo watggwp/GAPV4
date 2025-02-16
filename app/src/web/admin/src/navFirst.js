@@ -51,6 +51,20 @@ const NavFirst = ({setBodyFileAdmin , auth , session , socket , modify , type = 
         }
     }
 
+    const group = async () => {
+        if(await auth(true)) {
+            HrefData.set("group?default")
+            setBodyFileAdmin(<PageTemplate session={session} socket={socket} auth={auth} addHref={true} modify={modify} TabOn={TabOn} HrefData={HrefData}/>)
+        }
+    }
+
+    const report = async () => {
+        if(await auth(true)) {
+            HrefData.set("report?listlocation")
+            setBodyFileAdmin(<PageTemplate session={session} socket={socket} auth={auth} addHref={true} modify={modify} TabOn={TabOn} HrefData={HrefData}/>)
+        }
+    }
+
     return (
         <section className="nav-first">
             <div className="head">
@@ -59,6 +73,8 @@ const NavFirst = ({setBodyFileAdmin , auth , session , socket , modify , type = 
             <div className="content-menu">
                 <ButtonMenu type={"doctor"} textRow1={"ทะเบียน"} textRow2={"เจ้าหน้าที่"} action={doctor}/>
                 <ButtonMenu type={"add-data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
+                <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
             </div>
         </section>
     )

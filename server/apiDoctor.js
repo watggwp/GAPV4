@@ -56,7 +56,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
             con.query(
                 `
-                SELECT name
+                SELECT name,id_station
                 FROM station_list
                 WHERE id = ?
                 ` , [result['data'].station_doctor] , 
@@ -65,7 +65,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     result['data'].img_doctor = result['data'].img_doctor.toString()
                     res.send({
                         ...result['data'] ,
-                        name_station : station[0].name
+                        name_station : station[0].name,
+                        id_station : station[0].id_station
                     })
                 }
             )
@@ -187,7 +188,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let username = req.body['username'] ?? '';
         let password = req.body['password'] ?? '';
     
-        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+        if(username === '' || password === '' || (req.hostname !== HOST_CHECK) || !apifunc.authCsurf("doctor" , req , res)) {
             res.redirect('/api/logout')
             return 0
         }
@@ -245,7 +246,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
         let username = req.session.user_doctor ?? req.body['username'] ?? '';
         let password = req.session.pass_doctor ?? req.body['password'] ?? '';
-    
+        let role = req.session.role_doctor ?? req.body['role'] ?? '';
+
         if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
             res.redirect('/api/logout')
             return 0
@@ -254,7 +256,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let con = Database.createConnection(listDB)
         // Database.resume()
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+        apifunc.auth(con , username , password , res , "acc_doctor" , role).then((result)=>{
             if(result['result'] === "pass") {
                 if (result['data']['status_account'] == 0
                         || result['data']['status_delete'] == 1) {
@@ -267,7 +269,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password
-
+                    req.session.role_doctor = role
+                    
                     if(req.body.uid_line) {
                         con.query(
                             `
@@ -697,6 +700,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         WHERE acc_doctor.id_table_doctor = acc_farmer.id_table_doctor
                     ) as name_doctor,
                     (
+<<<<<<< HEAD
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = (
                                   SELECT uid_line FROM acc_farmer AS farmer_check
@@ -706,6 +710,19 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                               )
                               AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
                               AND type = ""
+=======
+                        SELECT date
+                        FROM message_user
+                        WHERE message_user.uid_line_farmer = (
+                                    SELECT uid_line
+                                    FROM acc_farmer as farmer_check
+                                    WHERE farmer_check.link_user = acc_farmer.link_user
+                                    ORDER BY date_register DESC
+                                    LIMIT 1
+                                )
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                            and type = ""
+>>>>>>> gap1164
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
@@ -2854,7 +2871,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 const From = req.body.type == "plant" ? "plant_list" : 
                                 req.body.type == "fertilizer" ? "fertilizer_list" : 
                                 req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                                req.body.type == "source" ? "source_list" : 
+                                req.body.type == "pest" ? "pests" : ""
                 
                 const QuerySearch = Object.entries(req.body.check).map((Data)=>{
                     // Data[0] = Key ของ column ในแต่ละ table ซึ่ง table ก็มี plant fertilizer chemical source , Data[1] ข้อมูลที่ต้องการค้นหา
@@ -2871,12 +2889,15 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 const StartRow = !isNaN(req.body.StartRow) ? req.body.StartRow : 0
                 const Limit = !isNaN(req.body.Limit) ? req.body.Limit : 0
                 if(From && QuerySearch.filter(val => val == null).length === 0) {
+                    const columnName = (
+                        req.body.type == "pest" ? "pest_name" : "name"
+                    )
                     con.query(
                         `
                         SELECT * 
                         FROM ${From}
                         ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ").replaceAll(";" , "")}` : ""}
-                        ORDER BY is_use DESC , name ASC
+                        ORDER BY is_use DESC , ${columnName} ASC
                         LIMIT ${Limit} OFFSET ${StartRow}
                         ` , 
                         (err , list) => {
@@ -3061,28 +3082,45 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
-                if(From) {
+                const data_id = req.body.id_list
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" : 
+                    type_request == "fertilizer" ? "fertilizer_list" : 
+                    type_request == "chemical" ? "chemical_list" :
+                    type_request == "pest" ? "pests" : 
+                    type_request == "source" ? "source_list" : ""
+                )
+                if(From && data_id) {
+                    const columnID = (
+                        type_request == "pest" ? "pest_id" : "id"
+                    )
                     try {
+                        // ตัดการส่ง check จากหน้าบ้าน ให้หลังบ้าน check แทน
+                        // revise code
                         const OverCheck = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
-                            return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
-                        }).join(" and ")
+                            return checkData.join("=").replaceAll(" " , "")
+                        })
+                            .join(" and ")
+                            .replaceAll(";" , "")
 
                         const resultCheck = OverCheck.length ? await new Promise((resole , reject)=>{
                             con.query(
                                 `
                                 SELECT (
                                     SELECT EXISTS (
-                                        SELECT id 
+                                        SELECT ${columnID} 
                                         FROM ${From}
                                         WHERE ${OverCheck}
                                     )
                                 ) as checkData
                                 ` , (err , resultIn)=>{
+                                    console.log(resultIn)
+                                    if(err) {
+                                        console.log(err)
+                                        resole(0)
+                                    }
                                     resole(parseInt(resultIn[0].checkData))
                                 }
                             )
@@ -3090,18 +3128,23 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
                         if(!resultCheck) {
                             const update = Object.entries(req.body.data).map(data=>{
-                                if(data[0] === "location") data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
+                                if(data[0] === "location") {
+                                    data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
+                                }
                                 else data[1] = `"${data[1].trim()}"`
                                 return data.join(" = ")
-                            }).join(' , ').replaceAll(";" , "").replaceAll(" " , "")
+                            })
+                                .join(' , ')
+                                .replaceAll(";" , "")
+                                .replaceAll(" " , "")
 
                             await new Promise((resole , reject)=>{
                                 con.query(
                                     `
                                     UPDATE ${From}
                                     SET ${update}
-                                    WHERE id = ?
-                                    ` , [req.body.id_list] , (err , updateData) => {
+                                    WHERE ${columnID} = ?
+                                    ` , [data_id] , (err , updateData) => {
                                         resole()
                                     }
                                 )
@@ -3111,8 +3154,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 `
                                 SELECT * 
                                 FROM ${From} 
-                                WHERE id = ?
-                                ` , [req.body.id_list] , (err , select) => {
+                                WHERE ${columnID} = ?
+                                ` , [data_id] , (err , select) => {
                                     if(err){
                                         con.end()
                                         res.send("err select")
@@ -3133,6 +3176,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             })
                         }
                     } catch (err) {
+                        console.log(err)
                         con.end()
                         res.send({
                             result : "error"

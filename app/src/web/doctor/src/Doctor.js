@@ -1,4 +1,4 @@
-import React , {Component, useEffect, useRef, useState} from "react";
+import React , {Component, createContext, useEffect, useRef, useState} from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
@@ -12,6 +12,9 @@ import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
+
+
+export const DoctorContext = createContext(null)
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
@@ -45,8 +48,9 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
 
     const FetchProfile = async () => {
         const result = await clientMo.get("/api/doctor/profile/get")
-        if(result) 
+        if(result) {
             setProfile(JSON.parse(result))
+        }
         else setSession()
     }
 
@@ -77,6 +81,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     else if(path[2] === "not") {
                         setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`not:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
                     }
+                    
                 } else if(path[1] === "data") {
                     const search = window.location.search.replaceAll("?" , "").split("&").map(val=>{
                         const Split = val.split("=")
@@ -84,6 +89,8 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     })
                     setBody(<PageData setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`${search[0]}:${type}:${new Date().getTime()}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
                 }
+
+            
                 
             } else {
                 setBody(<div>เกิดปัญหา</div>)
@@ -112,68 +119,75 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     }
 
     return (
-        <div className="doctor"
-        // onMouseDown={this.hidePopUp} onContextMenu={this.hidePopUp}
+        <DoctorContext.Provider
+            value={{
+                profile : getProfile
+            }}
         >
-            <DesktopNev setMain={setMain} socket={socket} setSession={sessionoff} setBody={setBody} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} 
-                getProfile={getProfile} FetchProfile={FetchProfile}/>
-            <section ref={ImageCover} className="image-cover">
-                { Responsive > 800 ?
-                    <>
-                    <div className="text-cover">
-                        <div className="icon">
-                            <span>ยินดีต้อนรับ</span>
-                            <img src="/Logo-white.png"></img>
+            <div className="doctor"
+            // onMouseDown={this.hidePopUp} onContextMenu={this.hidePopUp}
+            >
+                <DesktopNev setMain={setMain} socket={socket} setSession={sessionoff} setBody={setBody} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} 
+                    FetchProfile={FetchProfile}/>
+                <section ref={ImageCover} className="image-cover">
+                    { Responsive > 800 ?
+                        <>
+                        <div className="text-cover">
+                            <div className="icon">
+                                <span>ยินดีต้อนรับ</span>
+                                <img src="/Logo-white.png"></img>
+                            </div>
+                            <div className="status">
+                                {TextPage.map((val , index)=>(
+                                    <div className="box-status" key={index}>
+                                        <span>{val}</span>
+                                        {TextPage.length - 1 > index ? <img src={"/arrow.png"}></img> : <></>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="status">
-                            {TextPage.map((val , index)=>(
-                                <div className="box-status" key={index}>
-                                    <span>{val}</span>
-                                    {TextPage.length - 1 > index ? <img src={"/arrow.png"}></img> : <></>}
-                                </div>
-                            ))}
+                        <div className="frame">
+                            <img src="/cover-2-3.png"></img>
                         </div>
-                    </div>
-                    <div className="frame">
-                        <img src="/cover-2-3.png"></img>
-                    </div>
-                    </> :
-                    <>
-                    <div className="text-icon-cover" ref={frameImage}>
-                        <div className="text">
-                            <span>ยินดีต้อนรับ</span>
-                            <span style={{fontWeight : 900}}>หมอพืช</span>
+                        </> :
+                        <>
+                        <div className="text-icon-cover" ref={frameImage}>
+                            <div className="text">
+                                <span>ยินดีต้อนรับ</span>
+                                <span style={{fontWeight : 900}}>หมอพืช</span>
+                            </div>
+                            <div className="icon-profile" style={{
+                                borderRadius : "50%",
+                                overflow : "hidden",
+                                width : `${SizeProfileImg}px` ,
+                                height : `${SizeProfileImg}px`
+                            }} onLoad={LoadImg}>
+                                <img src={getProfile.length != 0 ? getProfile.img_doctor ? getProfile.img_doctor : "/PROFILE.png" : "/PROFILE.png"}></img>
+                            </div>
                         </div>
-                        <div className="icon-profile" style={{
-                            borderRadius : "50%",
-                            overflow : "hidden",
-                            width : `${SizeProfileImg}px` ,
-                            height : `${SizeProfileImg}px`
-                        }} onLoad={LoadImg}>
-                            <img src={getProfile.length != 0 ? getProfile.img_doctor ? getProfile.img_doctor : "/PROFILE.png" : "/PROFILE.png"}></img>
+                        <div className="frame-image-cover">
+                            <img src="/cover-2-3.png"></img>
                         </div>
-                    </div>
-                    <div className="frame-image-cover">
-                        <img src="/cover-2-3.png"></img>
-                    </div>
-                    </>
-                }
-            </section>
-            <section ref={BodyRef} className="container-body-doctor">
-                {/* <div onLoad={this.checkSize}>
-                    {this.state.nav}
-                </div> */}
-                <bot-main>
-                    <bot-content>
-                        {body}
-                    </bot-content>
-                </bot-main>
-            </section>
-            {/* feedBack */}
-            <section id="session">
-                {session}
-            </section>
-        </div>
+                        
+                        </>
+                    }
+                </section>
+                <section ref={BodyRef} className="container-body-doctor">
+                    {/* <div onLoad={this.checkSize}>
+                        {this.state.nav}
+                    </div> */}
+                    <bot-main>
+                        <bot-content>
+                            {body}
+                        </bot-content>
+                    </bot-main>
+                </section>
+                {/* feedBack */}
+                <section id="session">
+                    {session}
+                </section>
+            </div>
+        </DoctorContext.Provider>
     )
 }
 

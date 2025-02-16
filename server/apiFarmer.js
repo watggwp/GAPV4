@@ -860,7 +860,6 @@ app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
                 JOIN pests p ON pc.pest_id = p.pest_id
                 JOIN chemical_list cl ON pc.chemical_id = cl.id
                 WHERE pc.plant_id = ?;
-
             `;
             con.query(queryPestChemical, [plantId], (err, pestChemicalResult) => {
                 con.end();
@@ -1081,7 +1080,6 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     
     
     
-
 
     app.post('/api/farmer/formplant/insert', async (req, res) => {
         if (req.session.uidFarmer) {

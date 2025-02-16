@@ -1,6 +1,6 @@
 import React from "react";
-import ReactDOM  from "react-dom/client";
-import io from "socket.io-client"
+import ReactDOM from "react-dom/client";
+import io from "socket.io-client";
 
 import MainAdmin from "./src/main";
 

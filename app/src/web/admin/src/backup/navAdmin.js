@@ -1,9 +1,10 @@
-import React , {Component} from "react";
+import React, { Component } from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 
-import List from "./listDoctor";
-import Plus from "./plusDoctor";
 import Login from "./Login";
+import List from "./listDoctor";
+import List from "./listAdmin";
+import Plus from "./plusDoctor";
 import SessionOut from "./sesionOut";
 
 export default class NavAdmin extends Component {
@@ -21,34 +22,48 @@ export default class NavAdmin extends Component {
         this.checkPath(-1)
     }
 
-    checkPath = (statusLoad = 0) =>{
+    checkPath = (statusLoad = 0) => {
         let path = window.location.pathname.split('/');
-        console.log(path[1] + "/" + path[2])
-        if(path[1] + "/" + path[2] == 'admin/list' || path[1] + "/" + path[2] == 'admin/undefined')
-        {
-            clientMo.post('/api/admin/doctor/list').then((list)=>{
-                if(list) {
-                    this.props.bodyAdmin.setState({body : <List status={statusLoad} main={this.props.main} bodyAdmin={this.props.bodyAdmin} list={list}/>})
-                    if(document.querySelector('a[nav-select=""]')) document.querySelector('a[nav-select=""]').removeAttribute('nav-select')
-                    document.getElementById('account').setAttribute('nav-select' , '')
-                } else this.sessionoff(true)
-
-            })
-        }
-        else if (path[1] + "/" + path[2] == 'admin/plus')
-        {
-            clientMo.post('/api/admin/check').then((context)=>{
-                if(context) {
-                    this.props.bodyAdmin.setState({body : <Plus status={statusLoad} main={this.props.main} bodyAdmin={this.props.bodyAdmin}/>})
-                    if(document.querySelector('a[nav-select=""]')) document.querySelector('a[nav-select=""]').removeAttribute('nav-select')
-                    document.getElementById('pAccount').setAttribute('nav-select' , '')
+        let currentPath = path[1] + "/" + path[2];
+    
+        console.log(currentPath);
+    
+        if (currentPath === 'admin/list' || currentPath === 'admin/undefined') {
+            clientMo.post('/api/admin/doctor/list').then((list) => {
+                if (list) {
+                    this.props.bodyAdmin.setState({
+                        body: <List status={statusLoad} main={this.props.main} bodyAdmin={this.props.bodyAdmin} list={list} />
+                    });
+                    updateNavSelection('account');
+                } else {
+                    this.sessionoff(true);
                 }
-                
-                else this.sessionoff(true)
-                    
-            })
+            });
+        } else if (currentPath === 'admin/plus') {
+            clientMo.post('/api/admin/check').then((context) => {
+                if (context) {
+                    this.props.bodyAdmin.setState({
+                        body: <Plus status={statusLoad} main={this.props.main} bodyAdmin={this.props.bodyAdmin} />
+                    });
+                    updateNavSelection('pAccount');
+                } else {
+                    this.sessionoff(true);
+                }
+            });
+        } else if (currentPath === 'admin/admin') {
+            clientMo.post('/api/admin/admin/list').then((list) => {
+                if (list) {
+                    this.props.bodyAdmin.setState({
+                        body: <List status={statusLoad} main={this.props.main} bodyAdmin={this.props.bodyAdmin} list={list} />
+                    });
+                    updateNavSelection('account');
+                } else {
+                    this.sessionoff(true);
+                }
+            });
         }
-    }
+    };
+    
 
     sessionoff = (type = false) => {
         if(type) {
@@ -76,6 +91,17 @@ export default class NavAdmin extends Component {
                 } else this.sessionoff()
             })
         }
+
+       else if(ele == 'adminaccount') {
+            clientMo.post('/api/admin/admin/list').then((list)=>{
+                if(list) {
+                    this.props.bodyAdmin.setState({body : <List status={1} main={this.props.main} bodyAdmin={this.props.bodyAdmin} list={list}/>})
+                    document.querySelector('a[nav-select=""]').removeAttribute('nav-select')
+                    document.getElementById(ele).setAttribute('nav-select' , '')
+                } else this.sessionoff()
+            })
+        }
+
         else if (ele == 'pAccount') {
             clientMo.post('/api/admin/check').then((context)=>{
                 if(context) {
@@ -105,6 +131,17 @@ export default class NavAdmin extends Component {
                         </bot-gap-string>
                     </bot-bt-nav>
                 </a>
+                <a onClick={e => this.selectMenu(e , 'adminaccount')} className="list-menu-nav" id="account" title="บัญชี" href="list" >
+                    <bot-bt-nav>
+                        <bot-gap-nav-icon>
+                            <img src="/people-svgrepo-com.svg"></img>
+                        </bot-gap-nav-icon>
+                        <bot-gap-string>
+                            <bot-string>บัญชี</bot-string>
+                            <bot-string>ผู้ดูแลระบบ</bot-string>    
+                        </bot-gap-string>
+                    </bot-bt-nav>
+                </a>
                 <a onClick={e => this.selectMenu(e , 'pAccount')} className="list-menu-nav" id="pAccount" title="เพิ่มบัญชี" href="plus">
                     <bot-bt-nav>
                         <bot-gap-nav-icon>
@@ -112,7 +149,8 @@ export default class NavAdmin extends Component {
                         </bot-gap-nav-icon>
                         <bot-gap-string>
                             <bot-string>เพิ่มบัญชี</bot-string>
-                            <bot-string>เจ้าหน้าที่ส่งเสริม</bot-string>    
+                            <bot-string>เจ้าหน้าที่ส่งเสริม</bot-string> 
+                            <bot-string>ผู้ดูแลระบบ</bot-string>   
                         </bot-gap-string>
                     </bot-bt-nav>
                 </a>

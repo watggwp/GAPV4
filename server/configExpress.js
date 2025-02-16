@@ -22,28 +22,27 @@ const sessions = require('express-session');
 const fs = require('fs');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
-
+ 
     const app = express();
     
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     // app.set('trust proxy', 1);
 
     const upload = multer()
-    const server = 
+    const server =
                 (process.argv[2] == process.env.BUILD) ? https.createServer({
                     key: fs.readFileSync(process.env.pathCertFile),
                     cert: fs.readFileSync(process.env.pathKeyFile)
-                } , app) 
-                : 
+                } , app)
+                :
                 http.createServer(app)
     // set Server
-
+ 
     const listDB = dbpackage.listConfig(username , password)
     // const HOST_CHECK = (process.argv[2] == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
-
     // config server and Hot Refresh
     // if(process.argv[2] != process.env.BUILD) reactServ(app)
-
+ 
     // set session
     console.log(process.argv[2])
     const sessionMiddleware = sessions({
@@ -57,7 +56,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         //     sameSite: "none"
         // },
         // resave : false
-
         cookie: {
             httpOnly: true,
             secure : process.argv[2] == process.env.BUILD,
@@ -71,10 +69,9 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.json())
     app.use(cookieParser())
     app.use(sessionMiddleware)
-
     // protocal websocket
     const io = WebSocket(server , sessionMiddleware , db , listDB , apifunc)
-
+ 
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     app.use(cors({
         origin : [
@@ -95,23 +92,21 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('app/src/assets/img'))
     app.use(express.static('app/src/assets/js'))
     app.use(express.static('app/src/assets/icon'))
-
+ 
     app.use(express.static('build/admin'))
     app.use(express.static('build/doctor'))
     app.use(express.static('build/farmer'))
-
+ 
     // router api url
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
-
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
-
     // page error 404
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));
     });
-
+ 
     return server
 }

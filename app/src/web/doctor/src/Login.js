@@ -14,6 +14,8 @@ const Login = ({setMain , socket , isClick = 0}) => {
     const [getUidLine , setUidLine] = useState("")
     const [formPersonal , setFormPro] = useState(<></>)
 
+    const [role , setrole] = useState("doctor")
+
     const Personal = useRef()
     const Body = useRef()
 
@@ -22,6 +24,17 @@ const Login = ({setMain , socket , isClick = 0}) => {
     const pw = useRef()
     const ErrorLogin = useRef()
     const Form = useRef()
+
+    const list = document.querySelectorAll('.list');
+
+ function activeLink() {
+    list.forEach((item) =>
+        item.classList.remove('active'));
+    this.classList.add('active');
+}
+
+list.forEach((item) =>
+    item.addEventListener('click', activeLink));
 
     let timeoutEmply = 0
 
@@ -70,7 +83,8 @@ const Login = ({setMain , socket , isClick = 0}) => {
             const formData = {
                 username : e.target[0].value,
                 password : e.target[1].value,
-                uid_line : getUidLine
+                uid_line : getUidLine,
+                role : role
             }
 
             setTimeout(()=>{
@@ -143,6 +157,29 @@ const Login = ({setMain , socket , isClick = 0}) => {
                         <img src="/logo2.png"></img>
                         <span>หมอพืช</span>
                     </div>
+                    <div class="navigation" id="tab">
+                        <ul>
+                            <li class="list active" id="Doctor" onClick={()=>{setrole("doctor")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍⚕️</span>
+                                    <span class="text">หมอพืช</span>
+                                </a>
+                            </li>
+                            <li class="list " id="Analyst"  onClick={()=>{setrole("analyst")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍🔬</span>
+                                    <span class="text">นักวิเคราะห์สาร</span>
+                                </a>
+                            </li>
+                            <li class="list" id="Consultant"  onClick={()=>{setrole("consultant")}}>
+                                <a href="#">
+                                    <span class="icon">🧑🏻‍💻</span>
+                                    <span class="text">ที่ปรึกษา</span>
+                                </a>
+                            </li>
+                            <div class="indicator"></div>
+                        </ul>
+                    </div>
                     <label>
                         <span>
                             <svg ref={IconUser} xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
@@ -172,12 +209,14 @@ const Login = ({setMain , socket , isClick = 0}) => {
 }
 
 const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Ref , setPopup , Err}) => {
-    const [ListStation , setListStation] = useState(null)
+    const [ListStation , setListStation] = useState([])
 
     const firstname = useRef()
     const lastname = useRef()
     const station = useRef()
+    const id_station = useRef()
     const password = useRef()
+
 
     const btConfirm = useRef()
 
@@ -188,13 +227,28 @@ const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Re
     const FetchStation = async () => {
         const Data = await clientMo.post("/api/doctor/station/list")
         setListStation(
-            JSON.parse(Data).map((val , key)=>(
-                <option key={key} value={val.id}>{val.name}</option>
-            ))
+            JSON.parse(Data)
         )
         Ref.current.style.opacity = "1"
         Ref.current.style.visibility = "visible"
     }
+
+    // เมื่อเลือกจาก dropdown ให้เติมรหัสศูนย์ในฟิลด์
+const handleStationChange = (event) => {
+    const selectedStationId = event.target.value
+    const selectedStation = ListStation.find(
+        (station) => station.id === parseInt(selectedStationId)
+    );
+    if (selectedStation) {
+        id_station.current.value = selectedStation.id_station; // เติมรหัสศูนย์
+    } else {
+        id_station.current.value = "" // ล้างค่า ถ้าไม่มีศูนย์ตรงกัน
+    }
+    checkValue(); // ตรวจสอบค่าเพื่อเปิดใช้งานปุ่มยืนยัน
+};
+
+
+
 
     const close = () => {
         Ref.current.style.opacity = "0"
@@ -238,16 +292,19 @@ const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Re
     }
 
     const checkValue = () => {
-        const first = firstname.current
-        const last = lastname.current
-        const sta = station.current
-        const pw = password.current
-
-        if(first.value && PatternCheck(first.value).thaiName && last.value && PatternCheck(last.value).thaiName && sta.value && pw.value) 
-            btConfirm.current.setAttribute("confirm" , "")
-        else 
-            btConfirm.current.removeAttribute("confirm")
+        const first = firstname.current.value.trim()
+        const last = lastname.current.value.trim()
+        const sta = station.current.value
+        const idsta = id_station.current.value
+        const pw = password.current.value.trim()
+    
+        if (first && last && sta && idsta && pw) {
+            btConfirm.current.setAttribute("confirm", "") // เปิดใช้งานปุ่ม
+        } else {
+            btConfirm.current.removeAttribute("confirm") // ปิดปุ่ม
+        }
     }
+    
 
     return (
         <section id="form-personal-doctor">
@@ -268,10 +325,20 @@ const FormPersonal = ({ main = {setMain : null , socket : null} , id_doctor , Re
                     </div>
                     <div className="input-field">
                         <span>ศูนย์ปฏิบัติหน้าที่</span>
-                        <select onChange={checkValue} ref={station} defaultValue={""}>
+                        <select onChange={handleStationChange} ref={station} defaultValue={""}>
                             <option value={""} disabled>เลือกศูนย์</option>
-                            {ListStation}
+                            {ListStation.map((val , key)=>(
+                <option key={key} value={val.id}>{val.name}</option>
+            ))}
                         </select>
+                    </div>
+                    <div className="input-field">
+                        <span>รหัสศูนย์โครงการ</span>
+                        <input readOnly
+                            ref={id_station}
+                            placeholder="รหัสศูนย์ปฏิบัติหน้าที่"
+                            
+                        />
                     </div>
                 </div>
                 <div className="password">
