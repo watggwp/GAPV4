@@ -93,6 +93,14 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('app/src/assets/js'))
     app.use(express.static('app/src/assets/icon'))
  
+    // app.get('/' , (req, res) => {
+    //     res.sendFile(__dirname.replace('\server' , '/index404.html'));
+    // });
+
+    app.use(express.static('build/admin'))
+    app.use(express.static('build/doctor'))
+    app.use(express.static('build/farmer'))
+ 
     // router api url
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
@@ -103,10 +111,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));
     });
-
-    app.use(express.static('build/admin'))
-    app.use(express.static('build/doctor'))
-    app.use(express.static('build/farmer'))
  
     return server
 }

@@ -128,8 +128,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         />
                     );
                 }
-            }
-            else if (seconPath[0] === "listadmin") {
+            } else if (seconPath[0] === "listadmin") {
                 if (query.indexOf("admin") === 0) {
                     Href.set(`istadmin?admin${type}`);
                     setBody(
@@ -197,7 +196,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
             } else if (query === "statistics") {
                     Href.set(`report?statistics${type}`);
-                    console.log("statistics page")
                     setBody(
                         <PageTemplate
                             session={sessionoff}
@@ -246,8 +244,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     HrefData={Href}
                 />
             );
-        
-
         } else if (query.indexOf("pest") === 0) {
                     Href.set(`data?pest${type}`);
                     setBody(
