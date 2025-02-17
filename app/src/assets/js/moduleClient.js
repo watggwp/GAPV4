@@ -92,7 +92,7 @@
 
 const HOST_API = process.env.NODE_ENV === "development" ? 
     "http://" + process.env.REACT_APP_API_LOCAL + ":" + process.env.REACT_APP_API_PORT :
-    process.env.REACT_APP_API_PUBLIC 
+    ""
     // + ":" + process.env.REACT_APP_API_PORT
 
 // const HOST_API = "https://eb9bd49bc0c5.ngrok.app"
