@@ -36,7 +36,6 @@ const InsertStatistics = () => {
   const [showPlantDiseases, setShowPlantDiseases] = useState(null);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
-  const [textSearch, setTextSearch] = useState("");
 
 
 
