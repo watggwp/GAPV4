@@ -2762,6 +2762,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     console.log('Consultants:', consultants);
        
                                     // ส่งผลลัพธ์กลับไป
+                                    con.end()
                                     res.status(200).json({
                                         status: "success",
                                         data: {
