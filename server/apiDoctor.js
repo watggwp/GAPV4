@@ -162,6 +162,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     console.log("update form");
                                                     return;
                                                 }
+                                                
                                                 try {
                                                     SendToFarmerHouse(con, data.id_plant, `เจ้าหน้าที่ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
                                                 } catch (e) {
@@ -1678,8 +1679,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 ` , [req.body.id_table] ,
                 async (err, search ) => {
                     if (!err){
-                        console.log("send")
-                        // await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
+                        await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
                         con.query(
                             `
                             UPDATE acc_farmer
@@ -4525,8 +4525,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     }
 
-    console.log("send")
-    // const SendToFarmerLink = async (con , link_user , textSend) => {
+    const SendToFarmerLink = async (con , link_user , textSend) => {
         return await new Promise((resole , reject)=>{
             con.query(
                 `
