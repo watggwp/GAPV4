@@ -26,6 +26,7 @@ const apifunc = {
           `SELECT * FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? AND ${passwordDB}=SHA2( ? , 256) ${ROLE} ${ORDER}`,
           [username, password],
           (err, result) => {
+            console.log(result)
             if (err) {
               // ErrorDB(connectDB, err, res);
               reject("not pass");
