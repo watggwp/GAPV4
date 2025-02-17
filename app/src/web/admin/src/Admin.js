@@ -102,7 +102,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let seconPath = path[1].split("?");
             let query = seconPath[1];
 
-            console.log(query)
+            console.log(query , seconPath)
             if (seconPath[0] === "list") {
                 if (query.indexOf("default") === 0) {
                     Href.set(`list?default${type}`);
