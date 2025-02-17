@@ -21,7 +21,7 @@ const ReportListLocation = () => {
  
   useEffect(() => {
     ListReport();
-  }, [ListReport]);
+  }, []);
  
   return (
     <div style={{ padding: "20px" }}>
