@@ -39,7 +39,7 @@ const InsertGraph = () => {
  
   useEffect(() => {
     ListGraph();
-  }, [ListGraph]);
+  }, []);
  
   return (
     <div style={{ padding: "20px", fontFamily: "Sans-font" }}>
