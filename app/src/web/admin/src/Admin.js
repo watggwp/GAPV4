@@ -195,7 +195,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     />
                 );
 
-            } else if (query.indexOf("statistics") === 0) {
+            } else if (query.indexOf("statistics") >= 0) {
                     Href.set(`report?statistics${type}`);
                     setBody(
                         <PageTemplate

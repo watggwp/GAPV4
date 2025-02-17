@@ -44,6 +44,7 @@ const Login = ({ setBodyFileMain, state = false, socket }) => {
             };
 
             setTimeout(() => {
+                console.log("login")
                 clientMo.post('/api/admin/auth', formData).then((context) => {
                     if (context === "1") {
                         // เข้าสู่ระบบสำเร็จ
