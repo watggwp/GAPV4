@@ -297,6 +297,10 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
     const [getLag , setLag] = useState(0)
     const [getLng , setLng] = useState(0)
 
+    // useEffect(()=>{
+    //     getGenerateMap()
+    // } , [])
+
     const getGenerateMap = () => {
         navigator.geolocation.getCurrentPosition((location)=>{
             setLag(location.coords.latitude)
@@ -310,6 +314,67 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
     }
 
     return (
+        // <section ref={bodySection} onLoad={LoadOn} className="house-detail">
+        //     {/* <div className="loading-show" ref={LoadingPreview}>
+
+        //     </div> */}
+        //     {/* <PopupAlert  textData={Textdata} open={OpenPop} result={ResultPop} liff={liff}
+        //         setText={setText} setOpen={setOpen} setResult={setResult}/> */}
+        //     <ReportAction Open={OpenPop} Text={Textdata} Status={ResultPop}
+        //                     setOpen={setOpen} setText={setText} setStatus={setResult}
+        //                     sizeLoad={90} BorderLoad={10} color="green" action={actionArert}/>
+        //     <div className="content">
+        //         <div className="name-farmhouse">
+        //             <input type="text" defaultValue={getOldData.name_house ? getOldData.name_house : ""} ref={namefarm} placeholder="ชื่อโรงเรือน"></input>
+        //         </div>
+        //         <div className="box-image">
+        //             <div onLoad={LoadPic} ref={Frame} className="frame-picture">
+        //                 {(LoadingImg) ? 
+        //                     <div ref={LoadingEle}></div>
+        //                     :
+        //                     <div ref={LoadingEle} className="Loading-img">
+        //                         <Loading size={70} border={8} color="green" animetion={true}/>
+        //                     </div>
+        //                 }
+        //                 <img pox={CurrentP.x} poy={CurrentP.y} onTouchEnd={setCurrent} onTouchStart={setStartMove} onTouchMove={movePicture} ref={ImageCurrent} src={PreviewImage}></img>
+        //             </div>
+        //             <div className="content-bt">
+        //                 <div onClick={()=>ControlImage.current.click()} className="bt-upload">อัปโหลดรูปภาพ</div>
+        //             </div>
+        //         </div>
+        //         <div className="generate-map">
+        //             <span>ตำแหน่งโรงเรือน</span>
+        //             <div className="frame-map">
+        //                 { getLoadingMap ?
+        //                     <div className="frame-background-loading-map">
+        //                         <div className="loading-map-house">
+        //                             <Loading size={"100%"} border={"4vw"} animetion={true}/>
+        //                         </div>
+        //                     </div>
+        //                     : <></>
+        //                 }
+        //                 <div className="map-house">
+        //                     <MapsJSX lat={getLag} lng={getLng} w={"100%"} h={"100%"}/>
+        //                 </div>
+        //                 <div className="reload-map" onClick={()=>{
+        //                     setLag(0)
+        //                     setLng(0)
+        //                     setLoadingMap(true)
+
+        //                     setTimeout(()=>{
+        //                         getGenerateMap()
+        //                     } , 500)
+        //                 }}>โหลดตำแหน่ง</div>
+        //             </div>
+        //         </div>
+        //     </div>
+        //     <div className="content-bt">
+        //         <button onClick={close} className="bt-cancel">ยกเลิก</button>
+        //         <button onClick={confirmData} className="bt-submit">บันทึก</button>
+        //     </div>
+        //     <input ref={ControlImage} hidden type="file"  accept="image/*" capture="user" onInput={InputImage} ></input>
+        //     <canvas w={sizeWidthImg} h={sizeHeightImg} hidden ref={CropImg}></canvas>
+        // </section>
         <section ref={bodySection} onLoad={clientMo.unLoadingPage} className="house-detail">
             <div className="content-max-width">
                 <div className="title">เพิ่มโรง</div>
