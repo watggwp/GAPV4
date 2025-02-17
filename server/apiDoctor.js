@@ -289,6 +289,143 @@ app.post('/api/doctor/formplant/edit', async (req, res) => {
           res.status(500).json({ error: "Internal server error" });
         }
       });
+
+      app.post('/api/doctor/group/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+     
+        if (!username || !password) {
+          res.redirect('/api/logout');
+          return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+          const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+          if (auth['result'] === "pass") {
+            con.query(
+              `
+              SELECT
+                pc.id,
+                pc.safe_days,
+                pc.pest_id as pest_id,
+                pc.chemical_id as chemical_id,
+                pc.plant_id as plant_id,
+                pt.type_pest as type_pest
+              FROM pest_chemical AS pc
+              LEFT JOIN pests pt ON pt.pest_id = pc.pest_id
+              WHERE pc.id = ?
+              `,
+              [req.body.id] ,
+              (err, results) => {
+                if (err) {
+                  console.error("Database query error:", err);
+                  con.end();
+                  res.status(500).json({ error: "Database query failed" });
+                  return;
+                }
+     
+                if (results.length === 0) {
+                  console.log("No data found");
+                  con.end();
+                  res.status(404).json({ message: "No data found" });
+                  return;
+                }
+     
+                console.log("Data retrieved successfully:", results);
+                con.end();
+                res.status(200).json(results); // ส่งข้อมูลกลับไป
+              }
+            );
+          } else {
+            res.status(401).json({ error: "Unauthorized access" });
+          }
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          con.end();
+          res.status(500).json({ error: "Internal server error" });
+        }
+      });
+
+      app.post('/api/doctor/group/edit' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+     
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            const id = req.body.id
+            const pest_id = req.body.pest_id
+            const chemical_id = req.body.chemical_id
+            const plant_id = req.body.plant_id
+            const safe_days = req.body.safe_days
+     
+            if(id && pest_id && chemical_id && plant_id && safe_days) {
+              con.query(
+                `
+                  UPDATE pest_chemical
+                    SET
+                      pest_id = ?,
+                      chemical_id = ?,
+                      plant_id = ?,
+                      safe_days = ?
+                    WHERE id = ? AND NOT EXISTS (
+                      SELECT 1
+                      FROM pest_chemical
+                      WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND NOT id = ?
+                    )
+                `
+                , [
+                    pest_id , chemical_id , plant_id , safe_days , id ,
+                    pest_id , chemical_id , plant_id , id
+                  ] , (err , dataUpdate) => {
+                  if(err) {
+                    console.log(err)
+                    res.send({
+                      status : 403,
+                      result : "err insert"
+                    })
+                  }
+     
+                  if(dataUpdate.changedRows) {
+                    con.query(
+                      `
+                        UPDATE pest_chemical SET safe_days = ?
+                        WHERE chemical_id = ? AND plant_id = ?
+                      ` , [ safe_days , chemical_id , plant_id ] ,
+                      (err , updateSafeDate) => {
+                        console.log(err)
+                        con.end()
+     
+                        res.send({
+                          status : 200,
+                          result : "update group"
+                        })
+                      }
+                    )
+                  } else {
+                    res.send({
+                      status : 409,
+                      result : "insert group"
+                    })
+                  }
+                }
+              )
+            }
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+      })
      
       app.post('/api/doctor/group/insert' , async (req , res)=>{
         let username = req.session.user_doctor

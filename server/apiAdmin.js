@@ -2137,29 +2137,29 @@ app.post('/api/admin/report/list', async(req, res) => {
 //     console.log(" Raw body received:", req.body);
 //     console.log(" selectedData:", req.body.selectedData);
 //     console.log(" minCount:", req.body.minCount);
-    
+   
 //     let username = req.session.user_admin;
 //     let password = req.session.pass_admin;
-
+ 
 //     if (!username || !password) {
 //         res.redirect('/api/logout');
 //         return;
 //     }
-
+ 
 //     let con = Database.createConnection(listDB);
 //     console.log("Received selectedData:", req.body.selectedData);
-//     console.log("Received minCount:", req.body.minCount); 
-
+//     console.log("Received minCount:", req.body.minCount);
+ 
 //     try {
 //         const auth = await apifunc.auth(con, username, password, res, "admin");
 //         if (auth['result'] === "pass") {
-//             const { selectedData, minCount } = req.body; 
-
+//             const { selectedData, minCount } = req.body;
+ 
 //             // บันทึกค่า minCount ลงในตาราง statistic
 //             con.query(
 //                 `
-//                 INSERT INTO statistic (role, count_day ,id_role) 
-//                 VALUES (?,?,?) 
+//                 INSERT INTO statistic (role, count_day ,id_role)
+//                 VALUES (?,?,?)
 //                 ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
 //                 `,
 //                 ["admin" , minCount , auth['data']['id']],
@@ -2171,43 +2171,43 @@ app.post('/api/admin/report/list', async(req, res) => {
 //                     }
 //                 }
 //             );
-
+ 
 //             // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
 //             con.query(
-//                 `SELECT 
+//                 `SELECT
 //                     af.uid_line
 //                  FROM formchemical fc
 //                  LEFT JOIN pests p ON fc.insect = p.pest_name
 //                  LEFT JOIN formplant fp ON fc.id_plant = fp.id
-//                  LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+//                  LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
 //                  LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-//                  WHERE af.station = ? 
+//                  WHERE af.station = ?
 //                  LIMIT 25;`, [auth['data']['station_admin']],
 //                 (err, result) => {
 //                     if (err) {
 //                         dbpacket.dbErrorReturn(con, err, res);
 //                         return;
 //                     }
-
+ 
 //                     try {
 //                         console.log("Query Result:", result);
 //                         let uid = result.map(row => row.uid_line);
-//                         let textSend = selectedData.map(item => 
+//                         let textSend = selectedData.map(item =>
 //                             `พืช: ${item.name_plants}\n` +
 //                             `ศัตรูพืชที่พบ: ${item.pest_name}\n` +
 //                             `จำนวน: ${item.count}\n` +
 //                             `สารเคมีที่ใช้: ${item.chemical_used || "-"}`
 //                         ).join("\n\n");
-
+ 
 //                         console.log("UIDs to send:", uid);
 //                         console.log("Text to send:", textSend);
-
+ 
 //                         // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
 //                         Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
 //                     } catch (e) {
 //                         console.error("Error sending Line message:", e);
 //                     }
-
+ 
 //                     con.end();
 //                     res.send(result);
 //                 }
@@ -2220,115 +2220,96 @@ app.post('/api/admin/report/list', async(req, res) => {
 //         }
 //     }
 // });
-
+ 
 app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
-  console.log("Raw body received:", req.body);
-  console.log("selectedData:", req.body.selectedData);
-  console.log("minCount:", req.body.minCount);
-
+  console.log("Raw body received:", JSON.stringify(req.body, null, 2));
+ 
   let username = req.session.user_admin;
   let password = req.session.pass_admin;
-
+ 
   if (!username || !password) {
       res.redirect('/api/logout');
       return;
   }
-
+ 
   let con = Database.createConnection(listDB);
   console.log("Received selectedData:", req.body.selectedData);
   console.log("Received minCount:", req.body.minCount);
-
+ 
   try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
-          const { selectedData, minCount } = req.body;
-
+          let { selectedData, minCount } = req.body;
+ 
           // บันทึกค่า minCount ลงในตาราง statistic
           con.query(
-              `INSERT INTO statistic (role, count_day, id_role) 
-               VALUES (?, ?, ?) 
-               ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
+              `INSERT INTO statistic (role, count_day, id_role)
+              VALUES (?, ?, ?)
+              ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
               ["admin", minCount, auth['data']['id']],
               (err) => {
                   if (err) {
-                      console.error("Database error:", err);
+                      console.error("Database error while inserting minCount:", err);
                       dbpacket.dbErrorReturn(con, err, res);
                       return;
                   }
               }
           );
-
-          // ดึง uid_line ของ acc_farmer ที่เกี่ยวข้อง
+ 
+          // ดึงข้อมูล uid_line ของ acc_farmer
           con.query(
-              `SELECT af.uid_line 
+              `SELECT af.uid_line
                FROM formchemical fc
                LEFT JOIN pests p ON fc.insect = p.pest_name
                LEFT JOIN formplant fp ON fc.id_plant = fp.id
-               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
+               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-               WHERE af.station = ? 
-               LIMIT 25`, 
+               WHERE af.station = ?
+               LIMIT 25;`,
               [auth['data']['station_admin']],
-              (err, result) => {
+              async (err, result) => { // ใช้ async เพราะต้อง fetch chemical data
                   if (err) {
+                      console.error("Database error while retrieving farmers:", err);
                       dbpacket.dbErrorReturn(con, err, res);
                       return;
                   }
-
+ 
                   try {
-                      console.log("Query Result:", result);
+                      console.log("✅ Query Result (Farmers):", result);
                       let uid = result.map(row => row.uid_line);
-
-                      // ดึงข้อมูลศัตรูพืชและสารเคมีที่ใช้
-                      con.query(
-                        `SELECT pc.pest_id, pc.chemical_id, 
-                                p.pest_name, c.name AS chemical_name
-                         FROM pest_chemical pc
-                         LEFT JOIN pests p ON pc.pest_id = p.pest_id  
-                         LEFT JOIN chemical_list c ON pc.chemical_id = c.id`, 
-                          (err, pestChemicalResult) => {
-                              if (err) {
-                                  dbpacket.dbErrorReturn(con, err, res);
-                                  return;
-                              }
-
-                              // จัดกลุ่มศัตรูพืชให้จับคู่กับสารเคมีที่ใช้
-                              let pestChemicalMap = {};
-                              pestChemicalResult.forEach(row => {
-                                  if (!pestChemicalMap[row.pest_name]) {
-                                      pestChemicalMap[row.pest_name] = [];
-                                  }
-                                  pestChemicalMap[row.pest_name].push(row.chemical_name);
-                              });
-
-                              let textSend = selectedData.map(item => {
-                                  let pestName = item.pest_name;
-                                  let chemicals = pestChemicalMap[pestName] || ["-"];
-                                  let chemicalsText = chemicals.join(", "); 
-
-                                  return `พืช: ${item.name_plants}\n` +
-                                         `ศัตรูพืชที่พบ: ${pestName}\n` +
-                                         `จำนวน: ${item.count}\n` +
-                                         `สารเคมีที่ใช้: ${chemicalsText}`;
-                              }).join("\n\n");
-
-                              console.log("UIDs to send:", uid);
-                              console.log("Text to send:", textSend);
-
-                              // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
-                              Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
-                              con.end();
-                              res.send(result);
-                          }
-                      );
+ 
+                      // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
+                      for (let item of selectedData) {
+                          item.chemical_used = await getChemicalUsed(item.pest_id);
+                          console.log(`🔍 Retrieved Chemical for Pest ${item.pest_name} (ID: ${item.pest_id}):`, item.chemical_used);
+                      }
+ 
+                      //  **สร้างข้อความแจ้งเตือน**
+                      let textSend = selectedData.map(item =>
+                          ` พืช: ${item.name_plants}\n` +
+                          ` ศัตรูพืชที่พบ: ${item.pest_name}\n` +
+                          ` จำนวน: ${item.count}\n` +
+                          ` สารเคมีที่ใช้: ${item.chemical_used}`
+                      ).join("\n\n");
+ 
+                      console.log("📢 UIDs to send:", uid);
+                      console.log("📨 Text Message to Send:\n", textSend);
+ 
+                      //  **ส่งข้อความแจ้งเตือน**
+                      Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+ 
                   } catch (e) {
                       console.error("Error sending Line message:", e);
                   }
+ 
+                  con.end();
+                  res.send(result);
               }
           );
       }
   } catch (err) {
       con.end();
+      console.error("❌ Authentication or unexpected error:", err);
       if (err == "not pass") {
           res.redirect('/api/logout');
       }

@@ -5,34 +5,34 @@ import { PageTemplateContext } from "../PageTemplate";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
-
-
-
+ 
+ 
+ 
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
   const [groupData, setGroupData] = useState([]);
   const [groupMapping, setGroupMapping] = useState(new Map());
   const { TabOn } = useContext(AdminContext);
-
+ 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedToggleId, setSelectedToggleId] = useState(null);
   const [status, setStatus] = useState(null);
   const PasswordRef = useRef(null);
   const [ stateOnBt, setStateOnBt ] = useState(true);
-
+ 
   const [Open, setOpen] = useState(false);
   const [Text, setText] = useState("");
   const [Status, setStatusReport] = useState(null);
-
+ 
   const fetchGroupData = useCallback(async () => {
     try {
       const response = await clientMo.post("/api/admin/group/gets", { search: textSearch });
       const result = JSON.parse(response);
-
+ 
       if (Array.isArray(result)) {
         setGroupData(result);
         TabOn.addTimeOut(TabOn.end());
-
+ 
         const initialMapping = new Map();
         result.forEach((item , idx) => {
           initialMapping.set(item.id , {...item , index : idx})
@@ -45,11 +45,11 @@ const PageGroup = () => {
       console.error("Error fetching group data:", error);
     }
   }, [TabOn, textSearch]);
-
+ 
   useEffect(() => {
     fetchGroupData();
   }, [fetchGroupData]);
-
+ 
   const handleEditClick = (item) => {
     setPopupDataManage({
       open: true,
@@ -57,72 +57,66 @@ const PageGroup = () => {
       metadata: { id: item.id },
     });
   };
-
+ 
   const handleToggleClick = (id) => {
     setSelectedToggleId(id);
     setStatus(groupMapping.get(id)?.status ? 0 : 1);
     setShowConfirmModal(true);
   };
-
+ 
   const handleToggleConfirm = async () => {
     const password = PasswordRef.current.value;
     if (!password) {
-      alert("กรุณากรอกรหัสผ่าน");
-      return;
+      return; // ไม่ต้องแสดง popup หากไม่มีการกรอกรหัสผ่าน
     }
-  
+ 
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
         id: selectedToggleId,
         status: status,
         password: password,
       });
-  
+ 
       const result = JSON.parse(response);
-  
-      switch (result.status) {
-        case 200:
-          setGroupData((group) => {
-            const { index } = groupMapping.get(selectedToggleId);
-            if (group[index]) {
-              group[index]["status"] = status;
-            }
-            return [...group];  // Ensure React re-renders the updated state
-          });
-  
-          // Show success message
-          setText("อัปเดตสถานะสำเร็จ!");
-          setStatusReport("success");
-          setOpen(true); // Open popup
-  
-          // Automatically close the message after 3 seconds
-          setTimeout(() => {
-            setOpen(false);
-          }, 3000);
-          break;
-        default:
-          // Show error message
-          setText(`เกิดข้อผิดพลาด: ${result.message}`);
-          setStatusReport("error");
-          setOpen(true);
-          setTimeout(() => {
-            setOpen(false);
-          }, 3000);
-          break;
+ 
+      if (result.status === 200) {
+        setGroupData((group) => {
+          const { index } = groupMapping.get(selectedToggleId);
+          if (group[index]) {
+            group[index]["status"] = status;
+          }
+          return [...group];
+        });
+ 
+        setText("อัปเดตสถานะสำเร็จ!");
+        setStatus(1);
+        setOpen(true);
+        setTimeout(() => setOpen(false), 3000);
+      } else if (result === "password") {
+        setText("รหัสผ่านไม่ถูกต้อง"); // แจ้งเตือนเมื่อรหัสผ่านผิด
+        setStatus(3);
+        PasswordRef.current.value = ""; // เคลียร์ช่องใส่รหัสผ่าน
+        setOpen(true);
+        setTimeout(() => setOpen(false), 3000);
+      } else {
+        setText(`เกิดข้อผิดพลาด: ${result.message}`);
+        setStatus(2);
+        setOpen(true);
+        setTimeout(() => setOpen(false), 3000);
       }
     } catch (error) {
       console.error("Error updating status:", error);
       setText("ไม่สามารถอัปเดตสถานะได้");
-      setStatusReport("error");
+      setStatus(2);
       setOpen(true);
-      setTimeout(() => {
-        setOpen(false);
-      }, 3000);
+      setTimeout(() => setOpen(false), 3000);
     }
-  
+ 
     setShowConfirmModal(false);
-  };
-  
+};
+ 
+ 
+ 
   return (
     <div className="data-table">
       <table
@@ -171,7 +165,7 @@ const PageGroup = () => {
                   >
                     แก้ไข
                   </button>
-
+ 
                   <button
                     onClick={() => handleToggleClick(item.id)}
                     style={{
@@ -210,7 +204,7 @@ const PageGroup = () => {
           color={"white"}
         />
       </div>
-
+ 
       {showConfirmModal && (
         <div className="manage-overlay">
           <div className="manage-page">
@@ -228,12 +222,12 @@ const PageGroup = () => {
           </div>
         </div>
       )}
-
+ 
       <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg">
         <ManageGroup fetchGroups={fetchGroupData} />
       </Modal>
     </div>
   );
 };
-
+ 
 export default PageGroup;
