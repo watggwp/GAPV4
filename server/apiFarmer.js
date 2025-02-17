@@ -15,6 +15,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
             delete req.session.user_doctor
         }
 
+        console.log(req.body)
         if(req.body['uid']) {
             req.session.uidFarmer = req.body['uid']
             let con = Database.createConnection(listDB)
