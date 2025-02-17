@@ -41,8 +41,8 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                     action : {
                                                         type : "uri",
                                                         label : `${name_house.length > 12 ? `${name_house.slice(0 , 9)}..` : name_house}`,
-                                                        uri : `https://liff.line.me/2006915135-MoVOdyjw/${result[key]["id_farm_house"]}`
-                                                        // uri : `https://liff.line.me/2004738631-53dZvpje/${result[key]["id_farm_house"]}?date=${new Date().getTime()}`
+                                                        // uri : `https://liff.line.me/2006915135-rpPe4wml/${result[key]["id_farm_house"]}`
+                                                        uri : `https://liff.line.me/2006915135-MoVOdyjw/${result[key]["id_farm_house"]}?date=${new Date().getTime()}`
                                                     }
                                                 }
                                         )
