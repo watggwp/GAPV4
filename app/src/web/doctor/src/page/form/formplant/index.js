@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
 import "../../../assets/style/page/form/FormEdit.scss";
 import axios from "axios";
+import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 export default function FormPlant({
     data,
@@ -14,6 +15,9 @@ export default function FormPlant({
     const [localMode, setLocalMode] = useState(mode);
 
     const DateGlow = useRef()
+    const DatePlant = useRef()
+    const DateHarvest = useRef()
+    const DateSuccess = useRef()
 
     const extractLatLngFromGoogleMapsUrl = (url) => {
         const match = url.match(/@([-.\d]+),([-.\d]+)/);
@@ -77,12 +81,13 @@ export default function FormPlant({
         }
 
         try {
-            const app = await axios.post("/api/doctor/formplant/edit", {
-                id_plant: data.id_plant,
-                id_farmhouse: data.id_farmhouse,
+            const stringData = await clientMo.post("/api/doctor/formplant/edit", {
+                id_plant: data.id,
+                id_farmhouse: data.id_farm_house,
                 dataChange: editValue
             });
 
+            const app = JSON.parse(stringData)
             console.log("✅ API app:", app.data);
 
             if (app.data === "133") {
@@ -164,12 +169,7 @@ export default function FormPlant({
                             {localMode === "view" ? (
                                 <span className="data-show">{formatDateThai(data.date_glow)}</span>
                             ) : (
-                                <DateSelect RefDateValue={DateGlow} Value={data.date_glow}/>
-                                // <input 
-                                //     type="date" 
-                                //     className="data-show" 
-                                //     value={editValue.date_glow ?? data.date_glow} 
-                                //     onChange={(event) => onEdit("date_glow", event.target.value)} />
+                                <DateSelect RefDateValue={DateGlow} Value={data.date_glow} onChangeDate={(dateNew) => onEdit("date_glow", dateNew)}/>
                             )}
                         </div>
 
@@ -179,11 +179,7 @@ export default function FormPlant({
                             {localMode === "view" ? (
                                 <span className="data-show">{formatDateThai(data.date_plant)}</span>
                             ) : (
-                                <input 
-                                    type="date" 
-                                    className="data-show" 
-                                    value={editValue.date_plant ?? data.date_plant} 
-                                    onChange={(event) => onEdit("date_plant", event.target.value)} />
+                                <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={(dateNew) => onEdit("date_plant", dateNew)}/>
                             )}
                         </div>
                     </div>
@@ -194,12 +190,7 @@ export default function FormPlant({
                             {localMode === "view" ? (
                                 <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_harvest} />
                             ) : (
-                                <input 
-                                    type="date" 
-                                    className="data-show" 
-                                    value={editValue.date_harvest ?? data.date_harvest} 
-                                    onChange={(event) => onEdit("date_harvest", event.target.value)} 
-                                />
+                                <DateSelect RefDateValue={DateHarvest} Value={data.date_harvest} onChangeDate={(dateNew) => onEdit("date_harvest", dateNew)}/>
                             )}
                         </div>
 
@@ -213,12 +204,7 @@ export default function FormPlant({
                                     <span className="data-show">ยังไม่เก็บเกี่ยว</span>
                                 )
                             ) : (
-                                <input 
-                                    type="date" 
-                                    className="data-show" 
-                                    value={editValue.date_success ?? data.date_success} 
-                                    onChange={(event) => onEdit("date_success", event.target.value)} 
-                                />
+                                <DateSelect RefDateValue={DateSuccess} Value={data.date_success} onChangeDate={(dateNew) => onEdit("date_success", dateNew)}/>
                             )}
                         </div>
                     </div>

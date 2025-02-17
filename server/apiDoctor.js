@@ -19,134 +19,185 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
 
     // API: ดึงข้อมูลการแก้ไขฟอร์มการปลูกพืช
-        app.post('/api/doctor/formplant/edit/select', async (req, res) => {
+    app.post('/api/doctor/formplant/edit/select', async (req, res) => {
         if (req.session.uidFarmer) {
-        let con = Database.createConnection();
+            let con = Database.createConnection();
 
-        try {
-            const auth = await authCheck(con, res, req);
-            const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
+            try {
+                const auth = await authCheck(con, res, req);
+                const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
 
-            con.query(
-                `
-                SELECT editform.*, COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
-                FROM editform
-                LEFT JOIN formplant ON editform.id_form = formplant.id
-                LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
-                WHERE formplant.id_farm_house = ?
-                AND formplant.id = ?
-                AND editform.type_form = "plant" \${where}
-                ORDER BY editform.date DESC
-                `,
-                [req.body.id_farmhouse, req.body.id_plant],
-                (err, result) => {
-                    if (err) {
-                        console.error(err);
-                        con.end();
-                        res.send("error auth");
-                        return;
-                    }
+                con.query(
+                    `
+                    SELECT editform.*, COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                    FROM editform
+                    LEFT JOIN formplant ON editform.id_form = formplant.id
+                    LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                    WHERE formplant.id_farm_house = ?
+                    AND formplant.id = ?
+                    AND editform.type_form = "plant" \${where}
+                    ORDER BY editform.date DESC
+                    `,
+                    [req.body.id_farmhouse, req.body.id_plant],
+                    (err, result) => {
+                        if (err) {
+                            console.error(err);
+                            con.end();
+                            res.send("error auth");
+                            return;
+                        }
 
-                    if (req.body.id_edit) {
-                        con.query(
-                            `SELECT * FROM detailedit WHERE id_edit = ?`,
-                            [req.body.id_edit],
-                            (err, detail) => {
-                                if (err) {
-                                    console.error("select detailedit", err);
-                                    con.end();
-                                    res.send("error");
-                                    return;
-                                }
-
-                                con.end();
-                                res.send({
-                                    head: result[0],
-                                    detail: detail,
-                                });
-                            }
-                        );
-                    } else {
-                        con.end();
-                        res.send(result);
-                    }
-                }
-            );
-        } catch (err) {
-            console.error("Authorization error:", err);
-            con.end();
-            res.send("error auth");
-        }
-    } else {
-        res.send("error auth");
-    }
-});
-
-// API: บันทึกการแก้ไขข้อมูลฟอร์มการปลูกพืช
-app.post('/api/doctor/formplant/edit', async (req, res) => {
-    if (req.session.uidDoctor) {
-        let con = Database.createConnection();
-        try {
-            const auth = await authCheck(con, res, req);
-
-            con.query(
-                `SELECT * FROM formplant WHERE id_farm_house = ? AND id = ?`,
-                [req.body.id_farmhouse, req.body.id_plant],
-                (err, result) => {
-                    if (err) {
-                        con.end();
-                        res.send("error auth");
-                        return;
-                    }
-                    if (!result[0]) {
-                        con.end();
-                        res.send("not found");
-                        return;
-                    }
-
-                    const data = req.body;
-                    const changes = Object.entries(data.dataChange).map(([key, value]) => [result[0][key], value, key]);
-                    const queries = changes.map(([oldContent, newContent, subject]) =>
-                        con.query(
-                            `INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) VALUES (?, ?, ?, ?)`,
-                            [data.id_plant, subject, oldContent, newContent]
-                        )
-                    );
-
-                    Promise.all(queries)
-                        .then(() => {
-                            const updates = changes.map(([_, newContent, subject]) => `${subject}="${newContent}"`).join(", ");
+                        if (req.body.id_edit) {
                             con.query(
-                                `UPDATE formplant SET ${updates} WHERE id = ?`,
-                                [data.id_plant],
-                                (err) => {
+                                `SELECT * FROM detailedit WHERE id_edit = ?`,
+                                [req.body.id_edit],
+                                (err, detail) => {
                                     if (err) {
-                                        console.error("update formplant", err);
+                                        console.error("select detailedit", err);
                                         con.end();
                                         res.send("error");
                                         return;
                                     }
+
                                     con.end();
-                                    res.send("success");
+                                    res.send({
+                                        head: result[0],
+                                        detail: detail,
+                                    });
                                 }
                             );
-                        })
-                        .catch((err) => {
-                            console.error("insert detailedit", err);
+                        } else {
                             con.end();
-                            res.send("error");
-                        });
-                }
-            );
-        } catch (err) {
-            console.error(err);
-            con.end();
+                            res.send(result);
+                        }
+                    }
+                );
+            } catch (err) {
+                console.error("Authorization error:", err);
+                con.end();
+                res.send("error auth");
+            }
+        } else {
             res.send("error auth");
         }
-    } else {
-        res.send("error auth");
-    }
-});
+    });
+
+    // API: บันทึกการแก้ไขข้อมูลฟอร์มการปลูกพืช
+    app.post('/api/doctor/formplant/edit', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+            const { data : { id_table_doctor } } = result
+            con.query(`
+                SELECT formplant.*
+                FROM formplant
+                WHERE formplant.id = ?
+            `, [ req.body.id_plant ],
+            (err, result) => {
+                if (err) {
+                    con.end();
+                    res.send("error auth");
+                    return;
+                }
+                if (!result[0]) {
+                    con.end();
+                    res.send("not");
+                    return;
+                }
+
+                const data = req.body;
+                if (result[0].state_status === 0 || result[0].state_status === 1) {
+                    con.query(`
+                        INSERT INTO editform 
+                            (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                        VALUES 
+                            (?, ?, ?, ?, ?, ?, "plant")
+                    `, [data.id_plant, "", id_table_doctor, data.because, "", 0],
+                    (err, resultEdit) => {
+                        if (err) {
+                            dbpacket.dbErrorReturn(con, err, res);
+                            console.log("insert editform");
+                            return;
+                        }
+
+                        if (resultEdit.insertId > 0) {
+                            const arrUpdate = [];
+                            let checkerr = false;
+
+                            for (let subject in data.dataChange) {
+                                con.query(`
+                                    INSERT INTO detailedit
+                                        (id_edit, subject_form, old_content, new_content)
+                                    VALUES 
+                                        (?, ?, ?, ?)
+                                `, [resultEdit.insertId, subject, result[0][subject], data.dataChange[subject]],
+                                (err, Edit) => {
+                                    if (err) {
+                                        dbpacket.dbErrorReturn(con, err, res);
+                                        console.log("insert detailedit");
+                                        checkerr = true;
+                                        return;
+                                    }
+
+                                    if (Edit.insertId) {
+                                        arrUpdate.push(`${subject}="${data.dataChange[subject]}"`);
+                                        if (arrUpdate.length === data.num) {
+                                            const strUpdate = arrUpdate.join(" , ");
+                                            con.query(`
+                                                UPDATE formplant 
+                                                SET ${strUpdate}
+                                                WHERE id = ?
+                                            `, [data.id_plant],
+                                            (err, update) => {
+                                                if (err) {
+                                                    dbpacket.dbErrorReturn(con, err, res);
+                                                    console.log("update form");
+                                                    return;
+                                                }
+                                                con.end();
+                                                try {
+                                                    // sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                }
+                                                res.send("133");
+                                            });
+                                        }
+                                    }
+                                });
+                                if (checkerr) {
+                                    con.end();
+                                    res.send("edit");
+                                    break;
+                                }
+                            }
+                        } else {
+                            con.end();
+                            res.send("edit");
+                        }
+                    });
+                } else {
+                    con.end();
+                    res.send("submit");
+                }
+            });
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    });
 
 
     app.get('/api/doctor/name' , (req , res)=>{

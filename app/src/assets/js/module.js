@@ -611,11 +611,13 @@ const SetMaxLength = (e , setQty , max) => {
 }
 
 const DateSelect = ({RefDateValue , Value = "" , methodCheckValue ,
+onChangeDate ,
 Ref = {
     DayCK : null ,
     MountCK : null ,
     YearCK : null
-}}) => {
+}} ,
+) => {
     {/* ใน server ทดลอง เดือนจะไม่ตรง แต่ใน  server จริง จะตรง ไม่จำเป็นต้องแก้หากเดือนเพี้ยน */}
  
     const RefDate = {
@@ -696,7 +698,9 @@ Ref = {
     }
  
     const ChangeDate = (day , mount , year) => {
-        RefDateValue && (RefDateValue.current.value = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`);
+        const dateNew = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`
+        RefDateValue && (RefDateValue.current.value = dateNew);
+        onChangeDate && onChangeDate(dateNew)
         methodCheckValue && methodCheckValue()
     }
  

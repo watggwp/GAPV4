@@ -115,6 +115,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                         if(type_form === 0) {
                             // setID_farmer(data.id_farmer)
                             setCountEdit(data.countStatus)
+                            console.log(data)
                             return (
                              <FormPlant
                                     key={key}
