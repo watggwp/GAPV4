@@ -1598,8 +1598,12 @@ app.post('/api/admin/data/list', async (req, res) => {
           data.type === "pest" ? "pests" : ""
         );
 
-        const Name = (
+        const columnName = (
           data.type === "pest" ? "pest_name" : "name"
+        )
+
+        const columnID = (
+          data.type === "pest" ? "pest_id" : "id"
         )
         if(From) {
           try {
@@ -1610,11 +1614,11 @@ app.post('/api/admin/data/list', async (req, res) => {
                   SELECT EXISTS (
                     SELECT id
                     FROM ${From} as data_search
-                    WHERE data_main.${Name} = data_search.${Name} and data_search.is_use = 1
+                    WHERE data_main.${columnName} = data_search.${columnName} and data_search.is_use = 1
                   )
                 ) as verifyStatus
                 FROM ${From} as data_main
-                WHERE id = ?
+                WHERE ${columnID} = ?
                 `
                 ,[ data.id_table ], (err , result)=>{
                 if(err) reject("")
@@ -1625,7 +1629,7 @@ app.post('/api/admin/data/list', async (req, res) => {
             if(verify) {
               con.query(
                 `
-                UPDATE ${From} SET is_use = ? WHERE id = ?;
+                UPDATE ${From} SET is_use = ? WHERE ${columnID} = ?;
                 `
                 , [ data.state_use , data.id_table] , (err , result)=>{
                 if(err) {
