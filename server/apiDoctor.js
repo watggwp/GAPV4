@@ -2492,7 +2492,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
                 WHERE af.station = ? AND (p.pest_name LIKE ?)
                 GROUP BY fc.insect
-                LIMIT 25;`, [auth['data']['station_doctor'] , search] ,
+                LIMIT 25;`, [auth['data']['station_doctor'] , `%${search}%`] ,
               (err, result) => {
                 if (err) {
                   dbpacket.dbErrorReturn(con, err, res);
