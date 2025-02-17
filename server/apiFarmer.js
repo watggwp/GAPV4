@@ -24,6 +24,7 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                 res.send(auth.result)
             } catch (err) {
                 con.end()
+                console.log(err)
                 if(err === "no" || err === "no account") res.send("close")
                 else res.send("error auth")
             }
