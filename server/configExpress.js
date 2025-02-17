@@ -26,7 +26,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     const app = express();
     
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
-    // app.set('trust proxy', 1);
+    app.set('trust proxy', 1);
 
     const upload = multer()
     const server =
