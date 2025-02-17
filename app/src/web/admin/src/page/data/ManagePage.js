@@ -4,7 +4,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/page/PopupManage.scss"
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import { Grid2, TextField } from "@mui/material";
-import Plant from "./types/plant";
+import Plant from "./types/Plant";
 import Station from "./types/station";
 import Chemical from "./types/chemical";
 import Pest from "./types/pest";
