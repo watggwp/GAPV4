@@ -52,7 +52,7 @@ const InsertReport = () => {
  
   useEffect(() => {
     ListReport();
-  }, [ListReport]);
+  }, []);
  
   return (
     <div style={{ padding: "20px" }}>

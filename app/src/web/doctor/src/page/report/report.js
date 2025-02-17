@@ -10,7 +10,7 @@ const ReportListLocation = () => {
         type: "listlocation",
         limit: 100,
         startRow: 0,
-        textSearch: "",
+        search: "",
       });
       const parsedList = JSON.parse(listlocation);
       setLocations(parsedList.data.doctors);
