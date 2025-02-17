@@ -12,6 +12,7 @@ import InsertReport from "../report/InsertReport";
 import PageGroup from "../group/PageGroup";
 import InsertGraph from "../report/InsertGraph";
 import InsertStatistics from "../report/statistics/InsertStatistics";
+import ReportListLocation from "../report/report";
 
 const MaxLimit = 5
 
@@ -437,6 +438,8 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                             <InsertGraph/> :
                         DataProcess.get("type") === "statistics" ?
                             <InsertStatistics/> :
+                        DataProcess.get("type") === "listlocation" ?
+                            <ReportListLocation/> :
                             <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                     }
                     {

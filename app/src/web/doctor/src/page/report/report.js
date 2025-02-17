@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
  
-const InsertReport = () => {
+const ReportListLocation = () => {
   const [locations, setLocations] = useState([]);
  
   const ListReport = useCallback(async () => {
@@ -61,4 +61,4 @@ const InsertReport = () => {
   );
 };
  
-export default InsertReport;
+export default ReportListLocation;
