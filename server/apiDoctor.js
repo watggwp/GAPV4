@@ -120,7 +120,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
                         VALUES 
                             (?, ?, ?, ?, ?, ?, "plant")
-                    `, [data.id_plant, "", id_table_doctor, data.because, "", 0],
+                    `, [data.id_plant, "", id_table_doctor, data.because || "", "", 0],
                     (err, resultEdit) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
@@ -162,10 +162,10 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     console.log("update form");
                                                     return;
                                                 }
-                                                con.end();
                                                 try {
-                                                    // sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
+                                                    SendToFarmerHouse(con, data.id_plant, `เจ้าหน้าที่ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
                                                 } catch (e) {
+                                                    con.end();
                                                     console.error(e);
                                                 }
                                                 res.send("133");
@@ -1678,7 +1678,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 ` , [req.body.id_table] ,
                 async (err, search ) => {
                     if (!err){
-                        await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
+                        console.log("send")
+                        // await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
                         con.query(
                             `
                             UPDATE acc_farmer
@@ -4524,7 +4525,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     }
 
-    const SendToFarmerLink = async (con , link_user , textSend) => {
+    console.log("send")
+    // const SendToFarmerLink = async (con , link_user , textSend) => {
         return await new Promise((resole , reject)=>{
             con.query(
                 `
