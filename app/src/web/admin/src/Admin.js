@@ -158,7 +158,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             } else if (seconPath[0] === "data") {
-                if (query.indexOf("plant") === 0) {
+                if (query === "plant") {
                     Href.set(`data?plant${type}`);
                     setBody(
                         <PageTemplate
@@ -170,8 +170,32 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                } else if (query.indexOf("station") === 0) {
+                } else if (query === "station") {
                     Href.set(`data?station${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "chemical") {
+                    Href.set(`data?chemical${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "pest") {
+                    Href.set(`data?pest${type}`);
                     setBody(
                         <PageTemplate
                             session={sessionoff}
@@ -234,30 +258,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     />
                 );
 
-            } else if (query.indexOf("chemical") === 0) {
-                Href.set(`data?chemical${type}`);
-                setBody(
-                    <PageTemplate
-                        session={sessionoff}
-                        TabOn={TabOn}
-                        socket={socket}
-                        modify={modifyMainPage}
-                        auth={Auth}
-                        HrefData={Href}
-                    />
-                );
-            } else if (query.indexOf("pest") === 0) {
-                Href.set(`data?pest${type}`);
-                setBody(
-                    <PageTemplate
-                        session={sessionoff}
-                        TabOn={TabOn}
-                        socket={socket}
-                        modify={modifyMainPage}
-                        auth={Auth}
-                        HrefData={Href}
-                    />
-                );
             }
         } else {
             setBody(
