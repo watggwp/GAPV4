@@ -10,7 +10,7 @@ const InsertGraph = () => {
   const ListGraph = useCallback(async () => {
     console.log("Start fetch graph");
     try {
-      const response = await clientMo.post("/api/doctor/report/list", { search: textSearch || "" });
+      const response = await clientMo.post("/api/doctor/report/list", { search: "" });
       const result = JSON.parse(response);
  
       if (result.data) {
