@@ -210,7 +210,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             } else if (query.indexOf("group") === 0) {
-                Href.set(`data?group${type}`);
+                Href.set(`group?group${type}`);
                 setBody(
                     <PageTemplate
                         session={sessionoff}
