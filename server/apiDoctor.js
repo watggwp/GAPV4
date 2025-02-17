@@ -1099,7 +1099,6 @@ app.post('/api/doctor/formplant/edit', async (req, res) => {
                         WHERE acc_doctor.id_table_doctor = acc_farmer.id_table_doctor
                     ) as name_doctor,
                     (
-<<<<<<< HEAD
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = (
                                   SELECT uid_line FROM acc_farmer AS farmer_check
@@ -1109,25 +1108,6 @@ app.post('/api/doctor/formplant/edit', async (req, res) => {
                               )
                               AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
                               AND type = ""
-=======
-                        SELECT date
-                        FROM message_user
-                        WHERE message_user.uid_line_farmer = (
-                                    SELECT uid_line
-                                    FROM acc_farmer as farmer_check
-                                    WHERE farmer_check.link_user = acc_farmer.link_user
-                                    ORDER BY date_register DESC
-                                    LIMIT 1
-                                )
-                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
-                            and type = ""
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> gap1164
-=======
->>>>>>> gap1164
-=======
->>>>>>> tan
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
