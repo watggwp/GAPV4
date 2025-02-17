@@ -2260,7 +2260,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
   try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
-          let { selectedData, minCount } = req.body;
+          const { selectedData, minCount } = req.body;
  
           // บันทึกค่า minCount ลงในตาราง statistic
           con.query(
@@ -2300,8 +2300,8 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
                       let uid = result.map(row => row.uid_line);
  
                       // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
-                      for (let item of selectedData) {
-                            selectedData[item]["chemical_used"] += await new Promise((resolve) => {
+                      for (let item in selectedData) {
+                            selectedData[item]?.["chemical_used"] += await new Promise((resolve) => {
                               con.query(
                                   `
                                   SELECT 
