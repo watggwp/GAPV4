@@ -2045,6 +2045,7 @@ app.post('/api/admin/report/list', async(req, res) => {
     try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
+        const search = req.body.search
         con.query(
           `SELECT 
               p.pest_id,
@@ -2061,9 +2062,9 @@ app.post('/api/admin/report/list', async(req, res) => {
             LEFT JOIN formplant fp ON fc.id_plant = fp.id
             LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
             LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-            WHERE af.station = ?
+            WHERE af.station = ? AND INSTR( p.pest_name , ? )
             GROUP BY fc.insect
-            LIMIT 25;`, [auth['data']['station_admin']] ,
+            LIMIT 25;`, [auth['data']['station_admin'] , search] ,
           (err, result) => {
             if (err) {
               dbpacket.dbErrorReturn(con, err, res);
