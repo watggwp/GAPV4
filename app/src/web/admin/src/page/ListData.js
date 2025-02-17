@@ -546,7 +546,7 @@ const ManageList = ({
                     : {}
                 }
               >
-                {data.time_online ? (
+                {/* {data.time_online ? (
                   data.time_online == "online" ? (
                     "กำลังใช้งาน"
                   ) : data.time_online == "offline" ? (
@@ -560,7 +560,7 @@ const ManageList = ({
                   )
                 ) : (
                   "ยังไม่เข้าระบบ"
-                )}
+                )} */}
               </div>
             </div>
           ) : (
@@ -691,7 +691,7 @@ const ManageList = ({
                     : {}
                 }
               >
-                {data.time_online ? (
+                {/* {data.time_online ? (
                   data.time_online == "online" ? (
                     "กำลังใช้งาน"
                   ) : data.time_online == "offline" ? (
@@ -705,7 +705,7 @@ const ManageList = ({
                   )
                 ) : (
                   "ยังไม่เข้าระบบ"
-                )}
+                )} */}
               </div>
             </div>
           ) : (

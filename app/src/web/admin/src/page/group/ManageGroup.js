@@ -109,7 +109,7 @@ const ManageGroup = ({ fetchGroups }) => {
               fetchGroups();
               break;
             case 409:
-              setText("ข้อมูลซ้ำไม่สามารถเพิ่มได้");
+              setText("ไม่สามารถเพิ่มข้อมูลในระบบได้เนื่องจากมีข้อมูลนี้ในระบบอยู่แล้ว หากต้องการแก้ไขให้คลิ้กที่ปุ่มแก้ไข");
               setStatus(2);
               break;
             default:

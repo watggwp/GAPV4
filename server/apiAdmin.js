@@ -2351,11 +2351,10 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
  
                       //  **สร้างข้อความแจ้งเตือน**
                       let textSend = selectedData.map(item =>
-                          ` พืช: ${item.name_plants}\n` +
-                          ` ศัตรูพืชที่พบ: ${item.pest_name}\n` +
-                          ` จำนวน: ${item.count}\n` +
-                          ` สารเคมีที่ใช้: ${item.chemical_used}`
-                      ).join("\n\n");
+                        `📢 ประกาศ: ขณะนี้ตรวจพบโรคพืช/ศัตรูพืช ${item.pest_name} ${item.count}จำนวน ระบาดในพื้นที่\n` +
+                        `ขอเตือนเกษตรกรที่ปลูก ${item.name_plants}\n` +
+                        `ถ้าพบว่าเป็น ${item.pest_name} ให้ใช้สารเคมี ${item.chemical_used} กำจัด`
+                    ).join("\n\n");
  
                       console.log("📢 UIDs to send:", uid);
                       console.log("📨 Text Message to Send:\n", textSend);
