@@ -2361,13 +2361,13 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
                       console.log("📨 Text Message to Send:\n", textSend);
  
                       //  **ส่งข้อความแจ้งเตือน**
+                      con.end();
                       Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
  
                   } catch (e) {
-                      console.error("Error sending Line message:", e);
+                    con.end();
+                    console.error("Error sending Line message:", e);
                   }
- 
-                  con.end();
                   res.send(result);
               }
           );
