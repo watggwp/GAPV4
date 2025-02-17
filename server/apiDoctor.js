@@ -2763,31 +2763,33 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
        
                                     // ส่งผลลัพธ์กลับไป
                                     con.end()
-                                    res.status(200).json({
-                                        status: "success",
-                                        data: {
-                                            farmerStatistics: farmerStatistics.map((stat) => ({
-                                                station: stat.station,
-                                                totalFarmers: stat.total_farmers,
-                                                totalPlants: stat.total_plants,
-                                                plants: stat.plants,
-                                                plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev, curr) => {
-                                                    const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"]);
-                                                    if (indexFind >= 0) {
-                                                        prev[indexFind]["farmersCount"] += curr["farmersCount"];
-                                                    } else {
-                                                        prev.push({
-                                                            plantName: curr["plantName"],
-                                                            farmersCount: curr["farmersCount"]
-                                                        });
-                                                    }
-                                                    return prev;
-                                                }, []),
-                                            })),
-                                            doctors,
-                                            consultants,
-                                        },
-                                    });
+                                    res.send(JSON.stringify(
+                                        {
+                                            status: "success",
+                                            data: {
+                                                farmerStatistics: farmerStatistics.map((stat) => ({
+                                                    station: stat.station,
+                                                    totalFarmers: stat.total_farmers,
+                                                    totalPlants: stat.total_plants,
+                                                    plants: stat.plants,
+                                                    plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev, curr) => {
+                                                        const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"]);
+                                                        if (indexFind >= 0) {
+                                                            prev[indexFind]["farmersCount"] += curr["farmersCount"];
+                                                        } else {
+                                                            prev.push({
+                                                                plantName: curr["plantName"],
+                                                                farmersCount: curr["farmersCount"]
+                                                            });
+                                                        }
+                                                        return prev;
+                                                    }, []),
+                                                })),
+                                                doctors,
+                                                consultants,
+                                            },
+                                        }
+                                    ));
                                 });
                             });
                         });
