@@ -11,6 +11,7 @@ const apifunc = {
       connectDB.connect((err) => {
         if (err) {
           // ErrorDB(connectDB, err, res);
+          console.log(err)
           reject("connect");
         }
 
