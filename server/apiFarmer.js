@@ -15,7 +15,6 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
             delete req.session.user_doctor
         }
 
-        console.log(req.body)
         if(req.body['uid']) {
             req.session.uidFarmer = req.body['uid']
             let con = Database.createConnection(listDB)
@@ -25,7 +24,6 @@ module.exports = function apiFarmer (app , Database , apifunc , dbpacket , listD
                 res.send(auth.result)
             } catch (err) {
                 con.end()
-                console.log(err)
                 if(err === "no" || err === "no account") res.send("close")
                 else res.send("error auth")
             }
