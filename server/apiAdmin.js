@@ -1591,8 +1591,16 @@ app.post('/api/admin/data/list', async (req, res) => {
       const auth = await apifunc.auth(con , username , password , res , "admin")
       if(auth['result'] === "pass") {
         const data = req.body
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" 
-        : data.type === "chemical" ? "chemical" : data.type === "pest" ? "pest" : "";
+        const From = (
+          data.type === "station" ? "station_list" : 
+          data.type === "plant" ? "plant_list" : 
+          data.type === "chemical" ? "chemical_list" : 
+          data.type === "pest" ? "pests" : ""
+        );
+
+        const Name = (
+          data.type === "pest" ? "pest_name" : "name"
+        )
         if(From) {
           try {
             const verify = data.state_use ? await new Promise((resole , reject)=> {
@@ -1601,11 +1609,11 @@ app.post('/api/admin/data/list', async (req, res) => {
                 SELECT (
                   SELECT EXISTS (
                     SELECT id
-                    FROM ${From}_list as data_search
-                    WHERE data_main.name = data_search.name and data_search.is_use = 1
+                    FROM ${From} as data_search
+                    WHERE data_main.${Name} = data_search.${Name} and data_search.is_use = 1
                   )
                 ) as verifyStatus
-                FROM ${From}_list as data_main
+                FROM ${From} as data_main
                 WHERE id = ?
                 `
                 ,[ data.id_table ], (err , result)=>{
@@ -1617,7 +1625,7 @@ app.post('/api/admin/data/list', async (req, res) => {
             if(verify) {
               con.query(
                 `
-                UPDATE ${From}_list SET is_use = ? WHERE id = ?;
+                UPDATE ${From} SET is_use = ? WHERE id = ?;
                 `
                 , [ data.state_use , data.id_table] , (err , result)=>{
                 if(err) {
@@ -1674,7 +1682,18 @@ app.post('/api/admin/data/list', async (req, res) => {
       const auth = await apifunc.auth(con , username , password , res , "admin")
       if(auth['result'] === "pass") {
         const data = req.body
-        const From = data.type === "station" ? "station" : data.type === "plant" ? "plant" : "";
+        const From = (
+          data.type === "station" ? "station_list" :
+          data.type === "plant" ? "plant_list" :
+          data.type === "chemical" ? "chemical_list" :
+          data.type === "pest" ? "pests"
+          : ""
+        );
+
+        const columnName = (
+          data.type === "pest" ? "pest_name" : "name"
+        );
+
         if(From) {
           try {
             const verify = data.update.name ? await new Promise((resole , reject)=> {
@@ -1683,8 +1702,8 @@ app.post('/api/admin/data/list', async (req, res) => {
                 SELECT (
                   SELECT EXISTS (
                     SELECT id
-                    FROM ${From}_list
-                    WHERE ${From}_list.name = ? and ${From}_list.is_use = 1
+                    FROM ${From}
+                    WHERE ${From}.${columnName} = ? and ${From}.is_use = 1
                   )
                 ) as verifyStatus
                 `
@@ -1703,7 +1722,7 @@ app.post('/api/admin/data/list', async (req, res) => {
               }).join(",").replaceAll(" " , "");
               con.query(
                 `
-                UPDATE ${From}_list 
+                UPDATE ${From} 
                 SET ${update}
                 WHERE id = ?;
                 `
