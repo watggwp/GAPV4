@@ -511,7 +511,7 @@ const List = ({ session , socket , DataFillter , setTextStatus , StartData , set
         <ManageList Data={Data} session={session} fetch={FetchList} setRow={setStartData} Limit={Limit} Type={DataFillter.get("type")}/>)
 }
 
-const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
+const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) => {
     const [Body , setBody] = useState(<></>)
     const RefPop = useRef()
     const [PopBody , setPop] = useState(<></>)
@@ -558,10 +558,17 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                 </div>
                                 {
                                     Type === "plant" ?
+                                    <>
                                         <div className="field-text">
                                             <span>ประเภท</span>
                                             <div className="data-text">{DataIn.type_plant}</div>
-                                        </div> :
+                                        </div> 
+                                        <div className="field-text">
+                                            <span>สายพันธุ์พืช</span>
+                                            <div className="data-text">{DataIn.variety_name}</div>
+                                        </div> 
+                                    </>    
+                                        :
                                     Type === "pest" ? 
                                     <div className="field-text">
                                             <span></span>

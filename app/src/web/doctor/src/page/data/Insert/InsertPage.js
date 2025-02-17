@@ -31,11 +31,11 @@ const InsertPlant = ({
         <label className="field-select">
           <span>
             <span className="important">ชื่อชนิดพืช</span>
-            {ErrReport ? (
+            {/* {ErrReport ? (
               <span className="err-text-overlape">พืชซ้ำ</span>
             ) : (
               <></>
-            )}
+            )} */}
           </span>
           <input
             ref={nameInsert}
