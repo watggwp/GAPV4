@@ -2301,7 +2301,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
  
                       // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
                       for (let item of selectedData) {
-                          item.chemical_used = await new Promise((resolve) => {
+                            selectedData[item]["chemical_used"] += await new Promise((resolve) => {
                               con.query(
                                   `
                                   SELECT 
@@ -2315,7 +2315,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
                                   LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
                                   WHERE pc.pest_id = ? AND pc.status = 1
                                   `, 
-                                  [req.body.pest_id], 
+                                  [selectedData[item].id], 
                                   (err, results) => {
                                       if (err) {
                                           console.error("Database query error:", err);
