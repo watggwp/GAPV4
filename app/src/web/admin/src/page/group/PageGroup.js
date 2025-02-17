@@ -70,7 +70,9 @@ const PageGroup = () => {
       return; // ไม่ต้องแสดง popup หากไม่มีการกรอกรหัสผ่าน
     }
 
-    setOpen(false);
+    setOpen(0);
+    setText("")
+    setStatus(0)
  
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
@@ -106,7 +108,7 @@ const PageGroup = () => {
       setStatus(2);
     }
  
-    setOpen(true);
+    setOpen(1);
     setShowConfirmModal(false);
 };
  

@@ -697,7 +697,7 @@ Ref = {
  
     const ChangeDate = (day , mount , year) => {
         RefDateValue && (RefDateValue.current.value = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`);
-        methodCheckValue()
+        methodCheckValue && methodCheckValue()
     }
  
     return(

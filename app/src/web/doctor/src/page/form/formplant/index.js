@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { DayJSX, MapsJSX } from "../../../../../../assets/js/module";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
 import "../../../assets/style/page/form/FormEdit.scss";
 import axios from "axios";
 
@@ -12,6 +12,8 @@ export default function FormPlant({
 }) {
     const [editValue, setLocalEditValue] = useState({});
     const [localMode, setLocalMode] = useState(mode);
+
+    const DateGlow = useRef()
 
     const extractLatLngFromGoogleMapsUrl = (url) => {
         const match = url.match(/@([-.\d]+),([-.\d]+)/);
@@ -162,11 +164,12 @@ export default function FormPlant({
                             {localMode === "view" ? (
                                 <span className="data-show">{formatDateThai(data.date_glow)}</span>
                             ) : (
-                                <input 
-                                    type="date" 
-                                    className="data-show" 
-                                    value={editValue.date_glow ?? data.date_glow} 
-                                    onChange={(event) => onEdit("date_glow", event.target.value)} />
+                                <DateSelect RefDateValue={DateGlow} Value={data.date_glow}/>
+                                // <input 
+                                //     type="date" 
+                                //     className="data-show" 
+                                //     value={editValue.date_glow ?? data.date_glow} 
+                                //     onChange={(event) => onEdit("date_glow", event.target.value)} />
                             )}
                         </div>
 
