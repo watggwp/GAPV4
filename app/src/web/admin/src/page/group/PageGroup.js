@@ -5,7 +5,7 @@ import { PageTemplateContext } from "../PageTemplate";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
- 
+import "../../assets/style/page/PopupManage.scss"
  
  
 const PageGroup = () => {
@@ -191,7 +191,7 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
-      <div className="Load-insert">
+      <div className="page-because-popup">
         <ReportAction
           Open={Open}
           Text={Text}
