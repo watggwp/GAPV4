@@ -102,6 +102,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let seconPath = path[1].split("?");
             let query = seconPath[1];
 
+            console.log(query)
             if (seconPath[0] === "list") {
                 if (query.indexOf("default") === 0) {
                     Href.set(`list?default${type}`);
@@ -195,6 +196,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 );
 
             } else if (query === "statistics") {
+                console.log("sta")
                     Href.set(`report?statistics${type}`);
                     setBody(
                         <PageTemplate
