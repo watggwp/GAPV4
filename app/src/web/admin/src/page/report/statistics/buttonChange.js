@@ -72,6 +72,7 @@ function NotifyStatistics({
 
     const ClickAdd = () => { 
         const updatedSelectedData = selectedData.map(item => ({
+            id : item.id,
             name_plants: item.name_plants,
             count: item.count,
             pest_name: item.name || item.insect,  // เพิ่ม pest_name
