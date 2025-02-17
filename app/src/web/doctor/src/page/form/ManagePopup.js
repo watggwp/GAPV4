@@ -1,12 +1,21 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { clientMo } from "../../../../../assets/js/moduleClient"
 import "../../assets/style/page/form/ManagePopup.scss"
 import { DayJSX, Loading, MapsJSX, PopupDom, ResizeImg } from "../../../../../assets/js/module"
 import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
+<<<<<<< HEAD
 
+=======
+import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "./ListManageDoctor"
+import { DoctorContext } from "../../Doctor"
+import FormPlant from "./formplant"
+>>>>>>> tan
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
+
+    const { profile } = useContext(DoctorContext) //role
+
     const [Content , setContent] = useState(<></>)
     // const [ID_farmer , setID_farmer] = useState("")
     const [LoadContent , setLoadContent] = useState(true)
@@ -25,8 +34,19 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
     const [editMode, setEditMode] = useState(true); // เปิด/ปิดโหมดแก้ไข
     const [editedData, setEditedData] = useState(null); // เก็บค่าที่แก้ไข
 
+<<<<<<< HEAD
 
  
+=======
+    const [ mode , setMode ] = useState("view")
+    const [ editValue , setEditValue ] = useState({})
+
+    useEffect(()=>{
+        RefPop.current.style.opacity = "1"
+        RefPop.current.style.visibility = "visible"
+        FetchContent(0)
+    } , [])
+>>>>>>> tan
 
     useEffect(()=>{
         window.addEventListener("resize" , reSize)
@@ -104,6 +124,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                             // setID_farmer(data.id_farmer)
                             setCountEdit(data.countStatus)
                             return (
+<<<<<<< HEAD
                                 <section key={key} className="detail-main-form">
                                     <div className="row">
                         {!editMode ? (
@@ -333,6 +354,16 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                         : <></>
                                     }
                                 </section>
+=======
+                                <FormPlant
+                                    key={key}
+                                    data={data}
+                                    mode={mode}
+                                    setMode={setMode}
+                                    setEditValue={setEditValue}
+                                    getResize={getResize}
+                                />
+>>>>>>> tan
                             )
                         } else if(type_form === 1) {
                             return (
@@ -556,7 +587,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
 
             try {
                 for(let x in MenuBTManage) {
-                    MenuBTManage[x].current.removeAttribute("select")
+                    MenuBTManage[x].current && MenuBTManage[x].current.removeAttribute("select")
                 }
                 MenuBTManage[type_page].current.setAttribute("select" , "")
             } catch(e) {}
@@ -758,22 +789,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                 (
                                     <a className="bt-edit" onClick={()=>GetDetailEdit(id_form , "plant")}>
                                         { CountEdit ? <div className="count-edit"></div> : <></>}
-                                        <svg viewBox="0 0 494.936 494.936">
-                                            <g>
-                                                <g>
-                                                    <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157
-                                                        c-23.562,0-42.736-19.174-42.736-42.735V150.285c0-23.562,19.174-42.735,42.736-42.735h267.741c6.743,0,12.21-5.467,12.21-12.21
-                                                        s-5.467-12.21-12.21-12.21H67.157C30.126,83.13,0,113.255,0,150.285v267.743c0,37.029,30.126,67.155,67.157,67.155h267.741
-                                                        c37.03,0,67.156-30.126,67.156-67.155V195.061C402.054,188.318,396.587,182.85,389.844,182.85z"/>
-                                                    <path d="M483.876,20.791c-14.72-14.72-38.669-14.714-53.377,0L221.352,229.944c-0.28,0.28-3.434,3.559-4.251,5.396l-28.963,65.069
-                                                        c-2.057,4.619-1.056,10.027,2.521,13.6c2.337,2.336,5.461,3.576,8.639,3.576c1.675,0,3.362-0.346,4.96-1.057l65.07-28.963
-                                                        c1.83-0.815,5.114-3.97,5.396-4.25L483.876,74.169c7.131-7.131,11.06-16.61,11.06-26.692
-                                                        C494.936,37.396,491.007,27.915,483.876,20.791z M466.61,56.897L257.457,266.05c-0.035,0.036-0.055,0.078-0.089,0.107
-                                                        l-33.989,15.131L238.51,247.3c0.03-0.036,0.071-0.055,0.107-0.09L447.765,38.058c5.038-5.039,13.819-5.033,18.846,0.005
-                                                        c2.518,2.51,3.905,5.855,3.905,9.414C470.516,51.036,469.127,54.38,466.61,56.897z"/>
-                                                </g>
-                                            </g>
-                                        </svg>
+                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12.5L10.5 15L16 9M7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V7.2C20 6.0799 20 5.51984 19.782 5.09202C19.5903 4.71569 19.2843 4.40973 18.908 4.21799C18.4802 4 17.9201 4 16.8 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.07989 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.07989 20 7.2 20Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
                                     </a>
                                 ) : <></>
                             }
@@ -783,20 +799,32 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                 (
                                     <>
                                     <div className="menu-manage-form">
-                                        <div className="flex-center" select="" onClick={(e)=>MenuManageFormByDoctor("success" , e)} ref={MenuBTManage.success}>
-                                            <div>เก็บเกี่ยว</div>
-                                        </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("report" , e)} ref={MenuBTManage.report}>
-                                            <div>ข้อแนะนำ</div>
-                                        </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckForm" , e)} ref={MenuBTManage.CheckForm}>
-                                            <div>ตรวจสอบ</div>
-                                            <div>แบบบันทึก</div>
-                                        </div>
-                                        <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
-                                            <div>วิเคราะห์</div>
-                                            <div>ผลผลิต</div>
-                                        </div>
+                                        {
+                                            Boolean(profile?.doctor_role?.data?.[0]) && //role
+                                                <div className="flex-center" select="" onClick={(e)=>MenuManageFormByDoctor("success" , e)} ref={MenuBTManage.success}>
+                                                    <div>เก็บเกี่ยว</div>
+                                                </div>
+                                        }
+                                        {
+                                            Boolean(profile?.doctor_role?.data?.[0] || profile?.consultant_role?.data?.[0]) && //role
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("report" , e)} ref={MenuBTManage.report}>
+                                                    <div>ข้อแนะนำ</div>
+                                                </div>
+                                        }
+                                        {
+                                            Boolean(profile?.doctor_role?.data?.[0] ) && //role
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckForm" , e)} ref={MenuBTManage.CheckForm}>
+                                                    <div>ตรวจสอบ</div>
+                                                    <div>แบบบันทึก</div>
+                                                </div>
+                                        }   
+                                        {
+                                            Boolean(profile?.analyst_role?.data?.[0]) && //role
+                                                <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
+                                                    <div>วิเคราะห์</div>
+                                                    <div>ผลผลิต</div>
+                                                </div>
+                                        }
                                     </div>
                                     <div className="bt-add-content">
                                         { StatePage === "success" ?
@@ -1095,7 +1123,7 @@ const InsertManage = ({Ref , setPopup , session , FetchData , NameDoctor , typeI
                         </div>
                         <div className="result">
                             <div className="box-result">
-                                <a ref={StateCheckBefore} not={!statusSuccess.check_success_before ? "" : null} onClick={!statusSuccess.check_success_before ? null : ()=>CheckData(1)}>ก่อน</a>
+                                <a  ref={StateCheckBefore} not={!statusSuccess.check_success_before ? "" : null} onClick={!statusSuccess.check_success_before ? null : ()=>CheckData(1)}>ก่อน</a>
                                 <a ref={StateCheckAfter} not={!statusSuccess.check_plant_after && !statusSuccess.check_success_after ? "" : null} onClick={!statusSuccess.check_plant_after && !statusSuccess.check_success_after ? null : ()=>CheckData(2)}>หลัง</a>
                             </div>
                             <div className="box-result">

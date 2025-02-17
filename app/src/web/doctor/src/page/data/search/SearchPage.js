@@ -117,8 +117,13 @@ const SearchPest = ({searchList , DataProcess}) => {
                 <span>ประเภทพืช</span>
                 <select onChange={(e)=>searchList(e.target , e.target.value , "type_pest")} ref={typePlant} defaultValue={DataProcess.get("type_pest")}>
                     <option value={""}>ทั้งหมด</option>
+<<<<<<< HEAD
                     <option value={"1"}>โรคพืช</option>
                     <option value={"2"}>ศัตรูพืช</option>
+=======
+                    <option value={"โรคพืช"}>โรคพืช</option>
+                    <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
+>>>>>>> tan
                 </select>
             </label>
         </div> 

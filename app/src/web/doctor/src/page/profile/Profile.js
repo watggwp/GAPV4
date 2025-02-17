@@ -163,6 +163,31 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     }
 
 
+<<<<<<< HEAD
+=======
+    // useEffect(() => {
+    //     console.log("getProfile:", getProfile);
+    // }, [getProfile]);
+
+    const formatRoles = (profile) => {
+        if (!profile) return "กำลังโหลด...";
+    
+        console.log("Profile Data:", profile); // Debug ค่าที่ API ส่งมา
+    
+        const roles = [];
+    
+        // อ่านค่าจาก Buffer และแปลงเป็นตัวเลข
+        const doctor = profile?.doctor_role?.data ? profile.doctor_role.data[0] : 0;
+        const analyst = profile?.analyst_role?.data ? profile.analyst_role.data[0] : 0;
+        const consultant = profile?.consultant_role?.data ? profile.consultant_role.data[0] : 0;
+    
+        if (doctor) roles.push("หมอพืช");
+        if (analyst) roles.push("นักวิเคราะห์สาร");
+        if (consultant) roles.push("ที่ปรึกษา");
+    
+        return roles.length > 0 ? roles.join(", ") : "N/A";
+    };
+>>>>>>> tan
     
 
     return(
@@ -231,10 +256,23 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                     </div>
                                 }
                             </div>
+
+                            <div className="row-detail not-bm head-content">
+                                <div className="head-content">
+                                    <span className="head-detail">ตําแหน่งงาน</span>
+                                    <input 
+                                        readOnly 
+                                        className="detail-input white" 
+                                        value={formatRoles(getProfile)}
+                                    />
+                                </div>
+                            </div>
+
+                            
                             <div className="row-detail not-bm">
                                 <div className="head-content">
                                     <span className="head-detail">ศูนย์ที่ทำงาน</span>
-                                    { !StateEditStation ?
+                                    {/* { !StateEditStation ?
                                         !StateEditName && !StateEditPassword ?
                                             <a onClick={async ()=>{
                                                 setbtEditNot(true)
@@ -248,7 +286,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                                 } else session()
                                             }}>แก้ไข</a> : <></>
                                         : <a onClick={()=>setStateEditStation(false)}>ยกเลิก</a>
-                                    }
+                                    } */}
                                 </div>
                                 { StateEditStation ?
                                     <select ref={Station} className="detail-input" onChange={CheckEdit} defaultValue={getProfile.station_doctor}>
@@ -267,7 +305,11 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                             <div className="row-detail not-bm head-content">
                                 <div className="head-content">
                                     <span className="head-detail">รหัสศูนย์โครงการ</span>
+<<<<<<< HEAD
                                     <input readOnly className="input-password"
+=======
+                                    <input readOnly className="input-password white"
+>>>>>>> tan
                                      value={getProfile.id_station}
                                             ref={id_station}
                                             placeholder="รหัสศูนย์ปฏิบัติหน้าที่"/>

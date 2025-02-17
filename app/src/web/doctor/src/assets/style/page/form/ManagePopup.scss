@@ -183,6 +183,17 @@ $colorBoderBottonData : #3bc69c;
                         font-size: 20px;
                     }
 
+                    .asd{
+                        position: absolute;
+                        right: 3rem;
+                        width: 27px;
+                        display: flex;
+                        background-color: #5dd4be;
+                        padding: 3px;
+                        border-radius: 8px;
+                        box-shadow: 0px 2px 2px #3a9685;
+                    }
+
                     .bt-edit {
                         position: absolute;
                         right: 1em;
@@ -208,7 +219,7 @@ $colorBoderBottonData : #3bc69c;
                         }
 
                         svg {
-                            fill: black;
+                            // fill: black;
                             width: 22px;
                         }
                     }
@@ -360,7 +371,7 @@ $colorBoderBottonData : #3bc69c;
                             width: 95%;
                             overflow: hidden;
 
-                            .row {
+                            .row , .row-royal {
                                 display: flex;
                                 width: 100%;
                                 justify-content: space-between;
@@ -369,7 +380,7 @@ $colorBoderBottonData : #3bc69c;
 
                                 .field {
                                     display: flex;
-
+                                    width: auto !important;
                                     span.subject {
                                         font-weight: 900;
                                         margin-right: 4px;

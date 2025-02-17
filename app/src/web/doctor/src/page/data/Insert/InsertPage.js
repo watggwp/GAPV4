@@ -31,11 +31,19 @@ const InsertPlant = ({
         <label className="field-select">
           <span>
             <span className="important">ชื่อชนิดพืช</span>
+<<<<<<< HEAD
             {ErrReport ? (
               <span className="err-text-overlape">พืชซ้ำ</span>
             ) : (
               <></>
             )}
+=======
+            {/* {ErrReport ? (
+              <span className="err-text-overlape">พืชซ้ำ</span>
+            ) : (
+              <></>
+            )} */}
+>>>>>>> tan
           </span>
           <input
             ref={nameInsert}
@@ -133,8 +141,13 @@ const InsertPest = ({
             <option disabled value={""}>
               เลือกประเภท
             </option>
+<<<<<<< HEAD
                 <option value={1}>โรคพืช</option>
                 <option value={2}>ศัตรูพืช</option>
+=======
+                <option value={"โรคพืช"}>โรคพืช</option>
+                <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
+>>>>>>> tan
             </select>
           </label>
           <label className="field-select">
@@ -468,4 +481,8 @@ export {
   InsertSource,
   InsertPlant,
   InsertPest
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> tan

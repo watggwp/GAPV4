@@ -47,7 +47,7 @@
                     margin-left: 15px;
                     padding-top: 8px;
                     letter-spacing: 3px;
-                    color: #379B7A;
+                    color: #379b7a00;
                 }
 
                 
@@ -565,13 +565,51 @@
     background: #d7d4d400;
     transform: translateY(-30px);
   }
+<<<<<<< HEAD
+=======
+  .navigation ul li a .text-logo {
+    position: absolute;
+    bottom: 115px;
+    width: 300px;
+    border-radius: 10px;
+    color: #379B7A;
+    font-weight: 900;
+    font-size: 40px;
+    font-family: Sans-font;
+    letter-spacing: 3px;
+    transition: 0.5s;
+    margin-left: 15px;
+    padding-top: 8px;
+    opacity: 0;
+  }
+  
+  .navigation ul li.active a .text-logo {
+    opacity: 1;
+  }
+
+  .doctor-logo{
+    left: 40px;
+  }
+
+  .analyst-logo{
+    left: -40px;
+  }
+
+  .consultant-logo{
+    left: -192px;
+  }
+>>>>>>> tan
   
   .indicator {
     position: absolute;
     top: 50%;
     width: 80px;
     height: 80px;
+<<<<<<< HEAD
     left: 40px;
+=======
+    left: 32px;
+>>>>>>> tan
     background: #379B7A;
     border-radius: 50%;
     border: 6px  solid #ffffff;
@@ -608,9 +646,17 @@
   }
   
   .navigation ul li:nth-child(2).active ~ .indicator {
+<<<<<<< HEAD
     transform: translateX(calc(117px * 1));
   }
   
   .navigation ul li:nth-child(3).active ~ .indicator {
     transform: translateX(calc(117px * 2));
+=======
+    transform: translateX(calc(121px * 1));
+  }
+  
+  .navigation ul li:nth-child(3).active ~ .indicator {
+    transform: translateX(calc(120px * 2));
+>>>>>>> tan
   }

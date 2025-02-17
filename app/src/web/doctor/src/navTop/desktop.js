@@ -24,6 +24,8 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
     const [getNotifyList , setNotifyList] = useState([])
     const [getShowNotify , setShowNotify] = useState(false)
     
+    const { profile } = useContext(DoctorContext) //role
+
     useEffect(()=>{
         window.addEventListener("resize" , Resize)
         
@@ -130,7 +132,30 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
                 <span className="pg-action">
                     <a onClick={Home} className="Logo" href="/doctor" title="หมอพืช">
                         <img src="/logo2.png"></img>
-                        <span>หมอพืช</span>
+                        {
+                        Boolean(profile?.doctor_role?.data?.[0] === 1 &&
+                                profile?.analyst_role?.data?.[0] === profile?.analyst_role?.data?.[0] &&
+                                profile?.consultant_role?.data?.[0] === profile?.consultant_role?.data?.[0] ) &&  //role
+                                <span>หมอพืช</span>
+                        }
+                        {
+                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
+                                profile?.analyst_role?.data?.[0] === 1 &&
+                                profile?.consultant_role?.data?.[0] === 0 ) &&  //role
+                                <span>นักวิเคราะห์สาร</span>
+                        }
+                        {
+                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
+                                profile?.analyst_role?.data?.[0] === 0 &&
+                                profile?.consultant_role?.data?.[0] === 1 ) &&  //role
+                                <span>ที่ปรึกษา</span>
+                        }
+                        {
+                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
+                                profile?.analyst_role?.data?.[0] === 1 &&
+                                profile?.consultant_role?.data?.[0] === 1 ) &&  //role
+                                <span>เจ้าหน้าที่</span>
+                        }
                     </a>
                 </span>
                 <span className="bt-action">

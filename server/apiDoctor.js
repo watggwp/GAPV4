@@ -17,6 +17,138 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         else res.clearCookie(process.env.cookieName).send("")
     })
 
+
+    // API: ดึงข้อมูลการแก้ไขฟอร์มการปลูกพืช
+        app.post('/api/doctor/formplant/edit/select', async (req, res) => {
+        if (req.session.uidFarmer) {
+        let con = Database.createConnection();
+
+        try {
+            const auth = await authCheck(con, res, req);
+            const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
+
+            con.query(
+                `
+                SELECT editform.*, COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                FROM editform
+                LEFT JOIN formplant ON editform.id_form = formplant.id
+                LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                WHERE formplant.id_farm_house = ?
+                AND formplant.id = ?
+                AND editform.type_form = "plant" \${where}
+                ORDER BY editform.date DESC
+                `,
+                [req.body.id_farmhouse, req.body.id_plant],
+                (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        con.end();
+                        res.send("error auth");
+                        return;
+                    }
+
+                    if (req.body.id_edit) {
+                        con.query(
+                            `SELECT * FROM detailedit WHERE id_edit = ?`,
+                            [req.body.id_edit],
+                            (err, detail) => {
+                                if (err) {
+                                    console.error("select detailedit", err);
+                                    con.end();
+                                    res.send("error");
+                                    return;
+                                }
+
+                                con.end();
+                                res.send({
+                                    head: result[0],
+                                    detail: detail,
+                                });
+                            }
+                        );
+                    } else {
+                        con.end();
+                        res.send(result);
+                    }
+                }
+            );
+        } catch (err) {
+            console.error("Authorization error:", err);
+            con.end();
+            res.send("error auth");
+        }
+    } else {
+        res.send("error auth");
+    }
+});
+
+// API: บันทึกการแก้ไขข้อมูลฟอร์มการปลูกพืช
+app.post('/api/doctor/formplant/edit', async (req, res) => {
+    if (req.session.uidDoctor) {
+        let con = Database.createConnection();
+        try {
+            const auth = await authCheck(con, res, req);
+
+            con.query(
+                `SELECT * FROM formplant WHERE id_farm_house = ? AND id = ?`,
+                [req.body.id_farmhouse, req.body.id_plant],
+                (err, result) => {
+                    if (err) {
+                        con.end();
+                        res.send("error auth");
+                        return;
+                    }
+                    if (!result[0]) {
+                        con.end();
+                        res.send("not found");
+                        return;
+                    }
+
+                    const data = req.body;
+                    const changes = Object.entries(data.dataChange).map(([key, value]) => [result[0][key], value, key]);
+                    const queries = changes.map(([oldContent, newContent, subject]) =>
+                        con.query(
+                            `INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) VALUES (?, ?, ?, ?)`,
+                            [data.id_plant, subject, oldContent, newContent]
+                        )
+                    );
+
+                    Promise.all(queries)
+                        .then(() => {
+                            const updates = changes.map(([_, newContent, subject]) => `${subject}="${newContent}"`).join(", ");
+                            con.query(
+                                `UPDATE formplant SET ${updates} WHERE id = ?`,
+                                [data.id_plant],
+                                (err) => {
+                                    if (err) {
+                                        console.error("update formplant", err);
+                                        con.end();
+                                        res.send("error");
+                                        return;
+                                    }
+                                    con.end();
+                                    res.send("success");
+                                }
+                            );
+                        })
+                        .catch((err) => {
+                            console.error("insert detailedit", err);
+                            con.end();
+                            res.send("error");
+                        });
+                }
+            );
+        } catch (err) {
+            console.error(err);
+            con.end();
+            res.send("error auth");
+        }
+    } else {
+        res.send("error auth");
+    }
+});
+
+
     app.get('/api/doctor/name' , (req , res)=>{
       
         let username = req.session.user_doctor
@@ -42,6 +174,271 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     })
 
+    app.post('/api/doctor/data/list' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+     
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            let data = req.body
+     
+            const type_data = (
+              data.type === "plant" ? "plant_list" :
+              data.type === "station" ? "station_list" :
+              data.type === "chemical" ? "chemical_list" :
+              data.type === "pest" ? "pests" :
+              ""
+            );
+            const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
+            const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
+            if(!type_data) {
+              res.send([])
+            }
+     
+            const columnName = (
+              data.type === "pest" ? "pest_name" : "name"
+            )
+     
+            con.query(
+              `
+              SELECT * FROM ${type_data}
+              WHERE INSTR( ${columnName} , ? )
+              ORDER BY is_use DESC , ${columnName} ASC
+              LIMIT ${Limit} OFFSET ${StartRow}
+              ` , [data.textSearch]
+              , (err , result)=>{
+              if(err) {
+                dbpacket.dbErrorReturn(con , err , res)
+                console.log(`select ${type_data} err`)
+                return 0
+              }
+              con.end()
+              res.send(result)
+            })
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+      })
+
+      app.post('/api/doctor/group/gets', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+     
+        if (!username || !password) {
+          res.redirect('/api/logout');
+          return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+          const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+          if (auth['result'] === "pass") {
+            const { search } = req.body
+            con.query(
+              `
+              SELECT
+                pc.id,
+                pc.safe_days,
+                p.pest_name AS pest_name,
+                c.name AS chemical_name,
+                pl.name AS plant_name,
+                pc.status AS status
+              FROM pest_chemical AS pc
+              INNER JOIN pests AS p ON pc.pest_id = p.pest_id
+              INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
+              INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
+              WHERE p.pest_name LIKE ? OR c.name LIKE ? OR pl.name LIKE ? OR pc.safe_days LIKE ?
+              `, [ `%${search}%` , `%${search}%` , `%${search}%` , `%${search}%` ] ,
+              (err, results) => {
+                if (err) {
+                  console.error("Database query error:", err);
+                  con.end();
+                  res.status(500).json({ error: "Database query failed" });
+                  return;
+                }
+     
+                if (results.length === 0) {
+                  console.log("No data found");
+                  con.end();
+                  res.status(404).json({ message: "No data found" });
+                  return;
+                }
+     
+                console.log("Data retrieved successfully:", results);
+                con.end();
+                res.status(200).json(results); // ส่งข้อมูลกลับไป
+              }
+            );
+          } else {
+            res.status(401).json({ error: "Unauthorized access" });
+          }
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          con.end();
+          res.status(500).json({ error: "Internal server error" });
+        }
+      });
+     
+      app.post('/api/doctor/group/insert' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+     
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            const pest_id = req.body.pest_id
+            const chemical_id = req.body.chemical_id
+            const plant_id = req.body.plant_id
+            const safe_days = req.body.safe_days
+     
+            if(pest_id && chemical_id && plant_id && safe_days) {
+              con.query(
+                `
+                  INSERT INTO pest_chemical
+                    ( pest_id , chemical_id , plant_id , safe_days )
+                  SELECT ? , ? , ? , ?
+                  WHERE NOT EXISTS (
+                      SELECT 1
+                      FROM pest_chemical
+                      WHERE pest_id = ? AND chemical_id = ? AND plant_id = ?
+                  )
+                `
+                , [
+                    pest_id , chemical_id , plant_id , safe_days ,
+                    pest_id , chemical_id , plant_id
+                  ] , (err , dataInsert) => {
+                  if(err) {
+                    console.log(err)
+                    res.send({
+                      status : 403,
+                      result : "err insert"
+                    })
+                  }
+     
+                  if(dataInsert.affectedRows) {
+                    con.query(
+                      `
+                        UPDATE pest_chemical SET safe_days = ?
+                        WHERE chemical_id = ? AND plant_id = ?
+                      ` , [ safe_days , chemical_id , plant_id ] ,
+                      (err , updateSafeDate) => {
+                        console.log(err)
+                        con.end()
+     
+                        res.send({
+                          status : 200,
+                          result : "insert group"
+                        })
+                      }
+                    )
+                  } else {
+                    res.send({
+                      status : 409,
+                      result : "insert group"
+                    })
+                  }
+                }
+              )
+            }
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+      })
+
+      app.post('/api/doctor/manage/group', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.body['password'];
+     
+        // ตรวจสอบว่าแอดมินเข้าสู่ระบบหรือไม่
+        if (username === '') {
+            res.redirect('/api/logout');
+            return;
+        }
+     
+        let con = Database.createConnection(listDB);
+        console.log(req.body);
+     
+        try {
+            // ตรวจสอบสิทธิ์แอดมิน
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                let { id, status } = req.body;
+     
+                // ตรวจสอบข้อมูลที่ส่งมา
+                if (id === undefined || (status !== 0 && status !== 1)) {
+                    con.end();
+                    return res.status(400).send({ message: "Invalid ID or status value" });
+                }
+     
+                // ตรวจสอบว่ามีข้อมูลนี้อยู่หรือไม่
+                con.query(
+                    `SELECT id FROM pest_chemical WHERE id = ?`,
+                    [id],
+                    (err, result) => {
+                        if (err) {
+                            con.end();
+                            console.error("Database error:", err);
+                            return res.status(500).send({ message: "Database query error" });
+                        }
+     
+                        if (result.length === 0) {
+                            con.end();
+                            return res.status(404).send({ message: "ID not found" });
+                        }
+     
+                        // อัปเดตสถานะ
+                        con.query(
+                            `UPDATE pest_chemical SET status = ? WHERE id = ?`,
+                            [status, id],
+                            (err, updateResult) => {
+                                if (err) {
+                                    con.end();
+                                    console.error("Update error:", err);
+                                    return res.status(500).send({ message: "Update error" });
+                                }
+     
+                                con.end();
+                                res.send({
+                                  message: `Status updated to ${status} successfully`,
+                                  id,
+                                  newStatus : status,
+                                  status : 200
+                                });
+                            }
+                        );
+                    }
+                );
+            } else {
+                con.end();
+                res.send({ message: "password" });
+            }
+        } catch (err) {
+            con.end();
+            console.error("Authentication error:", err);
+            res.status(500).send({ message: "Authentication error" });
+        }
+    });
+
     app.get('/api/doctor/profile/get' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
@@ -63,6 +460,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 (err , station) => {
                     con.end()
                     result['data'].img_doctor = result['data'].img_doctor.toString()
+
+                    delete result['data']["password_doctor"]
                     res.send({
                         ...result['data'] ,
                         name_station : station[0].name,
@@ -314,7 +713,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 return 0;
             }
 
-            con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+            con.query(`SELECT id, name, id_station FROM station_list WHERE is_use = 1` , (err , result)=>{
                 if (err) {
                     dbpacket.dbErrorReturn(con, err, res);
                     console.log("query");
@@ -723,9 +1122,12 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
                             and type = ""
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> gap1164
 =======
 >>>>>>> gap1164
+=======
+>>>>>>> tan
                         ORDER BY message_user.date DESC
                         LIMIT 1
                     ) as is_msg
@@ -1889,6 +2291,387 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     })
 
+    app.post('/api/doctor/statistic/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+       if (username === '' || password === '') {
+          res.redirect('/api/logout');
+          return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+          const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+          if (auth['result'] === "pass") {
+            con.query(
+              `SELECT
+                  p.pest_id,
+                  p.pest_name,
+                  p.type_pest,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
+                  COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year,
+                  GROUP_CONCAT(DISTINCT fp.name_plant SEPARATOR ', ') AS name_plants
+                FROM formchemical fc
+                LEFT JOIN pests p ON fc.insect = p.pest_name
+                LEFT JOIN formplant fp ON fc.id_plant = fp.id
+                LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+                WHERE af.station = ?
+                GROUP BY fc.insect
+                LIMIT 25;`, [auth['data']['station_doctor']] ,
+              (err, result) => {
+                if (err) {
+                  dbpacket.dbErrorReturn(con, err, res);
+                  return;
+                }
+     
+                con.end();
+                res.send(result);
+              }
+            );
+          }
+        } catch (err) {
+          con.end();
+          if (err == "not pass") {
+            res.redirect('/api/logout');
+          }
+        }
+      });
+
+    app.post('/api/doctor/sendNotifyreport/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+       
+        if (!username || !password) {
+            res.redirect('/api/logout');
+            return;
+        }
+       
+        let con = Database.createConnection(listDB);
+        console.log("Received selectedData:", req.body.selectedData);
+        console.log("Received minCount:", req.body.minCount); // Log ค่า minCount
+       
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const { selectedData, minCount } = req.body; // รับค่าจาก request
+       
+                // บันทึกค่า minCount ลงในตาราง statistic
+                selectedData.forEach((item) => {
+       
+                });
+                con.query(
+                  `
+                    INSERT INTO statistic (role, count_day ,id_role)
+                    VALUES (?,?,?)
+                    ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
+                  `,
+                  ["doctor" , minCount , auth['data']['id']],
+                  (err) => {
+                      if (err) {
+                          console.error("Database error:", err);
+                          dbpacket.dbErrorReturn(con, err, res);
+                          return;
+                      }
+                  }
+              );
+       
+                con.query(
+                    `SELECT
+                        af.uid_line
+                     FROM formchemical fc
+                     LEFT JOIN pests p ON fc.insect = p.pest_name
+                     LEFT JOIN formplant fp ON fc.id_plant = fp.id
+                     LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                     LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+                     WHERE af.station = ?
+                     LIMIT 25;`, [auth['data']['station_doctor']],
+                    (err, result) => {
+                        if (err) {
+                            dbpacket.dbErrorReturn(con, err, res);
+                            return;
+                        }
+       
+                        try {
+                            console.log("Query Result:", result);
+                            let uid = result.map(row => row.uid_line);
+                            let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
+       
+                            console.log("UIDs to send:", uid);
+                            console.log("Text to send:", textSend);
+       
+                            Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                        } catch (e) {
+                            console.error("Error sending Line message:", e);
+                        }
+       
+                        con.end();
+                        res.send(result);
+                    }
+                );
+            }
+        } catch (err) {
+            con.end();
+            if (err == "not pass") {
+                res.redirect('/api/logout');
+            }
+        }
+      });
+
+    app.post('/api/doctor/chemical_pest/get', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor;
+     
+        if (!username || !password) {
+            res.redirect('/api/logout');
+            return;
+        }
+     
+        let con = Database.createConnection(listDB);
+     
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                con.query(
+                    `
+                    SELECT
+                        pc.pest_id AS pest_id,
+                        pc.chemical_id AS chemical_id,
+                        p.pest_name AS pest_name,
+                        c.name AS chemical_name,
+                        c.name_formula AS chemical_formula
+                    FROM pest_chemical AS pc
+                    LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+                    LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+                    WHERE pc.pest_id = ? AND pc.status = 1
+                    `,
+                    [req.body.pest_id],
+                    (err, results) => {
+                        if (err) {
+                            console.error("Database query error:", err);
+                            con.end();
+                            res.status(500).json({ error: "Database query failed" });
+                            return;
+                        }
+     
+                        if (results.length === 0) {
+                            console.log("No data found");
+                            con.end();
+                            res.status(404).json({ message: "No data found" });
+                            return;
+                        }
+     
+                        // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+                        const uniqueChemicalNames = new Set();
+                        results.forEach(item => {
+                            if (!uniqueChemicalNames.has(item.chemical_name)) {
+                                uniqueChemicalNames.add(item.chemical_name);
+                            }
+                        });
+     
+                        // แปลงเป็น string พร้อมส่งไปยัง frontend
+                        const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
+     
+                        console.log("Data retrieved successfully:", chemicalNames);
+                        con.end();
+                        res.status(200).send({ chemical_used: chemicalNames });
+                    }
+                );
+            } else {
+                res.status(401).json({ error: "Unauthorized access" });
+            }
+        } catch (err) {
+            console.error("Unexpected error:", err);
+            con.end();
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+    app.post('/api/doctor/report/list', async(req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+       
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+       
+        let con = Database.createConnection(listDB)
+       
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            const station = auth['data']['station_doctor']
+            const { search } = req.body
+       
+            const isNumber = !isNaN(search) && search.trim() !== '';
+       
+          // ดึงข้อมูลเกษตรกรและพืชใน station
+          const farmerQuery = `
+                          SELECT
+                              acc_farmer.station,
+                              COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                              COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                              GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                              CONCAT(
+                                  '[',
+                                  GROUP_CONCAT(
+                                      DISTINCT CONCAT(
+                                          '{"plantName":"', subquery.name_plant, '",' ,
+                                          '"id":"', subquery.id, '",' ,
+                                          '"farmersCount":', subquery.total_qty, '}'
+                                      )
+                                  ),
+                                  ']'
+                              ) AS plantDetails
+                          FROM acc_farmer
+                          LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                          LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                          LEFT JOIN (
+                              SELECT
+                                  formplant.id,
+                                  formplant.name_plant,
+                                  COUNT(formplant.name_plant) AS total_qty,
+                                  id_farm_house
+                              FROM formplant
+                              WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
+                              GROUP BY id_farm_house , formplant.name_plant
+                          ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+                          WHERE acc_farmer.station = ?
+                          AND (formplant.name_plant LIKE ?)
+                          GROUP BY acc_farmer.station;
+                      `;
+       
+                      con.query(farmerQuery, [station, `%${search}%`], (err, farmerStatistics) => {
+                            if (err) {
+                                console.error('Error fetching farmer statistics:', err);
+                                res.status(500).json({ status: "error", message: "Database query error" });
+                                return;
+                            }
+       
+                            console.log('Farmer Statistics:', farmerStatistics);
+       
+                            // ดึงรายชื่อหมอพืช (เฉพาะที่ doctor_role = 1)
+                            const doctorQuery = `
+                            SELECT id_doctor, fullname_doctor, station_doctor, 'หมอพืช' AS role
+                            FROM acc_doctor
+                            WHERE station_doctor = ?
+                            AND doctor_role = 1
+                            AND (fullname_doctor LIKE ? OR 'หมอพืช' LIKE ?);
+                        `;
+       
+                          con.query(doctorQuery, [station, `%${search}%`, `%${search}%`], (err, doctors) => {
+                              if (err) {
+                                  console.error('Error fetching doctor data:', err);
+                                  res.status(500).json({ status: "error", message: "Database query error" });
+                                  return;
+                              }
+       
+                              console.log('Doctors:', doctors);
+       
+                              // ดึงรายชื่อที่ปรึกษาเกษตรกร (เฉพาะที่ consultant_role = 1)
+                              const consultantQuery = `
+                                  SELECT id_doctor, fullname_doctor, station_doctor, 'ที่ปรึกษาเกษตรกร' AS role
+                                  FROM acc_doctor
+                                  WHERE station_doctor = ?
+                                  AND consultant_role = 1
+                                  AND (fullname_doctor LIKE ? OR 'ที่ปรึกษาเกษตรกร' LIKE ?);
+                              `;
+       
+                              con.query(consultantQuery, [station, `%${search}%`, `%${search}%`], (err, consultants) => {
+                                  if (err) {
+                                      console.error('Error fetching consultant data:', err);
+                                      res.status(500).json({ status: "error", message: "Database query error" });
+                                      return;
+                                  }
+       
+                                    console.log('Consultants:', consultants);
+       
+                                    // ส่งผลลัพธ์กลับไป
+                                    res.status(200).json({
+                                        status: "success",
+                                        data: {
+                                            farmerStatistics: farmerStatistics.map((stat) => ({
+                                                station: stat.station,
+                                                totalFarmers: stat.total_farmers,
+                                                totalPlants: stat.total_plants,
+                                                plants: stat.plants,
+                                                plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev, curr) => {
+                                                    const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"]);
+                                                    if (indexFind >= 0) {
+                                                        prev[indexFind]["farmersCount"] += curr["farmersCount"];
+                                                    } else {
+                                                        prev.push({
+                                                            plantName: curr["plantName"],
+                                                            farmersCount: curr["farmersCount"]
+                                                        });
+                                                    }
+                                                    return prev;
+                                                }, []),
+                                            })),
+                                            doctors,
+                                            consultants,
+                                        },
+                                    });
+                                });
+                            });
+                        });
+                    }
+            } catch (error) {
+                console.error("Unexpected error:", error);
+                res.status(500).json({ status: "error", message: "Internal Server Error" });
+            }
+        });
+
+    app.get('/api/doctor/form/report/edit/gets' , async (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+    
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        try {
+            const result= await apifunc.auth(con , username , password , res , "acc_doctor")
+            if(result['result'] === "pass") {
+                const id_report = req.query.id_report 
+                con.query(
+                    ` 
+                        SELECT *
+                        FROM record_edit
+                        WHERE id_report_detail = ?
+                        ORDER BY edit_date DESC
+                    ` 
+                , [ id_report ] , 
+                (err, result )=>{
+                    if (err) {
+                        dbpacket.dbErrorReturn(con, err, res);
+                        console.log("select plant editform");
+                        return 0;
+                    }
+
+                    con.end()
+                    res.send({
+                        status : 200,
+                        data : result
+                    })
+                })
+            }
+        } catch (err) {
+            con.end()
+            if(err == "not pass") {
+                res.redirect('/api/logout')
+            }
+        }
+    })
+
     app.put('/api/doctor/form/edit/change/status' , async (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
@@ -2361,10 +3144,11 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     const name = req.body.img_report ? 
                         await new Promise((resole , reject)=>{
                             const name_image = `${result.data.id_table_doctor}${req.body.id_plant}${new Date().getTime()}.jpg`
-                            const Path = __dirname.replace("server" , "src") + `/assets/img/doctor/report/${name_image}`
+                            const Path = __dirname.replace("server" , "app") + `/src/assets/img/doctor/report/${name_image}`
                             const base64Data = req.body.img_report.replace("data:image/jpeg;base64," , "")
                             const imageBuffer = Buffer.from(base64Data, 'base64');
                             fs.writeFile( Path , imageBuffer , (err)=>{
+                                console.log(err)
                                 if(err) reject("not image")
                                 else resole(name_image)
                             })
@@ -2459,6 +3243,25 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         const SET = new Array(req.body.report_text ? `report_text = '${req.body.report_text}'` : "" , img_path != null ? `image_path = '${img_path}'` : "")
                                         .filter(val=>val).join(",").replaceAll(" " , "")
                         
+                        const old_report = await new Promise((resolve) => {
+                            con.query(
+                                `
+                                SELECT id , report_text , image_path
+                                FROM report_detail
+                                WHERE id = ? 
+                                LIMIT 1
+                                ` , [ req.body.id ],
+                                (err , oldData) => {
+                                    if (err) {
+                                        console.log("edit report");
+                                        return 0;
+                                    }
+        
+                                    resolve(oldData[0])
+                                }
+                            )
+                        })
+
                         con.query(
                             `
                             UPDATE report_detail
@@ -2471,9 +3274,24 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     console.log("edit report");
                                     return 0;
                                 }
-    
-                                con.end()
-                                res.send("113")
+
+                                con.query(
+                                    `
+                                    INSERT INTO record_edit 
+                                        ( edit_date , report_text , image_path , id_report_detail ) VALUES 
+                                        ( ? , ? , ? , ? )
+                                    ` , [ new Date() , old_report.report_text , old_report.image_path , old_report.id ],
+                                    (err , resultEdit) => {
+                                        if (err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            console.log("edit report");
+                                            return 0;
+                                        }
+        
+                                        con.end()
+                                        res.send("113")
+                                    }
+                                )
                             }
                         )
                     }
@@ -2870,6 +3688,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
+            
+            console.log(result)
             if(result['result'] === "pass") {
                 const From = req.body.type == "plant" ? "plant_list" : 
                                 req.body.type == "fertilizer" ? "fertilizer_list" : 
@@ -2883,7 +3703,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     const Check = req.body.type == "plant" ? { name : 1 , type_plant : 1 } : 
                                     req.body.type == "fertilizer" ? { name : 1 , name_formula : 1 } : 
                                     req.body.type == "chemical" ? { name : 1 , name_formula : 1 } :
-                                    req.body.type == "source" ? { name : 1 } : ""
+                                    req.body.type == "source" ? { name : 1 } : 
+                                    req.body.type == "pest" ? { pest_name : 1 , type_pest : 1 } : 
+                                    ""
                     if(!Check || !Check[Data[0]]) return null
                     else if(Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE '${Data[1]}' )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
                     else return `INSTR( ${Data[0]} , '${Data[1]}' )`
@@ -2942,21 +3764,28 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                const From = (
+                    req.body.type == "plant" ? "plant_list" : 
+                    req.body.type == "fertilizer" ? "fertilizer_list" : 
+                    req.body.type == "chemical" ? "chemical_list" :
+                    req.body.type == "source" ? "source_list" : 
+                    req.body.type == "pest" ? "pests" : ""
+                )
                 if(From) {
                     try {
                         const where = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
                             return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
                         }).join(" and ")
+
+                        const id = (
+                            req.body.type == "pest" ? "pest_id" : "id"
+                        )
                         con.query(
                             `
                             SELECT (
                                 SELECT EXISTS (
-                                    SELECT id 
+                                    SELECT ${id} 
                                     FROM ${From}
                                     WHERE ${where} and is_use = 1
                                 )
@@ -3000,21 +3829,27 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                const From = (
+                    req.body.type == "plant" ? "plant_list" : 
+                    req.body.type == "fertilizer" ? "fertilizer_list" : 
+                    req.body.type == "chemical" ? "chemical_list" :
+                    req.body.type == "source" ? "source_list" : 
+                    req.body.type == "pest" ? "pests" : ""
+                )
                 if(From) {
                     try {
                         const where = Object.entries(req.body.check).map((checkData)=>{
                             checkData[1] = `"${checkData[1].trim()}"`
                             return checkData.join("=").replaceAll(" " , "").replaceAll(";" , "")
                         }).join(" and ")
+                        const id = (
+                            req.body.type == "pest" ? "pest_id" : "id"
+                        )
                         con.query(
                             `
                             SELECT (
                                 SELECT EXISTS (
-                                    SELECT id 
+                                    SELECT ${id} 
                                     FROM ${From}
                                     WHERE ${where}
                                 )
@@ -3024,9 +3859,12 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 if(err) console.log(err)
         
                                 if(!data[0].checkData) {
-                                    const Key = Object.entries(req.body.data).map(val=>val[0])
-                                    const InsertArray = Object.entries(req.body.data).map(val=> val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?")
-                                    const dataInsert = Object.entries(req.body.data).map(val=>val[1])
+                                    const {
+                                        varietie , ...body
+                                    }= req.body.data
+                                    const Key = Object.entries(body).map(val=>val[0])
+                                    const InsertArray = Object.entries(body).map(val=> val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?")
+                                    const dataInsert = Object.entries(body).map(val=>val[1])
                                     try {
                                         con.query(
                                             `
@@ -3035,12 +3873,35 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                 VALUES 
                                                 ( ${InsertArray.join(",")} )
                                             ` , dataInsert , (err , result)=>{
+
                                                 if(err){
                                                     con.end()
                                                     res.send("error")
                                                 } else {
-                                                    con.end()
-                                                    res.send("insert")
+                                                    
+                                                    if(req.body.type == "plant"){
+                                                        const insertId = result.insertId
+                                                        const {
+                                                            name , qty_harvest 
+                                                        } = varietie
+                                                        con.query(
+                                        
+                                                            `INSERT INTO varieties
+                                                            ( plant_id , variety_name , dates ) 
+                                                            VALUES ( ? , ? , ?)`
+                                                         , [insertId , name , qty_harvest ] , (err , result) => {
+                                                            if(err){
+                                                                con.end()
+                                                                res.send("error")
+                                                            }
+                
+                                                            con.end()
+                                                            res.send("insert")
+                                                        }
+                                                    )
+                                                    } else {
+                                                      res.send("insert")
+                                                    }
                                                 }
                                             }
                                         )
@@ -3216,27 +4077,39 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const From = req.body.type == "plant" ? "plant_list" : 
-                                req.body.type == "fertilizer" ? "fertilizer_list" : 
-                                req.body.type == "chemical" ? "chemical_list" :
-                                req.body.type == "source" ? "source_list" : ""
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" : 
+                    type_request == "pest" ? "pests" : 
+                    type_request == "fertilizer" ? "fertilizer_list" : 
+                    type_request == "chemical" ? "chemical_list" :
+                    type_request == "source" ? "source_list" : ""
+                )
                 const state = req.body.state == 0 ? 0 : 1; 
                 if(From) {
+                    const columnID = (
+                        type_request == "pest" ? "pest_id" : "id"
+                    )
                     try {
-                        const checkOver = state ? await new Promise((resole , reject)=>{
-                            const Where = req.body.type == "plant" || req.body.type == "source" ? "fromMain.name = fromSub.name" : 
-                                            req.body.type == "fertilizer" || req.body.type == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" : ""
+                        const checkDataOpenDuplicate = state ? await new Promise((resole , reject)=>{
+                            const Where = (
+                                type_request == "plant" || type_request == "source" ? "fromMain.name = fromSub.name" : 
+                                type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
+                                type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
+                                ""
+                            )
+
                             con.query(
                                 `
-                                SELECT (
-                                    SELECT EXISTS (
-                                        SELECT id
-                                        FROM ${From} as fromSub
-                                        WHERE ${Where} and id <> ? and is_use = 1
-                                    )
-                                ) as verify
-                                FROM ${From} as fromMain
-                                WHERE id = ?
+                                    SELECT (
+                                        SELECT EXISTS (
+                                            SELECT ${columnID}
+                                            FROM ${From} as fromSub
+                                            WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                                        )
+                                    ) as verify
+                                    FROM ${From} as fromMain
+                                    WHERE ${columnID} = ?
                                 ` , [ req.body.id_list , req.body.id_list ] , 
                                 (err , result) => {
                                     if(err) reject(err)
@@ -3244,10 +4117,10 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 }
                             )
                         }) : true
-                        if(checkOver) {
+                        if(checkDataOpenDuplicate) {
                             con.query(
                                 `
-                                UPDATE ${From} SET is_use = ? WHERE id = ? and is_use != ?
+                                UPDATE ${From} SET is_use = ? WHERE ${columnID} = ? and is_use != ?
                                 ` , [ state , req.body.id_list , state ] ,
                                 (err , list) => {
                                     if(err) {
@@ -3328,7 +4201,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         ` , [ result.data.station_doctor , req.query.id ] , 
                         (err , list) => {
                             if(list.length) list.map(val=>{
-                                val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/admin.jpg"
+                                val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/acc_doctor.jpg"
                                 return val
                             })
 
@@ -3504,4 +4377,158 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             )
         })
     }
+
+    app.post('/api/doctor/data/statistic/get', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        
+        if (username === '' || password === '') {
+            res.redirect('/api/logout');
+            return;
+        }
+        
+        let con = Database.createConnection(listDB);
+        
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+            con.query(
+                `
+                SELECT
+                    p.pest_name,
+                    p.type_pest,
+                    COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 WEEK) THEN fc.pest_id END) AS total_1_week,
+                    COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN fc.pest_id END) AS total_1_month,
+                    COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH) THEN fc.pest_id END) AS total_3_months,
+                    COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 6 MONTH) THEN fc.pest_id END) AS total_6_months,
+                    COUNT(CASE WHEN fc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN fc.pest_id END) AS total_1_year
+                FROM formchemical fc
+                LEFT JOIN pests p ON fc.insect = p.pest_name
+                GROUP BY fc.insect
+                LIMIT 25;
+                `,
+                (err, result) => {
+                if (err) {
+                    dbpacket.dbErrorReturn(con, err, res);
+                    return;
+                }
+        
+                con.end();
+                res.send(result); // ส่งข้อมูลสรุป pest_name, type_pest และจำนวน pest ตามระยะเวลา
+                }
+            );
+            }
+        } catch (err) {
+            con.end();
+            if (err == "not pass") {
+            res.redirect('/api/logout');
+            }
+        }
+    });
+
+    app.get('/api/doctor/data/report/list', async(req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+        if(username === '' || password === '') {
+          res.redirect('/api/logout')
+          return 0
+        }
+        let con = Database.createConnection(listDB)
+        try {
+          const auth = await apifunc.auth(con , username , password , res , "acc_doctor")
+          if(auth['result'] === "pass") {
+            const station = auth['data']['station_data']
+    // ดึงข้อมูลเกษตรกรและพืชใน station
+            const farmerQuery = `
+                SELECT
+                acc_farmer.station,
+                COUNT(DISTINCT acc_farmer.uid_line) AS total_farmers,
+                COUNT(DISTINCT formplant.id_farm_house) AS total_plants,
+                GROUP_CONCAT(DISTINCT formplant.name_plant SEPARATOR ', ') AS plants,
+                CONCAT(
+                    '[',
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(
+                            '{"plantName":"', subquery.name_plant, '",' ,
+                            '"id":"', subquery.id, '",' ,
+                            '"farmersCount":', subquery.total_qty, ',' ,
+                            '"duplicateCount":', subquery.duplicate_count, '}'
+                        )
+                    ),
+                    ']'
+                ) AS plantDetails
+                FROM acc_farmer
+                LEFT JOIN housefarm ON acc_farmer.uid_line = housefarm.uid_line
+                LEFT JOIN formplant ON housefarm.id_farm_house = formplant.id_farm_house
+                LEFT JOIN (
+                    SELECT
+                        formplant.id,
+                        formplant.name_plant,
+                        COUNT(formplant.name_plant) AS total_qty,
+                        id_farm_house,
+                        SUM(CASE WHEN COUNT(formplant.name_plant) > 1 THEN 1 ELSE 0 END) OVER (PARTITION BY formplant.name_plant) AS duplicate_count
+                    FROM formplant
+                    GROUP BY id_farm_house, formplant.name_plant
+                ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
+                WHERE acc_farmer.station = ?
+                GROUP BY acc_farmer.station;
+            `;
+            con.query(farmerQuery, [station], (err, farmerStatistics) => {
+                if (err) {
+                    console.error('Error fetching farmer statistics:', err);
+                    res.status(500).json({ status: "error", message: "Database query error" });
+                    return;
+                }
+                console.log('Farmer Statistics:', farmerStatistics);
+        // ดึงรายชื่อหมอพืชสำหรับ station นี้
+                const doctorQuery = `
+                    SELECT id_doctor, fullname_doctor, station_doctor
+                    FROM acc_doctor
+                    WHERE station_doctor = ?;
+                `;
+                con.query(doctorQuery, [station], (err, doctors) => {
+                    if (err) {
+                        console.error('Error fetching doctor data:', err);
+                        res.status(500).json({ status: "error", message: "Database query error" });
+                        return;
+                    }
+                    console.log('Doctors:', doctors);
+        // ส่งผลลัพธ์กลับไป
+                    res.status(200).json({
+                        status: "success",
+                        data: {
+                            farmerStatistics: farmerStatistics.map((stat) => ({
+                                station: stat.station,
+                                totalFarmers: stat.total_farmers,
+                                totalPlants: stat.total_plants,
+                                plants: stat.plants,
+                                plantDetails: JSON.parse(stat.plantDetails || "[]").reduce((prev , curr) => {
+                                    const indexFind = prev.findIndex(({ plantName }) => plantName === curr["plantName"])
+                                    if(indexFind >= 0) {
+                                        prev[indexFind]["farmersCount"] += curr["farmersCount"]
+                                    } else {
+                                        prev.push({
+                                            plantName : curr["plantName"],
+                                            farmersCount : curr["farmersCount"]
+                                        })
+                                    }
+                                    return prev
+                                } , []),
+                            })),
+                            doctors,
+                        },
+                    });
+                });
+            });
+          }
+        } catch (err) {
+          con.end()
+          if(err == "not pass") {
+            res.redirect('/api/logout')
+          }
+        }
+    });
+
+    
+
 }

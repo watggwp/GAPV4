@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 
 import React, { useEffect, useRef, useState } from "react";
+=======
+import React, { createContext, useEffect, useRef, useState } from "react";
+>>>>>>> tan
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/TemplantList.scss"
 import "../../assets/style/page/data/PageData.scss"
@@ -8,8 +12,26 @@ import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource , InsertPes
 import { SearchChemical, SearchFertilizer, SearchPlant , SearchPest } from "./search/SearchPage";
 import PopupConfirm from "./Insert/ConfirmInsert";
 import ManageData from "./ManageData";
+import { Modal } from "react-bootstrap";
+import InsertGroup from "../group/InsertGroup";
+import InsertReport from "../report/InsertReport";
+import PageGroup from "../group/PageGroup";
 
 const MaxLimit = 5
+
+export const PageDataContext = createContext({
+    popupDataManage : {
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    } , 
+    setPopupDataManage : () => ({ open : false , type : "" }),
+    ChangeStatus : (status) => {},
+    textSearch : ""
+})
+
 const PageData = ({setMain , session , socket , type = false , eleImageCover , LoadType , eleBody , setTextStatus}) => {
     // const [Body , setBody] = useState(<></>)
     const [Loading , setLoading] = useState(false)
@@ -17,6 +39,15 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
     //     status : LoadType.split(":")[0],
     //     open : type
     // })
+    
+    const [ popupDataManage , setPopupDataManage ] = useState({
+        open : false,
+        type : "",
+        metadata : {
+            id : ""
+        }
+    })
+
     const [TypeSelectMenu , setTypeSelectMenu] = useState(0)
     const [DataProcess , setDataProcess] = useState(new Map([
         ["type" , LoadType.split(":")[0]] , //Loadtype 0 : plant , 1 : ferti , 2 : chemi , 3 : source
@@ -33,6 +64,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const Search = useRef()
     const SearchInput = useRef()
+    const [ textSearch , setTextSearch ] = useState("")
     const SelectType = useRef()
     const Other = useRef()
 
@@ -68,7 +100,8 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
     const OpenOption = (Ref , option) => {
         setTypeSelectMenu(option)
-        if(TypeSelectMenu == option) Ref.current.toggleAttribute("show")
+        setPopupDataManage({ open : true , type : "insert" })
+        if(TypeSelectMenu === option) Ref.current.toggleAttribute("show")
         else if(Ref.current.getAttribute("show") == null) Ref.current.toggleAttribute("show")
     }
 
@@ -78,10 +111,11 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         DataSelect.set(keyMap , value)
         if(!value) DataSelect.delete(keyMap)
 
+        setTextSearch(value)
         if(target === SelectType.current) {
             DataSelect.set("statusClick" , true)
             if(!TypeSelectMenu) {
-                SearchInput.current.value = ""
+                setTextSearch("")
             }
             else {
                 SubmitInsert.current.setAttribute("no" , "")
@@ -124,7 +158,12 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                             ] : 
                         DataProcess.get("type") === "pest"  ? 
                             [
+<<<<<<< HEAD
                                 nameInsert.current.value
+=======
+                                nameInsert.current.value,
+                                typeInsert.current.value
+>>>>>>> tan
                             ] : []
 
         if(value.filter(val=>!val).length == 0) {
@@ -191,6 +230,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                     data : 
                     {
                         pest_name : nameInsert.current.value,
+<<<<<<< HEAD
+=======
+                        type_pest : typeInsert.current.value,
+>>>>>>> tan
                         
                     },
                     check : {
@@ -225,7 +268,12 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         Search.current.removeAttribute("show")
     }
 
+    // const searchRef = DataProcess.get("type") !== "group" ? Search : null;
+
+    console.log("Current type:", DataProcess.get("type"));
+
     return(
+<<<<<<< HEAD
         <section className="data-list-content-page data-page">
             <div className="search-form" ref={Search}>
                 <div className="bt-select-option">
@@ -338,11 +386,187 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                     <></>:
                     <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                 }
+=======
+        <PageDataContext.Provider
+            value={{ 
+                setPopupDataManage,
+                popupDataManage,
+                textSearch
+            }}
+        >
+            <section className="data-list-content-page data-page">
+>>>>>>> tan
                 {
-                    TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={2}/> : <></>
+                    // DataProcess.get("type") !== "report" &&
+                    <div className="search-form" ref={Search}>
+                            <div className="bt-select-option">
+
+
+                                
+                                <a title="ค้นหา" className="bt-search-show" onClick={()=>OpenOption(Search , 0)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                                        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                                            <path d="m11.25 11.25l3 3"/>
+                                            <circle cx="7.5" cy="7.5" r="4.75"/>
+                                        </g>
+                                    </svg>
+                                </a>
+                                {
+                                DataProcess.get("type") !== "report" &&
+                                <a style={{padding : "0"}} title="เพิ่มข้อมูล" className="bt-search-show" onClick={()=>OpenOption(Search , 1)}>
+                                    <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
+                                </a>
+                                }
+                                {DataProcess.get("type") === "report" && (
+                                    <select 
+                                        onChange={(e) => {
+                                            searchList(e.target, e.target.value, "type");
+                                        }} 
+                                        ref={SelectType} 
+                                        value={DataProcess.get("type")}
+                                    >
+                                        <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
+                                        <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
+                                        <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
+                                    </select>
+                                )}
+
+
+                            </div>
+                            
+                            <div className="content-option">
+                                <div className="field-option">
+                                {
+                                    DataProcess.get("type") !== "group" && DataProcess.get("type") !== "report" && 
+                                    <div className="row head-row">
+                                        <label className="field-select">
+                                            <span>ชนิดข้อมูล</span>
+                                            <select onChange={(e)=>{
+                                                searchList(e.target , e.target.value , "type")
+                                                e.target.value = SelectType.current.value
+                                            }} ref={SelectType} value={DataProcess.get("type")}>
+                                                <option value={"plant"}>ชนิดพืช</option>
+                                                <option value={"pest"}>โรคพืช / ศัตรูพืช</option>
+                                                <option value={"fertilizer"}>ปัจจัยการผลิต</option>
+                                                <option value={"chemical"}>สารเคมี</option>
+                                                <option value={"source"}>แหล่งที่ซื้อ</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                }
+                                    { !TypeSelectMenu ? 
+                                        <>
+                                            <span className="head">
+                                            ค้นหา{
+                                                DataProcess.get("type") === "plant" ? "พืช" : 
+                                                DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" : 
+                                                DataProcess.get("type") === "fertilizer" ? "ปัจจัยการผลิต" : 
+                                                DataProcess.get("type") === "chemical" ? "สารเคมี" :
+                                                DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
+                                            }</span>
+                                            <div className="row">
+                                                <input 
+                                                    onChange={(e)=>
+                                                        searchList(e.target , e.target.value , 
+                                                            DataProcess.get("type") === "pest" ?
+                                                            "pest_name" : 
+                                                            "name"
+                                                        )
+                                                    } 
+                                                    type="search"
+                                                    value={textSearch}
+                                                    placeholder={
+                                                        DataProcess.get("type") === "plant" ? "ชื่อพืช เช่น เมล่อน" : 
+                                                        DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" :
+                                                        DataProcess.get("type") === "fertilizer" ? "ชื่อปุ๋ย/ตรา เช่น กระต่าย" : 
+                                                        DataProcess.get("type") === "chemical" ? "ชื่อสารเคมี เช่น พรีวาธอน" :
+                                                        DataProcess.get("type") === "source" ? "แหล่งที่ซื่อ เช่น สหกรณ์แม่เตียน" : ""
+                                                    } 
+                                                    defaultValue={DataProcess.get("name")}
+                                                />
+                                            </div>
+                                            { 
+                                                DataProcess.get("type") === "plant" ?
+                                                    <SearchPlant searchList={searchList} DataProcess={DataProcess}/> 
+                                                :
+                                                DataProcess.get("type") === "pest" ?
+                                                    <SearchPest searchList={searchList} DataProcess={DataProcess}/> 
+                                                :
+                                                DataProcess.get("type") === "fertilizer" ? 
+                                                    <SearchFertilizer searchList={searchList} DataProcess={DataProcess}/>
+                                                :
+                                                DataProcess.get("type") === "chemical" ? 
+                                                    <SearchChemical searchList={searchList} DataProcess={DataProcess}/>
+                                                : <></>
+                                            }
+                                        </>
+                                        :
+                                        <>                               
+                                            <span className="head">
+                                            เพิ่ม{
+                                                DataProcess.get("type") === "plant" ? "ชนิดพืช" : 
+                                                DataProcess.get("type") === "pest" ? "โรคพืช / ศัตรูพืช" : 
+                                                DataProcess.get("type") === "fertilizer" ? "ปัจจัยการผลิต" : 
+                                                DataProcess.get("type") === "chemical" ? "สารเคมี" :
+                                                DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
+                                            }
+                                            </span>
+                                            { 
+                                                DataProcess.get("type") === "plant" ?
+                                                    <InsertPlant nameInsert={nameInsert} typeInsert={typeInsert} speciesInsert={speciesInsert} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                                : 
+                                                DataProcess.get("type") === "pest" ?
+                                                    <InsertPest nameInsert={nameInsert} typeInsert={typeInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                                :
+                                                DataProcess.get("type") === "fertilizer" ?
+                                                    <InsertFertilizer nameInsert={nameInsert} formulaFertilizer={formulaFertilizer} UseText={UseText} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                                : 
+                                                DataProcess.get("type") === "chemical" ?
+                                                    <InsertChemical nameInsert={nameInsert} formulaChemical={formulaChemical} UseText={UseText} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                                :  
+                                                DataProcess.get("type") === "source" ?
+                                                    <InsertSource nameInsert={nameInsert} position={position} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
+                                                :
+                                                // DataProcess.get("type") === "group" ?
+                                                //         <Modal
+                                                //             show={popupDataManage.open}s
+                                                //             onHide={() => setPopupDataManage({
+                                                //                 open : false
+                                                //             })}
+                                                //             aria-labelledby="modal-title"
+                                                //             aria-describedby="modal-description"
+                                                //             centered
+                                                //             size="lg"
+                                                //         >
+                                                //             <InsertGroup/>
+                                                //         </Modal>
+                                                // :
+                                                    <></>
+                                            }
+                                            <div className="bt-insert">
+                                                <button className="cancel" onClick={CancelInsert}>ยกเลิก</button>
+                                                <button className="submit" no="" ref={SubmitInsert} onClick={SubmitConfirmInsert}>ยืนยัน</button>
+                                            </div>
+                                        </>
+                                    }
+                                </div>
+                            </div>
+                        </div>
                 }
-            </div>
-        </section>
+                <div className="data-list-content">
+                    {
+                        DataProcess.get("type") === "group" ?
+                            <PageGroup/>:
+                        DataProcess.get("type") === "report" ?
+                            <InsertReport/> :
+                            <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
+                    }
+                    {
+                        TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={2}/> : <></>
+                    }
+                </div>
+            </section>
+        </PageDataContext.Provider>
     )
 }
 
@@ -414,7 +638,7 @@ const List = ({ session , socket , DataFillter , setTextStatus , StartData , set
         <ManageList Data={Data} session={session} fetch={FetchList} setRow={setStartData} Limit={Limit} Type={DataFillter.get("type")}/>)
 }
 
-const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
+const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) => {
     const [Body , setBody] = useState(<></>)
     const RefPop = useRef()
     const [PopBody , setPop] = useState(<></>)
@@ -449,7 +673,11 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                         {
                                             Type === "plant" ? "ชนิดพืช" :
                                             Type === "pest" ? <div className="field-text">
+<<<<<<< HEAD
                                             <span>ชื่อโรคพืช / ศัตรูพืช</span>
+=======
+                                            <span><div>ชื่อ {DataIn.type_pest}</div></span>
+>>>>>>> tan
                                             <div className="data-text">{DataIn.pest_name}</div>
                                         </div> :
                                             Type === "fertilizer" ? "ชื่อปุ๋ย" :
@@ -461,9 +689,21 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type}) => {
                                 </div>
                                 {
                                     Type === "plant" ?
+                                    <>
                                         <div className="field-text">
                                             <span>ประเภท</span>
                                             <div className="data-text">{DataIn.type_plant}</div>
+                                        </div> 
+                                        <div className="field-text">
+                                            <span>สายพันธุ์พืช</span>
+                                            <div className="data-text">{DataIn.variety_name}</div>
+                                        </div> 
+                                    </>    
+                                        :
+                                    Type === "pest" ? 
+                                    <div className="field-text">
+                                            <span></span>
+                                            <div className="data-text"></div>
                                         </div> :
                                     Type === "pest" ? 
                                     <div className="field-text">

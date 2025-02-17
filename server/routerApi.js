@@ -9,7 +9,7 @@ module.exports = function router(app) {
     app.get('/admin/data' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/admin/index.html'));
     });
-
+ 
     // router doctor
     app.get('/doctor' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
@@ -20,7 +20,7 @@ module.exports = function router(app) {
     app.get('/doctor/push' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
-
+ 
     // farmer
     app.get('/doctor/farmer' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
@@ -38,7 +38,7 @@ module.exports = function router(app) {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
     // farmer
-
+ 
     // form
     app.get('/doctor/form' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
@@ -47,7 +47,7 @@ module.exports = function router(app) {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
     // form
-
+ 
     app.get('/doctor/export' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
@@ -60,7 +60,7 @@ module.exports = function router(app) {
     app.get('/doctor/logout' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
-
+ 
     // router farmer
     app.get('/farmer/signup' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));

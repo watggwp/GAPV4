@@ -64,6 +64,8 @@
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
+                        flex-direction: row;
+                        flex-wrap: wrap;
                         .head-detail {
                             font-weight: 900;
                             font-size: 15px;
@@ -277,4 +279,8 @@
             }
         }
     }
+}
+
+.white{
+    background-color: rgba(184, 184, 184, 0.156) !important;
 }
