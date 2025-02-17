@@ -2958,7 +2958,9 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                 socket.to(`notify-${stationSend}`).emit("update")
                 if(Uid_line_send.size != 0) {
                     line.multicast([...Uid_line_send] , {type : "text" , text : `${msg}`})
-                        .catch(e=>{})
+                        .catch(e=>{
+                            console.log(e)
+                        })
                 }
             }
         })
