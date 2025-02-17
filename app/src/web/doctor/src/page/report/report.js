@@ -6,7 +6,7 @@ const ReportListLocation = () => {
  
   const ListReport = useCallback(async () => {
     try {
-      const listlocation = await clientMo.get("/api/doctor/report/list", {
+      const listlocation = await clientMo.post("/api/doctor/report/list", {
         type: "listlocation",
         limit: 100,
         startRow: 0,

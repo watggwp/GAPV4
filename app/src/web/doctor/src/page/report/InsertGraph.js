@@ -14,8 +14,7 @@ const InsertGraph = () => {
       const result = JSON.parse(response);
  
       if (result.data) {
-        const [{ plantDetails = [], totalFarmers = 0 }] =
-          result.data.farmerStatistics || [{}];
+        const [{ plantDetails = [], totalFarmers = 0 }] = result.data.farmerStatistics || [{}];
  
         const filteredPlants = plantDetails.filter(
           (plant) => plant.state_status !== 2
