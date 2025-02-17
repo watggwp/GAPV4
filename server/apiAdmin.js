@@ -1849,7 +1849,6 @@ app.post('/api/admin/data/list', async (req, res) => {
     let username = req.session.user_admin ?? req.body['username'] ?? '';
     let password = req.session.pass_admin ?? req.body['password'] ?? '';
 
-    console.log(username , password)
     if (username === '' || password === '') {
         res.redirect('/api/logout');
         return;
@@ -1858,7 +1857,6 @@ app.post('/api/admin/data/list', async (req, res) => {
     let con = Database.createConnection(listDB);
 
     try {
-        
         let auth = await apifunc.auth(con, username, password, res, "admin");
 
         // ตรวจสอบว่าผลลัพธ์เป็น "pass" และมีข้อมูลของบัญชี

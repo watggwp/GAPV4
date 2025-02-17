@@ -11,7 +11,6 @@ const apifunc = {
       connectDB.connect((err) => {
         if (err) {
           // ErrorDB(connectDB, err, res);
-          console.log(err)
           reject("connect");
         }
 
@@ -27,7 +26,6 @@ const apifunc = {
           `SELECT * FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? AND ${passwordDB}=SHA2( ? , 256) ${ROLE} ${ORDER}`,
           [username, password],
           (err, result) => {
-            console.log(err , result)
             if (err) {
               // ErrorDB(connectDB, err, res);
               reject("not pass");

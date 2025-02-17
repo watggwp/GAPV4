@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import ButtonChangeStatistics from "./buttonChange";
+import { PageTemplateContext } from "../../PageTemplate";
 
 export const InsertStatisticsContext = createContext({
   minCount: 0, 
@@ -26,6 +27,7 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
+  const { textSearch } = useContext(PageTemplateContext)
   const { minCount , selectedRows , setMinCount , setSelectedRows } = useContext(InsertStatisticsContext)
 
   const [ pestsMapping , setPestsMapping ] = useState(new Map())
@@ -84,9 +86,9 @@ const InsertStatistics = () => {
     
   };
 
-  const fetchStatistics = useCallback(async () => {
+  const fetchStatistics = useCallback(async (search) => {
     try {
-      const response = await clientMo.post("/api/admin/statistic/get", { duration });
+      const response = await clientMo.post("/api/admin/statistic/get", { duration , search });
       const data = JSON.parse(response);
 
       if (data.length === 0) {
@@ -141,8 +143,8 @@ const InsertStatistics = () => {
 
   useEffect(() => {
     calculateDateRange(duration);  // คำนวณช่วงวันที่เมื่อมีการเปลี่ยนแปลงระยะเวลา
-    fetchStatistics();
-  }, [duration, fetchStatistics]);
+    fetchStatistics(textSearch);
+  }, [duration , textSearch, fetchStatistics]);
 
   // ฟังก์ชันสำหรับกรองข้อมูลตามจำนวนขั้นต่ำ
   const filterByMinCount = (stats) => {
