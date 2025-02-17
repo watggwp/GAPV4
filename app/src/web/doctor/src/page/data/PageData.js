@@ -10,6 +10,7 @@ import { Modal } from "react-bootstrap";
 import InsertGroup from "../group/InsertGroup";
 import InsertReport from "../report/InsertReport";
 import PageGroup from "../group/PageGroup";
+import InsertGraph from "../report/InsertGraph";
 
 const MaxLimit = 5
 
@@ -431,6 +432,8 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                             <PageGroup/>:
                         DataProcess.get("type") === "report" ?
                             <InsertReport/> :
+                        DataProcess.get("type") === "graph" ?
+                            <InsertGraph/> :
                             <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                     }
                     {
