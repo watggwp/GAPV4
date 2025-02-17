@@ -37,8 +37,6 @@ const InsertStatistics = () => {
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
 
-
-
   const calculateDateRange = (duration) => {
     const endDate = new Date();
     let startDate = new Date();
@@ -141,6 +139,7 @@ const InsertStatistics = () => {
   }, [duration]);
 
   useEffect(() => {
+    console.log(textSearch)
     calculateDateRange(duration);  // คำนวณช่วงวันที่เมื่อมีการเปลี่ยนแปลงระยะเวลา
     fetchStatistics(textSearch);
   }, [duration , textSearch, fetchStatistics]);
