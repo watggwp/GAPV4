@@ -133,27 +133,27 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
                     <a onClick={Home} className="Logo" href="/doctor" title="หมอพืช">
                         <img src="/logo2.png"></img>
                         {
-                        Boolean(profile?.doctor_role?.data?.[0] === 1 &&
-                                profile?.analyst_role?.data?.[0] === profile?.analyst_role?.data?.[0] &&
-                                profile?.consultant_role?.data?.[0] === profile?.consultant_role?.data?.[0] ) &&  //role
+                        Boolean(profile?.doctor_role === 1 &&
+                                profile?.analyst_role === profile?.analyst_role &&
+                                profile?.consultant_role === profile?.consultant_role ) &&  //role
                                 <span>หมอพืช</span>
                         }
                         {
-                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
-                                profile?.analyst_role?.data?.[0] === 1 &&
-                                profile?.consultant_role?.data?.[0] === 0 ) &&  //role
+                        Boolean(profile?.doctor_role === 0 &&
+                                profile?.analyst_role === 1 &&
+                                profile?.consultant_role === 0 ) &&  //role
                                 <span>นักวิเคราะห์สาร</span>
                         }
                         {
-                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
-                                profile?.analyst_role?.data?.[0] === 0 &&
-                                profile?.consultant_role?.data?.[0] === 1 ) &&  //role
+                        Boolean(profile?.doctor_role === 0 &&
+                                profile?.analyst_role === 0 &&
+                                profile?.consultant_role === 1 ) &&  //role
                                 <span>ที่ปรึกษา</span>
                         }
                         {
-                        Boolean(profile?.doctor_role?.data?.[0] === 0 &&
-                                profile?.analyst_role?.data?.[0] === 1 &&
-                                profile?.consultant_role?.data?.[0] === 1 ) &&  //role
+                        Boolean(profile?.doctor_role === 0 &&
+                                profile?.analyst_role === 1 &&
+                                profile?.consultant_role === 1 ) &&  //role
                                 <span>เจ้าหน้าที่</span>
                         }
                     </a>

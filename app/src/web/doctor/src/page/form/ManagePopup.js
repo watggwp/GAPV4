@@ -561,26 +561,26 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                     <>
                                     <div className="menu-manage-form">
                                         {
-                                            Boolean(profile?.doctor_role?.data?.[0]) && //role
+                                            Boolean(profile?.doctor_role) && //role
                                                 <div className="flex-center" select="" onClick={(e)=>MenuManageFormByDoctor("success" , e)} ref={MenuBTManage.success}>
                                                     <div>เก็บเกี่ยว</div>
                                                 </div>
                                         }
                                         {
-                                            Boolean(profile?.doctor_role?.data?.[0] || profile?.consultant_role?.data?.[0]) && //role
+                                            Boolean(profile?.doctor_role || profile?.consultant_role) && //role
                                                 <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("report" , e)} ref={MenuBTManage.report}>
                                                     <div>ข้อแนะนำ</div>
                                                 </div>
                                         }
                                         {
-                                            Boolean(profile?.doctor_role?.data?.[0] ) && //role
+                                            Boolean(profile?.doctor_role ) && //role
                                                 <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckForm" , e)} ref={MenuBTManage.CheckForm}>
                                                     <div>ตรวจสอบ</div>
                                                     <div>แบบบันทึก</div>
                                                 </div>
                                         }   
                                         {
-                                            Boolean(profile?.analyst_role?.data?.[0]) && //role
+                                            Boolean(profile?.analyst_role) && //role
                                                 <div className="flex-center" onClick={(e)=>MenuManageFormByDoctor("CheckPlant" , e)} ref={MenuBTManage.CheckPlant}>
                                                     <div>วิเคราะห์</div>
                                                     <div>ผลผลิต</div>
