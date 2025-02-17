@@ -11,16 +11,31 @@ import DesktopNev from "./navTop/desktop";
 import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
+
+
+
+
+
+
+
+
+
 import PageData from "./page/data/PageData";
 
-<<<<<<< HEAD
 
-export const DoctorContext = createContext(null)
-=======
+
+
+
+
+
+
+
 export const DoctorContext = createContext({
     profile : {}
+
+
 })
->>>>>>> tan
+
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
@@ -160,11 +175,10 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                         <div className="text-icon-cover" ref={frameImage}>
                             <div className="text">
                                 <span>ยินดีต้อนรับ</span>
-<<<<<<< HEAD
-                                <span style={{fontWeight : 900}}>หมอพืช</span>
-=======
+  
+  
                                 <span style={{fontWeight : 900}}>เจ้าหน้าที่</span>
->>>>>>> tan
+  
                             </div>
                             <div className="icon-profile" style={{
                                 borderRadius : "50%",
