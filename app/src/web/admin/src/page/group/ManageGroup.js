@@ -117,17 +117,16 @@ const ManageGroup = ({ fetchGroups }) => {
               setStatus(2);
               break;
           }
-          setOpen(1);
         }, 0);
       } catch (error) {
         console.error("Error saving group data:", error);
         setText("เกิดข้อผิดพลาด กรุณาลองใหม่");
         setStatus(2);
-        setOpen(1);
       }
-    } else {
-      setOpen(1);
     }
+
+    setOpen(1);
+    setStateOnBt(true);
   };
 
   // Callback หลังจาก Confirm popup (คล้ายกับ AfterConfirm ใน ManageDataPage)
@@ -361,18 +360,20 @@ const ManageGroup = ({ fetchGroups }) => {
           </div>
         )}
       </div>
-      <ReportAction
-        Open={Open}
-        Text={Text}
-        Status={Status}
-        setOpen={setOpen}
-        setText={setText}
-        setStatus={setStatus}
-        sizeLoad={73}
-        BorderLoad={8}
-        color="#1CFFF1"
-        action={AfterConfirm}
-      />
+      <div className="page-because-popup">
+        <ReportAction
+          Open={Open}
+          Text={Text}
+          Status={Status}
+          setOpen={setOpen}
+          setText={setText}
+          setStatus={setStatus}
+          sizeLoad={73}
+          BorderLoad={8}
+          color="#1CFFF1"
+          action={AfterConfirm}
+        />
+      </div>
     </>
   );
 };

@@ -12,6 +12,9 @@ module.exports = function router(app) {
     app.get('/admin/report' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/admin/index.html'));
     });
+    app.get('/admin/group' , (req, res) => {
+        res.sendFile(__dirname.replace('\server' , '/build/admin/index.html'));
+    });
  
     // router doctor
     app.get('/doctor' , (req, res) => {
