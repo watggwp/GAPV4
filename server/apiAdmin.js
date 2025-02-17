@@ -1573,9 +1573,6 @@ app.post('/api/admin/data/list', async (req, res) => {
     }
 });
 
-
-
-
   app.post('/api/admin/data/change' , async (req , res)=>{
     let username = req.session.user_admin
     let password = req.body['password']
@@ -2304,7 +2301,51 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
  
                       // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
                       for (let item of selectedData) {
-                          item.chemical_used = await getChemicalUsed(item.pest_id);
+                          item.chemical_used = await new Promise((resolve) => {
+                              con.query(
+                                  `
+                                  SELECT 
+                                      pc.pest_id AS pest_id,
+                                      pc.chemical_id AS chemical_id,
+                                      p.pest_name AS pest_name,
+                                      c.name AS chemical_name,
+                                      c.name_formula AS chemical_formula
+                                  FROM pest_chemical AS pc
+                                  LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+                                  LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+                                  WHERE pc.pest_id = ? AND pc.status = 1
+                                  `, 
+                                  [req.body.pest_id], 
+                                  (err, results) => {
+                                      if (err) {
+                                          console.error("Database query error:", err);
+                                          con.end();
+                                          res.status(500).json({ error: "Database query failed" });
+                                          return;
+                                      }
+                  
+                                      if (results.length === 0) {
+                                          console.log("No data found");
+                                          con.end();
+                                          res.status(404).json({ message: "No data found" });
+                                          return;
+                                      }
+                  
+                                      // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+                                      const uniqueChemicalNames = new Set();
+                                      results.forEach(item => {
+                                          if (!uniqueChemicalNames.has(item.chemical_name)) {
+                                              uniqueChemicalNames.add(item.chemical_name);
+                                          }
+                                      });
+                  
+                                      // แปลงเป็น string พร้อมส่งไปยัง frontend
+                                      const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
+                  
+                                      resolve(chemicalNames)
+                                  }
+                              );
+                          })
                           console.log(`🔍 Retrieved Chemical for Pest ${item.pest_name} (ID: ${item.pest_id}):`, item.chemical_used);
                       }
  
