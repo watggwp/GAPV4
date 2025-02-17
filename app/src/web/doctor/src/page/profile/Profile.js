@@ -163,9 +163,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     }
 
 
-<<<<<<< HEAD
-=======
-    // useEffect(() => {
+// useEffect(() => {
     //     console.log("getProfile:", getProfile);
     // }, [getProfile]);
 
@@ -187,8 +185,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     
         return roles.length > 0 ? roles.join(", ") : "N/A";
     };
->>>>>>> tan
-    
+ 
 
     return(
         getProfile.length !== 0 ?
@@ -305,11 +302,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                             <div className="row-detail not-bm head-content">
                                 <div className="head-content">
                                     <span className="head-detail">รหัสศูนย์โครงการ</span>
-<<<<<<< HEAD
-                                    <input readOnly className="input-password"
-=======
-                                    <input readOnly className="input-password white"
->>>>>>> tan
+                                   <input readOnly className="input-password white"
                                      value={getProfile.id_station}
                                             ref={id_station}
                                             placeholder="รหัสศูนย์ปฏิบัติหน้าที่"/>

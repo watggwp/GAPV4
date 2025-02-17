@@ -4,13 +4,11 @@ import "../../assets/style/page/form/ManagePopup.scss"
 import { DayJSX, Loading, MapsJSX, PopupDom, ResizeImg } from "../../../../../assets/js/module"
 import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
-<<<<<<< HEAD
-
-=======
 import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "./ListManageDoctor"
-import { DoctorContext } from "../../Doctor"
+import { DoctorContext } from "../../Doctor"  
 import FormPlant from "./formplant"
->>>>>>> tan
+
+
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
 
@@ -33,20 +31,14 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
     const [data, setData] = useState(null); // ข้อมูลจาก API
     const [editMode, setEditMode] = useState(true); // เปิด/ปิดโหมดแก้ไข
     const [editedData, setEditedData] = useState(null); // เก็บค่าที่แก้ไข
-
-<<<<<<< HEAD
-
- 
-=======
-    const [ mode , setMode ] = useState("view")
+   const [ mode , setMode ] = useState("view")
     const [ editValue , setEditValue ] = useState({})
 
     useEffect(()=>{
         RefPop.current.style.opacity = "1"
         RefPop.current.style.visibility = "visible"
         FetchContent(0)
-    } , [])
->>>>>>> tan
+   } , [])
 
     useEffect(()=>{
         window.addEventListener("resize" , reSize)
@@ -124,238 +116,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                             // setID_farmer(data.id_farmer)
                             setCountEdit(data.countStatus)
                             return (
-<<<<<<< HEAD
-                                <section key={key} className="detail-main-form">
-                                    <div className="row">
-                        {!editMode ? (
-                            <button onClick={() => {
-                                console.log("กดปุ่มแก้ไข");
-                                handleEdit();
-                            }}>แก้ไข</button>
-                            
-                        ) : (
-                            <>
-                                <button onClick={handleSave} className="save-button">บันทึก</button>
-                                <button onClick={handleCancel} className="cancel-button">ยกเลิก</button>
-                            </>
-                        )}
-                    </div>
-                                    <div className="content-data">
-                                        <div className="number">1.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                <span className="head-data">ชนิดพืช</span>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    value={editedData?.type_main}
-                                    onChange={(e) => setEditedData({ ...editedData, type_main: e.target.value })}
-                                />
-                            ) : (
-                                <span className="data-show">{data.type_main}</span>
-                            )}
-                        </div>
-                        <div className="data-main">
-                            <span className="head-data">ชื่อพืช</span>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    value={editedData?.name_plant}
-                                    onChange={(e) => setEditedData({ ...editedData, name_plant: e.target.value })}
-                                />
-                            ) : (
-                                <span className="data-show">{data.name_plant}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="data-main">
-                            <span className="head-data">วันที่เพาะกล้า</span>
-                            {editMode ? (
-                                <input
-                                    type="date"
-                                    value={editedData?.date_glow}
-                                    onChange={(e) => setEditedData({ ...editedData, date_glow: e.target.value })}
-                                />
-                            ) : (
-                                <DayJSX TYPE="small" DATE={data.date_glow} />
-                            )}
-                        </div>
-                        <div className="data-main">
-                            <span className="head-data">วันที่ปลูก</span>
-                            {editMode ? (
-                                <input
-                                    type="date"
-                                    value={editedData?.date_plant}
-                                    onChange={(e) => setEditedData({ ...editedData, date_plant: e.target.value })}
-                                />
-                            ) : (
-                                <DayJSX TYPE="small" DATE={data.date_plant} />
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="data-main">
-                            <span className="head-data">พื้นที่ (ตารางเมตร)</span>
-                            {editMode ? (
-                                <input
-                                    type="number"
-                                    value={editedData?.area}
-                                    onChange={(e) => setEditedData({ ...editedData, area: e.target.value })}
-                                />
-                            ) : (
-                                <span className="data-show">{data.area}</span>
-                            )}
-                        </div>
-                        <div className="data-main">
-                            <span className="head-data">จำนวนต้น</span>
-                            {editMode ? (
-                                <input
-                                    type="number"
-                                    value={editedData?.qty}
-                                    onChange={(e) => setEditedData({ ...editedData, qty: e.target.value })}
-                                />
-                            ) : (
-                                <span className="data-show">{data.qty}</span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <span className="head-text">ระยะการปลูก</span>
-                        <div className="text-body">
-                            <div className="data-main">
-                                <span className="head-data">ระหว่างต้น</span>
-                                {editMode ? (
-                                    <input
-                                        type="number"
-                                        value={editedData?.posi_w}
-                                        onChange={(e) => setEditedData({ ...editedData, posi_w: e.target.value })}
-                                    />
-                                ) : (
-                                    <span className="data-show">{data.posi_w}</span>
-                                )}
-                            </div>
-                            <div className="data-main">
-                                <span className="head-data">ระหว่างแถว</span>
-                                {editMode ? (
-                                    <input
-                                        type="number"
-                                        value={editedData?.posi_h}
-                                        onChange={(e) => setEditedData({ ...editedData, posi_h: e.target.value })}
-                                    />
-                                ) : (
-                                    <span className="data-show">{data.posi_h}</span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="data-main">
-                            <span className="head-data">วิธีการให้น้ำ</span>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    value={editedData?.water_flow}
-                                    onChange={(e) => setEditedData({ ...editedData, water_flow: e.target.value })}
-                                />
-                            ) : (
-                                <span className="data-show">{data.water_flow}</span>
-                            )}
-                        </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="content-data">
-                                        <div className="number">5.</div>
-                                        <div className="data-row">
-                                            <div className="row">
-                                                <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
-                                                    <span style={{width : "100%"}} className="head-data">ประวัติการใช้พื้นที่และการเกิดโรค</span>
-                                                </div>
-                                            </div>
-                                            <div className="row">
-                                                <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-                                                    <span className="head-data">ชนิดพืชก่อนหน้า</span>
-        {editMode ? (
-            <input
-                type="text"
-                value={editedData?.history || ""}
-                onChange={(e) => setEditedData({ ...editedData, history: e.target.value })}
-            />
-        ) : (
-            <span className="data-show">{data.history ? data.history : "ไม่ระบุ"}</span>
-        )}
-    </div>
-
-    {/* โรค/แมลงที่พบ */}
-    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-        <span className="head-data">โรค/แมลงที่พบ</span>
-        {editMode ? (
-            <input
-                type="text"
-                value={editedData?.insect || ""}
-                onChange={(e) => setEditedData({ ...editedData, insect: e.target.value })}
-            />
-        ) : (
-            <span className="data-show">{data.insect ? data.insect : "ไม่ระบุ"}</span>
-        )}
-    </div>
-</div>
-
-<div className="row">
-    {/* ปริมาณการเกิด */}
-    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-        <span className="head-data">ปริมาณการเกิด</span>
-        {editMode ? (
-            <input
-                type="number"
-                value={editedData?.qtyInsect || ""}
-                onChange={(e) => setEditedData({ ...editedData, qtyInsect: e.target.value })}
-            />
-        ) : (
-            <span className="data-show">{data.qtyInsect ? data.qtyInsect : "ไม่ระบุ"}</span>
-        )}
-    </div>
-
-    {/* การป้องกันกำจัด */}
-    <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
-        <span className="head-data">การป้องกันกำจัด</span>
-        {editMode ? (
-            <textarea
-                value={editedData?.seft || ""}
-                onChange={(e) => setEditedData({ ...editedData, seft: e.target.value })}
-                rows={2}
-            />
-        ) : (
-            <span className="data-show">{data.seft ? data.seft : "ไม่ระบุ"}</span>
-        )}
-    </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    { 
-                                        data.location_house ?
-                                            data.location_house.x && data.location_house.x ?
-                                            <div className="content-data">
-                                                <div className="data-row">
-                                                    <div className="row">
-                                                        <div className="data-main in-1 column">
-                                                            <span className="head-data">ตำแหน่งที่ทำการเกษตรกร</span>
-                                                            <MapsJSX lat={data.location_house.x} lng={data.location_house.y}/>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> : <></> 
-                                        : <></>
-                                    }
-                                </section>
-=======
-                                <FormPlant
+                             <FormPlant
                                     key={key}
                                     data={data}
                                     mode={mode}
@@ -363,8 +124,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                     setEditValue={setEditValue}
                                     getResize={getResize}
                                 />
->>>>>>> tan
-                            )
+                         )
                         } else if(type_form === 1) {
                             return (
                                 <div key={key} className="row-factor">

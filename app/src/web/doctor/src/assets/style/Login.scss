@@ -565,9 +565,7 @@
     background: #d7d4d400;
     transform: translateY(-30px);
   }
-<<<<<<< HEAD
-=======
-  .navigation ul li a .text-logo {
+.navigation ul li a .text-logo {
     position: absolute;
     bottom: 115px;
     width: 300px;
@@ -598,19 +596,14 @@
   .consultant-logo{
     left: -192px;
   }
->>>>>>> tan
-  
+
   .indicator {
     position: absolute;
     top: 50%;
     width: 80px;
     height: 80px;
-<<<<<<< HEAD
-    left: 40px;
-=======
-    left: 32px;
->>>>>>> tan
-    background: #379B7A;
+left: 32px;
+     background: #379B7A;
     border-radius: 50%;
     border: 6px  solid #ffffff;
     transition: 0.5s;
@@ -646,17 +639,10 @@
   }
   
   .navigation ul li:nth-child(2).active ~ .indicator {
-<<<<<<< HEAD
-    transform: translateX(calc(117px * 1));
-  }
-  
-  .navigation ul li:nth-child(3).active ~ .indicator {
-    transform: translateX(calc(117px * 2));
-=======
     transform: translateX(calc(121px * 1));
   }
   
   .navigation ul li:nth-child(3).active ~ .indicator {
-    transform: translateX(calc(120px * 2));
->>>>>>> tan
+ 
+   transform: translateX(calc(120px * 2));
   }

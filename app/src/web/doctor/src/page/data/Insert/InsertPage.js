@@ -30,21 +30,13 @@ const InsertPlant = ({
       <div className="row">
         <label className="field-select">
           <span>
-            <span className="important">ชื่อชนิดพืช</span>
-<<<<<<< HEAD
-            {ErrReport ? (
-              <span className="err-text-overlape">พืชซ้ำ</span>
-            ) : (
-              <></>
-            )}
-=======
+          <span className="important">ชื่อชนิดพืช</span>
             {/* {ErrReport ? (
               <span className="err-text-overlape">พืชซ้ำ</span>
             ) : (
               <></>
             )} */}
->>>>>>> tan
-          </span>
+        </span>
           <input
             ref={nameInsert}
             onChange={CheckInsert}
@@ -141,14 +133,9 @@ const InsertPest = ({
             <option disabled value={""}>
               เลือกประเภท
             </option>
-<<<<<<< HEAD
-                <option value={1}>โรคพืช</option>
-                <option value={2}>ศัตรูพืช</option>
-=======
-                <option value={"โรคพืช"}>โรคพืช</option>
-                <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
->>>>>>> tan
-            </select>
+              <option value={"โรคพืช"}>โรคพืช</option>
+              <option value={"ศัตรูพืช"}>ศัตรูพืช</option>
+           </select>
           </label>
           <label className="field-select">
             <span className="important">ชื่อโรคพืช / ศัตรูพืช </span>
@@ -480,9 +467,4 @@ export {
   InsertChemical,
   InsertSource,
   InsertPlant,
-  InsertPest
-<<<<<<< HEAD
-};
-=======
-};
->>>>>>> tan
+  InsertPest};
