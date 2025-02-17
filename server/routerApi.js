@@ -1,4 +1,8 @@
 module.exports = function router(app) {
+    app.get('/' , (req, res) => {
+        res.sendFile(__dirname.replace('\server' , '/index404.html'));
+    });
+
     // router admin
     app.get('/admin' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/admin/index.html'));
