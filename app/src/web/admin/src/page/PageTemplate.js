@@ -112,7 +112,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
 
     useEffect(() => {
         if (dropdownRef.current) {
-            const selectedText = dropdownRef.current.options[dropdownRef.current.selectedIndex].text;
+            const selectedText = dropdownRef.current.options[dropdownRef.current.selectedIndex]?.text;
             const tempSpan = document.createElement("span");
             tempSpan.style.visibility = "hidden";
             tempSpan.style.position = "absolute";
