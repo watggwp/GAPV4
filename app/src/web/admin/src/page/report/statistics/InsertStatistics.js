@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import ButtonChangeStatistics from "./buttonChange";
 import { PageTemplateContext } from "../../PageTemplate";
+import { AdminContext } from "../../../Admin";
 
 export const InsertStatisticsContext = createContext({
   minCount: 0, 
@@ -27,6 +28,7 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
+  const { TabOn } = useContext(AdminContext)
   const { textSearch } = useContext(PageTemplateContext)
   const { minCount , selectedRows , setMinCount , setSelectedRows } = useContext(InsertStatisticsContext)
 
@@ -136,7 +138,9 @@ const InsertStatistics = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }, [duration]);
+
+    TabOn.addTimeOut(TabOn.end());
+  }, [TabOn , duration]);
 
   useEffect(() => {
     console.log(textSearch)

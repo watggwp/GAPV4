@@ -15,7 +15,7 @@ export const PageTemplateContext = createContext({
     } , 
     setPopupDataManage : () => ({ open : false , type : "" }),
     ChangeStatus : (status) => {},
-    textSearch : ""
+    textSearch : "",
 })
 
 const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , session , TabOn}) => {

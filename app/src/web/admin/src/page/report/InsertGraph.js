@@ -32,13 +32,14 @@ const InsertGraph = () => {
 
         setPlantData(sortedPlants);
         setFarmerCount(totalFarmers);
-        TabOn.addTimeOut(TabOn.end());
       } else {
         console.error("ไม่มีข้อมูลจาก API");
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
     }
+
+    TabOn.addTimeOut(TabOn.end());
   }, [TabOn, textSearch]);
 
   useEffect(() => {
