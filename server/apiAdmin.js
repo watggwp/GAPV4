@@ -2301,7 +2301,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
  
                       // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
                       for (let item in selectedData) {
-                            selectedData[item]?.["chemical_used"] += await new Promise((resolve) => {
+                            selectedData[item]["chemical_used"] = await new Promise((resolve) => {
                               con.query(
                                   `
                                   SELECT 
