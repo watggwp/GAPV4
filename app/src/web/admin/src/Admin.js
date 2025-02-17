@@ -102,7 +102,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let seconPath = path[1].split("?");
             let query = seconPath[1];
 
-            console.log(query)
             if (seconPath[0] === "list") {
                 if (query.indexOf("default") === 0) {
                     Href.set(`list?default${type}`);
@@ -132,31 +131,31 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             }
             else if (seconPath[0] === "listadmin") {
                 if (query.indexOf("admin") === 0) {
-                Href.set(`istadmin?admin${type}`);
-                setBody(
-                    <PageTemplate
-                        session={sessionoff}
-                        TabOn={TabOn}
-                        socket={socket}
-                        modify={modifyMainPage}
-                        auth={Auth}
-                        HrefData={Href}
-                    />
-                );
-            }
-            else if (query.indexOf("deleteAdmin") === 0) {
-                Href.set(`listadmin?deleteAdmin${type}`);
-                setBody(
-                    <PageTemplate
-                        session={sessionoff}
-                        TabOn={TabOn}
-                        socket={socket}
-                        modify={modifyMainPage}
-                        auth={Auth}
-                        HrefData={Href}
-                    />
-                );
-            }
+                    Href.set(`istadmin?admin${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
+                else if (query.indexOf("deleteAdmin") === 0) {
+                    Href.set(`listadmin?deleteAdmin${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
             } else if (seconPath[0] === "data") {
                 if (query.indexOf("plant") === 0) {
                     Href.set(`data?plant${type}`);
@@ -196,8 +195,9 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     />
                 );
 
-            } else if (query.indexOf("statistics") >= 0) {
+            } else if (query === "statistics") {
                     Href.set(`report?statistics${type}`);
+                    console.log("statistics page")
                     setBody(
                         <PageTemplate
                             session={sessionoff}
@@ -208,7 +208,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-            } else if (query.indexOf("listlocation") === 0) {
+            } else if (query === "listlocation") {
                         Href.set(`report?listlocation${type}`);
                         setBody(
                             <PageTemplate
