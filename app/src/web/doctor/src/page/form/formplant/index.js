@@ -87,17 +87,17 @@ export default function FormPlant({
                 dataChange: editValue
             });
 
-            const app = JSON.parse(stringData)
-            console.log("✅ API app:", app.data);
+            const response = JSON.parse(stringData)
+            console.log("✅ API response:", response);
 
-            if (app.data === "133") {
+            if (response === "133") {
                 console.log("🎉 บันทึกสำเร็จ");
                 setLocalMode("view");
                 setMode("view");
                 setEditValue({});
                 setLocalEditValue({});
             } else {
-                console.error("❌ เกิดข้อผิดพลาด:", app.data);
+                console.error("❌ เกิดข้อผิดพลาด:");
             }
         } catch (error) {
             console.error("❌ API ERROR:", error);
@@ -134,8 +134,8 @@ export default function FormPlant({
                                 type="text" 
                                 className="data-show" 
                                 placeholder="ใส่หมายเหตุ" 
-                                value={editValue.remark ?? ""} 
-                                onChange={(event) => onEdit("remark", event.target.value)} 
+                                value={editValue.because ?? ""} 
+                                onChange={(event) => onEdit("because", event.target.value)} 
                             />
                         </div>
                     </div>
