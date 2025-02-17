@@ -174,10 +174,10 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
     
         const roles = [];
     
-        // อ่านค่าจาก Buffer และแปลงเป็นตัวเลข
-        const doctor = profile?.doctor_role?.data ? profile.doctor_role.data[0] : 0;
-        const analyst = profile?.analyst_role?.data ? profile.analyst_role.data[0] : 0;
-        const consultant = profile?.consultant_role?.data ? profile.consultant_role.data[0] : 0;
+        // ถ้า API ส่งค่ามาเป็น tinyint อยู่แล้ว เราสามารถเข้าถึงค่าได้ตรงๆ
+        const doctor = profile?.doctor_role ?? 0;
+        const analyst = profile?.analyst_role ?? 0;
+        const consultant = profile?.consultant_role ?? 0;
     
         if (doctor) roles.push("หมอพืช");
         if (analyst) roles.push("นักวิเคราะห์สาร");
@@ -256,7 +256,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
 
                             <div className="row-detail not-bm head-content">
                                 <div className="head-content">
-                                    <span className="head-detail">ตําแหน่งงาน</span>
+                                    <span className="head-detail">ตําแหน่งเจ้าหน้าที่</span>
                                     <input 
                                         readOnly 
                                         className="detail-input white" 

@@ -105,11 +105,11 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                 }
 
                 {
-                    Boolean(profile?.doctor_role?.data?.[0]) &&  //role
+                    Boolean(profile?.doctor_role) &&  // ใช้ค่า doctor_role ได้โดยตรง
                         <>
                             <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
                             <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
-                            <ButtonMenu type={"report"} textRow1={"แจ้งเตือน"} textRow2={"โรคระบาด"} action={report}/>
+                            <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
                         </>
                 }      
 

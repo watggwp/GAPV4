@@ -2048,8 +2048,12 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         FROM pest_chemical pc
                         JOIN pests p ON pc.pest_id = p.pest_id
                         JOIN chemical_list cl ON pc.chemical_id = cl.id
+<<<<<<< HEAD
                         WHERE pc.plant_id = ? AND p.pest_name = ? AND cl.name = ?
                         ORDER BY cl.name COLLATE utf8mb4_thai_520_w2 ASC;
+=======
+                        WHERE pc.plant_id = ? AND p.pest_name = ? AND cl.name = ?;
+>>>>>>> tan
                     `;
                     con.query(queryPestChemical, [plantId, pest, chemical], (err, result) => {
                         if (err) {
