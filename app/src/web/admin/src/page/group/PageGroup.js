@@ -69,6 +69,8 @@ const PageGroup = () => {
     if (!password) {
       return; // ไม่ต้องแสดง popup หากไม่มีการกรอกรหัสผ่าน
     }
+
+    setOpen(false);
  
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
@@ -90,28 +92,21 @@ const PageGroup = () => {
  
         setText("อัปเดตสถานะสำเร็จ!");
         setStatus(1);
-        setOpen(true);
-        setTimeout(() => setOpen(false), 3000);
       } else if (result === "password") {
         setText("รหัสผ่านไม่ถูกต้อง"); // แจ้งเตือนเมื่อรหัสผ่านผิด
         setStatus(3);
         PasswordRef.current.value = ""; // เคลียร์ช่องใส่รหัสผ่าน
-        setOpen(true);
-        setTimeout(() => setOpen(false), 3000);
       } else {
         setText(`เกิดข้อผิดพลาด: ${result.message}`);
         setStatus(2);
-        setOpen(true);
-        setTimeout(() => setOpen(false), 3000);
       }
     } catch (error) {
       console.error("Error updating status:", error);
       setText("ไม่สามารถอัปเดตสถานะได้");
       setStatus(2);
-      setOpen(true);
-      setTimeout(() => setOpen(false), 3000);
     }
  
+    setOpen(true);
     setShowConfirmModal(false);
 };
  

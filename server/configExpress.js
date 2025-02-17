@@ -93,9 +93,9 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('app/src/assets/js'))
     app.use(express.static('app/src/assets/icon'))
  
-    app.get('/' , (req, res) => {
-        res.sendFile(__dirname.replace('\server' , '/index404.html'));
-    });
+    // app.get('/' , (req, res) => {
+    //     res.sendFile(__dirname.replace('\server' , '/index404.html'));
+    // });
 
     app.use(express.static('build/admin'))
     app.use(express.static('build/doctor'))
