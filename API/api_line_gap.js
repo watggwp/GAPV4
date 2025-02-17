@@ -29,7 +29,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2004738631-d421EzL4"
+            "uri": "https://liff.line.me/2006915135-zmE4MLZb"
           }
         },
         {
@@ -41,7 +41,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2004738631-1q7GMEqK"
+            "uri": "https://liff.line.me/2006915135-4nOZeDn8"
           }
         },
       ]
@@ -75,7 +75,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2004738631-pOX9yM76"
+            "uri": "https://liff.line.me/2006915135-rpPe4wml"
           }
         },
         {
@@ -100,7 +100,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2004738631-2Je1qZ5Q"
+            "uri": "https://liff.line.me/2006915135-ANO5DXR8"
           }
         }
       ]
