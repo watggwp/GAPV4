@@ -102,8 +102,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let seconPath = path[1].split("?");
             let query = seconPath[1];
 
-            console.log(query , seconPath)
             if (seconPath[0] === "list") {
+                console.log("list")
                 if (query.indexOf("default") === 0) {
                     Href.set(`list?default${type}`);
                     setBody(
@@ -130,6 +130,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             } else if (seconPath[0] === "listadmin") {
+                console.log("listadmin")
                 if (query.indexOf("admin") === 0) {
                     Href.set(`istadmin?admin${type}`);
                     setBody(
@@ -181,7 +182,33 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                
+                }
+            } else if (seconPath[0] === "report") {
+                if (query === "statistics") {
+                    Href.set(`report?statistics${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "listlocation") {
+                    Href.set(`report?listlocation${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
             } else if (query.indexOf("group") === 0) {
                 Href.set(`data?group${type}`);
                 setBody(
@@ -195,72 +222,43 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     />
                 );
 
-            } else if (query === "statistics") {
-                console.log("sta")
-                    Href.set(`report?statistics${type}`);
-                    setBody(
-                        <PageTemplate
-                            session={sessionoff}
-                            TabOn={TabOn}
-                            socket={socket}
-                            modify={modifyMainPage}
-                            auth={Auth}
-                            HrefData={Href}
-                        />
-                    );
-            } else if (query === "listlocation") {
-                        Href.set(`report?listlocation${type}`);
-                        setBody(
-                            <PageTemplate
-                                session={sessionoff}
-                                TabOn={TabOn}
-                                socket={socket}
-                                modify={modifyMainPage}
-                                auth={Auth}
-                                HrefData={Href}
-                            />
-                        );
-
             } else if (query.indexOf("graph") === 0) {
-                            Href.set(`report?graph${type}`);
-                            setBody(
-                                <PageTemplate
-                                    session={sessionoff}
-                                    TabOn={TabOn}
-                                    socket={socket}
-                                    modify={modifyMainPage}
-                                    auth={Auth}
-                                    HrefData={Href}
-                                />
-                            );
-            
-        } else if (query.indexOf("chemical") === 0) {
-            Href.set(`data?chemical${type}`);
-            setBody(
-                <PageTemplate
-                    session={sessionoff}
-                    TabOn={TabOn}
-                    socket={socket}
-                    modify={modifyMainPage}
-                    auth={Auth}
-                    HrefData={Href}
-                />
-            );
-        } else if (query.indexOf("pest") === 0) {
-                    Href.set(`data?pest${type}`);
-                    setBody(
-                        <PageTemplate
-                            session={sessionoff}
-                            TabOn={TabOn}
-                            socket={socket}
-                            modify={modifyMainPage}
-                            auth={Auth}
-                            HrefData={Href}
-                        />
-                    );
-                } 
+                Href.set(`report?graph${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                ); 
+            } else if (query.indexOf("chemical") === 0) {
+                Href.set(`data?chemical${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
+            } else if (query.indexOf("pest") === 0) {
+                Href.set(`data?pest${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
             }
-            
         } else {
             setBody(
                 <NavFirst
