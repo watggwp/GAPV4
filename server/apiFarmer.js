@@ -1036,7 +1036,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                 const sqlQuery = `
                     SELECT 
                         formplant.*, 
-                        GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect
+                        GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
                         GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                     FROM formplant
                     LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
