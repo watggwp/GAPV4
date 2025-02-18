@@ -155,7 +155,7 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                                 <div className="menu-list">
                                 {
                                     Data.map((val, key) => (
-                                        <span
+                                        <a
                                             key={key}
                                             onClick={(e) => SelectHead(val.id_edit, e)}
                                             select={key === 0 ? "" : undefined}
@@ -168,7 +168,7 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                                                     {val.id_doctor_edit ? `หมอพืช` : ""}
                                                 </>
                                             )}
-                                        </span>
+                                        </a>
                                     ))
                                 }
                                 </div>
