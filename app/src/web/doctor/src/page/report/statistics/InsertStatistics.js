@@ -149,7 +149,7 @@ const InsertStatistics = () => {
   };
  
   return (
-    <div style={{ padding: "10px" }}>
+    <div style={{ padding: "10px" , width : "90%" }}>
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
       <ButtonChangeStatistics/>
         <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>

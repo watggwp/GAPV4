@@ -42,7 +42,7 @@ const InsertGraph = () => {
   }, []);
  
   return (
-    <div style={{ padding: "20px", fontFamily: "Sans-font" }}>
+    <div style={{ padding: "20px" , width : "90%", fontFamily: "Sans-font" }}>
       <div>
         <table
           style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",}}

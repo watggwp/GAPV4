@@ -55,7 +55,7 @@ const InsertReport = () => {
   }, []);
  
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px" , width : "90%" }}>
       <table
         style={{
           width: "100%",
