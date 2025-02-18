@@ -2540,7 +2540,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     VALUES (?,?,?)
                     ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
                   `,
-                  ["doctor" , minCount , auth['data']['id']],
+                  ["doctor" , minCount , auth['data']['id_table_doctor']],
                   (err) => {
                       if (err) {
                           console.error("Database error:", err);
@@ -4053,29 +4053,29 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     res.send("error")
                                                 } else {
                                                     
-                                                    if(req.body.type == "plant"){
-                                                        const insertId = result.insertId
-                                                        const {
-                                                            name , variety_name	, qty_harvest 
-                                                        } = varietie
-                                                        con.query(
-                                        
-                                                            `INSERT INTO varieties
-                                                            ( plant_id , variety_name , dates ) 
-                                                            VALUES ( ? , ? , ?)`
-                                                         , [insertId , name , variety_name	, qty_harvest ] , (err , result) => {
-                                                            if(err){
-                                                                con.end()
-                                                                res.send("error")
-                                                            }
-                
-                                                            con.end()
-                                                            res.send("insert")
-                                                        }
-                                                    )
-                                                    } else {
-                                                      res.send("insert")
-                                                    }
+                                                    // if(req.body.type == "plant"){
+                                                    //     const insertId = result.insertId
+                                                    //     const {
+                                                    //         name , variety_name	, qty_harvest 
+                                                    //     } = varietie
+                                                    //     con.query(
+                                            
+                                                    //             `INSERT INTO varieties
+                                                    //             ( plant_id , variety_name , dates ) 
+                                                    //             VALUES ( ? , ? , ?)`
+                                                    //         , [insertId , name , variety_name	, qty_harvest ] , (err , result) => {
+                                                    //             if(err){
+                                                    //                 con.end()
+                                                    //                 res.send("error")
+                                                    //             }
+                    
+                                                    //             con.end()
+                                                    //             res.send("insert")
+                                                    //         }
+                                                    //     )
+                                                    // } else {
+                                                    // }
+                                                    res.send("insert")
                                                 }
                                             }
                                         )
