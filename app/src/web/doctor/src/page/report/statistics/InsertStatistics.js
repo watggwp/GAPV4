@@ -4,9 +4,9 @@ import ButtonChangeStatistics from "./buttonChange";
 import { PageTemplateContext } from "../../../../../admin/src/page/PageTemplate";
  
 export const InsertStatisticsContext = createContext({
-  minCount: 0,
+  minCount: 1, 
   setMinCount: () => {},
-  selectedRows: new Map(),
+  selectedRows: new Map(), 
   setSelectedRows: () => {}
 });
  
@@ -194,36 +194,38 @@ const InsertStatistics = () => {
         </div>
  
         {/* กล่องเลือกจำนวนขั้นต่ำ */}
-        <label
-          style={{
-            display: "inline-block",
-            marginLeft: "30px",
-            fontFamily: "Sans-font",
-            fontWeight: "900",
-          }}
-        >
-          ความถี่ที่พบ:
-          <input
-            type="number"
-            min="0"
-            value={minCount}
-            onChange={(e) => {
-              console.log(e.target.value)
-              setMinCount(parseInt(e.target.value))
-            }}
-            style={{
-              marginLeft: "10px",
-              padding: "8px",
-              fontFamily: "Sans-font",
-              fontWeight: "900",
-              borderRadius: "8px",
-              border: "2px solid #22C7A9",
-              backgroundColor: "white",
-              outline: "none",
-              width: "80px",
-            }}
-          />
-        </label>
+        {/* กล่องเลือกจำนวนขั้นต่ำ */}
+<label
+  style={{
+    display: "inline-block",
+    marginLeft: "30px",
+    fontFamily: "Sans-font",
+    fontWeight: "900",
+  }}
+>
+  ความถี่ที่พบ:
+  <input
+    type="number"
+    min="0"
+    value={minCount}
+    onChange={(e) => {
+      const value = e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value) || 0);
+      setMinCount(value);
+    }}
+    style={{
+      marginLeft: "10px",
+      padding: "8px",
+      fontFamily: "Sans-font",
+      fontWeight: "900",
+      borderRadius: "8px",
+      border: "2px solid #22C7A9",
+      backgroundColor: "white",
+      outline: "none",
+      width: "80px",
+    }}
+  />
+</label>
+
       </div>
  
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>

@@ -95,12 +95,28 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
             ]))
     } , [LoadType])
 
-    const OpenOption = (Ref , option) => {
-        setTypeSelectMenu(option)
-        setPopupDataManage({ open : true , type : "insert" })
-        if(TypeSelectMenu === option) Ref.current.toggleAttribute("show")
-        else if(Ref.current.getAttribute("show") == null) Ref.current.toggleAttribute("show")
-    }
+    const OpenOption = (Ref, option, isSearchButton = false) => {
+        setTypeSelectMenu(prev => {
+            const isSameOption = prev === option;
+    
+            // ไม่เรียก setPopupDataManage ถ้าเป็นปุ่มค้นหา
+            if (!isSearchButton) {
+                setPopupDataManage({ open: true, type: "insert" });
+            }
+    
+            // ตรวจสอบ Ref ก่อนเรียก toggleAttribute
+            if (Ref?.current) {
+                if (isSameOption) {
+                    Ref.current.toggleAttribute("show");
+                } else if (!Ref.current.hasAttribute("show")) {
+                    Ref.current.setAttribute("show", "");
+                }
+            }
+    
+            return option;
+        });
+    };
+    
 
     const searchList = (target , value , keyMap) => {
         const DataSelect = new Map([...DataProcess])
@@ -271,6 +287,16 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
             }}
         >
             <section className="data-list-content-page data-page">
+
+                {(DataProcess.get("type") === "report" || DataProcess.get("type") === "listlocation" || DataProcess.get("type") === "graph" || DataProcess.get("type") === "statistics") && (
+                    <select className="report-menu"
+                        onChange={(e) => { searchList(e.target, e.target.value, "type"); }} ref={SelectType} value={DataProcess.get("type")}>
+                        <option value="listlocation">รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
+                        <option value="graph">จำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
+                        <option value="statistics">สถิติโรคพืช / ศัตรูพืช</option>
+                    </select>
+                )}
+
                {
                     // DataProcess.get("type") !== "report" &&
                     <div className="search-form" ref={Search}>
@@ -278,7 +304,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
 
 
                                 
-                                <a title="ค้นหา" className="bt-search-show" onClick={()=>OpenOption(Search , 0)}>
+                                <a title="ค้นหา" className="bt-search-show" onClick={() => { OpenOption(Search, 0, true);}}>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                                         <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                                             <path d="m11.25 11.25l3 3"/>
@@ -286,33 +312,19 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                         </g>
                                     </svg>
                                 </a>
+
                                 {
-                                DataProcess.get("type") !== "report" &&
+                                (DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics") &&
                                 <a style={{padding : "0"}} title="เพิ่มข้อมูล" className="bt-search-show" onClick={()=>OpenOption(Search , 1)}>
                                     <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                                 </a>
                                 }
-                                {(DataProcess.get("type") === "report" || DataProcess.get("type") === "listlocation" || DataProcess.get("type") === "graph" || DataProcess.get("type") === "statistics") && (
-                                    <select 
-                                        onChange={(e) => {
-                                            searchList(e.target, e.target.value, "type");
-                                        }} 
-                                        ref={SelectType} 
-                                        value={DataProcess.get("type")}
-                                    >
-                                        <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
-                                        <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
-                                        <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
-                                    </select>
-                                )}
-
-
                             </div>
                             
                             <div className="content-option">
                                 <div className="field-option">
                                 {
-                                    DataProcess.get("type") !== "group" && DataProcess.get("type") !== "report" && 
+                                    DataProcess.get("type") !== "group" && DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics" &&
                                     <div className="row head-row">
                                         <label className="field-select">
                                             <span>ชนิดข้อมูล</span>

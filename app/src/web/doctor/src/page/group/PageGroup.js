@@ -3,6 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
 import { PageDataContext } from "../data/PageData";
+import "../../assets/style/page/PopupManage.scss";
  
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageDataContext);
@@ -78,7 +79,7 @@ const PageGroup = () => {
             }
             return group
           }))
-          alert("อัปเดตสถานะสำเร็จ");
+          // alert("อัปเดตสถานะสำเร็จ");
           break;
         default :
           alert("เกิดข้อผิดพลาด: " + result.message);
@@ -154,7 +155,7 @@ const PageGroup = () => {
                       boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
                     }}
                   >
-                    {item.status ? "ON" : "OFF"}
+                    {item.status ? "ENABLE" : "DISABLE "}
                   </button>
                 </td>
               </tr>

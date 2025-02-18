@@ -776,7 +776,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         let username = req.body['username'] ?? '';
         let password = req.body['password'] ?? '';
     
-        if(username === '' || password === '' || (req.hostname !== HOST_CHECK) || !apifunc.authCsurf("doctor" , req , res)) {
+        if(username === '' || password === ''  || !apifunc.authCsurf("doctor" , req , res)) {
             res.redirect('/api/logout')
             return 0
         }
@@ -4055,14 +4055,14 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     if(req.body.type == "plant"){
                                                         const insertId = result.insertId
                                                         const {
-                                                            name , qty_harvest 
+                                                            name , variety_name	, qty_harvest 
                                                         } = varietie
                                                         con.query(
                                         
                                                             `INSERT INTO varieties
                                                             ( plant_id , variety_name , dates ) 
                                                             VALUES ( ? , ? , ?)`
-                                                         , [insertId , name , qty_harvest ] , (err , result) => {
+                                                         , [insertId , name , variety_name	, qty_harvest ] , (err , result) => {
                                                             if(err){
                                                                 con.end()
                                                                 res.send("error")

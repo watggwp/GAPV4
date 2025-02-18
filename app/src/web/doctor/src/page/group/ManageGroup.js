@@ -2,7 +2,10 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { Autocomplete, TextField } from "@mui/material";
 import { PageDataContext } from "../data/PageData";
- 
+import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
+import "../../assets/style/page/PopupManage.scss";
+
+
 const ManageGroup = ({ fetchGroups }) => {
     const { popupDataManage , setPopupDataManage } = useContext(PageDataContext);
     const [ chemicals, setChemicals ] = useState([]);
@@ -22,6 +25,11 @@ const ManageGroup = ({ fetchGroups }) => {
  
     const [ loading, setLoading ] = useState(popupDataManage.type === "edit");
     const [ stateOnBt, setStateOnBt ] = useState(true);
+
+      // เปลี่ยน state สำหรับ ReportAction ให้เป็นตัวเลข 0 (ปิด) / 1 (เปิด)
+    const [Open, setOpen] = useState(0);
+    const [Text, setText] = useState("");
+    const [Status, setStatus] = useState(0);
  
     const requestGroup = useCallback(async () => {
         try {
@@ -84,72 +92,65 @@ const ManageGroup = ({ fetchGroups }) => {
         }
     } , [ safeDays.data , chemicalID , pestID , plantID])
  
-    const onSubmit = async (e) => {
-        const Data = CheckEmply();
-        setStateOnBt(false)
-        if (Data) {
-            switch(popupDataManage.type) {
-                case "insert" :
-                    try {
-                        const result = await clientMo.post("/api/doctor/group/insert", Data);
-                        console.log("Result:", result);
-       
-                        const { status } = JSON.parse(result);
-                        switch (status) {
-                            case 200:
-                                alert("เพิ่มการจัดกลุ่มสำเร็จ");
-                                fetchGroups()
-                                Cancel();
-                                break;
-                            case 409 :
-                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
-                                fetchGroups()
-                                Cancel();
-                                break;
-                            default:
-                                alert("พบปัญหาการ เพิ่มการจัดกลุ่ม");
-                                break;
-                        }
-                    } catch (error) {
-                        console.error("Error adding data:", error);
-                    }
-                    break
-                case "edit" :
-                    try {
-                        const response = await clientMo.post("/api/doctor/group/edit", {
-                            id : popupDataManage.metadata?.id,
-                            ...Data
-                        });
- 
-                        const { status } = JSON.parse(response)
- 
-                        switch(status) {
-                            case 200 :
-                                alert("บันทึกข้อมูลสำเร็จ");
-                                fetchGroups();
-                                Cancel();
-                                break;
-                            case 409 :
-                                alert("พบการขัดกลุ่มนี้ในระบบแล้ว");
-                                fetchGroups()
-                                Cancel();
-                                break;
-                            default :
-                                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-                                break
-                        }
-                    } catch (error) {
-                        console.error("Error saving group data:", error);
-                        alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
-                    }
-                    break
-                default :
-                    break
-            }
+    const onSubmit = async () => {
+        setStateOnBt(false);
+    
+        // รีเซ็ตค่า popup ทุกครั้งก่อนกด Submit
+        setOpen(0);
+        setText("");
+        setStatus(0);
+    
+        const Data = { pest_id: pestID, chemical_id: chemicalID, plant_id: plantID, safe_days: safeDays.data };
+        if (Data.pest_id && Data.chemical_id && Data.plant_id && Data.safe_days) {
+          try {
+            const response = await clientMo.post(
+              popupDataManage.type === "insert" ? "/api/admin/group/insert" : "/api/admin/group/edit",
+              popupDataManage.type === "edit" ? { id: popupDataManage.metadata?.id, ...Data } : Data
+            );
+            const { status } = JSON.parse(response);
+    
+            setTimeout(() => {
+              switch (status) {
+                case 200:
+                  setText(popupDataManage.type === "insert" ? "เพิ่มการจัดกลุ่มสำเร็จ" : "แก้ไขข้อมูลสำเร็จ");
+                  setStatus(1);
+                  fetchGroups();
+                  break;
+                case 409:
+                  setText("ไม่สามารถเพิ่มข้อมูลในระบบได้เนื่องจากมีข้อมูลนี้ในระบบอยู่แล้ว หากต้องการแก้ไขให้คลิ้กที่ปุ่มแก้ไข");
+                  setStatus(2);
+                  break;
+                default:
+                  setText("เกิดข้อผิดพลาด กรุณาลองใหม่");
+                  setStatus(2);
+                  break;
+              }
+            }, 0);
+          } catch (error) {
+            console.error("Error saving group data:", error);
+            setText("เกิดข้อผิดพลาด กรุณาลองใหม่");
+            setStatus(2);
+          }
         }
- 
-        setStateOnBt(true)
-    };
+    
+        setOpen(1);
+        setStateOnBt(true);
+      };
+
+        // Callback หลังจาก Confirm popup (คล้ายกับ AfterConfirm ใน ManageDataPage)
+        const AfterConfirm = () => {
+            if (Status === 1) {
+            // หากสำเร็จ ให้ปิด modal และรีโหลดข้อมูล
+            Cancel();
+            fetchGroups();
+            } else if (Status !== 0) {
+            setOpen(0);
+            setTimeout(() => {
+                setText("");
+                setStatus(0);
+            }, 500);
+            }
+        };
  
     const Cancel = () => {
         setPopupDataManage((data) => ({
@@ -407,6 +408,20 @@ const ManageGroup = ({ fetchGroups }) => {
                     )
                 }
             </div>
+            <div className="page-because-popup">
+            <ReportAction
+            Open={Open}
+            Text={Text}
+            Status={Status}
+            setOpen={setOpen}
+            setText={setText}
+            setStatus={setStatus}
+            sizeLoad={73}
+            BorderLoad={8}
+            color="#1CFFF1"
+            action={AfterConfirm}
+            />
+      </div>
         </>
     );
 };

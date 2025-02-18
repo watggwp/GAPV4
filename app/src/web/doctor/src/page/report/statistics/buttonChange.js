@@ -3,38 +3,32 @@ import { Modal } from "react-bootstrap";
 import { InsertStatisticsContext } from "./InsertStatistics";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
  
-export default function ButtonChangeStatistics() {
-    const { minCount } = useContext(InsertStatisticsContext);
-   
+export default function ButtonChangeStatistics() { 
+    const { selectedRows } = useContext(InsertStatisticsContext);
+
+    
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
- 
+
     // ดึงข้อมูลสารเคมีที่ใช้จาก API
- 
+
     const handleOpenModal = () => {
         setPopupDataManage({ open: true });
     };
- 
+
     const handleCloseModal = () => {
         setPopupDataManage({ open: false });
     };
- 
+
     return (
         <div style={{ display: "flex" }}>
-            <button
-                style={{
-                    marginRight: "10px",
-                    backgroundColor: minCount >= 1 ? "red" : "gray",
-                    color: "white",
-                    cursor: minCount >= 1 ? "pointer" : "not-allowed"
-                }}
+            <button 
+                className={`report-button ${selectedRows.size > 0 ? "active" : "disabled"}`}
                 onClick={handleOpenModal}
-                disabled={minCount < 1}
+                disabled={selectedRows.size === 0}
             >
                 แจ้งเตือน
             </button>
- 
- 
- 
+
             <Modal
                 show={popupDataManage.open}
                 onHide={handleCloseModal}
@@ -48,14 +42,14 @@ export default function ButtonChangeStatistics() {
         </div>
     );
 }
- 
+
 function NotifyStatistics({
     handleCloseModal
 }) {
     const { minCount, selectedRows } = useContext(InsertStatisticsContext);
     const [stateOnBt, setStateOnBt] = useState(true);
     const [selectedData, setSelectedData] = useState([]);
- 
+
     const fetchStatistics = useCallback(async () => {
         try {
             setSelectedData(() => {
@@ -65,49 +59,60 @@ function NotifyStatistics({
                 });
                 return newSelectsData;
             });
- 
+
         } catch (error) {
             console.error("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error);
         }
     } , [selectedRows]);
- 
+
     const Cancel = () => {
         handleCloseModal();
     };
- 
-    const ClickAdd = () => {
-        clientMo.post("/api/doctor/sendNotifyreport/get", {
-            selectedData,
-            minCount
+
+    const ClickAdd = () => { 
+        const updatedSelectedData = selectedData.map(item => ({
+            id : item.id,
+            name_plants: item.name_plants,
+            count: item.count,
+            pest_name: item.name || item.insect,  // เพิ่ม pest_name
+            chemical_used: item.chemical || "-"  
+        }));
+    
+        console.log("Data before sending:", updatedSelectedData); // ตรวจสอบก่อนส่ง
+    
+        clientMo.post("/api/doctor/sendNotifyreport/get", { 
+            selectedData: updatedSelectedData, 
+            minCount 
         }).then(() => {
-            console.log("ส่งข้อมูลเรียบร้อยแล้ว!");
+            console.log("Data sent successfully!");
             handleCloseModal();
         }).catch(error => {
-            console.error("เกิดข้อผิดพลาดในการส่งข้อมูล:", error);
+            console.error("Error sending data:", error);
         });
     };
-   
- 
+    
+    
+
     useEffect(() => {
-        if(minCount >= 1) {
+        if(selectedRows.size > 0) {
             fetchStatistics()
         }
-    }, [fetchStatistics , minCount]);
- 
+    }, [fetchStatistics , selectedRows]);
+
     return(
         <div className="modal-content">
             <div className="modal-header">
                 <h2 id="modal-title">แจ้งเตือนการระบาด</h2>
                 <button type="button" className="btn-close" onClick={handleCloseModal}></button>
             </div>
- 
+
             <div className="modal-body" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                 {selectedData.length > 0 ? (
-                    <table style={{
-                        width: "90%",
-                        borderCollapse: "collapse",
-                        marginTop: "10px",
-                        border: "2px solid #60d6cf",
+                    <table style={{ 
+                        width: "90%", 
+                        borderCollapse: "collapse", 
+                        marginTop: "10px", 
+                        border: "2px solid #60d6cf", 
                         textAlign: "center"
                     }}>
                         <thead>
@@ -120,7 +125,7 @@ function NotifyStatistics({
                         </thead>
                         <tbody>
                             {[...selectedData]
-                                .sort((a, b) => b.count - a.count)
+                                .sort((a, b) => b.count - a.count) 
                                 .map((item, index) => (
                                     <NotifyStatistic key={index} index={index} item={item} />
                             ))}
@@ -141,16 +146,16 @@ function NotifyStatistics({
         </div>
     )
 }
- 
+
 function NotifyStatistic({
     index ,
     item
 }) {
- 
+
     const [chemical , setChemical] = useState("")
- 
+
     useEffect(() => {
-        clientMo.post("/api/doctor/chemical_pest/get", { pest_id: item.id })
+        clientMo.post("/api/doctor/chemical_pest/get", { pest_id: item.id }) 
             .then(response => {
                 const data = JSON.parse(response)
                 if (data && data.chemical_used) {
@@ -159,7 +164,7 @@ function NotifyStatistic({
             })
             .catch(error => console.error("Error fetching data:", error));
     } , [item.id])
- 
+
     return(
         <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#fff" }}>
             <td style={{ padding: "10px", border: "1px solid #ddd" }}>
