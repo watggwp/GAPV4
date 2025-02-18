@@ -14,6 +14,7 @@
   "pathKeyFile": "",
   "RICH_SIGN": "",
   "RICH_HOUSE": "",
+  "URL_SERVER": "",
   "REACT_APP_API_LOCAL": "localhost",
   "REACT_APP_API_PUBLIC": "",
   "REACT_APP_API_PORT": "3001",
