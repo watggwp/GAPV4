@@ -2413,7 +2413,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 const queryParams = req.body.id_edit ? [ req.body.id_edit ] : [] ;
                 con.query(
                     ` 
-                        SELECT editform.${type} 
+                        SELECT editform.${type} , editform.id_doctor_edit
                         FROM editform
                         WHERE editform.id_form = ? and type_form = ? ${queryParams.length == 1 ? `and editform.id_edit = ?` : ""}
                         ORDER BY date DESC
