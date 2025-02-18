@@ -1037,6 +1037,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                     SELECT 
                         formplant.*, 
                         GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect
+                        GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                     FROM formplant
                     LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
                     WHERE formplant.name_plant = ? 
@@ -1064,7 +1065,8 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         res.send({
                             FromHistory: result,
                             qtyDate: QtyDate,
-                            insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : []
+                            insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : [],
+                            insect_generation: result.length > 0 && result[0]?.insect_generation ? result[0].insect_generation.split(',') : []
                         });
                     } else {
                         res.send("error auth");

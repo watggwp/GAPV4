@@ -15,6 +15,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const [unit, setUnit] = useState("")
 
 
+    const [previousInsect, setPreviousInsect] = useState("");
     const [previousInsects, setPreviousInsects] = useState([]);
    
 
@@ -246,6 +247,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                    // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
                    if (Object.insect.length > 0) {
                     setPreviousInsects(Object.insect);
+                    setPreviousInsect(Object.insect_generation[0])
                 } else {
                     setPreviousInsects([]); // กรณีไม่มีข้อมูล
                 }
@@ -738,7 +740,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             {/* <option disabled value="">เลือก</option> */}
                                                 {
                                                     previousInsects.map((insect, index) => (
-                                                            <option key={index} value={insect}>{insect}</option>
+                                                            <option selected={previousInsect === insect} key={index} value={insect}>{insect}</option>
                                                     ))
                                                 }
                                             </select>
