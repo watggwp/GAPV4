@@ -261,19 +261,19 @@ const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
                             <div className="menu-list">
                                 {Data.map((val, key) => (
                                     <span
-                                    key={key}
-                                    onClick={(e) => SelectHead(val.id_edit, e)}
-                                    select={key === 0 ? "" : undefined}
-                                >
-                                    {key === 0 ? (
-                                        "ล่าสุด"
-                                    ) : (
-                                        <>
-                                            <div className="number">{key + 1}</div>
-                                            {val.fullname_doctor ? `หมอพืช` : ""}
-                                        </>
-                                    )}
-                                </span>
+                                        key={key}
+                                        onClick={(e) => SelectHead(val.id_edit, e)}
+                                        select={key === 0 ? "" : undefined}
+                                    >
+                                        {key === 0 ? (
+                                            "ล่าสุด"
+                                        ) : (
+                                            <>
+                                                <div className="number">{key + 1}</div>
+                                                {val.fullname_doctor ? `หมอพืช` : ""}
+                                            </>
+                                        )}
+                                    </span>
                                 ))}
                             </div>
                         </div>
