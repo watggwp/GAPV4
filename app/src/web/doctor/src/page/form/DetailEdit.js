@@ -154,12 +154,22 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                             <div className="frame-menu">
                                 <div className="menu-list">
                                 {
-                                    Data.map((val , key)=>
-                                        key == 0  ?
-                                        <a select="" onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>ล่าสุด</a>
-                                        :
-                                        <a onClick={(e)=>SelectHead(val.id_edit , e)} key={key}>{key + 1}</a>
-                                    )
+                                    Data.map((val, key) => (
+                                        <span
+                                            key={key}
+                                            onClick={(e) => SelectHead(val.id_edit, e)}
+                                            select={key === 0 ? "" : undefined}
+                                        >
+                                            {key === 0 ? (
+                                                "ล่าสุด"
+                                            ) : (
+                                                <>
+                                                    <div className="number">{key + 1}</div>
+                                                    {val.id_doctor_edit ? `หมอพืช` : ""}
+                                                </>
+                                            )}
+                                        </span>
+                                    ))
                                 }
                                 </div>
                             </div>

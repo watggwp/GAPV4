@@ -245,12 +245,12 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                     }
     
                    // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
-                   if (Object.insect.length > 0) {
-                    setPreviousInsects(Object.insect);
-                    setPreviousInsect(Object.insect_generation[0])
-                } else {
-                    setPreviousInsects([]); // กรณีไม่มีข้อมูล
-                }
+                    if (Object.insect.length > 0) {
+                        setPreviousInsects(Object.insect);
+                        setPreviousInsect(Object.insect_generation[0])
+                    } else {
+                        setPreviousInsects([]); // กรณีไม่มีข้อมูล
+                    }
     
               
             } catch (err) {
