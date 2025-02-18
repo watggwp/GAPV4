@@ -4033,12 +4033,17 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 if(err) console.log(err)
         
                                 if(!data[0].checkData) {
-                                    const {
-                                        varietie , ...body
-                                    }= req.body.data
-                                    const Key = Object.entries(body).map(val=>val[0])
-                                    const InsertArray = Object.entries(body).map(val=> val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?")
-                                    const dataInsert = Object.entries(body).map(val=>val[1])
+                                    const body = req.body.data
+                                    const Key = Object.entries(body).map(val=>
+                                        val[0] === "varietie" ? "variety_name" : val[0]
+                                    )
+                                    const InsertArray = Object.entries(body).map(val=> 
+                                        val[0] === "location" && val[1] ? "ST_PointFromText(?)" : "?"
+                                    )
+                                    const dataInsert = Object.entries(body).map(val=>
+                                        val[0] === "varietie" ? val[1]?.name : val[1]
+                                    )
+                                    
                                     try {
                                         con.query(
                                             `

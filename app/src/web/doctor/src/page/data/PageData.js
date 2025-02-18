@@ -190,7 +190,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                             } ,
                             qty_harvest : parseInt(DateQtyInsert.current.value)
                         },
-                        check : {name : nameInsert.current.value},
+                        check : {
+                            name : nameInsert.current.value,
+                            variety_name : speciesInsert.current.value
+                        },
                         type : "plant"
                     } :
                 DataProcess.get("type") === "fertilizer"  ? 
