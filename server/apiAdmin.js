@@ -2356,12 +2356,13 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
                         `ถ้าพบว่าเป็น ${item.pest_name} ให้ใช้สารเคมี ${item.chemical_used} กำจัด`
                     ).join("\n\n");
  
-                      console.log("📢 UIDs to send:", uid);
+                      const uidSend = [...(new Set(uid))]
+                      console.log("📢 UIDs to send:", uidSend);
                       console.log("📨 Text Message to Send:\n", textSend);
  
                       //  **ส่งข้อความแจ้งเตือน**
                       con.end();
-                      Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                      Line.multicast(uidSend, { type: "text", text: textSend });
  
                   } catch (e) {
                     con.end();

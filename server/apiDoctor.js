@@ -2571,10 +2571,11 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             let uid = result.map(row => row.uid_line);
                             let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
        
-                            console.log("UIDs to send:", uid);
+                            const uidSend = [...(new Set(uid))]
+                            console.log("UIDs to send:", uidSend);
                             console.log("Text to send:", textSend);
        
-                            Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+                            Line.multicast(uidSend, { type: "text", text: textSend });
                         } catch (e) {
                             console.error("Error sending Line message:", e);
                         }

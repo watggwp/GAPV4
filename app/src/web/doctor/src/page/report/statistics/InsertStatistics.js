@@ -81,7 +81,6 @@ const InsertStatistics = () => {
       else selected.delete(id)
       return new Map([...selected])
     })
-   
   };
  
   const fetchStatistics = useCallback(async (search) => {
