@@ -20,9 +20,9 @@ const PageGroup = () => {
   const PasswordRef = useRef(null);
   const [ stateOnBt, setStateOnBt ] = useState(true);
  
-  const [Open, setOpen] = useState(false);
-  const [Text, setText] = useState("");
-  const [Status, setStatusReport] = useState(null);
+  // const [Open, setOpen] = useState(false);
+  // const [Text, setText] = useState("");
+  // const [Status, setStatusReport] = useState(null);
  
   const fetchGroupData = useCallback(async () => {
     try {
@@ -67,12 +67,8 @@ const PageGroup = () => {
   const handleToggleConfirm = async () => {
     const password = PasswordRef.current.value;
     if (!password) {
-      return; // ไม่ต้องแสดง popup หากไม่มีการกรอกรหัสผ่าน
+      return;
     }
-
-    setOpen(0);
-    setText("")
-    setStatus(0)
  
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
@@ -91,24 +87,13 @@ const PageGroup = () => {
           }
           return [...group];
         });
- 
-        setText("อัปเดตสถานะสำเร็จ!");
-        setStatus(1);
       } else if (result === "password") {
-        setText("รหัสผ่านไม่ถูกต้อง"); // แจ้งเตือนเมื่อรหัสผ่านผิด
-        setStatus(3);
         PasswordRef.current.value = ""; // เคลียร์ช่องใส่รหัสผ่าน
-      } else {
-        setText(`เกิดข้อผิดพลาด: ${result.message}`);
-        setStatus(2);
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      setText("ไม่สามารถอัปเดตสถานะได้");
-      setStatus(2);
     }
  
-    setOpen(1);
     setShowConfirmModal(false);
 };
  
@@ -188,7 +173,7 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
-      <div className="page-because-popup">
+      {/* <div className="page-because-popup">
         <ReportAction
           Open={Open}
           Text={Text}
@@ -200,7 +185,7 @@ const PageGroup = () => {
           BorderLoad={8}
           color={"white"}
         />
-      </div>
+      </div> */}
  
       {showConfirmModal && (
         <div className="manage-overlay">
