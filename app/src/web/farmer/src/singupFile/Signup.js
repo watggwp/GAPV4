@@ -834,7 +834,7 @@ const PopUpPreview = (props) => {
                 opacity : "1",
                 visibility : "visible"
             }}>
-                <div className="head">เช็คข้อมูล</div>
+                <div className="head">ตรวจสอบข้อมูล</div>
                 <div className="body">
                     <div ref={FrameBody} className="frame-body">
                         <div className="detail">
