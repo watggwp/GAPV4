@@ -2530,68 +2530,124 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             if (auth['result'] === "pass") {
                 const { selectedData, minCount } = req.body; // รับค่าจาก request
        
-                // บันทึกค่า minCount ลงในตาราง statistic
-                selectedData.forEach((item) => {
-       
-                });
-                con.query(
-                  `
-                    INSERT INTO statistic (role, count_day ,id_role)
-                    VALUES (?,?,?)
-                    ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)
-                  `,
-                  ["doctor" , minCount , auth['data']['id_table_doctor']],
-                  (err) => {
-                      if (err) {
-                          console.error("Database error:", err);
-                          dbpacket.dbErrorReturn(con, err, res);
-                          return;
-                      }
-                  }
-              );
-       
-                con.query(
-                    `SELECT
-                        af.uid_line
-                     FROM formchemical fc
-                     LEFT JOIN pests p ON fc.insect = p.pest_name
-                     LEFT JOIN formplant fp ON fc.id_plant = fp.id
-                     LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
-                     LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-                     WHERE af.station = ?
-                     LIMIT 25;`, [auth['data']['station_doctor']],
-                    (err, result) => {
-                        if (err) {
-                            dbpacket.dbErrorReturn(con, err, res);
-                            return;
-                        }
-       
-                        try {
-                            console.log("Query Result:", result);
-                            let uid = result.map(row => row.uid_line);
-                            let textSend = selectedData.map(item => `${item.name_plants}: ${item.count}`).join("\n");
-       
-                            const uidSend = [...(new Set(uid))]
-                            console.log("UIDs to send:", uidSend);
-                            console.log("Text to send:", textSend);
-       
-                            Line.multicast(uidSend, { type: "text", text: textSend });
-                        } catch (e) {
-                            console.error("Error sending Line message:", e);
-                        }
-       
-                        con.end();
-                        res.send(result);
+                          // บันทึกค่า minCount ลงในตาราง statistic
+          con.query(
+            `INSERT INTO statistic (role, count_day, id_role)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
+            ["admin", minCount, auth['data']['id']],
+            (err) => {
+                if (err) {
+                    console.error("Database error while inserting minCount:", err);
+                    dbpacket.dbErrorReturn(con, err, res);
+                    return;
+                }
+            }
+        );
+
+        // ดึงข้อมูล uid_line ของ acc_farmer
+        con.query(
+            `SELECT af.uid_line
+             FROM formchemical fc
+             LEFT JOIN pests p ON fc.insect = p.pest_name
+             LEFT JOIN formplant fp ON fc.id_plant = fp.id
+             LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+             LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+             WHERE af.station = ?
+             LIMIT 25;`,
+            [auth['data']['station_admin']],
+            async (err, result) => { // ใช้ async เพราะต้อง fetch chemical data
+                if (err) {
+                    console.error("Database error while retrieving farmers:", err);
+                    dbpacket.dbErrorReturn(con, err, res);
+                    return;
+                }
+
+                try {
+                    console.log("✅ Query Result (Farmers):", result);
+                    let uid = result.map(row => row.uid_line);
+
+                    // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
+                    for (let item in selectedData) {
+                          selectedData[item]["chemical_used"] = await new Promise((resolve) => {
+                            con.query(
+                                `
+                                SELECT 
+                                    pc.pest_id AS pest_id,
+                                    pc.chemical_id AS chemical_id,
+                                    p.pest_name AS pest_name,
+                                    c.name AS chemical_name,
+                                    c.name_formula AS chemical_formula
+                                FROM pest_chemical AS pc
+                                LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+                                LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+                                WHERE pc.pest_id = ? AND pc.status = 1
+                                `, 
+                                [selectedData[item].id], 
+                                (err, results) => {
+                                    if (err) {
+                                        console.error("Database query error:", err);
+                                        con.end();
+                                        res.status(500).json({ error: "Database query failed" });
+                                        return;
+                                    }
+                
+                                    if (results.length === 0) {
+                                        console.log("No data found");
+                                        con.end();
+                                        res.status(404).json({ message: "No data found" });
+                                        return;
+                                    }
+                
+                                    // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+                                    const uniqueChemicalNames = new Set();
+                                    results.forEach(item => {
+                                        if (!uniqueChemicalNames.has(item.chemical_name)) {
+                                            uniqueChemicalNames.add(item.chemical_name);
+                                        }
+                                    });
+                
+                                    // แปลงเป็น string พร้อมส่งไปยัง frontend
+                                    const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
+                
+                                    resolve(chemicalNames)
+                                }
+                            );
+                        })
+                        console.log(`🔍 Retrieved Chemical for Pest ${item.pest_name} (ID: ${item.pest_id}):`, item.chemical_used);
                     }
-                );
+
+                    //  **สร้างข้อความแจ้งเตือน**
+                    let textSend = selectedData.map(item =>
+                      `📢 ประกาศ: ขณะนี้ตรวจพบโรคพืช/ศัตรูพืช ${item.pest_name} ${item.count}จำนวน ระบาดในพื้นที่\n` +
+                      `ขอเตือนเกษตรกรที่ปลูก ${item.name_plants}\n` +
+                      `ถ้าพบว่าเป็น ${item.pest_name} ให้ใช้สารเคมี ${item.chemical_used} กำจัด`
+                  ).join("\n\n");
+
+                    const uidSend = [...(new Set(uid))]
+                    console.log("📢 UIDs to send:", uidSend);
+                    console.log("📨 Text Message to Send:\n", textSend);
+
+                    //  **ส่งข้อความแจ้งเตือน**
+                    con.end();
+                    Line.multicast(uidSend, { type: "text", text: textSend });
+
+                } catch (e) {
+                  con.end();
+                  console.error("Error sending Line message:", e);
+                }
+                res.send(result);
             }
-        } catch (err) {
-            con.end();
-            if (err == "not pass") {
-                res.redirect('/api/logout');
-            }
-        }
-      });
+        );
+    }
+} catch (err) {
+    con.end();
+    console.error("❌ Authentication or unexpected error:", err);
+    if (err == "not pass") {
+        res.redirect('/api/logout');
+    }
+}
+});
 
     app.post('/api/doctor/chemical_pest/get', async (req, res) => {
         let username = req.session.user_doctor
