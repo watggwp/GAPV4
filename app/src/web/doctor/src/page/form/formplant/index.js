@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
 import "../../../assets/style/page/form/FormEdit.scss";
-import axios from "axios";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 
 export default function FormPlant({
@@ -10,9 +9,16 @@ export default function FormPlant({
     setMode,
     setEditValue,
     getResize,
+    FetchContent
 }) {
     const [editValue, setLocalEditValue] = useState({});
     const [localMode, setLocalMode] = useState(mode);
+
+    const DisabledButtonEdit = useMemo(() => {
+        const { because , ...editDatas } = editValue
+        const Data = Object.entries(editDatas)
+        return Data.length === 0 || Data.some(data => !data[1]) || !because
+    } , [editValue])
 
     const DateGlow = useRef()
     const DatePlant = useRef()
@@ -22,13 +28,6 @@ export default function FormPlant({
     const extractLatLngFromGoogleMapsUrl = (url) => {
         const match = url.match(/@([-.\d]+),([-.\d]+)/);
         return match ? { lat: match[1], lng: match[2] } : null;
-    };
-
-    // แปลงวันที่ให้ตรงกับรูปแบบ input type="date"
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        return date.toISOString().split("T")[0];
     };
 
     // ฟังก์ชันแปลงวันที่เป็นภาษาไทย
@@ -71,12 +70,16 @@ export default function FormPlant({
 
     // ฟังก์ชันบันทึกข้อมูลไป API
     const handleSaveToAPI = async () => {
-        console.log("🟢 บันทึกค่า editValue:", editValue);
+        const { because , ...editDatas } = editValue
+        console.log("🟢 บันทึกค่า editValue:", editDatas);
 
-        if (Object.keys(editValue).length === 0) {
+        setLocalMode("view");
+        setMode("view");
+        setEditValue({});
+        setLocalEditValue({})
+        if (Object.keys(editDatas).length === 0) {
             console.log("⚠️ ไม่มีการเปลี่ยนแปลง");
-            setLocalMode("view");
-            setMode("view");
+            alert("กรุณาแก้ไขข้อมูล")
             return;
         }
 
@@ -84,20 +87,19 @@ export default function FormPlant({
             const stringData = await clientMo.post("/api/doctor/formplant/edit", {
                 id_plant: data.id,
                 id_farmhouse: data.id_farm_house,
-                dataChange: editValue
+                because : because,
+                dataChange: editDatas
             });
 
             const response = JSON.parse(stringData)
             console.log("✅ API response:", response);
 
-            if (response === "133") {
-                console.log("🎉 บันทึกสำเร็จ");
-                setLocalMode("view");
-                setMode("view");
-                setEditValue({});
-                setLocalEditValue({});
-            } else {
-                console.error("❌ เกิดข้อผิดพลาด:");
+            switch(response) {
+                case 133 :
+                    FetchContent(0)
+                    break;
+                default :
+                    alert("เกิดข้อผิดพลาด")
             }
         } catch (error) {
             console.error("❌ API ERROR:", error);
@@ -116,7 +118,7 @@ export default function FormPlant({
             <div className="button-group">
                 {localMode === "edit" ? (
                     <>
-                        <button onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
+                        <button disabled={DisabledButtonEdit} onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
                         <button onClick={onCancel} className="cancel-btn">ยกเลิก</button>
                     </>
                 ) : (
@@ -146,14 +148,14 @@ export default function FormPlant({
                 <div className="number">1.</div>
                 <div className="data-row">
                     <div className="row">
-                        <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+                        {/* <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืช</span>
                             <input className="data-show" 
                                 value={editValue.type_main ?? data.type_main} 
                                 readOnly={localMode==="view"} 
                                 onChange={(event) => onEdit("type_main", event.target.value)} />
-                        </div>
-                        <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+                        </div> */}
+                        <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อพืช</span>
                             <input className="data-show" 
                                 value={editValue.name_plant ?? data.name_plant} 
@@ -457,14 +459,10 @@ export default function FormPlant({
                                 <span className="head-data">ตำแหน่งที่ทำการเกษตรกร</span>
 
                                 {localMode === "view" ? (
-                                    <a 
-                                        href={`https://www.google.com/maps?q=${data.location_house.x},${data.location_house.y}`} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className="data-show"
-                                    >
-                                        ดูตำแหน่งบน Google Maps
-                                    </a>
+                                    <MapsJSX
+                                        lat={data.location_house.x}
+                                        lng={data.location_house.y}
+                                    />
                                 ) : (
                                     <div className="edit-map">
                                         <label>ลิงก์ Google Maps:</label>
@@ -472,7 +470,6 @@ export default function FormPlant({
                                             type="text" 
                                             className="data-input"
                                             placeholder="วางลิงก์จาก Google Maps"
-                                            value={editValue.mapUrl ?? ""}
                                             onChange={(event) => {
                                                 const url = event.target.value;
                                                 onEdit("mapUrl", url);
@@ -486,7 +483,10 @@ export default function FormPlant({
                                         />
 
                                         {editValue.lat && editValue.lng && (
-                                            <p>พิกัด: {editValue.lat}, {editValue.lng}</p>
+                                            <MapsJSX
+                                                lat={editValue.lat}
+                                                lng={editValue.lng}
+                                            />
                                         )}
                                     </div>
                                 )}

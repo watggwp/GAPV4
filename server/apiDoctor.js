@@ -100,85 +100,99 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 SELECT formplant.*
                 FROM formplant
                 WHERE formplant.id = ?
+                LIMIT 1
             `, [ req.body.id_plant ],
-            (err, result) => {
+            (err, dataCurrent) => {
                 if (err) {
                     con.end();
                     res.send("error auth");
                     return;
                 }
-                if (!result[0]) {
+                if (!dataCurrent[0]) {
                     con.end();
                     res.send("not");
                     return;
                 }
 
                 const data = req.body;
-                if (result[0].state_status === 0 || result[0].state_status === 1) {
+                if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1) {
                     con.query(`
                         INSERT INTO editform 
                             (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
                         VALUES 
                             (?, ?, ?, ?, ?, ?, "plant")
-                    `, [data.id_plant, "", id_table_doctor, data.because || "", "", 0],
-                    (err, resultEdit) => {
+                    `, [data.id_plant, "", id_table_doctor, data.because || "", "", 1],
+                    async (err, resultEdit) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
                             console.log("insert editform");
                             return;
                         }
 
-                        if (resultEdit.insertId > 0) {
-                            const arrUpdate = [];
-                            let checkerr = false;
+                        const { insertId : idEdit } = resultEdit
 
-                            for (let subject in data.dataChange) {
+                        if (idEdit > 0) {
+                            const updateDatasWhere = []
+                            const updateDatasParams = []
+
+                            const insertDetailsEdit = []
+                            const insertDetailsEditParams = []
+
+                            for (const subject in data.dataChange) {
+                                updateDatasWhere.push(`${subject.replace(" " , "")} = ?`)
+                                updateDatasParams.push(data.dataChange[subject])
+
+                                insertDetailsEdit.push("(? , ? , ? , ?)")
+                                insertDetailsEditParams.push([idEdit, subject, dataCurrent[0][subject], data.dataChange[subject]])
+                            }
+
+                            const result = await new Promise((resolve) => {
                                 con.query(`
-                                    INSERT INTO detailedit
-                                        (id_edit, subject_form, old_content, new_content)
-                                    VALUES 
-                                        (?, ?, ?, ?)
-                                `, [resultEdit.insertId, subject, result[0][subject], data.dataChange[subject]],
-                                (err, Edit) => {
+                                    INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) 
+                                    VALUES ${insertDetailsEdit.join(" , ")} 
+                                `, insertDetailsEditParams.flat(),
+                                (err) => {
+                                    if (err) {
+                                        console.log(err)
+                                        resolve(false)
+                                    }
+                                    resolve(true)
+                                });
+                            })
+
+                            if(!result) {
+                                await new Promise((resolve) => {
+                                    con.query(`DELETE FORM editform WHERE id_edit = ?` , [idEdit] , () => resolve(true))
+                                });
+                                await new Promise((resolve) => {
+                                    con.query(`DELETE FORM detailedit WHERE id_edit = ?` , [idEdit] , () => resolve(true))
+                                });
+
+                                con.end()
+                                res.send("edit")
+                            }
+
+                            if(updateDatasWhere.length) {
+                                const where = updateDatasWhere.join(" , ");
+                                con.query(`
+                                    UPDATE formplant 
+                                    SET ${where}
+                                    WHERE id = ?
+                                `, [...updateDatasParams , data.id_plant],
+                                (err) => {
                                     if (err) {
                                         dbpacket.dbErrorReturn(con, err, res);
-                                        console.log("insert detailedit");
-                                        checkerr = true;
                                         return;
                                     }
-
-                                    if (Edit.insertId) {
-                                        arrUpdate.push(`${subject}="${data.dataChange[subject]}"`);
-                                        if (arrUpdate.length === data.num) {
-                                            const strUpdate = arrUpdate.join(" , ");
-                                            con.query(`
-                                                UPDATE formplant 
-                                                SET ${strUpdate}
-                                                WHERE id = ?
-                                            `, [data.id_plant],
-                                            (err, update) => {
-                                                if (err) {
-                                                    dbpacket.dbErrorReturn(con, err, res);
-                                                    console.log("update form");
-                                                    return;
-                                                }
-                                                
-                                                try {
-                                                    SendToFarmerHouse(con, data.id_plant, `เจ้าหน้าที่ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
-                                                } catch (e) {
-                                                    con.end();
-                                                    console.error(e);
-                                                }
-                                                res.send("133");
-                                            });
-                                        }
+                                    
+                                    try {
+                                        SendToFarmerHouse(con, data.id_plant, `เจ้าหน้าที่ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
+                                    } catch (e) {
+                                        con.end();
+                                        console.error(e);
                                     }
+                                    res.send("133");
                                 });
-                                if (checkerr) {
-                                    con.end();
-                                    res.send("edit");
-                                    break;
-                                }
                             }
                         } else {
                             con.end();
