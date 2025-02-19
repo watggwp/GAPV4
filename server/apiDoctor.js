@@ -2668,7 +2668,6 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             }
         }
     });
-    
 
     app.post('/api/doctor/chemical_pest/get', async (req, res) => {
         let username = req.session.user_doctor

@@ -7,7 +7,7 @@ const DB = {
             user: username,
             password : password,
             database : process.argv[2] == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
-            port : 3306,
+            port : 3307,
         }
     },
     
