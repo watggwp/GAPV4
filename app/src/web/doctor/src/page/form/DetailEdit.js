@@ -199,7 +199,7 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                                             <span className="dot">:</span>
                                             <div>
                                                 {
-                                                HeadEdit.status == 1 ? "ผ่าน" : "ไม่ผ่าน"
+                                                    HeadEdit.status == 1 ? "ผ่าน" : "ไม่ผ่าน"
                                                 }
                                             </div>
                                         </div> 
@@ -207,7 +207,7 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                                         : <></>
                                     }
                                     {
-                                        HeadEdit.status !== 0 ? 
+                                        HeadEdit.status !== 0 && !HeadEdit.id_doctor_edit ? 
                                             <div className="row-detail column">
                                                 <span>หมายเหตุ</span>
                                                 <textarea readOnly defaultValue={HeadEdit.note}></textarea>

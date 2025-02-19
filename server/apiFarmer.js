@@ -1040,8 +1040,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
                         GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                     FROM formplant
                     LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
-                    WHERE formplant.name_plant = ? 
-                        AND formplant.id_farm_house = ?
+                    WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
                     GROUP BY formplant.id, formplant.generation
                     ORDER BY formplant.generation DESC
                 `;
