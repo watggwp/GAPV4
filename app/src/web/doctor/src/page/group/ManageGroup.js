@@ -104,7 +104,7 @@ const ManageGroup = ({ fetchGroups }) => {
         if (Data.pest_id && Data.chemical_id && Data.plant_id && Data.safe_days) {
           try {
             const response = await clientMo.post(
-              popupDataManage.type === "insert" ? "/api/admin/group/insert" : "/api/admin/group/edit",
+              popupDataManage.type === "insert" ? "/api/doctor/group/insert" : "/api/doctor/group/edit",
               popupDataManage.type === "edit" ? { id: popupDataManage.metadata?.id, ...Data } : Data
             );
             const { status } = JSON.parse(response);
