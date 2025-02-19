@@ -143,19 +143,19 @@ const PopupInsertFactor = ({
             setCurrentPlantName(plant_name);
           } else {
             console.warn("No pest-chemical data found:", data);
-            setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
+            setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
             setShowPopup(true);
           }
         } else {
           console.error(
             "Invalid response structure or missing required fields"
           );
-          setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
+          setPopupMessage("ไม่พบข้อมูลที่ตรงกันของชนิดพืช สารเคมี เเละศัตรูพืช");
           setShowPopup(true);
         }
       } else {
         console.error("CloseAccount validation failed");
-        setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+        setPopupMessage("เกิดข้อผิดพลาดในการตรวจสอบสารเคมีเเละศัตรูพืช");
         setShowPopup(true);
       }
     } catch (error) {
@@ -163,7 +163,7 @@ const PopupInsertFactor = ({
         "Error fetching pest-chemical data:",
         error.message || error
       );
-      setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+      setPopupMessage("เกิดข้อผิดพลาดในดึงข้อมูลสารเคมีเเละศัตรูพืช");
       setShowPopup(true);
     } finally {
       setLoading(false);
@@ -1060,7 +1060,7 @@ const PopupInsertFactor = ({
                               type="number"
                               placeholder="cc."
                             ></input>
-                            <div className="unit">/น้ำ20ล.</div>
+                            <div className="unit">CC/น้ำ20ล.</div>
                           </div>
                         </label>
                       </div>

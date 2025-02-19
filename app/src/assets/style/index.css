@@ -65,3 +65,30 @@ body , html {
         transform: rotate(360deg);
     }
 }
+
+.react-datepicker {
+    width: 100%; /* ทำให้ Datepicker ขยายเต็มพื้นที่ของ container */
+    max-width: 280px; /* จำกัดขนาดไม่ให้เกินหน้าจอ */
+    min-width: 250px; /* ป้องกันการแสดงผลที่แคบเกินไป */
+  }
+  
+  .react-datepicker__input-container input {
+    width: 100%;
+  }
+  
+  .react-datepicker-popper {
+    transform: translateX(-50%) !important; /* ทำให้ Datepicker อยู่กึ่งกลาง Input */
+    left: 50% !important;
+    z-index: 9999 !important; /* ทำให้ Datepicker แสดงอยู่ด้านบนสุด */
+    position: absolute !important; /* บังคับให้ Datepicker อยู่ตรง Input */
+  }
+  
+  
+  @media (max-width: 480px) {
+    .react-datepicker {
+      max-width: 85vw; /* ให้ Datepicker ใช้ 85% ของหน้าจอบนมือถือ */
+    }
+  }
+  
+
+  

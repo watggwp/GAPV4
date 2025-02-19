@@ -123,7 +123,7 @@ const DetailFactor = ({setPopup , RefPop , type_path , ReloadData , ObjectData})
                                                 <div className="input-row">
                                                     <input readOnly 
                                                         defaultValue={ObjectData.rate} type="text"></input>
-                                                    <div className="unit">/น้ำ20ล.</div>
+                                                    <div className="unit">CC/น้ำ20ล.</div>
                                                 </div>
                                             </label>
                                         </div>

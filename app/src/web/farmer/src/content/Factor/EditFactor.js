@@ -965,7 +965,7 @@ const ResetListPestsPopup = () => {
                                                 <div className="input-row">
                                                     <input onChange={ChangeChemi} 
                                                         defaultValue={ObjectData.rate} ref={Rate} type="number" placeholder="cc."></input>
-                                                    <div className="unit">/น้ำ20ล.</div>
+                                                    <div className="unit">CC/น้ำ20ล.</div>
                                                 </div>
                                             </label>
                                         </div>
