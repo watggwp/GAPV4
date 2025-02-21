@@ -82,6 +82,11 @@ body , html {
     z-index: 9999 !important; /* ทำให้ Datepicker แสดงอยู่ด้านบนสุด */
     position: absolute !important; /* บังคับให้ Datepicker อยู่ตรง Input */
   }
+
+  .react-datepicker__triangle {
+    display: none !important;
+}
+
   
   
   @media (max-width: 480px) {
