@@ -22,8 +22,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const [StatusPage , setStatus] = useState({
         status :    HrefData.get() === "list?default" ? "default" : 
                     HrefData.get() === "list?delete" ? "delete" :
-                    HrefData.get() === "listadmin?admin=pop" ? "admin" : 
-                    HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
+                    HrefData.get() === "list?admin" ? "admin" : 
+                    HrefData.get() === "list?deleteAdmin" ? "deleteAdmin" : 
                     HrefData.get() === "data?plant" ? "plant" : 
                     HrefData.get() === "data?station" ? "station" : 
                     HrefData.get() === "data?chemical" ? "chemical" : 
@@ -38,8 +38,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const [StateOnPage , setStateOnPage] = useState({
         status :    HrefData.get() === "list?default" ? "default" : 
                     HrefData.get() === "list?delete" ? "delete" :
-                    HrefData.get() === "listadmin?admin=pop" ? "admin" : 
-                    HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
+                    HrefData.get() === "list?admin" ? "admin" : 
+                    HrefData.get() === "list?deleteAdmin" ? "deleteAdmin" : 
                     HrefData.get() === "data?plant" ? "plant" : 
                     HrefData.get() === "data?station" ? "station" :
                     HrefData.get() === "data?chemical" ? "chemical" : 
@@ -82,8 +82,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
     const state = () => {
         const status =  HrefData.get() === "list?default=pop" ? "default" : 
                         HrefData.get() === "list?delete=pop" ? "delete" : 
-                        HrefData.get() === "listadmin?admin=pop" ? "admin" : 
-                        HrefData.get() === "listadmin?deleteAdmin=pop" ? "deleteAdmin" : 
+                        HrefData.get() === "list?admin=pop" ? "admin" : 
+                        HrefData.get() === "list?deleteAdmin=pop" ? "deleteAdmin" : 
                         HrefData.get() === "data?plant=pop" ? "plant" : 
                         HrefData.get() === "data?station=pop" ? "station" : 
                         HrefData.get() === "data?chemical" ? "chemical" : 

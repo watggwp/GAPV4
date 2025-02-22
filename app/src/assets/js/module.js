@@ -383,7 +383,7 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
             justifyContent : "center",
             alignItems:"center",
             flexDirection : "column" ,
-            zIndex : Open ? "15" : -10 ,
+            zIndex : Open ? "9999" : -10 ,
             width : "100%",
             height : "100%",
             position : "absolute" ,

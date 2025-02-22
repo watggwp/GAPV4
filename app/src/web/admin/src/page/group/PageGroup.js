@@ -5,8 +5,7 @@ import { PageTemplateContext } from "../PageTemplate";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
 import { Modal } from "react-bootstrap";
-import "../../assets/style/page/PopupManage.scss"
- 
+import "../../../../../assets/style/moduleStyle.scss"
  
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
@@ -20,9 +19,9 @@ const PageGroup = () => {
   const PasswordRef = useRef(null);
   const [ stateOnBt, setStateOnBt ] = useState(true);
  
-  // const [Open, setOpen] = useState(false);
-  // const [Text, setText] = useState("");
-  // const [Status, setStatusReport] = useState(null);
+  const [Open, setOpen] = useState(false);
+  const [Text, setText] = useState("");
+  const [Status, setStatusReport] = useState(null);
  
   const fetchGroupData = useCallback(async () => {
     try {
@@ -70,6 +69,10 @@ const PageGroup = () => {
       return;
     }
  
+    // รีเซ็ตค่า popup ทุกครั้งก่อนกด Submit
+    setOpen(0);
+    setText("");
+    setStatusReport(0);
     try {
       const response = await clientMo.post("/api/admin/manage/group", {
         id: selectedToggleId,
@@ -77,23 +80,36 @@ const PageGroup = () => {
         password: password,
       });
  
-      const result = JSON.parse(response);
+      try {
+        const result = JSON.parse(response);
  
-      if (result.status === 200) {
-        setGroupData((group) => {
-          const { index } = groupMapping.get(selectedToggleId);
-          if (group[index]) {
-            group[index]["status"] = status;
-          }
-          return [...group];
-        });
-      } else if (result === "password") {
-        PasswordRef.current.value = ""; // เคลียร์ช่องใส่รหัสผ่าน
+        switch(result.status) {
+          case 200 :
+            setGroupData((group) => {
+              const { index } = groupMapping.get(selectedToggleId);
+              if (group[index]) {
+                group[index]["status"] = status;
+              }
+              return [...group];
+            });
+            setText(`${status ? "เปิด" : "ปิด"}สถานะการจัดกลุ่มสำเร็จ`);
+            setStatusReport(1);
+            break;
+          default :
+            break;
+        }
+      } catch(err) {
+        if (response === "password") {
+          setText("รหัสผ่านไม่ถูกต้อง");
+          setStatusReport(2);
+          PasswordRef.current.value = ""; // เคลียร์ช่องใส่รหัสผ่าน
+        }
       }
     } catch (error) {
       console.error("Error updating status:", error);
     }
  
+    setOpen(1);
     setShowConfirmModal(false);
 };
  
@@ -173,20 +189,6 @@ const PageGroup = () => {
           )}
         </tbody>
       </table>
-      {/* <div className="page-because-popup">
-        <ReportAction
-          Open={Open}
-          Text={Text}
-          Status={Status}
-          setOpen={setOpen}
-          setStatus={setStatusReport}
-          setText={setText}
-          sizeLoad={73}
-          BorderLoad={8}
-          color={"white"}
-        />
-      </div> */}
- 
       {showConfirmModal && (
         <div className="manage-overlay">
           <div className="manage-page">
@@ -204,7 +206,17 @@ const PageGroup = () => {
           </div>
         </div>
       )}
- 
+      <ReportAction
+        Open={Open}
+        Text={Text}
+        Status={Status}
+        setOpen={setOpen}
+        setText={setText}
+        setStatus={setStatusReport}
+        sizeLoad={73}
+        BorderLoad={8}
+        color="#1CFFF1"
+      />
       <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg">
         <ManageGroup fetchGroups={fetchGroupData} />
       </Modal>

@@ -103,8 +103,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let query = seconPath[1];
 
             if (seconPath[0] === "list") {
-                console.log("list")
-                if (query.indexOf("default") === 0) {
+                if (query === "default") {
                     Href.set(`list?default${type}`);
                     setBody(
                         <PageTemplate
@@ -116,7 +115,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                } else if (query.indexOf("delete") === 0) {
+                } else if (query === "delete") {
                     Href.set(`list?delete${type}`);
                     setBody(
                         <PageTemplate
@@ -128,11 +127,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                }
-            } else if (seconPath[0] === "listadmin") {
-                console.log("listadmin")
-                if (query.indexOf("admin") === 0) {
-                    Href.set(`istadmin?admin${type}`);
+                } else if (query === "admin") {
+                    Href.set(`list?admin${type}`);
                     setBody(
                         <PageTemplate
                             session={sessionoff}
@@ -144,8 +140,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         />
                     );
                 }
-                else if (query.indexOf("deleteAdmin") === 0) {
-                    Href.set(`listadmin?deleteAdmin${type}`);
+                else if (query === "deleteAdmin") {
+                    Href.set(`list?deleteAdmin${type}`);
                     setBody(
                         <PageTemplate
                             session={sessionoff}

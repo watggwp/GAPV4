@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import { PageTemplateContext } from "../PageTemplate";
 import { Autocomplete, TextField } from "@mui/material";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
-import "../../assets/style/page/PopupManage.scss";
+import "../../../../../assets/style/moduleStyle.scss"
 
 const ManageGroup = ({ fetchGroups }) => {
   const { popupDataManage, setPopupDataManage } = useContext(PageTemplateContext);
@@ -360,20 +360,18 @@ const ManageGroup = ({ fetchGroups }) => {
           </div>
         )}
       </div>
-      <div className="page-because-popup">
-        <ReportAction
-          Open={Open}
-          Text={Text}
-          Status={Status}
-          setOpen={setOpen}
-          setText={setText}
-          setStatus={setStatus}
-          sizeLoad={73}
-          BorderLoad={8}
-          color="#1CFFF1"
-          action={AfterConfirm}
-        />
-      </div>
+      <ReportAction
+        Open={Open}
+        Text={Text}
+        Status={Status}
+        setOpen={setOpen}
+        setText={setText}
+        setStatus={setStatus}
+        sizeLoad={73}
+        BorderLoad={8}
+        color="#1CFFF1"
+        action={AfterConfirm}
+      />
     </>
   );
 };

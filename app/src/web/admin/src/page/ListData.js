@@ -220,8 +220,8 @@ const ListData = ({
         DataSocket = List;
       }
 
-      if (["list", "listadmin"].includes(HrefPage.get().split("?")[0])) {
-        const isListAdmin = HrefPage.get().split("?")[0] === "listadmin";
+      if (["list"].includes(HrefPage.get().split("?")[0])) {
+        const isListAdmin = HrefPage.get().split("?")[1].includes("admin");
         const emitEvent = isListAdmin
           ? "connect-admin-list"
           : "connect-doctor-list";
@@ -276,7 +276,6 @@ const ListData = ({
       )}
       <div className="List-data">
         {
-          
           status.status === "listlocation" ? 
             <InsertReport/> :
           status.status === "graph" ? 
@@ -345,7 +344,6 @@ const ManageList = ({
 
   useEffect(() => {
     setList(<></>);
-
     manageList();
     // LoadPageData()
 
