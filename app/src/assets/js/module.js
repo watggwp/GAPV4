@@ -352,16 +352,10 @@ const ButtonMenu = ({type , textRow1 , textRow2 , action}) => {
 
 const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , sizeLoad , BorderLoad , color , action = null}) => {
     const Control = useRef()
-
-    const [state , setstate] = useState(false)
-
     let Time = 0
 
     useEffect(()=>{
         clearTimeout(Time)
-        if(Open) {
-            setstate(false) 
-        }
     } , [Open])
 
     const confirm = () => {
@@ -374,9 +368,6 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
         }
     }
 
-    const ShowStatus = () => {
-        setstate(true)
-    }
     return (
         <report-dom ref={Control} style={{
             display: "flex" ,
@@ -403,39 +394,21 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
                 // boxShadow : "0px 0px 15px green",
             }}>
                 <text-report>
-                    {Text ? state ? Text : "กำลังตรวจสอบ" : "กำลังตรวจสอบ"}
+                    {
+                        Text || "กำลังตรวจสอบ"
+                    }
                 </text-report>
                 <status-report style={{
                     display : "flex",
                     justifyContent : "center",
                     alignItems:"center",
-                }} onLoad={ShowStatus}>
+                }}>
                     {
-                        Status ? 
-                            (Status == 1) ? 
-                                <img style={{
-                                    position : "absolute",
-                                    opacity : state ? 1 : "0",
-                                    width : sizeLoad ,
-                                    visibility : state ? "visible" : "hidden",
-                                    transition : "0.5s opacity , 0.5s visibility",
-                                    backgroundColor : "transparent",
-                                    backdropFilter : "blur(8px)",
-                                    borderRadius : "50%"
-                                }} src="/correct-icon-green.svg"></img> 
-                                :
-                                <img style={{
-                                    position : "absolute",
-                                    width : sizeLoad ,
-                                    opacity : state ? 1 : "0",
-                                    visibility : state ? "visible" : "hidden",
-                                    transition : "0.5s opacity , 0.5s visibility"
-                                }} src="/error-cross-svgrepo-com.svg"></img>
-                        : <></>
+                        Boolean(Status) && <StatusReport status={Status} sizeLoad={sizeLoad}/>
                     }
                     <div style={{
-                        opacity : !state ? 1 : "0",
-                        visibility : !state ? "visible" : "hidden",
+                        opacity : !Status ? 1 : "0",
+                        visibility : !Status ? "visible" : "hidden",
                         transition : "0.5s opacity , 0.5s visibility"
                     }}>
                         <Loading size={sizeLoad} border={BorderLoad} color={color} animetion={Open}/>
@@ -445,8 +418,8 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
                     <button
                         style={{
                             border : "0",
-                            opacity : (Status == 0) ? 0 : 1,
-                            visibility : (Status == 0) ? "hidden" : "visible",
+                            opacity : (Status === 0) ? 0 : 1,
+                            visibility : (Status === 0) ? "hidden" : "visible",
                             transition : "0.5s opacity , 0.5s visibility"
                         }}
                         onClick={action ?? confirm}>ตกลง</button>
@@ -455,6 +428,38 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
         </report-dom>
     )
 }
+
+function StatusReport({
+    status,
+    sizeLoad
+}) {
+    const [ open , setOpen ] = useState(false)
+
+    useEffect(() => {
+        setOpen(true)
+    } , [])
+    return(
+        status === 1 ?
+            <img style={{
+                position : "absolute",
+                opacity : open ? 1 : "0",
+                width : sizeLoad ,
+                visibility : open ? "visible" : "hidden",
+                transition : "0.5s opacity , 0.5s visibility",
+                backgroundColor : "transparent",
+                backdropFilter : "blur(8px)",
+                borderRadius : "50%"
+            }} src="/correct-icon-green.svg"></img> 
+            :
+            <img style={{
+                position : "absolute",
+                width : sizeLoad ,
+                opacity : open ? 1 : "0",
+                visibility : open ? "visible" : "hidden",
+                transition : "0.5s opacity , 0.5s visibility"
+            }} src="/error-cross-svgrepo-com.svg"></img>
+    )
+} 
 
 const PopupDom = ({Ref , Body , zIndex , positionEdit = false , Background = "transparent"}) => {
     return (

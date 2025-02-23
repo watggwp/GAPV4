@@ -1194,6 +1194,15 @@ app.post('/api/admin/add', async (req, res) => {
                   }
                 )
               } else {
+                con.end()
+                if(dataUpdate.affectedRows) {
+                  res.send({
+                    status : 201,
+                    result : "insert group"
+                  })
+                  return
+                }
+
                 res.send({
                   status : 409,
                   result : "insert group"
