@@ -849,93 +849,224 @@ app.post('/api/admin/add', async (req, res) => {
     }
   })
 
-  app.post('/api/admin/manage/admin' , async (req,res)=>{
-    let username = req.session.user_admin
-    let password = req.body['password']
+  // app.post('/api/admin/manage/admin' , async (req,res)=>{
+  //   let username = req.session.user_admin
+  //   let password = req.body['password']
   
-    if(username === '') {
-      res.redirect('/api/logout')
-      return 0
+  //   if(username === '') {
+  //     res.redirect('/api/logout')
+  //     return 0
+  //   }
+  
+  //   let con = Database.createConnection(listDB)
+  //   console.log(req.body)
+  //   try {
+  //     const auth = await apifunc.auth(con , username , password , res , "admin")
+  //     if(auth['result'] === "pass") {
+  //       if(req.body['id'] != undefined && (req.body['status'] === 1 || req.body['status'] === 0) && req.body['type_status']) {
+  //         const type_status = req.body['type_status'] === "status_account" ? "status" : 
+  //                             req.body['type_status'] === "status_delete" ? "delete" : "";
+  //         if(type_status) {
+  //           con.query(
+  //             `
+  //             SELECT id
+  //             FROM admin 
+  //             WHERE id = ? and status_delete = 0
+  //             `
+  //             , [ req.body['id'] ] , (err , deleteResult) => {
+  //               if(err) {
+  //                 dbpacket.dbErrorReturn(con , err , res)
+  //                 console.log(`select check err`)
+  //                 return 0
+  //               }
+
+  //               if(deleteResult.length) {
+  //                 const params = type_status === "status" ? 
+  //                                 [ req.body['id'] , username , req.body['because'] , new Date() , req.body['status'] ] : 
+  //                                 [ req.body['id'] , username , req.body['because'] , new Date() ]
+
+  //                 con.query(
+  //                   `
+  //                     INSERT INTO because_${type_status} 
+  //                    (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
+  //                     (? , ? , ? , 0 , ? ${type_status === "status" ? `, ?` : ""});
+  //                   ` , params ,
+  //                   (err , resultBecause) => {
+  //                     if(err) {
+  //                       dbpacket.dbErrorReturn(con , err , res)
+  //                       console.log("insert change status admin")
+  //                       return 0
+  //                     }
+  //                     if(resultBecause.affectedRows) {
+  //                       con.query(`
+  //                           UPDATE admin 
+  //                           SET ${req.body['type_status']} = ? 
+  //                           WHERE id = ? ${type_status === "delete" ? "and status_delete = 0" : ""};` , 
+  //                         [req.body['status'] , req.body['id']] , 
+  //                         (err,result)=>{
+  //                           if(err) {
+  //                             dbpacket.dbErrorReturn(con , err , res)
+  //                             console.log(`UPDATE ${type_status} err`)
+  //                             return 0
+  //                           }
+
+  //                           con.end()
+  //                           res.send("133")
+  //                         })
+  //                     } else {
+  //                       con.end()
+  //                       res.send("because")
+  //                     }
+  //                   }
+  //                 )
+  //               }
+  //               else res.send("delete")
+  //             }
+  //           )
+  //         }
+  //       } else {
+  //         con.end()
+  //         res.send('error ID or status')
+  //       }
+  //     }
+  //   } catch(err) {
+  //     con.end()
+  //     if(err == "not pass") {
+  //       res.send("password")
+  //     }
+  //   }
+  // })
+
+  app.post('/api/admin/manage/admin', async (req, res) => {
+    let username = req.session.user_admin;
+    let password = req.body['password'];
+  
+    if (username === '') {
+      res.redirect('/api/logout');
+      return;
     }
   
-    let con = Database.createConnection(listDB)
-    console.log(req.body)
+    let con = Database.createConnection(listDB);
+    console.log(req.body);
     try {
-      const auth = await apifunc.auth(con , username , password , res , "admin")
-      if(auth['result'] === "pass") {
-        if(req.body['id'] != undefined && (req.body['status'] === 1 || req.body['status'] === 0) && req.body['type_status']) {
-          const type_status = req.body['type_status'] === "status_account" ? "status" : 
+      const auth = await apifunc.auth(con, username, password, res, "admin");
+      if (auth['result'] === "pass") {
+        if (req.body['id'] != undefined && (req.body['status'] === 1 || req.body['status'] === 0) && req.body['type_status']) {
+          const type_status = req.body['type_status'] === "status_account" ? "status" :
                               req.body['type_status'] === "status_delete" ? "delete" : "";
-          if(type_status) {
+          if (type_status) {
             con.query(
               `
               SELECT id
               FROM admin 
               WHERE id = ? and status_delete = 0
-              `
-              , [ req.body['id'] ] , (err , deleteResult) => {
-                if(err) {
-                  dbpacket.dbErrorReturn(con , err , res)
-                  console.log(`select check err`)
-                  return 0
+              `,
+              [req.body['id']],
+              (err, deleteResult) => {
+                if (err) {
+                  dbpacket.dbErrorReturn(con, err, res);
+                  console.log(`select check err`);
+                  return;
                 }
-
-                if(deleteResult.length) {
-                  const params = type_status === "status" ? 
-                                  [ req.body['id'] , username , req.body['because'] , new Date() , req.body['status'] ] : 
-                                  [ req.body['id'] , username , req.body['because'] , new Date() ]
-
+  
+                if (deleteResult.length) {
+                  const params = type_status === "status" ?
+                    [req.body['id'], username, req.body['because'], new Date(), req.body['status']] :
+                    [req.body['id'], username, req.body['because'], new Date()];
+  
                   con.query(
                     `
                       INSERT INTO because_${type_status} 
-                     (id_table_doctor , id_admin , because_text , role , date ${type_status === "status" ? ", type_status" : ""}) VALUES 
-                      (? , ? , ? , 0 , ? ${type_status === "status" ? `, ?` : ""});
-                    ` , params ,
-                    (err , resultBecause) => {
-                      if(err) {
-                        dbpacket.dbErrorReturn(con , err , res)
-                        console.log("insert change status admin")
-                        return 0
+                      (id_table_doctor, id_admin, because_text, role, date${type_status === "status" ? ", type_status" : ""}) VALUES 
+                      (?, ?, ?, 0, ?${type_status === "status" ? `, ?` : ""});
+                    `,
+                    params,
+                    (err, resultBecause) => {
+                      if (err) {
+                        dbpacket.dbErrorReturn(con, err, res);
+                        console.log("insert change status admin");
+                        return;
                       }
-                      if(resultBecause.affectedRows) {
-                        con.query(`
-                            UPDATE admin 
-                            SET ${req.body['type_status']} = ? 
-                            WHERE id = ? ${type_status === "delete" ? "and status_delete = 0" : ""};` , 
-                          [req.body['status'] , req.body['id']] , 
-                          (err,result)=>{
-                            if(err) {
-                              dbpacket.dbErrorReturn(con , err , res)
-                              console.log(`UPDATE ${type_status} err`)
-                              return 0
+                      if (resultBecause.affectedRows) {
+                        // ตรวจสอบกรณีเปลี่ยน status_delete ให้เป็น 1 (ลบ) ว่าจะไม่ลบ admin ตัวสุดท้าย
+                        if (type_status === "delete" && req.body['status'] === 1) {
+                          con.query(
+                            `SELECT COUNT(*) AS activeCount FROM admin WHERE status_delete = 0`,
+                            (err, countResult) => {
+                              if (err) {
+                                dbpacket.dbErrorReturn(con, err, res);
+                                return;
+                              }
+                              // หากมี active admin เหลือเพียง 1 ตัวและรายการที่เลือกเป็นตัวนั้น ไม่ให้ลบ
+                              if (countResult[0].activeCount <= 1) {
+                                con.end();
+                                res.send("cannot delete last admin");
+                                return;
+                              } else {
+                                con.query(
+                                  `
+                                    UPDATE admin 
+                                    SET ${req.body['type_status']} = ? 
+                                    WHERE id = ? and status_delete = 0;
+                                  `,
+                                  [req.body['status'], req.body['id']],
+                                  (err, result) => {
+                                    if (err) {
+                                      dbpacket.dbErrorReturn(con, err, res);
+                                      console.log(`UPDATE ${type_status} err`);
+                                      return;
+                                    }
+                                    con.end();
+                                    res.send("133");
+                                  }
+                                );
+                              }
                             }
-
-                            con.end()
-                            res.send("133")
-                          })
+                          );
+                        } else {
+                          // กรณีไม่ใช่การลบ (หรือไม่เปลี่ยนเป็น 1) ให้ทำ update ทันที
+                          con.query(
+                            `
+                              UPDATE admin 
+                              SET ${req.body['type_status']} = ? 
+                              WHERE id = ? ${type_status === "delete" ? "and status_delete = 0" : ""};
+                            `,
+                            [req.body['status'], req.body['id']],
+                            (err, result) => {
+                              if (err) {
+                                dbpacket.dbErrorReturn(con, err, res);
+                                console.log(`UPDATE ${type_status} err`);
+                                return;
+                              }
+                              con.end();
+                              res.send("133");
+                            }
+                          );
+                        }
                       } else {
-                        con.end()
-                        res.send("because")
+                        con.end();
+                        res.send("because");
                       }
                     }
-                  )
+                  );
+                } else {
+                  res.send("delete");
                 }
-                else res.send("delete")
               }
-            )
+            );
           }
         } else {
-          con.end()
-          res.send('error ID or status')
+          con.end();
+          res.send('error ID or status');
         }
       }
-    } catch(err) {
-      con.end()
-      if(err == "not pass") {
-        res.send("password")
+    } catch (err) {
+      con.end();
+      if (err == "not pass") {
+        res.send("password");
       }
     }
-  })
+  });
 
   // group page
 
