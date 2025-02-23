@@ -17,10 +17,11 @@
     box-sizing: border-box;
 }
 
-body , html {
+body,
+html {
     margin: 0;
     padding: 0;
-    touch-action:manipulation;
+    touch-action: manipulation;
 }
 
 #loading {
@@ -30,7 +31,7 @@ body , html {
     align-items: center;
     opacity: 1;
     visibility: visible;
-    transition: 1s opacity , 1s visibility;
+    transition: 1s opacity, 1s visibility;
     z-index: 999;
 }
 
@@ -46,6 +47,7 @@ body , html {
 #farmer {
     height: 100%;
 }
+
 /* 
 .bt-submit-form {
     outline: 0px;
@@ -61,39 +63,45 @@ body , html {
     0% {
         transform: rotate(0);
     }
+
     100% {
         transform: rotate(360deg);
     }
 }
 
 .react-datepicker {
-    width: 100%; /* ทำให้ Datepicker ขยายเต็มพื้นที่ของ container */
-    max-width: 280px; /* จำกัดขนาดไม่ให้เกินหน้าจอ */
-    min-width: 250px; /* ป้องกันการแสดงผลที่แคบเกินไป */
-  }
-  
-  .react-datepicker__input-container input {
     width: 100%;
-  }
-  
-  .react-datepicker-popper {
-    transform: translateX(-50%) !important; /* ทำให้ Datepicker อยู่กึ่งกลาง Input */
-    left: 50% !important;
-    z-index: 9999 !important; /* ทำให้ Datepicker แสดงอยู่ด้านบนสุด */
-    position: absolute !important; /* บังคับให้ Datepicker อยู่ตรง Input */
-  }
+    /* ทำให้ Datepicker ขยายเต็มพื้นที่ของ container */
+    max-width: 280px;
+    /* จำกัดขนาดไม่ให้เกินหน้าจอ */
+    min-width: 250px;
+    /* ป้องกันการแสดงผลที่แคบเกินไป */
+    position: fixed;
+}
 
-  .react-datepicker__triangle {
+.react-datepicker__input-container input {
+    width: 100%;
+}
+
+.react-datepicker-popper {
+    transform: translateX(-50%) !important;
+    /* ทำให้ Datepicker อยู่กึ่งกลาง Input */
+    left: 50% !important;
+    z-index: 9999 !important;
+    /* ทำให้ Datepicker แสดงอยู่ด้านบนสุด */
+    position: absolute !important;
+    /* บังคับให้ Datepicker อยู่ตรง Input */
+}
+
+.react-datepicker__triangle {
     display: none !important;
 }
 
-  
-  
-  @media (max-width: 480px) {
-    .react-datepicker {
-      max-width: 85vw; /* ให้ Datepicker ใช้ 85% ของหน้าจอบนมือถือ */
-    }
-  }
-  
 
-  
+
+@media (max-width: 480px) {
+    .react-datepicker {
+        max-width: 85vw;
+        /* ให้ Datepicker ใช้ 85% ของหน้าจอบนมือถือ */
+    }
+}
