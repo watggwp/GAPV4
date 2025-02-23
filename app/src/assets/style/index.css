@@ -76,7 +76,6 @@ html {
     /* จำกัดขนาดไม่ให้เกินหน้าจอ */
     min-width: 250px;
     /* ป้องกันการแสดงผลที่แคบเกินไป */
-    position: fixed;
 }
 
 .react-datepicker__input-container input {
@@ -89,7 +88,7 @@ html {
     left: 50% !important;
     z-index: 9999 !important;
     /* ทำให้ Datepicker แสดงอยู่ด้านบนสุด */
-    position: absolute !important;
+    position: fixed;
     /* บังคับให้ Datepicker อยู่ตรง Input */
 }
 
