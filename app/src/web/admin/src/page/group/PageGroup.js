@@ -92,6 +92,14 @@ const PageGroup = () => {
               }
               return [...group];
             });
+            setGroupMapping(group => {
+              group.set(selectedToggleId , {
+                ...group.get(selectedToggleId),
+                status : status
+              })
+
+              return new Map([...group])
+            })
             setText(`${status ? "เปิด" : "ปิด"}สถานะการจัดกลุ่มสำเร็จ`);
             setStatusReport(1);
             break;
