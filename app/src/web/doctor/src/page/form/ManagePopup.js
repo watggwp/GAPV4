@@ -590,7 +590,9 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                     <div className="bt-add-content">
                                         { StatePage === "success" ?
                                             <>
-                                            <div className="item-2">
+                                            {
+                                                Boolean(profile?.doctor_role ) && //role
+                                                <div className="item-2">
                                                 <a className="success-0" 
                                                     not={!DataFormManage.option[0].Check_success_after ? null : ""} 
                                                     onClick={!DataFormManage.option[0].Check_success_after ? ()=>SuccessResult(0) : null}>
@@ -604,6 +606,7 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                                                     {/* <div>ทั้งหมด</div> */}
                                                 </a>
                                             </div>
+                                            }
                                             </> 
                                             : StatePage === "report" ? 
                                                 <a onClick={()=>PopupReport("report")}>เพิ่มข้อแนะนำ</a>

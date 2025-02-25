@@ -165,7 +165,7 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
                                             ) : (
                                                 <>
                                                     <div className="number">{key + 1}</div>
-                                                    {val.id_doctor_edit ? `หมอพืช` : ""}
+                                                    {val.id_doctor_edit ? `หมอพืช` : "เกษตรกร"}
                                                 </>
                                             )}
                                         </a>

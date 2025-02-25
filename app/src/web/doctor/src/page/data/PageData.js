@@ -317,8 +317,14 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                 </a>
 
                                 {
-                                (DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics") &&
+                                (DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics" && DataProcess.get("type") !== "group") &&
                                 <a style={{padding : "0"}} title="เพิ่มข้อมูล" className="bt-search-show" onClick={()=>OpenOption(Search , 1)}>
+                                    <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
+                                </a>
+                                }
+                                {
+                                (DataProcess.get("type") === "group" ) &&
+                                <a style={{padding : "0"}} title="เพิ่มข้อมูล" className="bt-search-show" onClick={()=>OpenOption()}>
                                     <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z"/></svg>
                                 </a>
                                 }
@@ -392,6 +398,8 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                         </>
                                         :
                                         <>                               
+                                            {
+                                            DataProcess.get("type") !== "group" &&
                                             <span className="head">
                                             เพิ่ม{
                                                 DataProcess.get("type") === "plant" ? "ชนิดพืช" : 
@@ -401,6 +409,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                                 DataProcess.get("type") === "source" ? "แหล่งที่ซื้อ" : ""
                                             }
                                             </span>
+                                            }
                                             { 
                                                 DataProcess.get("type") === "plant" ?
                                                     <InsertPlant nameInsert={nameInsert} typeInsert={typeInsert} speciesInsert={speciesInsert} DateQtyInsert={DateQtyInsert} ErrReport={ErrReport} CheckInsert={CheckInsert} stateOn={StateOnInsert}/>
@@ -433,10 +442,13 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                                                 // :
                                                     <></>
                                             }
-                                            <div className="bt-insert">
+                                            {
+                                                DataProcess.get("type") !== "group" &&
+                                                <div className="bt-insert">
                                                 <button className="cancel" onClick={CancelInsert}>ยกเลิก</button>
                                                 <button className="submit" no="" ref={SubmitInsert} onClick={SubmitConfirmInsert}>ยืนยัน</button>
                                             </div>
+                                            }
                                         </>
                                     }
                                 </div>

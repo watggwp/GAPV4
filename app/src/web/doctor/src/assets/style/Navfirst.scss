@@ -5,6 +5,21 @@
     justify-content: space-evenly;
     height: 100%;
     width: 100%;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 8px; // กำหนดความกว้าง scrollbar
+      }
+    
+      &::-webkit-scrollbar-track {
+        background: #ffffff; // สีพื้นหลัง track
+      }
+    
+      &::-webkit-scrollbar-thumb {
+        background: #22C7A9; // สี scrollbar
+        border-radius: 4px;
+      }
+      
     .head {
         font-size: 30px;
         font-family: Sans-font;

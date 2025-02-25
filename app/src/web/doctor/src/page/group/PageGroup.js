@@ -98,7 +98,7 @@ const PageGroup = () => {
       <table
         border="1"
         style={{
-          width: "100%",
+          width: "80rem",
           marginTop: "20px",
           borderCollapse: "collapse",
           fontFamily: "sans-font",

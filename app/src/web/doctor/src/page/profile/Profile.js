@@ -269,7 +269,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                             <div className="row-detail not-bm">
                                 <div className="head-content">
                                     <span className="head-detail">ศูนย์ที่ทำงาน</span>
-                                    {/* { !StateEditStation ?
+                                    { !StateEditStation ?
                                         !StateEditName && !StateEditPassword ?
                                             <a onClick={async ()=>{
                                                 setbtEditNot(true)
@@ -283,7 +283,7 @@ const ProfilePage = ({RefPop , setPopup , session , returnToHome , FetchProfileR
                                                 } else session()
                                             }}>แก้ไข</a> : <></>
                                         : <a onClick={()=>setStateEditStation(false)}>ยกเลิก</a>
-                                    } */}
+                                    }
                                 </div>
                                 { StateEditStation ?
                                     <select ref={Station} className="detail-input" onChange={CheckEdit} defaultValue={getProfile.station_doctor}>

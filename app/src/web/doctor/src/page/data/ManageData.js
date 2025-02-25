@@ -221,6 +221,12 @@ const DetailPlant = ({Data}) => {
                         <option value={"สมุนไพร"}>สมุนไพร</option>
                     </select>
                 </label>
+                <label className="field-select">
+                    <span>
+                        <span>ชื่อชนิดพืช</span>
+                    </span>
+                    <input readOnly defaultValue={Data.variety_name}></input>
+                </label>
             </div>
             <div className="row">
                 <label>
@@ -265,6 +271,18 @@ const EditPlant = ({CheckEdit , Data , ErrReport}) => {
                         <option value={"พืชผัก"}>พืชผัก</option>
                         <option value={"สมุนไพร"}>สมุนไพร</option>
                     </select>
+                </label>
+                <label className="field-select">
+                    <span>
+                        <span className="important">ชื่อชนิดพืช</span>
+                        { ErrReport ? 
+                            <span className="err-text-overlape">พืชซ้ำ</span>
+                            : <></>
+                        }
+                    </span>
+                    <input onChange={(e)=>CheckEdit(e.target.value , "variety_name")} 
+                        onKeyDown={(e)=>InputKeyDownNext(e , typeInsert.current)}
+                        placeholder="เช่น เมล่อน" defaultValue={Data.variety_name}></input>
                 </label>
             </div>
             <div className="row">

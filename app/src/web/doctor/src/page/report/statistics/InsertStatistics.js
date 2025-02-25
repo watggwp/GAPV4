@@ -4,14 +4,14 @@ import ButtonChangeStatistics from "./buttonChange";
 import { PageTemplateContext } from "../../../../../admin/src/page/PageTemplate";
  
 export const InsertStatisticsContext = createContext({
-  minCount: 1, 
+  minCount: 0, 
   setMinCount: () => {},
   selectedRows: new Map(), 
   setSelectedRows: () => {}
 });
  
 export function InsertStatisticsProvider({ children }) {
-  const [minCount, setMinCount] = useState(0);
+  const [minCount, setMinCount] = useState(1);
   const [selectedRows, setSelectedRows] = useState(new Map());
  
   return (
@@ -149,8 +149,8 @@ const InsertStatistics = () => {
   };
  
   return (
-    <div style={{ padding: "10px" , width : "90%" }}>
-      <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+    <div style={{ padding: "2rem" , width : "90%" }}>
+      <div style={{marginBottom: "1rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"}}>
       <ButtonChangeStatistics/>
         <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
           ระยะเวลา:
@@ -205,7 +205,7 @@ const InsertStatistics = () => {
   ความถี่ที่พบ:
   <input
     type="number"
-    min="0"
+    min="1"
     value={minCount}
     onChange={(e) => {
       const value = e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value) || 0);

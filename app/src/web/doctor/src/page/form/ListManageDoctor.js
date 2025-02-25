@@ -113,15 +113,12 @@ const ListReport = ({data , index , EditReport , DoctorReport}) => {
                 </div> 
                 */}
 
-                <div className="field menu-detail">
-                        {
-                            data.check_doctor ?
-                            <span ref={ListMenuEditRef} onClick={()=>EditReport(data , "report")}>
-                                <svg ref={SvgMenu} onClick={onOpenMenu} className="icon-menu" viewBox="0 0 1024 1024"><path ref={PathMenu} d="M160 448a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H608zM160 896a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H608z"/></svg>
-                            </span> 
-                            : <></>
-                        }
-                </div> 
+                { data.check_doctor ?
+                    <div className="field menu-detail" ref={ListMenuEditRef} onClick={()=>EditReport(data , "report")}>
+                        <svg ref={SvgMenu} onClick={onOpenMenu} className="icon-menu" viewBox="0 0 1024 1024"><path ref={PathMenu} d="M160 448a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H608zM160 896a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H608z"/></svg>
+                    </div> 
+                    : <></>
+                }
 
                 { data.image_path ?
                                     <div className="field menu-detail" onClick={OpenImg}>

@@ -148,19 +148,26 @@ export default function FormPlant({
                 <div className="number">1.</div>
                 <div className="data-row">
                     <div className="row">
-                        {/* <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
+                        <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืช</span>
                             <input className="data-show" 
                                 value={editValue.type_main ?? data.type_main} 
                                 readOnly={localMode==="view"} 
                                 onChange={(event) => onEdit("type_main", event.target.value)} />
-                        </div> */}
+                        </div>
                         <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อพืช</span>
                             <input className="data-show" 
                                 value={editValue.name_plant ?? data.name_plant} 
                                 readOnly={localMode==="view"} 
                                 onChange={(event) => onEdit("name_plant", event.target.value)} />
+                        </div>
+                        <div className={`data-main in-1 screen-small`}>
+                            <span className="head-data">ชื่อสายพันธุ์พืช</span>
+                            <input className="data-show" 
+                                value={editValue.variety_name ?? data.variety_name} 
+                                readOnly={localMode==="view"} 
+                                onChange={(event) => onEdit("variety_name", event.target.value)} />
                         </div>
                     </div>
 
