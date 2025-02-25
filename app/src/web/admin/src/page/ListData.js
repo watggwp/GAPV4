@@ -1365,8 +1365,8 @@ const BodyDetailInsert = ({
       <div className="body-page">
         <span className="head">
           {   
-            type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-            type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
+            type === "default" ? "เพิ่มบัญชีเจ้าหน้าที่ส่งเสริม" : 
+            type === "admin" ? "เพิ่มบัญชีผู้ดูแลระบบ" : 
             type === "plant" ? "เพิ่มรายการชนิดพืช"  : 
             type === "station" ? "เพิ่มรายการศูนย์" : 
             type === "chemical" ? "เพิ่มรายการสารเคมี" : 
@@ -1424,7 +1424,7 @@ const BodyDetailInsert = ({
                   style={{ width: "100%" }}
                 >
                   <option value={""} disabled>
-                    เลือกชนิดพืช
+                    เลือกประเภทพืช
                   </option>
                   <option value={"พืชผัก"}>พืชผัก</option>
                   <option value={"ผลไม้"}>ผลไม้</option>

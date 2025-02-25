@@ -12,7 +12,7 @@ export const InsertStatisticsContext = createContext({
 });
 
 export function InsertStatisticsProvider({ children }) {
-  const [minCount, setMinCount] = useState(0);
+  const [minCount, setMinCount] = useState(1);
   const [selectedRows, setSelectedRows] = useState(new Map());
 
   return (
@@ -209,7 +209,7 @@ const InsertStatistics = () => {
           ความถี่ที่พบ:
           <input
             type="number"
-            min="0"
+            min="1"
             value={minCount}
             onChange={(e) => {
               console.log(e.target.value)
