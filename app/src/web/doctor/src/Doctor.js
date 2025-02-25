@@ -11,25 +11,7 @@ import DesktopNev from "./navTop/desktop";
 import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
-
-
-
-
-
-
-
-
-
 import PageData from "./page/data/PageData";
-
-
-
-
-
-
-
-
-
 export const DoctorContext = createContext({
     profile : {}
 

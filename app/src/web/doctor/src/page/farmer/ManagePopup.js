@@ -473,7 +473,7 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
             }
             { !StateEdit ?
                 <div className="option-account" top={resultDate.length !== 1 ? "n" : "y"}>
-                    { profile.recommend && (TypeDetail === "doctor" || TypeDetail === "farmer") ?
+                    {(TypeDetail === "doctor" || TypeDetail === "farmer") ?
                         <a title="พูดคุยกับเกษตรกร" className="list-type" onClick={()=>MessagePopup(DetailFarmer.id_table , DetailFarmer.link_user)}>
                             {   messageCount > 0 ?
                                 <div className="count-msg">
