@@ -114,7 +114,11 @@ const ManageGroup = ({ fetchGroups }) => {
                 case 200:
                   setText(popupDataManage.type === "insert" ? "เพิ่มการจัดกลุ่มสำเร็จ" : "แก้ไขข้อมูลสำเร็จ");
                   setStatus(1);
-                  fetchGroups();
+                  break;
+                case 201:
+                  if(popupDataManage.type === "insert") break
+                  setText("กรุณาแก้ไขข้อมูล");
+                  setStatus(2);
                   break;
                 case 409:
                   setText("ไม่สามารถเพิ่มข้อมูลในระบบได้เนื่องจากมีข้อมูลนี้ในระบบอยู่แล้ว หากต้องการแก้ไขให้คลิ้กที่ปุ่มแก้ไข");

@@ -14,13 +14,19 @@ const PageGroup = () => {
   const [selectedToggleId, setSelectedToggleId] = useState(null);
   const [status, setStatus] = useState(null);
   const PasswordRef = useRef(null);
+  const [ stateOnBt, setStateOnBt ] = useState(true);
  
+  const [Open, setOpen] = useState(false);
+  const [Text, setText] = useState("");
+  const [Status, setStatusReport] = useState(null);
+
   const fetchGroupData = useCallback(async () => {
     try {
       const response = await clientMo.post("/api/doctor/group/gets", { search: textSearch });
       const result = JSON.parse(response);
  
       if (Array.isArray(result)) {
+        setGroupData(result);
         setGroupData(result);
  
         const initialMapping = new Map();
@@ -61,6 +67,11 @@ const PageGroup = () => {
       return;
     }
  
+    // รีเซ็ตค่า popup ทุกครั้งก่อนกด Submit
+    setOpen(0);
+    setText("");
+    setStatusReport(0);
+
     try {
       const response = await clientMo.post("/api/doctor/manage/group", {
         id: selectedToggleId,
@@ -72,24 +83,32 @@ const PageGroup = () => {
  
       switch(result.status) {
         case 200 :
-          setGroupData((group => {
-            const { index } = groupMapping.get(selectedToggleId)
-            if(group[index]) {
-              group[index]["status"] = status
+          setGroupData((group) => {
+            const { index } = groupMapping.get(selectedToggleId);
+            if (group[index]) {
+              group[index]["status"] = status;
             }
-            return group
-          }))
-          // alert("อัปเดตสถานะสำเร็จ");
+            return [...group];
+          });
+          setGroupMapping(group => {
+            group.set(selectedToggleId , {
+              ...group.get(selectedToggleId),
+              status : status
+            })
+
+            return new Map([...group])
+          })
+          setText(`${status ? "เปิด" : "ปิด"}สถานะการจัดกลุ่มสำเร็จ`);
+          setStatusReport(1);
           break;
         default :
-          alert("เกิดข้อผิดพลาด: " + result.message);
           break;
       }
     } catch (error) {
       console.error("Error updating status:", error);
       alert("ไม่สามารถอัปเดตสถานะได้");
     }
- 
+    setOpen(1);
     setShowConfirmModal(false);
   };
  
