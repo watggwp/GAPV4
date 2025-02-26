@@ -8,7 +8,7 @@ export default function Station() {
 
     return(
         <React.Fragment>
-            <Grid2 size={{ xs : 12 }}>
+            <Grid2 size={{sm : 12 , md : 6}}>
                 <TextField
                     label="ชื่อศูนย์"
                     variant="outlined"
@@ -24,6 +24,21 @@ export default function Station() {
                     fullWidth
                 />
             </Grid2>
+            <Grid2 size={{ sm : 12 , md : 6 }}>
+                                <TextField
+                                    label="รหัสศูนย์"
+                                    variant="outlined"
+                                    value={Data.id_station}
+                                    slotProps={{
+                                        htmlInput : {
+                                            readOnly : true
+                                        },
+                                        inputLabel : {
+                                            shrink : true
+                                        }
+                                    }}
+                                />
+                </Grid2>
             <Grid2 size={{ xs : 12 }}>
                 <MapsJSX lat={Data?.location?.x} lng={Data?.location?.y} w={"300vw"} h={"80vw"}/>
             </Grid2>

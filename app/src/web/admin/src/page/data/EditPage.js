@@ -23,6 +23,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
     const [Status , setStatus] = useState(0)
 
     const NameRef = useRef()
+    const StationIdRef = useRef()
     const OtherRef = useRef()
     const PasswordRef = useRef()
 
@@ -56,6 +57,7 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
         setData({
             id : data.id,
             name : data.name,
+            id_station: type === "station" ? data.id_station : "",
             dataOther : type === "plant" ? data.type_plant :type === "plant" ? data.variety_name : type === "station" ? data.location : "",
             status : "finish"
         })
@@ -107,32 +109,47 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
     }
 
     const validateValue = () => {
-        const name = NameRef.current
-        const Location = OtherRef.current.value.split(":")
-        const password = PasswordRef.current
-
-        if(( ( name.value != Data.name ) || (Location[0] != Data.dataOther.x || Location[1] != Data.dataOther.y) ) && password.value) {
-            setHide(false)
+        const name = NameRef.current;
+        const Idstation = StationIdRef.current;
+        const Location = OtherRef.current.value.split(":");
+        const password = PasswordRef.current;
+    
+        if (((name.value !== Data.name) || (Location[0] !== Data.dataOther.x || Location[1] !== Data.dataOther.y) || 
+            (type === "station" && Idstation.value !== Data.id_station)) && password.value) {
+            
+            setHide(false);
+            
             const DataReturn = {
-                id_table : Data.id,
-                update : {
-                    name : `"${name.value.trim()}"`,
-                    location : `POINT(${getLag} , ${getLng})` ,
+                id_table: Data.id,
+                update: {
+                    name: `"${name.value.trim()}"`,
+                    location: `POINT(${getLag} , ${getLng})`,
                 },
-                password : password.value,
-                type : type
-            }
-
-            if(name.value == Data.name) delete DataReturn.update.name;
-            if(Location[0] == Data.dataOther.x && Location[1] == Data.dataOther.y) {
+                password: password.value,
+                type: type
+            };
+    
+            if (name.value === Data.name) delete DataReturn.update.name;
+    
+            if (Location[0] == Data.dataOther.x && Location[1] == Data.dataOther.y) {
                 delete DataReturn.update.location;
             }
-            return DataReturn
+    
+            if (type === "station") {
+                DataReturn.
+                update.id_station = `"${Idstation.value.trim()}"`;
+                if (Idstation.value === Data.id_station) {
+                    delete DataReturn.update.id_station;
+                }
+            }
+    
+            return DataReturn;
         } else {
-            setHide(true)
-            return false
+            setHide(true);
+            return false;
         }
-    }
+    };
+    
 
     const GenerateMap = async (e) => {
         return await new Promise((resole , reject)=>{
@@ -192,36 +209,41 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                 <div className="detail-data-report">
                     <div className="data-popup" maxsize="" flex={type}>
                         <div className="name column">
-                            {
-                                Data.status === "finish" &&
-                                    <TextField
-                                        label={
-                                            type === "plant" ?
-                                                "ชื่อพืช" :
-                                                "ชื่อศูนย์"
-                                        }
-                                        defaultValue={Data.name}
-                                        slotProps={{
-                                            htmlInput : {
-                                                ref : NameRef
-                                            }
-                                        }}
-                                        onChange={validateValue}
-                                        placeholder={
-                                            type === "plant" ?
-                                                "ชื่อพืช" :
-                                                "ชื่อศูนย์ในโครงการ"
-                                        }
-                                        size="small"
-                                        fullWidth
-                                    />
+                        {
+                                Data.status === "finish" && (
+                                    <>
+                                        <TextField
+                                            label={type === "plant" ? "ชื่อพืช" : "ชื่อศูนย์"}
+                                            defaultValue={Data.name}
+                                            slotProps={{
+                                                htmlInput: {
+                                                    ref: NameRef
+                                                }
+                                            }}
+                                            onChange={validateValue}
+                                            placeholder={type === "plant" ? "ชื่อพืช" : "ชื่อศูนย์ในโครงการ"}
+                                            size="small"
+                                            fullWidth
+                                        />
+                                        {type === "station" && (
+                                            <TextField
+                                                label="รหัสศูนย์"
+                                                defaultValue={Data.id_station}
+                                                slotProps={{
+                                                    htmlInput: {
+                                                        ref: StationIdRef
+                                                    }
+                                                }}
+                                                onChange={validateValue}
+                                                placeholder="รหัสศูนย์"
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        )}
+                                    </>
+                                )
                             }
-                            {/* {
-                                type === "plant" ? 
-                                    <span className={type}>ชื่อพืช</span> : 
-                                    <span className={type}>ชื่อศูนย์</span>
-                            } */}
-                            {/* <input onChange={()=>validateValue()} className="input-value" ref={NameRef} placeholder="ชื่อศูนย์ในโครงการ" defaultValue={Data.name}></input> */}
+                            
                         </div>
                         <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
                             {
