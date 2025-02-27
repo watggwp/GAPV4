@@ -557,17 +557,16 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                                 }}
                                             /> */}
                                             <DatePickerThai
-   
-                                           classNameMain="input-date"
-                                           defaultDate={DateNowOnForm}
-                                           offsetQtyDate={DateHarvest}
-                                           refIn={DatePlant}
-                                           onInputIn={(e) => {
-                                           const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
-                                          setDateNowOnForm(plantDate);
-                                          MathDateHarvest(plantDate, DateHarvest);
-                                          }}
-                                        />
+                                                classNameMain="input-date"
+                                                defaultDate={DateNowOnForm}
+                                                offsetQtyDate={DateHarvest}
+                                                refIn={DatePlant}
+                                                onInputIn={(e) => {
+                                                const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
+                                                setDateNowOnForm(plantDate);
+                                                MathDateHarvest(plantDate, DateHarvest);
+                                            }}
+                                            />
 
 
                                             {/* <input onInput={(e)=>{

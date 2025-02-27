@@ -196,7 +196,7 @@ const ExportPDF = async (Data) => {
         TextBoxHead(pdf , width / 2 , 40 , 'แบบบันทึกเกษตรกร ระบบการผลิตพืชผักและสมุนไพรภายใต้มาตรฐาน  GAP  มูลนิธิโครงการหลวง' , {align : "center"})
         
         pdf.setFontSize(16)
-        TextBoxHead(pdf , width/2/3 + 30 , 70 , Export.dataForm.type_main)
+        TextBoxHead(pdf , width/2/3 + 30 , 70 , Export.dataForm.type_main || "ไม่พบพืชนี้ในระบบ")
         TextBoxHead(pdf , width/2 - 70 , 70 , "รหัสเกษตรกร")
 
         let startId = width/2

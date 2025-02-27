@@ -3781,10 +3781,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             console.log("select form");
                         }
 
-                        const DataExport = await new Promise( async (resole , reject)=>{
+                        const DataExport = listFarm ? await new Promise( async (resole , reject)=>{
                             const Data = new Array
                             for(let val of listFarm){
-
                                 const Farmer = await new Promise((resole , reject)=>{
                                     con.query(
                                         `
@@ -3923,7 +3922,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             }
                             con.end()
                             resole(Data)
-                        })
+                        }) : []
 
                         res.send(DataExport)
                     }
