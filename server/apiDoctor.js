@@ -2230,6 +2230,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 FROM success_detail
                                 WHERE id_plant = formplant.id and INSTR(id_success , ?)
                                 GROUP BY id_plant
+                                LIMIT 1
                             ) as success_id_plant ,
                             (
                                 SELECT acc_farmer.fullname
@@ -3747,12 +3748,14 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 SELECT type_plant
                                 FROM plant_list
                                 WHERE name = formplant.name_plant
+                                LIMIT 1
                             ) as type_main ,
                             (
                                 SELECT id_plant
                                 FROM success_detail
                                 WHERE id_plant = formplant.id and INSTR(id_success , ?)
                                 GROUP BY id_plant
+                                LIMIT 1
                             ) as success_id_plant
                         FROM formplant , 
                             (
