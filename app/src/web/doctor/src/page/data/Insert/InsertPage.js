@@ -76,7 +76,12 @@ const InsertPlant = ({
               เลือกประเภท
             </option>
             <option value={"พืชผัก"}>พืชผัก</option>
+            <option value={"ผลไม้"}>ผลไม้</option>
             <option value={"สมุนไพร"}>สมุนไพร</option>
+            <option value={"ไม้ดอก"}>ไม้ดอก</option>
+            <option value={"ไม้ผล"}>ไม้ผล</option>
+            <option value={"กัญชง"}>กัญชง</option>
+            <option value={"กัญชา"}>กัญชา</option>
           </select>
         </label>
       </div>

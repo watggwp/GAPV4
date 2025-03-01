@@ -13,7 +13,12 @@ const SearchPlant = ({searchList , DataProcess}) => {
                 <select onChange={(e)=>searchList(e.target , e.target.value , "type_plant")} ref={typePlant} defaultValue={DataProcess.get("type_plant")}>
                     <option value={""}>ทั้งหมด</option>
                     <option value={"พืชผัก"}>พืชผัก</option>
+                    <option value={"ผลไม้"}>ผลไม้</option>
                     <option value={"สมุนไพร"}>สมุนไพร</option>
+                    <option value={"ไม้ดอก"}>ไม้ดอก</option>
+                    <option value={"ไม้ผล"}>ไม้ผล</option>
+                    <option value={"กัญชง"}>กัญชง</option>
+                    <option value={"กัญชา"}>กัญชา</option>
                 </select>
             </label>
         </div> 
