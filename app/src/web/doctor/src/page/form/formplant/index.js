@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
 import "../../../assets/style/page/form/FormEdit.scss";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
+import { DoctorContext } from "../../../Doctor";
 
 export default function FormPlant({
     data,
@@ -13,6 +14,8 @@ export default function FormPlant({
 }) {
     const [editValue, setLocalEditValue] = useState({});
     const [localMode, setLocalMode] = useState(mode);
+
+    const { profile } = useContext(DoctorContext) //role
 
     const DisabledButtonEdit = useMemo(() => {
         const { because , ...editDatas } = editValue
@@ -115,7 +118,10 @@ export default function FormPlant({
 
     return (
         <section className="detail-main-form">
-            <div className="button-group">
+
+            {
+                Boolean(profile?.doctor_role ) && //role
+                <div className="button-group">
                 {localMode === "edit" ? (
                     <>
                         <button disabled={DisabledButtonEdit} onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
@@ -125,6 +131,7 @@ export default function FormPlant({
                     <button onClick={toggleMode} className="toggle-btn">แก้ไข</button>
                 )}
             </div>
+            }
 
             {/* ถ้าอยู่ในโหมด edit ให้เพิ่มช่องกรอกหมายเหตุ */}
             {localMode === "edit" && (

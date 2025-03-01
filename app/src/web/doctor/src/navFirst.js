@@ -104,14 +104,19 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                     </div>
                 }
 
-                {
+{
                     Boolean(profile?.doctor_role) &&  //role
                         <>
                             <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
                             <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
-                            <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
                         </>
                 }      
+                {
+                    Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
+                        <>
+                            <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
+                        </>
+                }        
 
 
          

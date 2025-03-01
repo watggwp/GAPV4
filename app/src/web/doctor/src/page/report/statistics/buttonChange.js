@@ -2,11 +2,13 @@ import { useContext, useState, useEffect, useCallback } from "react";
 import { Modal } from "react-bootstrap";
 import { InsertStatisticsContext } from "./InsertStatistics";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
- 
+import { DoctorContext } from "../../../Doctor";
+
 export default function ButtonChangeStatistics() { 
     const { selectedRows } = useContext(InsertStatisticsContext);
 
-    
+    const { profile } = useContext(DoctorContext) //role
+
     const [popupDataManage, setPopupDataManage] = useState({ open: false });
 
     // ดึงข้อมูลสารเคมีที่ใช้จาก API
@@ -21,13 +23,16 @@ export default function ButtonChangeStatistics() {
 
     return (
         <div style={{ display: "flex" }}>
-            <button 
+            {
+                Boolean(profile?.doctor_role) &&  //role
+                <button 
                 className={`report-button ${selectedRows.size > 0 ? "active" : "disabled"}`}
                 onClick={handleOpenModal}
                 disabled={selectedRows.size === 0}
             >
                 แจ้งเตือน
             </button>
+            }
 
             <Modal
                 show={popupDataManage.open}

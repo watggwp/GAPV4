@@ -61,6 +61,7 @@ const PopupConfirm = ({Ref , setPopup , session , Data , RowPresent , setLimit ,
             <span className="header">ยืนยันเพิ่ม
                 {
                     Data.type === "plant" ? "ชนิดพืช" :
+                    Data.type === "pest" ? " โรคพืช/ศัตรูพืช " :
                     Data.type === "fertilizer" ? "ปัจจัยการผลิต" :
                     Data.type === "chemical" ? "สารเคมี" :
                     Data.type === "source" ? "แหล่งที่ซื้อ" : ""
@@ -77,6 +78,8 @@ const PopupConfirm = ({Ref , setPopup , session , Data , RowPresent , setLimit ,
                                         Data.type === "source" ? "แหล่งที่ซื้อ" : ""
                                     }` : 
                                     val[0] === "type_plant" ? "ประเภท" :
+                                    val[0] === "type_pest" ? " โรคพืช/ศัตรูพืช" :
+                                    val[0] === "pest_name" ? "ชื่อ โรคพืช/ศัตรูพืช" :
 
                                     val[0] === "varietie" ? "สายพันธุ์" :
 
