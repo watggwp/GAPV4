@@ -35,7 +35,7 @@ const InsertStatistics = () => {
   const [ pestsMapping , setPestsMapping ] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
-  const [showPlantDiseases, setShowPlantDiseases] = useState(null);
+  const [showPlantDiseases, setShowPlantDiseases] = useState(true);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
 
