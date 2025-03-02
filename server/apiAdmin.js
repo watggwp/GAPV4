@@ -1484,43 +1484,43 @@ app.post('/api/admin/add', async (req, res) => {
 app.post('/api/admin/data/list', async (req, res) => {
   let username = req.session.user_admin;
   let password = req.session.pass_admin;
-
+ 
   if (username === '' || password === '') {
       res.redirect('/api/logout');
       return;
   }
-
+ 
   let con = Database.createConnection(listDB);
   try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
           let data = req.body;
-
+ 
           const type_data = (
               data.type === "plant" ? "plant_list" :
               data.type === "station" ? "station_list" :
               data.type === "chemical" ? "chemical_list" :
-              data.type === "pest" ? "pests" : 
+              data.type === "pest" ? "pests" :
               ""
           );
-
+ 
           if (!type_data) {
               res.send([]);
               return;
           }
-
+ 
           const columnName = (data.type === "pest" ? "pest_name" : "name");
           const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
           const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
-
-          const query = `
-              SELECT * FROM ${type_data} 
-              WHERE INSTR(${columnName}, ?) 
-              GROUP BY ${columnName} 
-              ORDER BY is_use DESC, ${columnName} ASC 
-              LIMIT ${Limit} OFFSET ${StartRow}
-          `;
-
+ 
+            const query = `
+            SELECT * FROM ${type_data}
+            WHERE INSTR(${columnName}, ?)
+            GROUP BY ${columnName}, variety_name
+            ORDER BY is_use DESC, ${columnName} ASC
+            LIMIT ${Limit} OFFSET ${StartRow}
+        `;
+ 
           con.query(query, [data.textSearch], (err, result) => {
               if (err) {
                   dbpacket.dbErrorReturn(con, err, res);
