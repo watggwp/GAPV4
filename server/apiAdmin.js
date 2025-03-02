@@ -1713,100 +1713,104 @@ app.post('/api/admin/data/list', async (req, res) => {
     }
 });
 
-  app.post('/api/admin/data/change' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.body['password']
-  
-    if(username === '') {
-      res.redirect('/api/logout')
-      return 0
-    }
-  
-    let con = Database.createConnection(listDB)
-  
-    try {
-      const auth = await apifunc.auth(con , username , password , res , "admin")
+app.post('/api/admin/data/change' , async (req , res) => {
+  let username = req.session.user_admin;
+  let password = req.body['password'];
+ 
+  if(username === '') {
+      res.redirect('/api/logout');
+      return;
+  }
+ 
+  let con = Database.createConnection(listDB);
+ 
+  try {
+      const auth = await apifunc.auth(con, username, password, res, "admin");
       if(auth['result'] === "pass") {
-        const data = req.body
-        const From = (
-          data.type === "station" ? "station_list" : 
-          data.type === "plant" ? "plant_list" : 
-          data.type === "chemical" ? "chemical_list" : 
-          data.type === "pest" ? "pests" : ""
-        );
-
-        const columnName = (
-          data.type === "pest" ? "pest_name" : "name"
-        )
-
-        const columnID = (
-          data.type === "pest" ? "pest_id" : "id"
-        )
-        if(From) {
-          try {
-            const verify = data.state_use ? await new Promise((resole , reject)=> {
-              con.query(
-                `
-                SELECT (
-                  SELECT EXISTS (
-                    SELECT id
-                    FROM ${From} as data_search
-                    WHERE data_main.${columnName} = data_search.${columnName} and data_search.is_use = 1
-                  )
-                ) as verifyStatus
-                FROM ${From} as data_main
-                WHERE ${columnID} = ?
-                `
-                ,[ data.id_table ], (err , result)=>{
-                if(err) reject("")
-                else resole(!result[0].verifyStatus)
-              }) 
-            }) : true
-  
-            if(verify) {
-              con.query(
-                `
-                UPDATE ${From} SET is_use = ? WHERE ${columnID} = ?;
-                `
-                , [ data.state_use , data.id_table] , (err , result)=>{
-                if(err) {
-                  con.end()
-                  res.send("")
-                } else {
-                  if(From === "station" && result.changedRows) {
-                    con.query(
-                      `
-                      SELECT name
-                      FROM station_list
-                      WHERE id = ?
-                      ` , [data.id_table] , (err , result) => {
-                        if(!err) {
-                          con.end()
-                          sendNotifyToDoctor(0 , data.id_table , `${result[0].name}ถูก${data.state_use ? "เปิด" : "ปิด"}`);
-                        }
-                      }
-                    )
-                  } else con.end();
-                  res.send("133")
-                }
-              })
-            } else {
-              con.end()
-              res.send("over")
-            }
-          } catch(err) {
-            con.end()
-            res.send("")
+          const data = req.body;
+          const From = (
+              data.type === "station" ? "station_list" :
+              data.type === "plant" ? "plant_list" :
+              data.type === "chemical" ? "chemical_list" :
+              data.type === "pest" ? "pests" : ""
+          );
+ 
+          const columnName = (data.type === "pest" ? "pest_name" : "name");
+          const columnID = (data.type === "pest" ? "pest_id" : "id");
+ 
+          if(From) {
+              try {
+                  let verify = true;
+ 
+                  // ตรวจสอบเฉพาะกรณีที่เป็นประเภทอื่นๆ นอกจาก "pest" และกำลังเปลี่ยนสถานะเป็น 1
+                  if (data.type !== "pest" && data.state_use === 1) {
+                      verify = await new Promise((resolve, reject) => {
+                          con.query(
+                              `
+                              SELECT EXISTS (
+                                  SELECT id
+                                  FROM ${From} as data_search
+                                  WHERE data_main.${columnName} = data_search.${columnName}
+                                  AND data_search.is_use = 1
+                              ) as verifyStatus
+                              FROM ${From} as data_main
+                              WHERE ${columnID} = ?
+                              `,
+                              [data.id_table],
+                              (err, result) => {
+                                  if (err) reject(err);
+                                  else resolve(!result[0].verifyStatus);
+                              }
+                          );
+                      });
+                  }
+ 
+                  if (verify) {
+                      con.query(
+                          `UPDATE ${From} SET is_use = ? WHERE ${columnID} = ?;`,
+                          [data.state_use, data.id_table],
+                          (err, result) => {
+                              if(err) {
+                                  con.end();
+                                  res.send("");
+                              } else {
+                                  if(From === "station" && result.changedRows) {
+                                      con.query(
+                                          `SELECT name FROM station_list WHERE id = ?`,
+                                          [data.id_table],
+                                          (err, result) => {
+                                              if(!err) {
+                                                  con.end();
+                                                  sendNotifyToDoctor(0, data.id_table, `${result[0].name} ถูก${data.state_use ? "เปิด" : "ปิด"}`);
+                                              }
+                                          }
+                                      );
+                                  } else {
+                                      con.end();
+                                  }
+                                  res.send("133");
+                              }
+                          }
+                      );
+                  } else {
+                      con.end();
+                      res.send("over");
+                  }
+              } catch(err) {
+                  con.end();
+                  res.send("");
+              }
+          } else {
+              res.send("no");
           }
-        } else res.send("no")
-      } 
-    } catch (err) {
-      con.end()
-      if(err == "not pass") {
-        res.send("password")
       }
-    }
-  })
+  } catch (err) {
+      con.end();
+      if(err == "not pass") {
+          res.send("password");
+      }
+  }
+});
 
   app.post('/api/admin/data/edit' , async (req , res)=>{
     let username = req.session.user_admin
