@@ -23,7 +23,7 @@ const InsertGroup = () => {
     const [stateOnBt, setStateOnBt] = useState(true);
 
     const ListGroup = useCallback(async () => {
-        const listchemical = await clientMo.post("/api/admin/data/list", {
+        const listchemical = await clientMo.post("/api/admin/data/listforgroup", {
             type: "chemical", limit: 100, startRow: 0, textSearch: ""
         });
         const Listchemical = JSON.parse(listchemical);
@@ -31,7 +31,7 @@ const InsertGroup = () => {
     }, []);
 
     const Listpest = useCallback(async () => {
-        const listchemical = await clientMo.post("/api/admin/data/list", {
+        const listchemical = await clientMo.post("/api/admin/data/listforgroup", {
             type: "pest", limit: 100, startRow: 0, textSearch: ""
         });
         const Listpest = JSON.parse(listchemical);
@@ -39,7 +39,7 @@ const InsertGroup = () => {
     }, []);
 
     const Listplants = useCallback(async () => {
-        const listplant = await clientMo.post("/api/admin/data/list", {
+        const listplant = await clientMo.post("/api/admin/data/listforgroup", {
             type: "plant", limit: 100, startRow: 0, textSearch: ""
         });
         const Listplant = JSON.parse(listplant);

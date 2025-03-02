@@ -46,7 +46,7 @@ const ManageGroup = ({ fetchGroups }) => {
   }, [popupDataManage.metadata?.id]);
 
   const requestChemecals = useCallback(async () => {
-    const listchemical = await clientMo.post("/api/admin/data/list", {
+    const listchemical = await clientMo.post("/api/admin/data/listforgroup", {
       type: "chemical", limit: 100, startRow: 0, textSearch: ""
     });
     const Listchemical = JSON.parse(listchemical);
@@ -54,7 +54,7 @@ const ManageGroup = ({ fetchGroups }) => {
   }, []);
 
   const requestPests = useCallback(async () => {
-    const listpest = await clientMo.post("/api/admin/data/list", {
+    const listpest = await clientMo.post("/api/admin/data/listforgroup", {
       type: "pest", limit: 100, startRow: 0, textSearch: ""
     });
     const requestPests = JSON.parse(listpest);
@@ -62,7 +62,7 @@ const ManageGroup = ({ fetchGroups }) => {
   }, []);
 
   const requestPlants = useCallback(async () => {
-    const listplant = await clientMo.post("/api/admin/data/list", {
+    const listplant = await clientMo.post("/api/admin/data/listforgroup", {
       type: "plant", limit: 100, startRow: 0, textSearch: ""
     });
     const Listplant = JSON.parse(listplant);
