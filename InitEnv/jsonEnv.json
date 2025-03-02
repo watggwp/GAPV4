@@ -6,6 +6,7 @@
   "USER_DBDEV": "root",
   "PASSWORD_DBDEV": "",
   "DATABASE_SER": "",
+  "PORT" : "3306",
   "KEY_SESSION": "",
   "channelAccessToken": "",
   "channelSecret": "",

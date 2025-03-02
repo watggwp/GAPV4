@@ -28,7 +28,7 @@ const EditProfile = ({DataProfile , session , CheckEditFun}) => {
         setLng(DataProfile.location.y)
         const StationFetch = await clientMo.post("/api/doctor/station/list")
         try {
-            const search = new Array
+            const search = new Array()
             JSON.parse(StationFetch).map(val=>{
                 let lag = Math.abs(DataProfile.location.x - val.location.x)
                 let lng = Math.abs(DataProfile.location.y - val.location.y)
@@ -36,7 +36,9 @@ const EditProfile = ({DataProfile , session , CheckEditFun}) => {
             })
             
             setListStation(search.sort((a , b)=>a.dist - b.dist).slice(0 , 2))
-        } catch(e) { session() }
+        } catch(e) { 
+            session() 
+        }
     }
 
     const getMapAndStation = async (e) => {

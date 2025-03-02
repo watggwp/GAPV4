@@ -975,7 +975,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 return 0;
             }
 
-            con.query(`SELECT id, name, id_station FROM station_list WHERE is_use = 1` , (err , result)=>{
+            con.query(`SELECT id, name, id_station , location FROM station_list WHERE is_use = 1` , (err , result)=>{
                 if (err) {
                     dbpacket.dbErrorReturn(con, err, res);
                     console.log("query");
