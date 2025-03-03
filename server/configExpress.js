@@ -66,9 +66,11 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         resave : false
     })
    
-    app.use(express.json())
+    // app.use(express.json())
     app.use(cookieParser())
     app.use(sessionMiddleware)
+    app.use(express.json({ limit: "50mb" }));
+    app.use(express.urlencoded({ limit: "50mb", extended: true }));
     // protocal websocket
     const io = WebSocket(server , sessionMiddleware , db , listDB , apifunc)
  
