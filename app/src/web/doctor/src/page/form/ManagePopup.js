@@ -8,7 +8,7 @@ import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } 
 import { DoctorContext } from "../../Doctor"  
 import FormPlant from "./formplant"
 
-import axios from "axios";
+// import axios from "axios";
 
 const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) => {
 
@@ -979,89 +979,89 @@ const EditReport = ({Ref , setPopup , session , FetchData , Data}) => {
         }
     }
 
-    // const Confirm = async () => {
-    //     const Data = await CheckData()
-    //     if(Data) {
-    //         console.log(Data)
-    //         const result = await clientMo.post("/api/doctor/form/manage/report/edit" , Data)
-
-    //         console.log(result)
-    //         if(result === "113") {
-    //             FetchData()
-    //             close()
-    //         } else if (result === "password") {
-    //             Password.current.value = ""
-    //             Password.current.placeholder = "รหัสผ่านไม่ถูกต้อง"
-    //         } else if (result === "not") {
-    //             // console.log("not")
-    //         } else session()
-    //     } 
-    // }
-
-    const resizeImage = async (base64Str, maxWidth = 800, maxHeight = 800) => {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.src = base64Str;
-            img.onload = function () {
-                const canvas = document.createElement("canvas");
-                const ctx = canvas.getContext("2d");
-    
-                let width = img.width;
-                let height = img.height;
-    
-                if (width > maxWidth || height > maxHeight) {
-                    if (width > height) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    } else {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-    
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-    
-                resolve(canvas.toDataURL("image/jpeg", 0.8)); // คุณภาพ 80%
-            };
-        });
-    };
-    
     const Confirm = async () => {
-        try {
-            let Data = await CheckData();
+        const Data = await CheckData()
+        if(Data) {
+            console.log(Data)
+            const result = await clientMo.post("/api/doctor/form/manage/report/edit" , Data)
+
+            console.log(result)
+            if(result === "113") {
+                FetchData()
+                close()
+            } else if (result === "password") {
+                Password.current.value = ""
+                Password.current.placeholder = "รหัสผ่านไม่ถูกต้อง"
+            } else if (result === "not") {
+                // console.log("not")
+            } else session()
+        } 
+    }
+
+    // const resizeImage = async (base64Str, maxWidth = 800, maxHeight = 800) => {
+    //     return new Promise((resolve) => {
+    //         const img = new Image();
+    //         img.src = base64Str;
+    //         img.onload = function () {
+    //             const canvas = document.createElement("canvas");
+    //             const ctx = canvas.getContext("2d");
+    
+    //             let width = img.width;
+    //             let height = img.height;
+    
+    //             if (width > maxWidth || height > maxHeight) {
+    //                 if (width > height) {
+    //                     height *= maxWidth / width;
+    //                     width = maxWidth;
+    //                 } else {
+    //                     width *= maxHeight / height;
+    //                     height = maxHeight;
+    //                 }
+    //             }
+    
+    //             canvas.width = width;
+    //             canvas.height = height;
+    //             ctx.drawImage(img, 0, 0, width, height);
+    
+    //             resolve(canvas.toDataURL("image/jpeg", 0.8)); // คุณภาพ 80%
+    //         };
+    //     });
+    // };
+    
+    // const Confirm = async () => {
+    //     try {
+    //         let Data = await CheckData();
             
-            if (Data) {
-                console.log("📥 Data before sending:", Data);
+    //         if (Data) {
+    //             console.log("📥 Data before sending:", Data);
     
-                // ถ้า `image_object` เป็น Base64 → ลดขนาดก่อน
-                if (Data.image_object && Data.image_object.startsWith("data:image")) {
-                    Data.image_object = await resizeImage(Data.image_object);
-                }
+    //             // ถ้า `image_object` เป็น Base64 → ลดขนาดก่อน
+    //             if (Data.image_object && Data.image_object.startsWith("data:image")) {
+    //                 Data.image_object = await resizeImage(Data.image_object);
+    //             }
     
-                const result = await axios.post("http://localhost:3001/api/doctor/form/manage/report/edit", Data, {
-                    headers: { "Content-Type": "application/json" }
-                });
+    //             const result = await axios.post("api/doctor/form/manage/report/edit", Data, {
+    //                 headers: { "Content-Type": "application/json" }
+    //             });
     
-                console.log("📤 API Response:", result.data);
+    //             console.log("📤 API Response:", result.data);
     
-                if (result.data === "113") {
-                    FetchData();
-                    close();
-                } else if (result.data === "password") {
-                    Password.current.value = "";
-                    Password.current.placeholder = "รหัสผ่านไม่ถูกต้อง";
-                } else if (result.data === "not") {
-                    console.log("⛔ Not authorized");
-                } else {
-                    session();
-                }
-            }
-        } catch (error) {
-            console.error("🚨 Error:", error);
-        }
-    };
+    //             if (result.data === "113") {
+    //                 FetchData();
+    //                 close();
+    //             } else if (result.data === "password") {
+    //                 Password.current.value = "";
+    //                 Password.current.placeholder = "รหัสผ่านไม่ถูกต้อง";
+    //             } else if (result.data === "not") {
+    //                 console.log("⛔ Not authorized");
+    //             } else {
+    //                 session();
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error("🚨 Error:", error);
+    //     }
+    // };
 
     return(
         <div className="insert-manage-doctor">
