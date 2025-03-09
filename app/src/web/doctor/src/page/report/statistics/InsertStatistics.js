@@ -33,7 +33,7 @@ const InsertStatistics = () => {
   const [ pestsMapping , setPestsMapping ] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
-  const [showPlantDiseases, setShowPlantDiseases] = useState(null);
+  const [showPlantDiseases, setShowPlantDiseases] = useState(true);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
  
@@ -233,7 +233,7 @@ const InsertStatistics = () => {
           style={{
             padding: "10px 20px",
             marginRight: "10px",
-            backgroundColor: showPlantDiseases === true ? "#22C7A9" : "#ddd",
+            backgroundColor: showPlantDiseases === null || showPlantDiseases === true ? "#22C7A9" : "#ddd",
             color: "#fff",
             border: "none",
             borderRadius: "5px",

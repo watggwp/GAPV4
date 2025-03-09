@@ -243,7 +243,7 @@ const ExportPDF = async (Data) => {
         newX = TextBoxDot(pdf , 14 , newX + 48 , 160 , Export.dataForm.qty.toString())
         
         TextBoxHead(pdf , newX , 160 , 'พื้นที่')
-        newX = TextBoxDot(pdf , 17 , newX + 24 , 160 , Export.dataForm.area.toString())
+        newX = TextBoxDot(pdf , 17 , newX + 24 , 160 , Export.dataForm.area.toString()+" " + Export.dataForm.unit.toString())      
 
         TextBoxHead(pdf , newX , 160 , 'วันที่คาดว่าจะเก็บเกี่ยว')
         const DateOut = Export.dataForm.date_harvest.split("-")

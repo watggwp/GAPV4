@@ -74,7 +74,7 @@ const HouseList = () => {
 
     return (
         <div className="House-List">
-            <div className="title">แก้ไขโรงเรือน</div>
+            <div className="title">ตั้งค่าโรงเรือน</div>
             <div className="sub-title">เปิด / ปิด</div>
 
             {loading ? (

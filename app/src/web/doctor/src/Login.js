@@ -182,7 +182,7 @@ list.forEach((item) =>
                                 <a href="#">
                                     <span class="icon">👩🏻‍💼</span>
                                     <span class="text">ที่ปรึกษา</span>
-           
+                                    <span class="text-logo consultant-logo">ที่ปรึกษา</span>
                                 </a>
                             </li>
                             <div class="indicator"></div>

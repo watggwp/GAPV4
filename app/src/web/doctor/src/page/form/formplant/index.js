@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
 import "../../../assets/style/page/form/FormEdit.scss";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
+import { DoctorContext } from "../../../Doctor";
 
 export default function FormPlant({
     data,
@@ -13,6 +14,8 @@ export default function FormPlant({
 }) {
     const [editValue, setLocalEditValue] = useState({});
     const [localMode, setLocalMode] = useState(mode);
+
+    const { profile } = useContext(DoctorContext) //role
 
     const DisabledButtonEdit = useMemo(() => {
         const { because , ...editDatas } = editValue
@@ -115,7 +118,10 @@ export default function FormPlant({
 
     return (
         <section className="detail-main-form">
-            <div className="button-group">
+
+            {
+                Boolean(profile?.doctor_role ) && //role
+                <div className="button-group">
                 {localMode === "edit" ? (
                     <>
                         <button disabled={DisabledButtonEdit} onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
@@ -125,6 +131,7 @@ export default function FormPlant({
                     <button onClick={toggleMode} className="toggle-btn">แก้ไข</button>
                 )}
             </div>
+            }
 
             {/* ถ้าอยู่ในโหมด edit ให้เพิ่มช่องกรอกหมายเหตุ */}
             {localMode === "edit" && (
@@ -150,11 +157,12 @@ export default function FormPlant({
                     <div className="row">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืช</span>
-                            <input className="data-show" 
+                            <input className="data-show" disabled
                                 value={editValue.type_main ?? data.type_main} 
                                 readOnly={localMode==="view"} 
                                 onChange={(event) => onEdit("type_main", event.target.value)} />
                         </div>
+
                         <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อพืช</span>
                             <input className="data-show" 
@@ -162,6 +170,7 @@ export default function FormPlant({
                                 readOnly={localMode==="view"} 
                                 onChange={(event) => onEdit("name_plant", event.target.value)} />
                         </div>
+                        
                         <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อสายพันธุ์พืช</span>
                             <input className="data-show" 
