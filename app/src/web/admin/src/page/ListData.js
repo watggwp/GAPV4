@@ -1507,7 +1507,7 @@ const BodyDetailInsert = ({
                     />
                   </label>
                   <label className="checkbox-item">
-                    <span>ที่ปรึกษาเกษตรกร</span>
+                    <span>นักวิเคราะห์สาร</span>
                     <input
                       type="checkbox"
                       name="role3"
@@ -1516,7 +1516,7 @@ const BodyDetailInsert = ({
                     />
                   </label>
                   <label className="checkbox-item">
-                    <span>นักวิเคราะห์สาร</span>
+                    <span>ที่ปรึกษาเกษตรกร</span>
                     <input
                       type="checkbox"
                       name="role4"
