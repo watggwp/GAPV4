@@ -2,6 +2,7 @@ const router = require('./routerApi');
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
 const apiFarmer = require('./apiFarmer');
+const apiSensor = require('./apiSensor');
 const message = require('./apiMessaging');
 const dbpackage = require('./dbConfig');
 const apifunc = require('./apifunc');
@@ -108,6 +109,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
+    apiSensor(app , db , listDB)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
     // page error 404
     app.get("*" , (req, res) => {
