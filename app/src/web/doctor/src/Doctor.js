@@ -1,4 +1,4 @@
-import React , {Component, createContext, useEffect, useRef, useState} from "react";
+import React , {Component, createContext, useContext, useEffect, useRef, useState} from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
@@ -13,11 +13,14 @@ import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
 export const DoctorContext = createContext({
-    profile : {}
-
-
+    profile : {},
+    bannerCoverRef : { current : "" },
+    contentRef : { current : "" }
 })
 
+export function useDoctor() {
+    return useContext(DoctorContext)
+}
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
@@ -124,7 +127,9 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     return (
         <DoctorContext.Provider
             value={{
-                profile : getProfile
+                profile : getProfile,
+                bannerCoverRef : ImageCover,
+                contentRef : BodyRef
             }}
         >
             <div className="doctor"

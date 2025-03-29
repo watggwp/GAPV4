@@ -4859,6 +4859,44 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     });
 
+    // gapv3
+    app.get('/api/doctor/station/:stationid/housefarm/' , (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
     
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+            const stationid = req.params.stationid
+            con.query(
+                `
+                SELECT h.*
+                FROM acc_farmer ac_f
+                LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+                WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+                GROUP BY h.id_farm_house;
+                ` , [stationid] , 
+                (err , station) => {
+                    con.end()
+                   
+                    res.send({
+                        houses:station
+                    })
+                }
+            )
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    })
 
 }

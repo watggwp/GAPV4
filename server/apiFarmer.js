@@ -3002,6 +3002,83 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     //     }
     // });
     
+    // gapv3
+    app.post("/api/farmer/ecph/save", async (req, res) => {
+        if (!req.session.uidFarmer) return res.send("error auth");
+        
+        const con = db.createConnection(listDB);
+        try {
+            const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
+            const { ec_value, ph_value } = req.body;
+        
+            if (!ec_value || !ph_value) {
+            con.end();
+            return res.send("missing");
+            }
+        
+            const uid = auth.data.uid_line;
+            con.query(
+            `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`,
+            [uid],
+            (err, rows) => {
+                if (err || !rows.length) {
+                con.end();
+                return res.send("farmer not found");
+                }
+        
+                const id_farmer = rows[0].id_farmer;
+                con.query(
+                `INSERT INTO ecph (id_farmer, ec_value, ph_value) VALUES (?, ?, ?)`,
+                [id_farmer, ec_value, ph_value],
+                (err2) => {
+                    con.end();
+                    if (err2) return res.send("insert error");
+                    res.send({ success: true });
+                }
+                );
+            }
+            );
+        } catch (err) {
+            con.end();
+            return res.send("error auth");
+        }
+    });
+    
+    app.post("/api/farmer/ecph/history", async (req, res) => {
+        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
+        if (!req.session.uidFarmer) return res.send("error auth");
+        
+        const con = db.createConnection(listDB);
+        try {
+            const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
+            const uid = auth.data.uid_line;
+        
+            con.query(
+            `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`,
+            [uid],
+            (err, rows) => {
+                if (err || !rows.length) {
+                con.end();
+                return res.send("farmer not found");
+                }
+        
+                const id_farmer = rows[0].id_farmer;
+                con.query(
+                `SELECT timestamp, ec_value, ph_value FROM ecph WHERE id_farmer = ? ORDER BY timestamp DESC LIMIT 10`,
+                [id_farmer],
+                (err2, result) => {
+                    con.end();
+                    if (err2) return res.send("query error");
+                    res.send(result);
+                }
+                );
+            }
+            );
+        } catch (err) {
+            con.end();
+            return res.send("error auth");
+        }
+    });
 
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 
 import "./assets/style/Navfirst.scss"
 import PageFormPlant from "./page/form/PageFormPlant"
@@ -8,8 +8,7 @@ import { clientMo } from "../../../assets/js/moduleClient"
 import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
 import { DoctorContext } from "./Doctor"
-
-
+import Station from "./page/station/station"
 
 const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
@@ -86,6 +85,13 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
         else setSession()
     }
 
+    const station = useCallback(async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<Station/>)
+        else setSession()
+    } , [setSession, setdoctor])
+
     return (
         <section className="nav-first" onLoad={clientMo.unLoadingPage}>
             <div className="head">
@@ -117,9 +123,12 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                             <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
                         </>
                 }        
-
-
-         
+                {
+                    Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
+                        <>
+                            <ButtonMenu type={"report"} textRow1={"สภาพแวดล้อม"} textRow2={"ข้อมูล"} action={station}/>
+                        </>
+                }
             </div>
         </section>
     )
