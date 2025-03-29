@@ -66,7 +66,6 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.9.6",
     "ngrok": "^5.0.0-beta.2",
-    "nodemon": "^3.1.0",
     "pm2": "^5.3.1",
     "postcss": "^8.4.38",
     "postcss-flexbugs-fixes": "^5.0.2",
@@ -217,7 +216,8 @@
     "@types/express-session": "^1.18.0",
     "@types/multer": "^1.4.11",
     "@types/mysql": "^2.15.25",
-    "@types/react": "^18.2.64"
+    "@types/react": "^18.2.64",
+    "nodemon": "^3.1.9"
   },
   "description": "- Install Package\r       ```\r       npm install\r       ```",
   "main": "index.js",
