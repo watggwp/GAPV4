@@ -3008,7 +3008,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
         
         const con = Database.createConnection(listDB);
         try {
-            const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
+            const auth = await authCheck(con , dbpacket , res , req , LINE);
             const { ec_value, ph_value } = req.body;
         
             if (!ec_value || !ph_value) {
@@ -3050,7 +3050,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
         
         const con = Database.createConnection(listDB);
         try {
-            const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
+            const auth = await authCheck(con , dbpacket , res , req , LINE);
             const uid = auth.data.uid_line;
         
             con.query(
