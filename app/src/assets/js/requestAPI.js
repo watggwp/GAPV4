@@ -5,7 +5,9 @@ const HOST_API = process.env.NODE_ENV === "development" ?
     ""
 
 class ClientRequestAPI {
-    async post (url , data) {
+    async post (url , {
+        data = {}
+    }) {
         return await axios.post(`${HOST_API}${url}` , data , {
             headers: {
                 "Content-Type" : "application/json"
@@ -13,7 +15,9 @@ class ClientRequestAPI {
             withCredentials : true
         })
     }
-    async postForm(url , data) {
+    async postForm(url , {
+        data = {}
+    }) {
         const formData = new FormData();
         for(const key in data){
             formData.append(key , data[key])
@@ -26,7 +30,9 @@ class ClientRequestAPI {
             withCredentials: true
         })
     }
-    async put (url , data) {
+    async put (url , {
+        data = {}
+    }) {
         return await axios.put(`${HOST_API}${url}` , data , {
             headers: {
                 "Content-Type" : "application/json"
@@ -34,7 +40,9 @@ class ClientRequestAPI {
             withCredentials : true
         })
     }
-    async get(url , query) {
+    async get(url , {
+        query = {}
+    }) {
         return await axios.post(`${HOST_API}${url}` , query , {
             withCredentials : true
         })

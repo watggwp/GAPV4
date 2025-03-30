@@ -3045,7 +3045,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     });
     
     app.post("/api/farmer/ecph/history", async (req, res) => {
-        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
+        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว" , req.session);
         if (!req.session.uidFarmer) return res.send("error auth");
         
         const con = Database.createConnection(listDB);
