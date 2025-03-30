@@ -51,7 +51,7 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                 setBody(<Success setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} type={"menu:h"} isClick={1} liff={liff} />)
             }
             else if (page === "e") {
-                setBody(<EcphForm setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} liff={liff} />);
+                setBody(<EcphForm setBody={setBody} setPage={setPage} houseID={id_house} formplantID={id_plant} liff={liff} />);
             }            
             else if (page === "r") {
                 setBody(<Report setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />)
@@ -96,7 +96,7 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                     </div>
                 </div>
                 <div className="row">
-                    <div onClick={() => selectMenu("e")} className="frame-menu frame-success">
+                    <div onClick={() => selectMenu("e")} className="frame-menu frame-ecph">
                         <div className="img">
                             <img src="/เก็บ.png" ></img>
                         </div>
@@ -104,7 +104,7 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                         {DotReport.checkEditSoil ? <div className="dot-someting"></div> : <></>}
                     </div>
 
-                    <div onClick={() => selectMenu("s")} className="frame-menu frame-success">
+                    <div onClick={() => selectMenu("s")} className="frame-menu frame-sensor">
                         <div className="img">
                             <img src="/เก็บ.png" ></img>
                         </div>

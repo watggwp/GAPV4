@@ -21,12 +21,15 @@
             font-family: main-font;
             font-weight: 900;
             font-size: 12vw;
+            margin-bottom: 8vw;
+            margin-top: 6vw;
         }
         .row {
             display: flex;
             justify-content: space-evenly;
             align-items: center;
             width: 100vw;
+            margin-bottom: 20px;
             .frame-menu {
                 display: flex;
                 justify-content: center;
@@ -85,6 +88,14 @@
 
             .frame-success {
                 background: linear-gradient(180deg , #c070ff , white);
+            }
+
+            .frame-ecph {
+                background: linear-gradient(180deg , #8cf4fe , white);
+            }
+
+            .frame-sensor {
+                background: linear-gradient(180deg , #ffb770 , white);
             }
         }
 

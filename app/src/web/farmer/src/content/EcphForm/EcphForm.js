@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import "./EcphForm.scss";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 
-const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
+const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
   const [ecValue, setEcValue] = useState("");
   const [phValue, setPhValue] = useState("");
   const [history, setHistory] = useState([]);
@@ -10,7 +10,9 @@ const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const { data } = await RequestAPI.post("/api/farmer/ecph/history")
+      const { data } = await RequestAPI.post("/api/farmer/ecph/history",{
+        id_formplant : formplantID,
+      })
       setHistory(data);
     } catch (err) {
       console.error("Error loading history:", err);
@@ -27,6 +29,7 @@ const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
     try {
       setLoading(true);
       const { data } = await RequestAPI.post("/api/farmer/ecph/save", {
+        id_formplant : formplantID,
         ec_value: ecValue,
         ph_value: phValue,
       })
@@ -61,8 +64,11 @@ const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
       <div className="head">
         <div className="return" onClick={() => setPage("menu")}>
           <svg fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1052 92.168L959.701 0-.234 959.935 959.701 1920l92.299-92.43-867.636-867.635L1052 92.168Z" />
-          </svg>
+                        <g fillRule="evenodd">
+                            <path d="M1052 92.168L959.701 0-.234 959.935 959.701 1920l92.299-92.43-867.636-867.635L1052 92.168Z" />
+                            <path d="M1920 92.168L1827.7 0 867.766 959.935 1827.7 1920l92.3-92.43-867.64-867.635L1920 92.168Z" />
+                        </g>
+                    </svg>
         </div>
         <span>บันทึกค่า EC / pH</span>
       </div>
