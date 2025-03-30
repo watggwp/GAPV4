@@ -125,10 +125,6 @@ const List = ({ session , socket , status , textSearch}) => {
         //     socket.removeListener("reload-farmer-list")
         // })
     } , [status])
-
-    useEffect(()=>{
-        if(getVerifyStart) FetchList(Count , textSearch)
-    } , [textSearch])
     // useEffect(()=>{
     //     socket.removeListener("reload-farmer-list")
     //     socket.on("reload-farmer-list" , ()=>{
@@ -137,7 +133,7 @@ const List = ({ session , socket , status , textSearch}) => {
     //     })
     // } , [Count , status])
 
-    const FetchList = async (limit , textSearch = "") => {
+    const FetchList = useCallback(async (limit , textSearch = "") => {
         try {
             const list = await clientMo.post('/api/doctor/farmer/list' , {approve:(status.status == "wt") ? 0 : (status.status == "ap") ? 1 : 2 , limit : limit , textSearch : textSearch})
             const data = JSON.parse(list)
@@ -147,13 +143,17 @@ const List = ({ session , socket , status , textSearch}) => {
         } catch(e) {
             session()
         }
-    }
+    } , [session, status.status])
 
     const StartList = async (status) => {
         await FetchList(10)
         setVerifyStart(true)
         if(status.open === 1) window.history.pushState({} , "" , `/doctor/farmer/${status.status}`)
     }
+
+    useEffect(()=>{
+        if(getVerifyStart) FetchList(Count , textSearch)
+    } , [textSearch])
 
     return (LoadingList ?
                 <div style={{

@@ -55,8 +55,12 @@ const Station = () => {
           }
         </select>
         <button>Export</button>
-        <select><option>เลือกชนิดพืช</option></select>
-        <select><option>เลือกเกษตรกร</option></select>
+        <select>
+          <option>เลือกชนิดพืช</option>
+        </select>
+        <select>
+          <option>เลือกเกษตรกร</option>
+        </select>
       </div>
 
       <div style={{ display: "flex", gap: "20px" , height: "calc(100% - 50px)" }}>
