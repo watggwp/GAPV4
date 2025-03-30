@@ -3006,7 +3006,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     app.post("/api/farmer/ecph/save", async (req, res) => {
         if (!req.session.uidFarmer) return res.send("error auth");
         
-        const con = db.createConnection(listDB);
+        const con = Database.createConnection(listDB);
         try {
             const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
             const { ec_value, ph_value } = req.body;
@@ -3048,7 +3048,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
         console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
         if (!req.session.uidFarmer) return res.send("error auth");
         
-        const con = db.createConnection(listDB);
+        const con = Database.createConnection(listDB);
         try {
             const auth = await apifunc.authCheck(con, dbpacket, res, req, LINE);
             const uid = auth.data.uid_line;
