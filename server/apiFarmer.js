@@ -3045,7 +3045,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
     });
     
     app.post("/api/farmer/ecph/history", async (req, res) => {
-        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว" , req.session);
+        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
         if (!req.session.uidFarmer) return res.send("error auth");
         
         const con = Database.createConnection(listDB);
@@ -3054,8 +3054,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
             const uid = auth.data.uid_line;
         
             con.query(
-            `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`,
-            [uid],
+                `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`, [uid],
             (err, rows) => {
                 if (err || !rows.length) {
                 con.end();
@@ -3075,6 +3074,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
             }
             );
         } catch (err) {
+            console.log(err)
             con.end();
             return res.send("error auth");
         }
