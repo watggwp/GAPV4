@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { clientMo } from "../../../../assets/js/moduleClient";
 import "../assets/FarmBody.scss"
@@ -12,8 +12,6 @@ import DataForm from "./DataForm/DataForm";
 import Success from "./Success/Success";
 import Report from "./Report/Report";
 import InformationReport from "./InformationReport";
-
-
 
 const FarmBody = ({liff , uid , id_farmhouse}) => {
     const [Body , setBody] = useState(<></>)
@@ -59,38 +57,39 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
 
         // 
         else if(GetPath().length === 3){
+            const formplantID = GetPath()[2]
             if(GetPath()[1] === "p") {
-                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : GetPath()[2]})
+                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
-                    setBody(<MenuPlant setBody={setBody} id_house={id_farmhouse} id_plant={GetPath()[2]} setPage={setPage} liff={liff}/>)
+                    setBody(<MenuPlant setBody={setBody} id_house={id_farmhouse} id_plant={formplantID} setPage={setPage} liff={liff}/>)
                 }
             }
             else if(GetPath()[1] === "z") {
-                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : GetPath()[2]})
+                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
                     setBody(<ListFactor setBody={setBody} setPage={setPage} id_house={id_farmhouse} 
-                                typeHraf={{type : "z" , id_form_plant : GetPath()[2]}} liff={liff}/>)
+                                typeHraf={{type : "z" , id_form_plant : formplantID}} liff={liff}/>)
                 }
             }
             else if(GetPath()[1] === "c") {
-                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : GetPath()[2]})
+                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
                     setBody(<ListFactor setBody={setBody} setPage={setPage} id_house={id_farmhouse} 
-                                typeHraf={{type : "c" , id_form_plant : GetPath()[2]}} liff={liff}/>)
+                                typeHraf={{type : "c" , id_form_plant : formplantID}} liff={liff}/>)
                 }
             }
             else if(GetPath()[1] === "d") {
-                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : GetPath()[2]})
+                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
-                    setBody(<DataForm id_house={id_farmhouse} id_plant={GetPath()[2]} setBody={setBody} 
+                    setBody(<DataForm id_house={id_farmhouse} id_plant={formplantID} setBody={setBody} 
                                 setPage={setPage} liff={liff}/>)
                 }
             }
             else if(GetPath()[1] === "r") {
-                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : GetPath()[2]})
+                const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
                     setBody(<Report setBody={setBody} setPage={setPage} id_house={id_farmhouse} 
-                                id_plant={GetPath()[2]} liff={liff}/>)
+                                id_plant={formplantID} liff={liff}/>)
                 }
             }
             // else if(path.has("formcremi")) 

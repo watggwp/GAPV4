@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import "./EcphForm.scss";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 
-const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
+const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
   const [ecValue, setEcValue] = useState("");
   const [phValue, setPhValue] = useState("");
   const [history, setHistory] = useState([]);
@@ -27,6 +27,7 @@ const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
     try {
       setLoading(true);
       const { data } = await RequestAPI.post("/api/farmer/ecph/save", {
+        id : formplantID,
         ec_value: ecValue,
         ph_value: phValue,
       })
