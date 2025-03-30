@@ -27,10 +27,8 @@ const EcphForm = ({ setBody, setPage, id_house, id_plant, liff }) => {
     try {
       setLoading(true);
       const { data } = await RequestAPI.post("/api/farmer/ecph/save", {
-        data : {
-          ec_value: ecValue,
-          ph_value: phValue,
-        }
+        ec_value: ecValue,
+        ph_value: phValue,
       })
       
 
