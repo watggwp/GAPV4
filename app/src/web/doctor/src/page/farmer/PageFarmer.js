@@ -135,7 +135,11 @@ const List = ({ session , socket , status , textSearch}) => {
 
     const FetchList = useCallback(async (limit , textSearch = "") => {
         try {
-            const list = await clientMo.post('/api/doctor/farmer/list' , {approve:(status.status == "wt") ? 0 : (status.status == "ap") ? 1 : 2 , limit : limit , textSearch : textSearch})
+            const list = await clientMo.post('/api/doctor/farmer/list' , {
+                approve:(status.status === "wt") ? 0 : (status.status === "ap") ? 1 : 2 , 
+                limit : limit , 
+                textSearch : textSearch
+            })
             const data = JSON.parse(list)
             setData(data)
             setLoadList(false)
@@ -153,7 +157,7 @@ const List = ({ session , socket , status , textSearch}) => {
 
     useEffect(()=>{
         if(getVerifyStart) FetchList(Count , textSearch)
-    } , [textSearch])
+    } , [Count, FetchList, getVerifyStart, textSearch])
 
     return (LoadingList ?
                 <div style={{
