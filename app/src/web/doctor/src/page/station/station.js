@@ -4,10 +4,11 @@ import Houses from "./house";
 import { useDoctor } from "../../Doctor";
 
 const Station = () => {
-  const { bannerCoverRef , contentRef } = useDoctor()
+  const { profile,bannerCoverRef , contentRef } = useDoctor()
   const [stationList, setStationList] = useState([]);
-  const [selectedStation, setSelectedStation] = useState("");
-
+  const [selectedStation, setSelectedStation] = useState(profile.station_doctor);
+  
+  console.log(profile)
   // โหลดข้อมูลสถานี
   const fetchStationList = useCallback(async () => {
     try {
