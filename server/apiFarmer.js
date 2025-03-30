@@ -3009,7 +3009,7 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
         const con = Database.createConnection(listDB);
         try {
             const auth = await authCheck(con , dbpacket , res , req , LINE);
-            const { ec_value, ph_value } = req.body;
+            const { id_formplant,ec_value, ph_value } = req.body;
         
             if (!ec_value || !ph_value) {
             con.end();
@@ -3017,27 +3017,27 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
             }
         
             const uid = auth.data.uid_line;
-            con.query(
-            `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`,
-            [uid],
-            (err, rows) => {
-                if (err || !rows.length) {
-                con.end();
-                return res.send("farmer not found");
-                }
+            // con.query(
+            // `SELECT id FROM formplant WHERE uid_line = ? LIMIT 1`,
+            // [uid],
+            // (err, rows) => {
+            //     if (err || !rows.length) {
+            //     con.end();
+            //     return res.send("farmer not found");
+            //     }
         
-                const id_farmer = rows[0].id_farmer;
+            //     const id_formplant = rows[0].id_formplant;
                 con.query(
-                `INSERT INTO ecph (id_farmer, ec_value, ph_value) VALUES (?, ?, ?)`,
-                [id_farmer, ec_value, ph_value],
+                `INSERT INTO ecph (id_formplant, ec_value, ph_value) VALUES (?, ?, ?)`,
+                [id_formplant, ec_value, ph_value],
                 (err2) => {
                     con.end();
                     if (err2) return res.send("insert error");
                     res.send({ success: true });
                 }
                 );
-            }
-            );
+            // }
+            // );
         } catch (err) {
             con.end();
             return res.send("error auth");
@@ -3052,27 +3052,28 @@ app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
         try {
             const auth = await authCheck(con , dbpacket , res , req , LINE);
             const uid = auth.data.uid_line;
+            const { id_formplant} = req.body;
         
-            con.query(
-                `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`, [uid],
-            (err, rows) => {
-                if (err || !rows.length) {
-                con.end();
-                return res.send("farmer not found");
-                }
+            // con.query(
+            //     `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`, [uid],
+            // (err, rows) => {
+            //     if (err || !rows.length) {
+            //     con.end();
+            //     return res.send("farmer not found");
+            //     }
         
-                const id_farmer = rows[0].id_farmer;
+            //     const id_farmer = rows[0].id_farmer;
                 con.query(
-                `SELECT timestamp, ec_value, ph_value FROM ecph WHERE id_farmer = ? ORDER BY timestamp DESC LIMIT 10`,
-                [id_farmer],
+                `SELECT timestamp, ec_value, ph_value FROM ecph WHERE id_formplant = ? ORDER BY timestamp DESC LIMIT 10`,
+                [id_formplant],
                 (err2, result) => {
                     con.end();
                     if (err2) return res.send("query error");
                     res.send(result);
                 }
                 );
-            }
-            );
+            // }
+            // );
         } catch (err) {
             console.log(err)
             con.end();
