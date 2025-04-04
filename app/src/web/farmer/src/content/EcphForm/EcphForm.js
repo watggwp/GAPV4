@@ -138,7 +138,7 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
                       step="0.01"
                       value={editEcValue}
                       onChange={(e) => setEditEcValue(e.target.value)}
-                      placeholder="ค่า EC"
+                      placeholder="เช่น 1.00"
                     />
                   </label>
                 </div>
@@ -151,7 +151,7 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
                       step="0.01"
                       value={editPhValue}
                       onChange={(e) => setEditPhValue(e.target.value)}
-                      placeholder="ค่า pH"
+                      placeholder="เช่น 1.00"
                     />
                   </label>
                 </div>
