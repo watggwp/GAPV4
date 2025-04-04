@@ -98,7 +98,7 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                 <div className="row">
                     <div onClick={() => selectMenu("e")} className="frame-menu frame-ecph">
                         <div className="img">
-                            <img src="/เก็บ.png" ></img>
+                            <img src="/ecph.png" ></img>
                         </div>
                         <span>EC/pH</span>
                         {DotReport.checkEditSoil ? <div className="dot-someting"></div> : <></>}
