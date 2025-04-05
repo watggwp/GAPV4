@@ -21,7 +21,7 @@ def on_message(client, userdata, msg):
         station_id = payload["uplink_message"]["decoded_payload"].get("station_id")
         temp = payload["uplink_message"]["decoded_payload"].get("temperature")
         humidity = payload["uplink_message"]["decoded_payload"].get("humidity")
-        light = payload["uplink_message"]["decoded_payload"].get("light") # ถ้ามีค่า light ก็ส่งค่า light ถ้าไม่มีส่ง 0
+        light = payload["uplink_message"]["decoded_payload"].get("light") 
         rainfall = payload["uplink_message"]["decoded_payload"].get("rainfall")
         timestamp = payload["received_at"]  # หรือใช้ datetime.now()
 
@@ -36,7 +36,7 @@ def on_message(client, userdata, msg):
                 "light": light,
                 "rainfall": rainfall
             }
-            print(json.dumps(data, indent=2))  # เพิ่มบรรทัดนี้ก่อนส่ง
+            # print(json.dumps(data, indent=2))  # เอาไว้ Debug ดูข้อมูล
 
             # ส่ง POST ไปยัง API
             response = requests.post(API_URL, json=data)
