@@ -32,29 +32,25 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             if (!err) {
                                 let msg
                                 if(result[0]) {
-                                    let query = new Array
-                                    for (let key in result) {
-                                        const name_house = result[key]["name_house"].toString()
-                                        query.push(
-                                                {
-                                                    imageUrl : `${UrlApi}/image/house?imagefarm=${result[key]["id_farm_house"]}&date=${new Date().getTime()}`,
+                                    msg =  {
+                                        type : "template",
+                                        altText : "โรงเรือน",
+                                        template : {
+                                            type : "image_carousel" ,
+                                            columns : Array.isArray(result) ? result.map(({ id_farm_house , name_house }) =>{
+                                                const key = new Date().getTime()
+                                                const name = name_house.toString()
+                                                return {
+                                                    imageUrl : `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
                                                     action : {
                                                         type : "uri",
-                                                        label : `${name_house.length > 12 ? `${name_house.slice(0 , 9)}..` : name_house}`,
-                                                        // uri : `https://liff.line.me/2006915135-rpPe4wml/${result[key]["id_farm_house"]}`
-                                                        uri : `https://liff.line.me/2006915135-MoVOdyjw/${result[key]["id_farm_house"]}?date=${new Date().getTime()}`
+                                                        label : `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
+                                                        uri : `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
                                                     }
                                                 }
-                                        )
-                                    } 
-                                    msg =   {
-                                                type : "template",
-                                                altText : "โรงเรือน",
-                                                template : {
-                                                    type : "image_carousel" ,
-                                                    columns : query
-                                                }
-                                            }
+                                            }) : [] ,
+                                        }
+                                    }
                                 }
                                 else {
                                     msg = {
@@ -206,6 +202,130 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             type : "text",
                             text : "กรุณาสมัครบัญชีก่อนนะคะ \u2764"
                         }
+
+                        // msg = {
+                        //     "type": "flex",
+                        //     "altText": "เลือกโรงเรือน",
+                        //     "contents": {
+                        //         "type": "carousel",
+                        //         "contents": [
+                        //             {
+                        //                 "type": "bubble",
+                        //                 "hero": {
+                        //                     "type": "image",
+                        //                     "url": "https://example.com/imageA.jpg",
+                        //                     "size": "full",
+                        //                     "aspectRatio": "20:13",
+                        //                     "aspectMode": "cover",
+                        //                     "action" : {
+                        //                         type : "uri",
+                        //                         label : "iamageA",
+                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
+                        //                     }
+                        //                 },
+                        //                 "body": {
+                        //                     "type": "box",
+                        //                     "layout": "vertical",
+                        //                     "action" : {
+                        //                         type : "uri",
+                        //                         label : "iamageA",
+                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
+                        //                     },
+                        //                     "contents": [
+                        //                         {
+                        //                             "type": "text",
+                        //                             "text": "โรงเรือน A",
+                        //                             "weight": "bold",
+                        //                             "size": "xl",
+                        //                             "align": "center"
+                        //                         },
+                        //                         {
+                        //                             "type": "box",
+                        //                             "layout": "horizontal",
+                        //                             "spacing": "md",
+                        //                             "margin": "md",
+                        //                             "contents": [
+                        //                                 {
+                        //                                     "type": "text",
+                        //                                     "text": "อุณหภูมิ 25°C",
+                        //                                     "size": "sm",
+                        //                                     "color": "#888888",
+                        //                                     "flex": 1,
+                        //                                     "align": "center"
+                        //                                 },
+                        //                                 {
+                        //                                     "type": "text",
+                        //                                     "text": "ความชื้น 60%",
+                        //                                     "size": "sm",
+                        //                                     "color": "#888888",
+                        //                                     "flex": 1,
+                        //                                     "align": "center"
+                        //                                 }
+                        //                             ]
+                        //                         }
+                        //                     ]
+                        //                 }
+                        //             },
+                        //             {
+                        //                 "type": "bubble",
+                        //                 "hero": {
+                        //                     "type": "image",
+                        //                     "url": "https://example.com/imageA.jpg",
+                        //                     "size": "full",
+                        //                     "aspectRatio": "20:13",
+                        //                     "aspectMode": "cover",
+                        //                     "action" : {
+                        //                         type : "uri",
+                        //                         label : "iamageA",
+                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
+                        //                     }
+                        //                 },
+                        //                 "body": {
+                        //                     "type": "box",
+                        //                     "layout": "vertical",
+                        //                     "action" : {
+                        //                         type : "uri",
+                        //                         label : "iamageA",
+                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
+                        //                     },
+                        //                     "contents": [
+                        //                         {
+                        //                             "type": "text",
+                        //                             "text": "โรงเรือน A",
+                        //                             "weight": "bold",
+                        //                             "size": "xl",
+                        //                             "align": "center"
+                        //                         },
+                        //                         {
+                        //                             "type": "box",
+                        //                             "layout": "horizontal",
+                        //                             "spacing": "md",
+                        //                             "margin": "md",
+                        //                             "contents": [
+                        //                                 {
+                        //                                     "type": "text",
+                        //                                     "text": "อุณหภูมิ 25°C",
+                        //                                     "size": "sm",
+                        //                                     "color": "#888888",
+                        //                                     "flex": 1,
+                        //                                     "align": "center"
+                        //                                 },
+                        //                                 {
+                        //                                     "type": "text",
+                        //                                     "text": "ความชื้น 60%",
+                        //                                     "size": "sm",
+                        //                                     "color": "#888888",
+                        //                                     "flex": 1,
+                        //                                     "align": "center"
+                        //                                 }
+                        //                             ]
+                        //                         }
+                        //                     ]
+                        //                 }
+                        //             },
+                        //         ]
+                        //     }
+                        // }
                         con.end()
                     }
 

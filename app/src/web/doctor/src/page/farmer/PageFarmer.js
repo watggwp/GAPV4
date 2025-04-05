@@ -2,7 +2,7 @@ import React, { useEffect , useState , useRef, useCallback } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/page/farmer/PageFarmer.scss"
 import "../../assets/style/TemplantList.scss"
-import { DayJSX, LoadOtherDom, Loading, PopupDom, TimeJSX } from "../../../../../assets/js/module";
+import { LoadOtherDom, Loading, PopupDom } from "../../../../../assets/js/module";
 
 import ManagePopup from "./ManagePopup";
 import ListProfile from "./ListProfile";
@@ -114,24 +114,6 @@ const List = ({ session , socket , status , textSearch}) => {
     const [getVerifyStart , setVerifyStart] = useState(false)
 
     const [LoadingList , setLoadList ] = useState(true)
-    
-    useEffect(()=>{
-        setBody(<></>)
-        setLoadList(true)
-        StartList(status)
-        
-        // socket.removeListener("reload-farmer-list")
-        // return(()=>{
-        //     socket.removeListener("reload-farmer-list")
-        // })
-    } , [status])
-    // useEffect(()=>{
-    //     socket.removeListener("reload-farmer-list")
-    //     socket.on("reload-farmer-list" , ()=>{
-    //         console.log(123)
-    //         FetchList(Count)
-    //     })
-    // } , [Count , status])
 
     const FetchList = useCallback(async (limit , textSearch = "") => {
         try {
@@ -149,11 +131,29 @@ const List = ({ session , socket , status , textSearch}) => {
         }
     } , [session, status.status])
 
-    const StartList = async (status) => {
+    const StartList = useCallback(() => async (status) => {
         await FetchList(10)
         setVerifyStart(true)
         if(status.open === 1) window.history.pushState({} , "" , `/doctor/farmer/${status.status}`)
-    }
+    } , [FetchList])
+    
+    useEffect(()=>{
+        setBody(<></>)
+        setLoadList(true)
+        StartList(status)
+        
+        // socket.removeListener("reload-farmer-list")
+        // return(()=>{
+        //     socket.removeListener("reload-farmer-list")
+        // })
+    } , [StartList, status])
+    // useEffect(()=>{
+    //     socket.removeListener("reload-farmer-list")
+    //     socket.on("reload-farmer-list" , ()=>{
+    //         console.log(123)
+    //         FetchList(Count)
+    //     })
+    // } , [Count , status])
 
     useEffect(()=>{
         if(getVerifyStart) FetchList(Count , textSearch)
