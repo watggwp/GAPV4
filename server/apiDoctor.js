@@ -6,11 +6,12 @@ wordcut.init()
 
 const {Server} = require('socket.io')
 const LINE = require('./configLine');
+const ConnentPool = require('./connectPool');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
 const RichHouse = process.env.RICH_HOUSE
-module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listDB , UrlApi , socket = io , Line = LINE) {
+module.exports = function apiDoctor (app , Database , pool = new ConnentPool() , apifunc , dbpacket , listDB , UrlApi , socket = io , Line = LINE) {
 
     app.post('/api/doctor/check' , (req , res)=>{
         if(apifunc.authCsurf("doctor" , req , res)) res.redirect('/api/doctor/auth')
@@ -4889,6 +4890,86 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     })
                 }
             )
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    })
+
+    app.get('/api/doctor/station/:stationid/ecph/' , (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+    
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
+            con.end()
+            const stationid = req.params.stationid
+            try {
+                const data = await pool.executeQuery(
+                    `
+                        SELECT ecph.* 
+                        FROM ecph
+                        INNER JOIN (
+                            SELECT (
+                                SELECT id
+                                FROM ecph
+                                WHERE ecph.id_formplant = fp.id
+                                ORDER BY timestamp DESC
+                                LIMIT 1
+                            ) as ecph_id
+                            FROM (
+                                SELECT (
+                                    SELECT fp.id as id 
+                                    FROM formplant fp
+                                    WHERE hf.id_farm_house = fp.id_farm_house
+                                    ORDER BY date_plant DESC
+                                    LIMIT 1
+                                ) as id , hf.uid_line as uid_line
+                                FROM housefarm hf
+                            ) fp
+                            LEFT JOIN acc_farmer ac_f ON fp.uid_line = ac_f.uid_line
+                            WHERE ac_f.station = ?
+                        ) mapping_ecph ON ecph.id = mapping_ecph.ecph_id
+                        GROUP BY ecph.id_formplant
+                    `,
+                    [stationid]
+                )
+                res.send({
+                    ecph: data
+                })
+            } catch(err) {
+                res
+                    .status(500)
+                    .send({
+                        ecph: []
+                    })
+            }
+            // con.query(
+            //     `
+            //     SELECT h.*
+            //     FROM acc_farmer ac_f
+            //     LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+            //     WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+            //     GROUP BY h.id_farm_house;
+            //     ` , [stationid] , 
+            //     (err , station) => {
+            //         con.end()
+                   
+            //         res.send({
+            //             houses:station
+            //         })
+            //     }
+            // )
         }).catch((err)=>{
             if(err == "not pass") {
                 con.end()

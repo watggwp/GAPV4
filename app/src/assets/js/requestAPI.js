@@ -5,12 +5,20 @@ const HOST_API = process.env.NODE_ENV === "development" ?
     ""
 
 class ClientRequestAPI {
+
+    options = {
+        validateStatus: () => {
+            return true
+        },
+        withCredentials : true
+    }
+
     async post (url , data) {
         return await axios.post(`${HOST_API}${url}` , data , {
             headers: {
-                "Content-Type" : "application/json"
+                "Content-Type" : "application/json",
             },
-            withCredentials : true
+            ...this.options
         })
     }
     async postForm(url , data) {
@@ -23,24 +31,29 @@ class ClientRequestAPI {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            withCredentials: true
+            ...this.options
         })
     }
     async put (url , data) {
         return await axios.put(`${HOST_API}${url}` , data , {
             headers: {
-                "Content-Type" : "application/json"
+                "Content-Type" : "application/json",
             },
-            withCredentials : true
+            ...this.options
         })
     }
     async get(url , query) {
-        return await axios.post(`${HOST_API}${url}` , query , {
-            withCredentials : true
+        return await axios.get(`${HOST_API}${url}` , {
+            data : query,
+            ...this.options
         })
     }
 }
 
 const RequestAPI = new ClientRequestAPI()
+
+export const responseStatus = {
+    SUCCESS: 200
+}
 
 export default RequestAPI

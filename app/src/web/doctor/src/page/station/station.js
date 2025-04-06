@@ -2,27 +2,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import Houses from "./house";
 import { useDoctor } from "../../Doctor";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import RequestAPI, { responseStatus } from "../../../../../assets/js/requestAPI";
+import ChartSensor from "../../../../../assets/components/sensor/chart";
+import EcPhSensor from "../../../../../assets/components/sensor/EcPh";
+import WeatherSensor from "../../../../../assets/components/sensor/Weather";
+import { Stack } from "@mui/material";
 
-const Station = () => {
-  const { profile, bannerCoverRef, contentRef } = useDoctor();
-  const [stationList, setStationList] = useState([]);
-  const [selectedStation, setSelectedStation] = useState(profile.station_doctor);
-  const [graphType, setGraphType] = useState("weather"); // new
-  const [weatherData, setWeatherData] = useState([]);
-  const [ecPhData, setEcPhData] = useState([]);
-
-  // Mock weather data
-  const mockWeatherData = [
+// Mock weather data
+const mockWeatherData = [
     { time: "08:00", temperature: 25, humidity: 80 },
     { time: "10:00", temperature: 27, humidity: 75 },
     { time: "12:00", temperature: 30, humidity: 70 },
@@ -30,7 +17,17 @@ const Station = () => {
     { time: "16:00", temperature: 31, humidity: 68 },
     { time: "18:00", temperature: 28, humidity: 72 },
     { time: "20:00", temperature: 26, humidity: 78 },
-  ];
+];
+
+const Station = () => {
+  const { profile, bannerCoverRef, contentRef } = useDoctor();
+  const [stationList, setStationList] = useState([]);
+  const [selectedStation, setSelectedStation] = useState(profile.station_doctor);
+  const [graphType, setGraphType] = useState("weather"); // new
+
+  const [ loadingGraph , setLoadingGraph ] = useState(false)
+  const [ weatherData, setWeatherData ] = useState([]);
+  const [ ecPhData, setEcPhData ] = useState([]);
 
   // โหลดข้อมูลสถานี
   const fetchStationList = useCallback(async () => {
@@ -49,18 +46,37 @@ const Station = () => {
   }, []);
 
   // โหลดข้อมูล EC/pH จาก API
-  const fetchECPhData = useCallback(async () => {
+  const requestEcPhData = useCallback(async () => {
     if (!selectedStation) return;
-    try {
-      const response = await clientMo.post("/api/doctor/data/ecph", {
-        stationId: selectedStation,
-      });
-      const data = JSON.parse(response);
-      setEcPhData(data);
-    } catch (error) {
-      console.error("Error fetching EC/PH data:", error);
+
+    setLoadingGraph(true)
+    const response = await RequestAPI.get(`/api/doctor/station/${selectedStation}/ecph/`)
+
+    const { status , data } = response
+
+    switch(status) {
+        case responseStatus.SUCCESS :
+            const { ecph } = data
+            setEcPhData(ecph.map(({ ec_value , ph_value , timestamp }) => {
+                const date = new Date(timestamp);
+                const hh = date.getHours().toString().padStart(2, '0');
+                const mm = date.getMinutes().toString().padStart(2, '0');
+                return {
+                    time : `${hh}:${mm}`,
+                    ec : ec_value,
+                    ph : ph_value,
+                }
+            }))
+            break;
+        default:
+            break;
     }
+    setLoadingGraph(false)
   }, [selectedStation]);
+
+  const onSelectGraphType = useCallback((event) => {
+    setGraphType(event.target.value)
+  } , [])
 
   useEffect(() => {
     bannerCoverRef.current.style.height = "30%";
@@ -72,9 +88,9 @@ const Station = () => {
 
   useEffect(() => {
     if (graphType === "ec_ph") {
-      fetchECPhData();
+      requestEcPhData();
     }
-  }, [graphType, selectedStation, fetchECPhData]);
+  }, [graphType, selectedStation, requestEcPhData]);
 
   return (
     <div
@@ -110,13 +126,13 @@ const Station = () => {
       {/* ชนิดกราฟ */}
       <div style={{ marginBottom: "20px" }}>
         <label style={{ marginRight: "10px" }}>เลือกข้อมูลกราฟ: </label>
-        <select value={graphType} onChange={(e) => setGraphType(e.target.value)}>
+        <select value={graphType} onChange={onSelectGraphType}>
           <option value="weather">อุณหภูมิ / ความชื้น</option>
           <option value="ec_ph">EC / pH</option>
         </select>
       </div>
 
-      <div style={{ display: "flex", gap: "20px", height: "calc(100% - 50px)" }}>
+      <div style={{ display: "flex", gap: "20px", height: "calc(100% - 100px)" }}>
         {/* กราฟ */}
         <div
           style={{
@@ -128,60 +144,40 @@ const Station = () => {
             textAlign: "center",
           }}
         >
-          <h3 style={{ marginBottom: "10px" }}>
-            {graphType === "weather" ? "กราฟสภาพอากาศภายในศูนย์" : "กราฟ EC / pH"}
-          </h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={graphType === "weather" ? weatherData : ecPhData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {graphType === "weather" ? (
-                <>
-                  <Line
-                    type="monotone"
-                    dataKey="temperature"
-                    stroke="#ff7300"
-                    name="อุณหภูมิ (°C)"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="humidity"
-                    stroke="#387908"
-                    name="ความชื้น (%)"
-                  />
-                </>
-              ) : (
-                <>
-                  <Line
-                    type="monotone"
-                    dataKey="ec"
-                    stroke="#0088FE"
-                    name="EC (mS/cm)"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="ph"
-                    stroke="#00C49F"
-                    name="pH"
-                  />
-                </>
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+            <h4 style={{ marginBottom: "10px" }}>
+                {graphType === "weather" ? "กราฟสภาพอากาศภายในศูนย์" : "กราฟ EC / pH"}
+            </h4>
+            <Stack height={"calc(100% - 40px)"} width={"100%"}>
+                <ChartSensor 
+                    data={
+                        graphType === "weather" ? 
+                            weatherData : 
+                        graphType === "ec_ph" ?
+                            ecPhData : []
+                    }
+                >
+                    {
+                        graphType === "weather" ? 
+                            <WeatherSensor/> :
+                        graphType === "ec_ph" ?
+                            <EcPhSensor/> :
+                            undefined
+                    }
+                </ChartSensor>
+            </Stack>
         </div>
 
         {/* ข้อมูลโรงเรือน */}
         <div style={{ flex: 1 }}>
-          {!selectedStation ? (
-            <div style={{ color: "#888", textAlign: "center", marginTop: "50px" }}>
-              กรุณาเลือกศูนย์เพื่อแสดงโรงเรือน
-            </div>
-          ) : (
-            <Houses selectedStation={selectedStation} />
-          )}
+          {
+            !selectedStation ? (
+                <div style={{ color: "#888", textAlign: "center", marginTop: "50px" }}>
+                    กรุณาเลือกศูนย์เพื่อแสดงโรงเรือน
+                </div>
+            ) : (
+                <Houses selectedStation={selectedStation} />
+            )
+          }
         </div>
       </div>
     </div>

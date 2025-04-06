@@ -5,11 +5,10 @@ const apiFarmer = require('./apiFarmer');
 const apiSensor = require('./apiSensor');
 const message = require('./apiMessaging');
 const dbpackage = require('./dbConfig');
+const ConnectPool = require('./connectPool');
 const apifunc = require('./apifunc');
 const LINE = require("./configLine");
 const WebSocket = require('./webSocket');
-
-
 
 const express = require('express');
 const cors = require('cors')
@@ -25,6 +24,12 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
     const app = express();
+
+    const Pool = new ConnectPool()
+    Pool.createPool({
+        user: username,
+        password: password,
+    })
     
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     app.set('trust proxy', 1);
@@ -107,7 +112,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // router api url
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
-    apiDoctor(app , db , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
+    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiSensor(app , db , listDB)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)

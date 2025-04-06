@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { Modal } from "react-bootstrap";
 import House from "./house";
+import { Stack } from "@mui/material";
 
 export default function Houses({
     selectedStation
@@ -27,7 +28,7 @@ export default function Houses({
     } , [fetchHouseList])
 
     return(
-        <React.Fragment>
+        <Stack style={{ width : "100%" , height : "100%" , overflowY : "auto" , paddingRight : "8px" }}>
             <Modal
                 show={openstation.open}
                 onHide={() => setOpenstation({ ...openstation, open: false })}
@@ -75,6 +76,6 @@ export default function Houses({
                     </div>
                 )
             }
-        </React.Fragment>
+        </Stack>
     )
 }
