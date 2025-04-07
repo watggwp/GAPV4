@@ -6,7 +6,7 @@ import RequestAPI, { responseStatus } from "../../../../../assets/js/requestAPI"
 import ChartSensor from "../../../../../assets/components/sensor/chart";
 import EcPhSensor from "../../../../../assets/components/sensor/EcPh";
 import WeatherSensor from "../../../../../assets/components/sensor/Weather";
-import { Stack } from "@mui/material";
+import { Button, MenuItem, Select, Stack } from "@mui/material";
 
 // Mock weather data
 const mockWeatherData = [
@@ -103,36 +103,53 @@ const Station = () => {
     >
       {/* Filter Row */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <select
-          value={selectedStation}
-          onChange={(e) => setSelectedStation(e.target.value)}
+        <Select
+            value={selectedStation}
+            onChange={(e) => setSelectedStation(e.target.value)}
+            size="small"
         >
-          <option value="">เลือกศูนย์</option>
-          {stationList.map((station, index) => (
-            <option key={index} value={station.id}>
-              {station.name}
-            </option>
-          ))}
-        </select>
-        <button>Export</button>
-        <select>
-          <option>เลือกชนิดพืช</option>
-        </select>
-        <select>
-          <option>เลือกเกษตรกร</option>
-        </select>
+            <MenuItem disabled value={""} sx={{ display : "none" }}>เลือกศูนย์</MenuItem>
+            {
+                stationList.map((station, index) => (
+                    <MenuItem key={index} value={station.id}>
+                        {station.name}
+                    </MenuItem>
+                ))
+            }
+        </Select>
+        <Select
+            value={""}
+            size="small"
+            displayEmpty
+        >
+            <MenuItem disabled value={""}>เลือกชนิดพืช</MenuItem>
+        </Select>
+        <Select
+            value={""}
+            size="small"
+            displayEmpty
+        >
+            <MenuItem disabled value={""}>เลือกเกษตรกร</MenuItem>
+        </Select>
+        <Stack justifyContent={"center"} alignItems={"center"}>
+            <Button variant="contained" color="primary" size="small">
+                Export
+            </Button>
+        </Stack>
       </div>
 
       {/* ชนิดกราฟ */}
       <div style={{ marginBottom: "20px" }}>
-        <label style={{ marginRight: "10px" }}>เลือกข้อมูลกราฟ: </label>
-        <select value={graphType} onChange={onSelectGraphType}>
-          <option value="weather">อุณหภูมิ / ความชื้น</option>
-          <option value="ec_ph">EC / pH</option>
-        </select>
+        <label style={{ marginRight: "10px" }}>
+            เลือกข้อมูลกราฟ: 
+            <Select value={graphType} onChange={onSelectGraphType} size="small" style={{ marginLeft: "10px" }}>
+                <MenuItem value="weather">อุณหภูมิ / ความชื้น</MenuItem>
+                <MenuItem value="ec_ph">EC / pH</MenuItem>
+            </Select>
+        </label>
       </div>
 
-      <div style={{ display: "flex", gap: "20px", height: "calc(100% - 100px)" }}>
+      <div style={{ display: "flex", gap: "20px", height: "calc(100% - 120px)" }}>
         {/* กราฟ */}
         <div
           style={{

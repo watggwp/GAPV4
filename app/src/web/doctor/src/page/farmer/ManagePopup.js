@@ -585,7 +585,7 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
                                         <div className="text-detail btm">
                                             <span>ตำแหน่งที่อยู่</span>
                                             <div>
-                                                <MapsJSX lat={DetailFarmer.location.x} lng={DetailFarmer.location.y} w={"100%"} h={"10%"}/>
+                                                <MapsJSX lat={DetailFarmer.location?.x} lng={DetailFarmer.location?.y} w={"100%"} h={"10%"}/>
                                             </div>
                                         </div>
                                         </>

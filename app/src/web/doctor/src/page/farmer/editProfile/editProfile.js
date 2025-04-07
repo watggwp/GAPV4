@@ -24,15 +24,16 @@ const EditProfile = ({DataProfile , session , CheckEditFun}) => {
     } , [])
 
     const FetchStation = async () => {
-        setLag(DataProfile.location.x)
-        setLng(DataProfile.location.y)
+        const lX = DataProfile.location?.x
+        const lY = DataProfile.location?.y
+        setLag(lX)
+        setLng(lY)
         const StationFetch = await clientMo.post("/api/doctor/station/list")
         try {
-            const search = new Array()
-            JSON.parse(StationFetch).map(val=>{
-                let lag = Math.abs(DataProfile.location.x - val.location.x)
-                let lng = Math.abs(DataProfile.location.y - val.location.y)
-                search.push({id : val.id , name : val.name , dist : lag + lng})
+            const search = JSON.parse(StationFetch).map(val=>{
+                let lag = Math.abs(lX - val.location.x)
+                let lng = Math.abs(lY - val.location.y)
+                return {id : val.id , name : val.name , dist : lag + lng}
             })
             
             setListStation(search.sort((a , b)=>a.dist - b.dist).slice(0 , 2))

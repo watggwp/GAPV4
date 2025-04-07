@@ -18,23 +18,7 @@ const PageFarmer = ({setMain , session , socket , type = 0 , eleImageCover , Loa
     const TextSearchRef = useRef()
     const SelectOption = useRef()
 
-    useEffect(()=>{
-        eleImageCover.current.style.height = "40%"
-        eleBody.current.style.height = "60%"
-        setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
-        clientMo.unLoadingPage()
-
-        if(LoadType.split(":")[1] === "pop")
-            chkPath()
-    } , [LoadType])
-
-    useEffect(()=>{
-        return(()=>{
-            clearTimeout(getTimeOut)
-        })
-    } , [getTimeOut])
-
-    const chkPath = () => {
+    const chkPath = useCallback(() => {
         if(LoadType.split(":")[0] === "ap") {
             setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
             setStatus({
@@ -56,7 +40,22 @@ const PageFarmer = ({setMain , session , socket , type = 0 , eleImageCover , Loa
             })
         }
             
-    }
+    } , [LoadType , setTextStatus])
+
+    useEffect(()=>{
+        eleImageCover.current.style.height = "40%"
+        eleBody.current.style.height = "60%"
+        setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
+        clientMo.unLoadingPage()
+
+        if(LoadType.split(":")[1] === "pop") chkPath()
+    } , [LoadType, chkPath, eleBody, eleImageCover, setTextStatus])
+
+    useEffect(()=>{
+        return(()=>{
+            clearTimeout(getTimeOut)
+        })
+    } , [getTimeOut])
 
     const changeMenu = (e) => {
         // const typeClick = statusPage.status === "ap" ? "wt" : "ap"
@@ -131,7 +130,7 @@ const List = ({ session , socket , status , textSearch}) => {
         }
     } , [session, status.status])
 
-    const StartList = useCallback(() => async (status) => {
+    const StartList = useCallback(async (status) => {
         await FetchList(10)
         setVerifyStart(true)
         if(status.open === 1) window.history.pushState({} , "" , `/doctor/farmer/${status.status}`)
@@ -159,7 +158,8 @@ const List = ({ session , socket , status , textSearch}) => {
         if(getVerifyStart) FetchList(Count , textSearch)
     } , [Count, FetchList, getVerifyStart, textSearch])
 
-    return (LoadingList ?
+    return (
+            LoadingList ?
                 <div style={{
                     display: "flex",
                     justifyContent: "center",
@@ -170,7 +170,7 @@ const List = ({ session , socket , status , textSearch}) => {
                 </div> 
                 :
                 <ManageList Data={Data} status={status} session={session} fetch={FetchList} count={Count} setCount={setCount} socket={socket}/>
-                )
+            )
 }
 
 const ManageList = ({Data , status , session , fetch , count , setCount , socket}) => {
