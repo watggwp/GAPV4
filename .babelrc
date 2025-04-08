@@ -1,9 +1,9 @@
 {
-    "parser": "@babel/eslint-parser",
-    "parserOptions": {
-        "requireConfigFile": false,
-        "babelOptions": {
-            "presets": ["@babel/preset-env", "@babel/preset-react"]
-        }
+    "presets": [
+        // "react-app",
+        "@babel/preset-env"
+    ],
+    "compilerOptions": {
+        "target": "ES2020"
     }
 }

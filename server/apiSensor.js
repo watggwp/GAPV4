@@ -33,16 +33,16 @@ module.exports = function apiSensor(app, connectionDB = new Pool()) {
 		}
 	});
 
-	app.post("/api/sensor/greenhouse/:greenhouse_id", async (req, res) => {
+	app.post("/api/sensor/greenhouse", async (req, res) => {
         // แสดงข้อมูลที่ TTN ส่งมาใน console
         console.log("📥 Received TTN data:", req.body);
-		const { greenhouse_id } = req.params
         const {
 			end_device_ids : {
 				device_id
 			},
             uplink_message : {
 				decoded_payload : {
+					greenhouse_id,
 					humidity_air,
 					humidity_soil,
 					light,
