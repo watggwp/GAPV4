@@ -1,5 +1,6 @@
 require('dotenv').config();
 const Pool = require("./connectPool")
+
 module.exports = function apiSensor(app, connectionDB = new Pool()) {
 	app.post("/api/sensor/weather/:station_id", async (req, res) => {
 		// ดึง rainfall มาด้วย
