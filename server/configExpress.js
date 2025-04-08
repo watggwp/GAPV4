@@ -114,7 +114,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
-    apiSensor(app , db , listDB)
+    apiSensor(app , Pool)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
     // page error 404
     app.get("*" , (req, res) => {
