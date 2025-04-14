@@ -8,18 +8,18 @@ const House = ({stationid}) => {
     const [openstation, setOpenstation] = useState({
         open:false,stationid:''
     });
- const stationlist = async () =>{
-    const ObjectData = await clientMo.get(`/api/doctor/station/${stationid}/housefarm/`, {
-        limit : 100,
-        startRow : 1,
-        type: "station",
-        textSearch : "",
-      });
-      console.log(ObjectData)
-      const list = JSON.parse(ObjectData)
-      setHouse(list)
-    
- }
+    const stationlist = async () =>{
+      const ObjectData = await clientMo.get(`/api/doctor/station/${stationid}/housefarm/`, {
+          limit : 100,
+          startRow : 1,
+          type: "station",
+          textSearch : "",
+        });
+        console.log(ObjectData)
+        const list = JSON.parse(ObjectData)
+        setHouse(list)
+      
+   }
  useEffect(()=>{
     stationlist()
  },[])
