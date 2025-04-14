@@ -4980,4 +4980,44 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
         })
     })
 
+    // template
+    app.get('/api/template' , (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+    
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
+            con.end()
+            try {
+                // process area
+                
+                const data = await pool.executeQuery(
+                    // query sql
+                    `
+                        
+                    `,
+                    [] //params sql
+                )
+                res.send() //reponse status code 200
+
+                // process area
+            } catch(err) {
+                res.status(500).send() // response status code 500
+            }
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    })
+
 }
