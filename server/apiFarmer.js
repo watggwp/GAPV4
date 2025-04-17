@@ -1,13 +1,15 @@
 require('dotenv').config().parsed
 const line = require('./configLine')
 const fs = require('fs')
+const ConnentPool = require('./connectPool');
+
 const RichSign = process.env.RICH_SIGN
 const RichHouse = process.env.RICH_HOUSE
 
 const { Server } = require('socket.io')
 const io = new Server()
 
-module.exports = function apiFarmer(app, Database, apifunc, dbpacket, listDB, socket = io, LINE = line) {
+module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , apifunc, dbpacket, listDB, socket = io, LINE = line) {
 
     app.post('/api/farmer/sign', async (req, res) => {
         if (req.session.user_doctor != undefined || req.session.pass_doctor != undefined) {
@@ -175,8 +177,7 @@ module.exports = function apiFarmer(app, Database, apifunc, dbpacket, listDB, so
                                             con.end()
                                             if (!err) {
                                                 if (result.affectedRows > 0) {
-                                                    try { LINE.linkRichMenuToUser(uidLine, RichHouse) }
-                                                    catch (e) {
+                                                    if(!LINE.changeRichMenu(uidLine , RichHouse)) {
                                                         fs.appendFileSync(__dirname.replace('\server', '/logs/errorfile.json'), `richMenuAddFarm : {id:${req.session.uidFarmer} , date : ${new Date().getTime}}`)
                                                     }
 
@@ -3150,13 +3151,52 @@ module.exports = function apiFarmer(app, Database, apifunc, dbpacket, listDB, so
             return res.send("error auth");
         }
     });
-    
-    
 
+    // weather-station
+    app.get("/api/farmer/weather-station", async (req, res) => {
+        if (!req.session.uidFarmer) return res.send("error auth");
+    
+        const con = Database.createConnection(listDB);
+        try {
+            const auth = await authCheck(con, dbpacket, res, req, LINE);
+            const { data : { station } } = auth
+            if (station === undefined) {
+                con.end();
+                return res.status(404).send({
+                    "details" : "not found"
+                });
+            }
 
+            const { st , et } = req.query
+    
+            try {
+                const data = pool.executeQuery(
+                    `
+                        SELECT timestamp , temperature , humidity ,light , rainfall
+                        FROM weather_station
+                        WHERE station_id = ? AND timestamp BETWEEN ? AND ?
+                    `,
+                    [ station , st , et ]
+                )
+                
+                return res.status(200).send({
+                    details : data
+                });
+            } catch(err) {
+                return res.status(500).send({
+                    details : "error"
+                });
+            }
+        } catch (err) {
+            con.end();
+            return res.status(403).send({
+                details : "error auth"
+            });
+        }
+    });
 }
 
-const authCheck = (con, dbpacket, res, req, LINE) => {
+const authCheck = (con, dbpacket, res, req, LINE = line) => {
     return new Promise(async (resole, reject) => {
         const userLine = await new Promise(async (resole, reject) => {
             try {
@@ -3182,24 +3222,19 @@ const authCheck = (con, dbpacket, res, req, LINE) => {
                                     const ProfilePass = result.filter(profile => profile.register_auth == 0 || profile.register_auth == 1)
                                     if (ProfilePass.length != 0) {
                                         if (req.body['page'] === "signup") {
-                                            try {
-                                                LINE.unlinkRichMenuFromUser(req.session.uidFarmer)
-                                                LINE.linkRichMenuToUser(req.session.uidFarmer, RichHouse)
-                                            } catch (e) { }
+                                            LINE.changeRichMenu(req.session.uidFarmer , RichHouse)
                                         }
                                         resole({
                                             result: "search",
                                             data: ProfilePass[0]
                                         })
                                     } else {
-                                        try {
-                                            LINE.unlinkRichMenuFromUser(req.session.uidFarmer)
-                                            LINE.linkRichMenuToUser(req.session.uidFarmer, RichSign)
-                                        } catch (e) { }
+                                        LINE.changeRichMenu(req.session.uidFarmer , RichSign)
                                         reject("no")
                                     }
                                 }
                                 else {
+                                    LINE.changeRichMenu(req.session.uidFarmer , RichSign)
                                     try {
                                         LINE.unlinkRichMenuFromUser(req.session.uidFarmer)
                                         LINE.linkRichMenuToUser(req.session.uidFarmer, RichSign)

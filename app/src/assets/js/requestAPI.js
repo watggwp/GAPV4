@@ -44,7 +44,7 @@ class ClientRequestAPI {
     }
     async get(url , query) {
         return await axios.get(`${HOST_API}${url}` , {
-            data : query,
+            params : query,
             ...this.options
         })
     }

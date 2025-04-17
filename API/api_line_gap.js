@@ -55,62 +55,11 @@ const RichMenu = {
 
   },
 
-  createRichAddFarm : () => {
-    const jsonHouse = 
-    {
-      "size": {
-        "width": 2500,
-        "height": 843
-      },
-      "selected": true,
-      "name": "house",
-      "chatBarText": "โรงเรือน",
-      "areas": [
-        {
-          "bounds": {
-            "x": 25,
-            "y": 34,
-            "width": 984,
-            "height": 789
-          },
-          "action": {
-            "type": "uri",
-            "uri": "https://liff.line.me/2006915135-rpPe4wml"
-          }
-        },
-        {
-          "bounds": {
-            "x": 1026,
-            "y": 25,
-            "width": 967,
-            "height": 794
-          },
-          "action": {
-            "type": "postback",
-            "text": "เลือกโรงเรือน",
-            "data": "house_add"
-          }
-        },
-        {
-          "bounds": {
-            "x": 2019,
-            "y": 17,
-            "width": 456,
-            "height": 802
-          },
-          "action": {
-            "type": "uri",
-            "uri": "https://liff.line.me/2006915135-ANO5DXR8"
-          }
-        }
-      ]
-    }
-    
-    richmenu.createRichMenu(jsonHouse).then((RichID)=>{
-      let pathImage = "API/assets/Group1.png"
+  createRichAddFarm : (object_create) => {    
+    richmenu.createRichMenu(object_create).then((RichID)=>{
+      let pathImage = "API/assets/logined-v3.png"
       richmenu.setRichMenuImage(RichID , fs.readFileSync(pathImage) , "image/png")
     })
-
   },
   setDefault : (RichID) => {
     richmenu.deleteDefaultRichMenu().then(()=>{
@@ -144,11 +93,119 @@ const RichMenu = {
   }
 
 }
-//  RichMenu.DeleteRichMenu.All()
-RichMenu.GetRichMenu()
+// RichMenu.DeleteRichMenu.someone("richmenu-4b7073c8a0b28725f8f0873183e7222b")
+// RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
-// RichMenu.createRichAddFarm()
-// RichMenu.setDefault("richmenu-5e2130a283662961b79c629176c76e47")
+// const jsonHouse = 
+//     {
+//       "size": {
+//         "width": 2500,
+//         "height": 1320
+//       },
+//       "selected": true,
+//       "name": "house",
+//       "chatBarText": "โรงเรือน",
+//       "areas": [
+//         {
+//           "bounds": {
+//             "x": 25,
+//             "y": 34,
+//             "width": 984,
+//             "height": 789
+//           },
+//           "action": {
+//             "type": "uri",
+//             "uri": "https://liff.line.me/2006915135-rpPe4wml"
+//           }
+//         },
+//         {
+//           "bounds": {
+//             "x": 1026,
+//             "y": 25,
+//             "width": 967,
+//             "height": 794
+//           },
+//           "action": {
+//             "type": "postback",
+//             "text": "เลือกโรงเรือน",
+//             "data": "house_add"
+//           }
+//         },
+//         {
+//           "bounds": {
+//             "x": 2019,
+//             "y": 17,
+//             "width": 456,
+//             "height": 802
+//           },
+//           "action": {
+//             "type": "uri",
+//             "uri": "https://liff.line.me/2006915135-ANO5DXR8"
+//           }
+//         }
+//       ]
+//     }
+// RichMenu.createRichAddFarm({
+//   "size": {
+//     "width": 2500,
+//     "height": 1320
+//   },
+//   "selected": true,
+//   "name": "Menu farmer",
+//   "chatBarText": "โรงเรือน",
+//   "areas": [
+//     {
+//       "bounds": {
+//         "x": 1026,
+//         "y": 25,
+//         "width": 1449,
+//         "height": 440
+//       },
+//       "action": {
+//         "type": "uri",
+//         "uri": "https://developers.line.biz/console/channel/2001354413"
+//       }
+//     },
+//     {
+//       "bounds": {
+//         "x": 38,
+//         "y": 503,
+//         "width": 963,
+//         "height": 793
+//       },
+//       "action": {
+//         "type": "uri",
+//         "uri": "https://liff.line.me/2006915135-rpPe4wml"
+//       }
+//     },
+//     {
+//       "bounds": {
+//         "x": 1026,
+//         "y": 503,
+//         "width": 959,
+//         "height": 789
+//       },
+//       "action": {
+//         "type": "postback",
+//         "text": "เลือกโรงเรือน",
+//         "data": "house_add"
+//       }
+//     },
+//     {
+//       "bounds": {
+//         "x": 2019,
+//         "y": 502,
+//         "width": 447,
+//         "height": 794
+//       },
+//       "action": {
+//         "type": "uri",
+//         "uri": "https://liff.line.me/2006915135-ANO5DXR8"
+//       }
+//     }
+//   ]
+// })
+RichMenu.setDefault("richmenu-20949fb410f74a6e7f1897a227287a83")
 // richmenu.linkRichMenuToUser("Uec52e5da629da4c89c55674831d126a8" , "richmenu-d783a040e4496034da33b006f154cbed")
 
 

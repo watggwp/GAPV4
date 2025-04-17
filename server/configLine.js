@@ -6,6 +6,18 @@ const config = {
   channelSecret: process.env.channelSecret
 }
 
-const LINE = new Line.Client(config)
+class LineGAP extends Line.Client {
+  async changeRichMenu(uid , richMenuID) {
+    try {
+      await this.unlinkRichMenuFromUser(uid)
+      await this.linkRichMenuToUser(uid, richMenuID)
+      return true
+    } catch(err) {
+      return false
+    }
+  }
+}
+
+const LINE = new LineGAP(config)
 
 module.exports = LINE

@@ -22,6 +22,9 @@ const id = {
     "signup" : process.env.REACT_APP_LINE_SIGNUP ,
     "house" : process.env.REACT_APP_LINE_HOUSE ,
     "form" : process.env.REACT_APP_LINE_FORM ,
-    "houses" : process.env.REACT_APP_LINE_HOUSELIST
+    "houses" : process.env.REACT_APP_LINE_HOUSELIST,
+    "weather-station" : "2007276444-r1K5bRnj"
 }
-ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)
+ReactDOM.createRoot(document.getElementById('farmer')).render(
+    <MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>
+)

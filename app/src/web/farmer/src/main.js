@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {clientMo}  from "../../../assets/js/moduleClient";
 import {useLiff} from "../../../assets/js/module";
 import MenuMain from "../src/content/mainFarmHouse";
@@ -6,54 +6,68 @@ import House from "../src/houseFile/House";
 import Signup from "../src/singupFile/Signup"
 import { CloseAccount } from "./method";
 import HouseList from "./HouseList/HouseList";
+import liff from "@line/liff";
+import WeatherStation from "./weather-station";
 
+const FarmerContext = createContext({
+    liff : liff,
+    uid : ""
+})
 
 const MainFarmer = ({socket , idLiff , Path}) => {
     const [body , setBody] = useState(<></>)
-    const [init , liff] = useLiff(idLiff)
+    const [init , Liff] = useLiff(idLiff)
+    const [ uid , setUid ] = useState("")
 
     useEffect(()=>{
         init.then(()=>{
-            if(liff.isInClient()) {
-                if(liff.isLoggedIn()) {
-                    liff.getProfile().then((profile)=>{
+            if(Liff.isInClient()) {
+                if(Liff.isLoggedIn()) {
+                    Liff.getProfile().then((profile)=>{
                         // สมัครเข้าต้องค้นหาบัญชีโดยไม่ตรง status ยกเลิกบัญชี
                         if(profile.userId) {
-                            LoadPage(profile.userId , liff)
+                            LoadPage(profile.userId , Liff)
                         }
                     })
                 } else {
-                    liff.login()
+                    Liff.login()
                 }
             } else {
-                let UID = "Uec52e5da629da4c89c55674831d126a8"
-                LoadPage(UID , liff)
+                let UID = "U915317b45fea27966b03ff8e47960321"
+                LoadPage(UID , Liff)
                 // CloseAccount("not line" , null , "กรุณาเข้าผ่านไลน์แอปพลิเคชั่น")
             }
         }).catch(err=>{
+            console.log(err)
             CloseAccount("not line" , null , "พบปัญหาจากระบบ")
         })
 
     } , [])
 
-    const LoadPage = async (uid, liff) => {
+    const LoadPage = async (uid, Liff) => {
         const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
+        console.log(Path)
+        setUid(uid)
         if (Path === "signup" && result !== "error auth") {
-            if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
+            if (result === "close" || result === "no account") setBody(<Signup liff={Liff} uid={uid} />);
             else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
 
         } else if (Path === "houses" && result !== "error auth") {
             if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<HouseList liff={liff} uid={uid} />);
+            else if (result === "search") setBody(<HouseList liff={Liff} uid={uid} />);
 
         } else if (Path === "house" && result !== "error auth") {
             if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<House liff={liff} uid={uid} />);
+            else if (result === "search") setBody(<House liff={Liff} uid={uid} />);
+
+        } else if (Path === "weather-station" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<WeatherStation/>);
 
         } else if (Path === "form" && result !== "error auth") {
             const auth = window.location.pathname.split("/")[3];
             if (auth && result !== "close") {
-                setBody(<MenuMain liff={liff} uid={uid} />);
+                setBody(<MenuMain liff={Liff} uid={uid} />);
             } else CloseAccount("not line", null, "ไม่พบบัญชี");
         } else {
             CloseAccount("not line", null, "พบปัญหาจากระบบ");
@@ -61,7 +75,12 @@ const MainFarmer = ({socket , idLiff , Path}) => {
     };
 
     return(
-        <>
+        <FarmerContext.Provider
+            value={{
+                liff : Liff,
+                uid
+            }}
+        >
             {body}
             <section style={{
                 display : "flex",
@@ -97,7 +116,7 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                         // fontSize : "20px",
                         marginBottom : "11px"
                     }}></div>
-                    <button onClick={()=>liff.closeWindow()} style={{
+                    <button onClick={()=>Liff.closeWindow()} style={{
                         fontFamily : "Sans-font",
                         fontSize : "20px",
                         borderRadius : "18px",
@@ -110,8 +129,12 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                     }}>ตกลง</button>
                 </div>
             </section>
-        </>
+        </FarmerContext.Provider>
     )
+}
+
+export function useFarmer() {
+    return useContext(FarmerContext)
 }
 
 export default MainFarmer

@@ -113,7 +113,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
-    apiFarmer(app , db , apifunc , dbpackage , listDB , io , LINE)
+    apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
     apiSensor(app , Pool)
     message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
     // page error 404
