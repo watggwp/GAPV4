@@ -3170,13 +3170,14 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             const { st , et } = req.query
     
             try {
-                const data = pool.executeQuery(
+                const data = await pool.executeQuery(
                     `
                         SELECT timestamp , temperature , humidity ,light , rainfall
-                        FROM weather_station
-                        WHERE station_id = ? AND timestamp BETWEEN ? AND ?
+                        FROM weather_station ws
+                        LEFT JOIN station_list sl ON ws.station_signature = sl.id_station
+                        WHERE sl.id = ? AND timestamp BETWEEN ? AND ?
                     `,
-                    [ station , st , et ]
+                    [ station , new Date(Number(st)) , new Date(Number(et)) ]
                 )
                 
                 return res.status(200).send({

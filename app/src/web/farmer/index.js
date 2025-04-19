@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM  from "react-dom/client";
 import io from "socket.io-client"
 import MainFarmer from "./src/main";
+import ThemeFarmer from "./theme";
 
 
 // const socket = new WebSocket();
@@ -26,5 +27,7 @@ const id = {
     "weather-station" : "2007276444-r1K5bRnj"
 }
 ReactDOM.createRoot(document.getElementById('farmer')).render(
-    <MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>
+    <ThemeFarmer>
+        <MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>
+    </ThemeFarmer>
 )

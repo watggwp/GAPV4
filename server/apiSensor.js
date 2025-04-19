@@ -2,16 +2,15 @@ require('dotenv').config();
 const Pool = require("./connectPool")
 
 module.exports = function apiSensor(app, connectionDB = new Pool()) {
-	app.post("/api/sensor/weather/:station_id", async (req, res) => {
+	app.post("/api/sensor/weather-station", async (req, res) => {
 		// ดึง rainfall มาด้วย
-		const { station_id } = req.params
 		const { device_id, timestamp, temperature, humidity, light, rainfall } = req.body;
 
 		try {
 			await connectionDB.executeQuery(
 				`
 					INSERT INTO weather_station
-						(device_id, station_id, timestamp, temperature, humidity, light, rainfall) 
+						(device_id, station_signature, timestamp, temperature, humidity, light, rainfall) 
 					VALUES
 						(?, ?, ?, ?, ?, ?, ?)
 				`,
