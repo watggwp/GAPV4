@@ -16,7 +16,6 @@ const Station = () => {
 
   const [weatherData, setWeatherData] = useState([]);
   const [ecPhData, setEcPhData] = useState([]);
-  const [showCount, setShowCount] = useState(10);
   const [openHistory, setOpenHistory] = useState(false);
 
   const fetchStationList = useCallback(async () => {
@@ -63,7 +62,7 @@ const Station = () => {
 
     if (status === responseStatus.SUCCESS) {
       // ลองตรวจสอบหลายโครงสร้าง
-      const weatherArray = data.weather || data.readings || data.data || [];
+      const weatherArray = data || [];
 
       if (Array.isArray(weatherArray)) {
         setWeatherData(weatherArray.map(({ temperature, humidity, timestamp }) => {
@@ -104,16 +103,17 @@ const Station = () => {
     } else if (graphType === "weather") {
       requestWeatherData();
     }
-    setShowCount(10);
   }, [graphType, selectedStation, requestEcPhData, requestWeatherData]);
 
   const currentData = graphType === "weather"
-    ? weatherData.slice(-showCount)
-    : ecPhData.slice(-showCount);
+    ? weatherData
+    : ecPhData;
 
   const allData = graphType === "weather"
     ? weatherData
     : ecPhData;
+
+  console.log(currentData , graphType)
 
   return (
     <div style={{ padding: "20px", fontFamily: "sans-serif", width: "100%", height: "100%" }}>

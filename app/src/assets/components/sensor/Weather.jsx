@@ -9,12 +9,14 @@ export default function WeatherSensor() {
                 dataKey="temperature"
                 stroke="#ff7300"
                 name="อุณหภูมิ (°C)"
+                dot={false}
             />
             <Line
                 type="monotone"
                 dataKey="humidity"
                 stroke="#387908"
                 name="ความชื้น (%)"
+                dot={false}
             />
         </React.Fragment>
     )
