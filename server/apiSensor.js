@@ -2,21 +2,20 @@ require('dotenv').config();
 
 module.exports = function apiSensor(app, Database, listDB) {
 	app.post("/api/sensor", (req, res) => {
-		// ดึง rainfall มาด้วย
-		const { device_id, station_id, timestamp, temperature, humidity, light, rainfall } = req.body;
+		// ลบ station_id
+		const { device_id, timestamp, temperature, humidity, light, rainfall } = req.body;
 
 		const conn = Database.createConnection(listDB);
 
 		conn.query(
 			`
                 INSERT INTO weather_station
-                    (device_id, station_id, timestamp, temperature, humidity, light, rainfall) 
+                    (device_id, timestamp, temperature, humidity, light, rainfall) 
                 VALUES
-                    (?, ?, ?, ?, ?, ?, ?)
+                    (?, ?, ?, ?, ?, ?)
             `,
 			[
 				device_id,
-				station_id,
 				timestamp,
 				temperature,
 				humidity,
