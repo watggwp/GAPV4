@@ -3,11 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@babel/core": "^7.24.4",
-    "@babel/plugin-transform-runtime": "^7.24.3",
-    "@babel/preset-env": "^7.24.4",
-    "@babel/preset-react": "^7.24.1",
-    "@babel/runtime": "^7.24.4",
     "@date-io/date-fns": "^3.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -18,32 +13,18 @@
     "@mui/material": "^6.4.11",
     "@mui/system": "^6.4.3",
     "@mui/x-date-pickers": "^8.0.0-beta.3",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
     "@react-google-maps/api": "^2.19.3",
     "@react-pdf/renderer": "^3.4.2",
-    "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.2",
-    "babel-jest": "^27.4.2",
-    "babel-plugin-named-asset-import": "^0.3.8",
-    "babel-preset-react-app": "^10.0.1",
-    "bfj": "^7.1.0",
     "bootstrap": "^5.3.3",
-    "browserslist": "^4.23.0",
-    "camelcase": "^6.3.0",
-    "case-sensitive-paths-webpack-plugin": "^2.4.0",
-    "chart.js": "^4.4.7",
     "cookie-parser": "^1.4.6",
-    "css-minimizer-webpack-plugin": "^3.4.1",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
-    "eslint": "^8.57.0",
-    "eslint-config-react-app": "^7.0.1",
-    "eslint-webpack-plugin": "^3.2.0",
     "exifr": "^7.1.3",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
@@ -52,64 +33,47 @@
     "fs-extra": "^10.1.0",
     "google-map-react": "^2.2.1",
     "helmet": "^7.1.0",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^27.5.1",
-    "jest-resolve": "^27.5.1",
-    "jest-watch-typeahead": "^1.1.0",
     "jquery": "^3.7.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
-    "mini-css-extract-plugin": "^2.9.0",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.9.6",
     "ngrok": "^5.0.0-beta.2",
     "nodemon": "^3.1.0",
     "pm2": "^5.3.1",
-    "postcss": "^8.4.38",
-    "postcss-flexbugs-fixes": "^5.0.2",
-    "postcss-loader": "^6.2.1",
-    "postcss-normalize": "^10.0.1",
-    "postcss-preset-env": "^7.8.3",
     "prompts": "^2.4.2",
     "react": "^18.2.0",
-    "react-app-polyfill": "^3.0.0",
     "react-bootstrap": "^2.10.9",
     "react-chartjs-2": "^5.2.0",
-    "react-dev-utils": "^12.0.1",
     "react-dom": "^18.2.0",
-    "react-refresh": "^0.11.0",
+    "react-scripts": "^5.0.1",
     "react-select": "^5.10.0",
     "recharts": "^3.0.0-alpha.9",
     "resize-observer-polyfill": "^1.5.1",
-    "resolve": "^1.20.0",
-    "resolve-url-loader": "^4.0.0",
     "sass": "^1.85.0",
     "sass-loader": "^12.3.0",
-    "semver": "^7.3.5",
     "sheetjs-style": "^0.15.8",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
-    "source-map-loader": "^3.0.2",
     "tailwindcss": "^3.4.3",
-    "terser-webpack-plugin": "^5.3.10",
     "thai-wordcut": "^0.7.7",
     "thaidatepicker-react": "^1.3.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
     "uuid": "^9.0.1",
     "web-vitals": "^2.1.4",
-    "webpack-dev-middleware": "^7.2.1",
-    "webpack-dev-server": "^4.15.2",
-    "webpack-hot-middleware": "^2.26.1",
-    "webpack-manifest-plugin": "^4.1.1",
-    "wordcut": "^0.9.1",
-    "workbox-webpack-plugin": "^6.6.0"
+    "wordcut": "^0.9.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.7",
+    "@types/express-session": "^1.18.0",
+    "@types/multer": "^1.4.11",
+    "@types/mysql": "^2.15.25",
+    "@types/react": "^18.2.64"
   },
   "scripts": {
-    "server-admin": "node scripts/start.js admin",
-    "server-doctor": "node scripts/start.js doctor",
-    "server-farmer": "node scripts/start.js farmer",
+    "server-admin": "react-app-rewired start admin",
+    "server-doctor": "react-app-rewired start doctor",
+    "server-farmer": "react-app-rewired start farmer",
     "build": "node scripts/build.js admin && node scripts/build.js doctor && node scripts/build.js farmer",
     "test": "node scripts/test.js",
     "server": "pm2 start server/server.js -- deploy",
@@ -121,116 +85,8 @@
     "server-dev-router": "nodemon server/server.js router",
     "server-ngrok": "node server/serverNgrok.js",
     "init-env": "node initEnv/setupEnv.js",
-    "test-script": "nodemon testSetting/webSocget.js"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "server",
-      ".env",
-      "testSetting"
-    ],
-    "ignore": [
-      "app",
-      "server/serverNgrok.ts"
-    ],
-    "delay": "1"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "jest": {
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "!src/**/*.d.ts"
-    ],
-    "setupFiles": [
-      "react-app-polyfill/jsdom"
-    ],
-    "setupFilesAfterEnv": [],
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
-      "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
-    ],
-    "testEnvironment": "jsdom",
-    "transform": {
-      "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/config/jest/babelTransform.js",
-      "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
-      "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
-    },
-    "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$",
-      "^.+\\.module\\.(css|sass|scss)$"
-    ],
-    "modulePaths": [],
-    "moduleNameMapper": {
-      "^react-native$": "react-native-web",
-      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
-    },
-    "moduleFileExtensions": [
-      "web.js",
-      "js",
-      "web.ts",
-      "ts",
-      "web.tsx",
-      "tsx",
-      "json",
-      "web.jsx",
-      "jsx",
-      "node",
-      "mjs"
-    ],
-    "watchPlugins": [
-      "jest-watch-typeahead/filename",
-      "jest-watch-typeahead/testname"
-    ],
-    "resetMocks": true
-  },
-  "paths": {
-    "moduleFileExtensions": [
-      "web.js",
-      "js",
-      "web.ts",
-      "ts",
-      "web.tsx",
-      "tsx",
-      "json",
-      "web.jsx",
-      "jsx",
-      "node",
-      "mjs"
-    ]
-  },
-  "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@types/cookie-parser": "^1.4.7",
-    "@types/express-session": "^1.18.0",
-    "@types/multer": "^1.4.11",
-    "@types/mysql": "^2.15.25",
-    "@types/react": "^18.2.64",
-    "babel-loader": "^10.0.0",
-    "css-loader": "^7.1.2",
-    "html-webpack-plugin": "^5.6.3",
-    "style-loader": "^4.0.0",
-    "webpack": "^5.99.6",
-    "webpack-cli": "^6.0.1"
+    "test-script": "nodemon testSetting/webSocget.js",
+    "eject": "react-scripts eject"
   },
   "description": "- Install Package\r       ```\r       npm install\r       ```",
   "main": "index.js",

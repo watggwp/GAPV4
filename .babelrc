@@ -1,9 +1,0 @@
-{
-    "presets": [
-        // "react-app",
-        "@babel/preset-env"
-    ],
-    "compilerOptions": {
-        "target": "ES2020"
-    }
-}
