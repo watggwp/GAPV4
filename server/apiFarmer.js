@@ -3172,10 +3172,11 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             try {
                 const data = await pool.executeQuery(
                     `
-                        SELECT timestamp , temperature , humidity ,light , rainfall
+                        SELECT ws.id , timestamp , temperature , humidity ,light , rainfall
                         FROM weather_station ws
                         LEFT JOIN station_list sl ON ws.station_signature = sl.id_station
                         WHERE sl.id = ? AND timestamp BETWEEN ? AND ?
+                        ORDER BY timestamp DESC
                     `,
                     [ station , new Date(Number(st)) , new Date(Number(et)) ]
                 )

@@ -1,3 +1,5 @@
+'use strict';
+
 require('dotenv').config().parsed
 const wordcut = require('thai-wordcut')
 const axios = require('axios').default;

@@ -1,3 +1,5 @@
+'use strict';
+
 const { request } = require('axios');
 const LINE = require('./configLine');
 

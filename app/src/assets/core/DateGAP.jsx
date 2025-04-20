@@ -2,15 +2,22 @@ class DateGAP extends Date {
     getDayRangeFromNow(daysAgo = 0) {
         const now = new Date();
 
+        const targetNow = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23, 59, 59, 999
+        );
+
         const targetDate = new Date(
             now.getFullYear(),
             now.getMonth(),
             now.getDate() - daysAgo,
-            23, 59, 59, 999
+            0, 0, 0, 0
         );
 
         return {
-            now: now,
+            now: targetNow,
             dayAgo: targetDate
         }
     }
