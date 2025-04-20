@@ -1,22 +1,23 @@
+'use strict';
+
 require('dotenv').config();
 const Pool = require("./connectPool")
 
 module.exports = function apiSensor(app, connectionDB = new Pool()) {
 	app.post("/api/sensor/weather-station", async (req, res) => {
-		// ดึง rainfall มาด้วย
-		const { device_id, timestamp, temperature, humidity, light, rainfall } = req.body;
+
+		const { device_id, timestamp, temperature, humidity, light, rainfall } = req.body
 
 		try {
 			await connectionDB.executeQuery(
 				`
 					INSERT INTO weather_station
-						(device_id, station_signature, timestamp, temperature, humidity, light, rainfall) 
+						(device_id, timestamp, temperature, humidity, light, rainfall) 
 					VALUES
-						(?, ?, ?, ?, ?, ?, ?)
+						(?, ?, ?, ?, ?, ?)
 				`,
 				[
 					device_id,
-					station_id,
 					timestamp,
 					temperature,
 					humidity,
@@ -32,7 +33,7 @@ module.exports = function apiSensor(app, connectionDB = new Pool()) {
 		}
 	});
 
-	app.post("/api/sensor/greenhouse", async (req, res) => {
+	app.post("/api/sensor/weather-greenhouse", async (req, res) => {
         // แสดงข้อมูลที่ TTN ส่งมาใน console
         console.log("📥 Received TTN data:", req.body);
         const {
@@ -41,7 +42,6 @@ module.exports = function apiSensor(app, connectionDB = new Pool()) {
 			},
             uplink_message : {
 				decoded_payload : {
-					greenhouse_id,
 					humidity_air,
 					humidity_soil,
 					light,
@@ -55,14 +55,13 @@ module.exports = function apiSensor(app, connectionDB = new Pool()) {
 		try {
 			await connectionDB.executeQuery(
 				`
-					INSERT INTO greenhouse_sensor
-						(device_id, greenhouse_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity)
+					INSERT INTO weather_greenhouse
+						(device_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity)
 					VALUES
-						(?, ?, ?, ?, ?, ?, ?, ?)
+						(?, ?, ?, ?, ?, ?, ?)
 				`,
 				[
 					device_id,
-					greenhouse_id,
 					timestamp,
 					temperature_air,
 					humidity_air,
