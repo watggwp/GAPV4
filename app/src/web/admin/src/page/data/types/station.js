@@ -1,4 +1,4 @@
-import { Grid2, TextField } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 import React, { useContext } from "react";
 import { MapsJSX } from "../../../../../../assets/js/module";
 import { PopupManagePageContext } from "../ManagePage";
@@ -8,7 +8,7 @@ export default function Station() {
 
     return(
         <React.Fragment>
-            <Grid2 size={{sm : 12 , md : 6}}>
+            <Grid size={{sm : 12 , md : 6}}>
                 <TextField
                     label="ชื่อศูนย์"
                     variant="outlined"
@@ -23,8 +23,8 @@ export default function Station() {
                     }}
                     fullWidth
                 />
-            </Grid2>
-            <Grid2 size={{ sm : 12 , md : 6 }}>
+            </Grid>
+            <Grid size={{ sm : 12 , md : 6 }}>
                                 <TextField
                                     label="รหัสศูนย์"
                                     variant="outlined"
@@ -38,10 +38,10 @@ export default function Station() {
                                         }
                                     }}
                                 />
-                </Grid2>
-            <Grid2 size={{ xs : 12 }}>
+                </Grid>
+            <Grid size={{ xs : 12 }}>
                 <MapsJSX lat={Data?.location?.x} lng={Data?.location?.y} w={"300vw"} h={"80vw"}/>
-            </Grid2>
+            </Grid>
         </React.Fragment>
     )
 }

@@ -119,9 +119,13 @@ export default function WeatherStation() {
                     </LineChart>
                 </ResponsiveContainer>
             </Stack>
-            <Stack>
+            <Stack direction={"row"}>
                 <DatePickerApp
                     label={"วันเริ่มต้น"}
+                />
+                -
+                <DatePickerApp
+                    label={"วันสิ้นสุด"}
                 />
             </Stack>
         </Stack>

@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { GetLinkUrlOfSearch, Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
-import { Grid2, TextField } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -253,8 +253,8 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                 type === "plant" ? <div>{Data.dataOther}</div> :
                                 Data.dataOther ? 
                                     <>
-                                    <Grid2 container width={"100%"}>
-                                        <Grid2 size={{ xs : 12 }}>
+                                    <Grid container width={"100%"}>
+                                        <Grid size={{ xs : 12 }}>
                                             <div className="flied-location-edit" w={type}>
                                                 <span className="head-flied">ตำแหน่งที่ตั้ง</span>
                                                 <input onChange={ async (e)=>{
@@ -266,11 +266,11 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                                 }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
                                                 <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
                                             </div>
-                                        </Grid2>
-                                        <Grid2 size={{ xs : 12 }}>
+                                        </Grid>
+                                        <Grid size={{ xs : 12 }}>
                                             <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
-                                        </Grid2>
-                                    </Grid2>
+                                        </Grid>
+                                    </Grid>
                                     </>
                                     : 
                                     <></>

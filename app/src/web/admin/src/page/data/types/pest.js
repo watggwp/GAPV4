@@ -1,4 +1,4 @@
-import { Grid2, TextField, Typography } from "@mui/material";
+import { Grid, TextField, Typography } from "@mui/material";
 import React, { useContext } from "react";
 import { PopupManagePageContext } from "../ManagePage";
 import { Box } from "@mui/material";

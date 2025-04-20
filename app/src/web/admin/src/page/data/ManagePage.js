@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
-import { Grid2, TextField } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 import Plant from "./types/Plant";
 import Station from "./types/station";
 import Chemical from "./types/chemical";
@@ -139,7 +139,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                         <PopupManagePageContext.Provider
                             value={{ Data: Data }}
                         >
-                            <Grid2 container spacing={{ xs : 2 }}>
+                            <Grid container spacing={{ xs : 2 }}>
                                 {
                                     type === "plant" ?
                                         <Plant/> :
@@ -151,7 +151,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
                                         <Pest/> :
                                         <></>
                                 }
-                            </Grid2>
+                            </Grid>
                         </PopupManagePageContext.Provider>
                     </div>
                 </div>   
