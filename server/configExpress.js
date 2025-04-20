@@ -23,7 +23,7 @@ const fs = require('fs');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
-    const mode = process.argv[3]
+    const mode = process.argv[2]
     const app = express();
 
     const Pool = new ConnectPool()
