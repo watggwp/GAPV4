@@ -5000,7 +5000,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                 // process area
                 
                 const data = await pool.executeQuery(
-                    "SELECT * FROM weather_station WHERE station_id = 1",
+                    "SELECT * FROM weather_station WHERE station_signature = 123",
                     [] //params sql
                 )
                 res.status(200).send(data); //reponse status code 200
