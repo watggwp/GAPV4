@@ -10,7 +10,7 @@ class ConnectionPool {
             host: process.env.HOST,
             user: config.user,
             password: config.password,
-            database : process.argv[2] == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
+            database : config.mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
             port : process.env.PORT || 3306,
         });
     }

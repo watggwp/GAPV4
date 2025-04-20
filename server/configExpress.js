@@ -23,12 +23,14 @@ const fs = require('fs');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
+    const mode = process.argv[3]
     const app = express();
 
     const Pool = new ConnectPool()
     Pool.createPool({
         user: username,
         password: password,
+        mode: mode
     })
     
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
@@ -36,7 +38,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
 
     const upload = multer()
     const server =
-                (process.argv[2] == process.env.BUILD) ? https.createServer({
+                (mode == process.env.BUILD) ? https.createServer({
                     key: fs.readFileSync(process.env.pathCertFile),
                     cert: fs.readFileSync(process.env.pathKeyFile)
                 } , app)
@@ -44,13 +46,13 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
                 http.createServer(app)
     // set Server
  
-    const listDB = dbpackage.listConfig(username , password)
-    // const HOST_CHECK = (process.argv[2] == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
+    const listDB = dbpackage.listConfig(username , password , mode)
+    // const HOST_CHECK = (mode == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
     // config server and Hot Refresh
-    // if(process.argv[2] != process.env.BUILD) reactServ(app)
+    // if(mode != process.env.BUILD) reactServ(app)
  
     // set session
-    console.log(process.argv[2])
+    console.log(mode)
     const sessionMiddleware = sessions({
         name : process.env.cookie,
         secret : process.env.KEY_SESSION ?? "gap_project_royal",
@@ -64,10 +66,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         // resave : false
         cookie: {
             httpOnly: true,
-            secure : process.argv[2] == process.env.BUILD,
+            secure : mode == process.env.BUILD,
             maxAge: null,
             sameSite: 'strict'
-            // secure: process.argv[2] != process.env.BUILD ? false : true
+            // secure: mode != process.env.BUILD ? false : true
         },
         resave : false
     })
@@ -110,7 +112,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('build/farmer'))
  
     // router api url
-    if(process.argv[2] === process.env.BUILD || process.argv[2] === "router") router(app)
+    if(mode === process.env.BUILD || mode === "router") router(app)
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)

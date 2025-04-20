@@ -117,7 +117,7 @@
     "build": "node scripts/build.js admin && node scripts/build.js doctor && node scripts/build.js farmer",
     "test": "node scripts/test.js",
     "server": "pm2 start server/server.js -- deploy",
-    "server-node": "node server/server.js deploy",
+    "server-node": "node server/server.js -- deploy",
     "server-stop": "pm2 stop server/server.js",
     "server-restart": "pm2 restart server/server.js",
     "server-startup": "pm2 startup",
