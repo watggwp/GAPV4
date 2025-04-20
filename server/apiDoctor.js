@@ -4915,7 +4915,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     
         apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
             con.end()
-            const stationid = req.params.stationid
+            const stationid = req.params.stationid 
             try {
                 const data = await pool.executeQuery(
                     `
@@ -5000,13 +5000,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                 // process area
                 
                 const data = await pool.executeQuery(
-                    // query sql
-                    `
-                        
-                    `,
+                    "SELECT * FROM weather_station WHERE station_id = 1",
                     [] //params sql
                 )
-                res.send() //reponse status code 200
+                res.status(200).send(data); //reponse status code 200
 
                 // process area
             } catch(err) {
