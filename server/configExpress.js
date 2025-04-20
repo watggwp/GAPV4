@@ -38,11 +38,11 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
 
     const upload = multer()
     const server =
-                (mode == process.env.BUILD) ? https.createServer({
-                    key: fs.readFileSync(process.env.pathCertFile),
-                    cert: fs.readFileSync(process.env.pathKeyFile)
-                } , app)
-                :
+                // (mode == process.env.BUILD) ? https.createServer({
+                //     key: fs.readFileSync(process.env.pathCertFile),
+                //     cert: fs.readFileSync(process.env.pathKeyFile)
+                // } , app)
+                // :
                 http.createServer(app)
     // set Server
  
