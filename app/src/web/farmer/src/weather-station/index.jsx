@@ -6,19 +6,11 @@ import { Box, MenuItem, Select, Stack, styled, Tab, Tabs, Typography } from "@mu
 import TemperatureChart from "./charts/temperature"
 import { CartesianGrid, Legend, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import DatePickerApp from "../../../../assets/components/DatePicker"
-import { set } from "date-fns"
 import { DataGrid } from "@mui/x-data-grid"
 import HumidityChart from "./charts/humidity"
 import LightChart from "./charts/light"
 import RainfallChart from "./charts/rainfall"
 import { useRef } from "react"
-
-const displayNameMap = {
-    temperature: 'อุณหภูมิ',
-    humidity: 'ความชื้น',
-    light: 'แสงสว่าง',
-    rainfall: 'น้ำฝน'
-}
 
 const TabsGAP = styled((props) => (
     <Tabs
@@ -85,7 +77,7 @@ export default function WeatherStation() {
                     }
                 })
 
-                isMount && setChartDatas(newDatas)
+                setChartDatas(Array.isArray(newDatas) ? newDatas.sort() : [])
                 setHistoryDatas(newDatas)
                 break;
             default :
@@ -164,7 +156,7 @@ export default function WeatherStation() {
                             <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} />
                             <YAxis />
                             <Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '12px'  , fontFamily : "Sans-font" }} formatter={(value) => displayNameMap[value] || value} />
+                            <Legend wrapperStyle={{ fontSize: '12px'  , fontFamily : "Sans-font" }} />
                             {
                                 selectedTab === 0 ? 
                                     <TemperatureChart/> : 

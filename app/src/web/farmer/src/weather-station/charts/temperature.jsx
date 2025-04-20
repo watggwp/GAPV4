@@ -3,6 +3,6 @@ import { Line } from "recharts";
 
 export default function TemperatureChart() {
     return(
-        <Line type="monotone" dataKey="temperature" stroke="green" activeDot={{ r: 8 }} />
+        <Line type="monotone" dataKey="temperature" stroke="green" name="อุณหภูมิ" dot={false} />
     )
 }
