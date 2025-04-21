@@ -9,26 +9,31 @@ const Report = require("./reportToAdmin")
 module.exports = function Messaging (app , Database , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
     app.post('/messageAPI' , async (req , res)=>{
-        if(req.body.events.length > 0) {
-            if(req.body.events[0].type === "postback") {
-                if(req.body.events[0].postback.data == "house_add") {
+        const { body : { events } = {} } = req
+        if(events?.length > 0) {
+            const [ { type , postback , message , source : { userId : uid_line_message } = {} , replyToken } ] = events
+            if(type === "postback") {
+                if(postback?.data == "house_add") {
                     const con = await ConnectDB()
-
                     try {
                         con.query(`
-                            SELECT id_farm_house , name_house FROM housefarm , 
-                             (
-                               SELECT uid_line , link_user FROM acc_farmer 
-                               WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
-                               ORDER BY date_register DESC
-                               LIMIT 1
-                               ) as farmer 
-                            WHERE (housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user)
-                            AND housefarm.status = '1' -- เพิ่มเงื่อนไขสำหรับสถานะที่เปิด
-                            ORDER BY id_farm_house DESC ` , 
-                        [req["body"]['events'][0]["source"]["userId"]] ,
+                            SELECT id_farm_house , name_house 
+                            FROM housefarm
+                            JOIN (
+                                SELECT uid_line , link_user 
+                                FROM acc_farmer 
+                                WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
+                                ORDER BY date_register DESC
+                                LIMIT 1
+                            ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                            WHERE housefarm.status = '1'
+                            ORDER BY id_farm_house DESC
+                        ` , 
+                        [ uid_line_message ] ,
                         (err , result)=>{
                             con.end()
+
+                            console.log(err)
                             if (!err) {
                                 let msg
                                 if(result[0]) {
@@ -59,7 +64,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     }
                                 }
 
-                                line.replyMessage(req["body"]['events'][0]["replyToken"] , msg)
+                                line.replyMessage(replyToken , msg)
                                 res.status(200).send('OK')
                             }
                         })
@@ -67,18 +72,14 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                         Report(e.toString())
                     }
                 } else {
-                    await line.replyMessage(req["body"]['events'][0]["replyToken"] , {
+                    await line.replyMessage(replyToken , {
                         type : "text",
                         text : "พบปัญหาในการค้นหาข้อมูล\nรอสักครู่นะคะ \u2764"
                     })
                     res.status(200).send('OK')
                 }
-            } else if (req.body.events[0].type === "message") {
-                // console.log(req.body.events[0])
-                const ObjectMsg = req.body.events[0]
-                const Uid_line = ObjectMsg.source.userId
-
-                if(ObjectMsg.message.type == "text" || ObjectMsg.message.type == "image") {
+            } else if (type === "message") {
+                if(message.type == "text" || message.type == "image") {
                     const con = await ConnectDB()
                     const SelectProfile = await new Promise((resole , reject)=>{
                         con.query(
@@ -86,16 +87,16 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             SELECT station , register_auth
                             FROM acc_farmer
                             WHERE uid_line = ?
-                            ` , [ Uid_line ] , (err , resultCheck)=>{
+                            ` , [ uid_line_message ] , (err , resultCheck)=>{
+                                console.log(err)
                                 resole(resultCheck)
                             }
                         )
                     })
 
                     let msg = {}
-                    if(SelectProfile.length != 0) {
+                    if(SelectProfile?.length) {
                         const stationAll = new Set(SelectProfile.map((val)=>val.station))
-                        const message = ObjectMsg.message
 
                         try {
 
@@ -111,7 +112,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                     and TIMESTAMPDIFF(MINUTE, date, NOW()) < 5
                                         )
                                     ) as is_msg
-                                    ` , [ Uid_line ] , (err , is_msg)=>{
+                                    ` , [ uid_line_message ] , (err , is_msg)=>{
                                         resole(parseInt(is_msg[0].is_msg))
                                     }
                                 )
@@ -129,7 +130,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     `
                                     INSERT INTO message_user
                                     ( message , uid_line_farmer , id_read , type , type_message ) VALUES ( ? , ? , '{}' , "" , ?)
-                                    ` , [ messagePut , Uid_line , message.type] , (err , result) => {
+                                    ` , [ messagePut , uid_line_message , message.type] , (err , result) => {
                                         if(err) reject("err insert send")
                                         resole()
                                     }
@@ -137,7 +138,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             })
 
                             try {
-                                socket.to(Uid_line).emit("new_msg")
+                                socket.to(uid_line_message).emit("new_msg")
                                 if(!TimeMessage) {
                                     const checkAuth = SelectProfile.map(val=>val.register_auth.toString())
                                     const typeMessange = checkAuth.indexOf("1") >= 0 ? "บัญชีเกษตรกรที่ผ่านการตรวจสอบ" : 
@@ -145,7 +146,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                     checkAuth.indexOf("2") >= 0 ? "บัญชีเกษตรกรที่ถูกปิด" : "";
                                     
                                     //send to doctor
-                                    const Uid_line_send = await new Promise( async (resole , reject)=>{
+                                    const uid_line_message_send = await new Promise( async (resole , reject)=>{
                                         const uid_send = new Array
                                         await new Promise( async (resole , reject)=>{
                                             let index = 1;
@@ -175,9 +176,9 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     })
 
                                     con.end()
-                                    line.multicast([...Uid_line_send] , {type : "text" , text : "มีข้อความจาก"+typeMessange})
+                                    line.multicast([...uid_line_message_send] , {type : "text" , text : "มีข้อความจาก"+typeMessange})
                                         .catch(e=>{
-                                            line.replyMessage(req["body"]['events'][0]["replyToken"] , {
+                                            line.replyMessage(replyToken , {
                                                 type : "text",
                                                 text : "พบปัญหาในการส่งข้อความ กรุณารอสักครู่และส่งข้อความใหม่อีกครั้ง \u2764"
                                             })
@@ -329,9 +330,9 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                         con.end()
                     }
 
-                    if(msg.type) line.replyMessage(req["body"]['events'][0]["replyToken"] , msg)
+                    if(msg.type) line.replyMessage(replyToken , msg)
                 } else {
-                    line.replyMessage(req["body"]['events'][0]["replyToken"] , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"})
+                    line.replyMessage(replyToken , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"})
                 }
             } 
         } else {

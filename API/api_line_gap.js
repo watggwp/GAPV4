@@ -187,7 +187,6 @@ const RichMenu = {
 //       },
 //       "action": {
 //         "type": "postback",
-//         "text": "เลือกโรงเรือน",
 //         "data": "house_add"
 //       }
 //     },
@@ -205,8 +204,8 @@ const RichMenu = {
 //     }
 //   ]
 // })
-RichMenu.setDefault("richmenu-20949fb410f74a6e7f1897a227287a83")
-// richmenu.linkRichMenuToUser("Uec52e5da629da4c89c55674831d126a8" , "richmenu-d783a040e4496034da33b006f154cbed")
+// RichMenu.setDefault("richmenu-20949fb410f74a6e7f1897a227287a83")
+// richmenu.linkRichMenuToUser("U503dd2e67d74458b812b1ad73db59528" , "richmenu-b47b274d02920fb5e8f7600bfa25a936")
 
 
 
