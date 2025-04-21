@@ -3174,7 +3174,8 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
                     `
                         SELECT ws.id , timestamp , temperature , humidity ,light , rainfall
                         FROM weather_station ws
-                        LEFT JOIN station_list sl ON ws.station_signature = sl.id_station
+                        LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
+                        LEFT JOIN station_list sl ON sws.station_signature = sl.id_station
                         WHERE sl.id = ? AND timestamp BETWEEN ? AND ?
                         ORDER BY timestamp DESC
                     `,

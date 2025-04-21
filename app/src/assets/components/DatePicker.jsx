@@ -8,14 +8,15 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 dayjs.locale('th');
 
-export default function DatePickerApp({ label , value , onChange , onAccept , minDate , sxTextField }) {
+export default function DatePickerApp({ label , value , onChange , onAccept , onClose , minDate , sxTextField }) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePicker 
             label={label}
-            value={value ? dayjs(value) : undefined}
+            value={value ? dayjs(value) : null}
             onChange={onChange}
             onAccept={onAccept}
+            onClose={onClose}
             slotProps={{
               textField : {
                 size : "small",

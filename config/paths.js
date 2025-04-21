@@ -7,7 +7,7 @@ const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath');
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebook/create-react-app/issues/637
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveEnv = relativePath => path.resolve(appDirectory , relativePath);
+const resolveRoot = relativePath => path.resolve(appDirectory , relativePath);
 const resolveApp = relativePath => path.resolve(appDirectory , "app" , relativePath);
 
 // We use `PUBLIC_URL` environment variable or "homepage" field to infer
@@ -53,9 +53,9 @@ const resolveModule = (resolveFn, filePath) => {
 
 // config after eject: we're in ./config/
 module.exports = {
-  dotenv: resolveEnv('.env'),
+  dotenv: resolveRoot('.env'),
   appPath: resolveApp('.'),
-  appBuild: resolveApp(buildPath),
+  appBuild: resolveRoot(buildPath),
   appPublic: resolveApp('public'),
 
   appStatic: {

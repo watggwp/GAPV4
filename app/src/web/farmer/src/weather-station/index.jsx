@@ -10,7 +10,7 @@ import { DataGrid } from "@mui/x-data-grid"
 import HumidityChart from "./charts/humidity"
 import LightChart from "./charts/light"
 import RainfallChart from "./charts/rainfall"
-import { useRef } from "react"
+import DatePickerAccept from "../../../components/DatePickerAccept"
 
 const TabsGAP = styled((props) => (
     <Tabs
@@ -92,18 +92,14 @@ export default function WeatherStation() {
         requestWeatherStation(dayAgo.getTime() , now.getTime())
     }, [requestWeatherStation])
 
-    const newStartSelect = useRef(null)
-    const onChangeStartDate = useCallback((date) => {
-        newStartSelect.current = date
-    }, [])
+    const onChangeStart = useCallback((date) => {
+        setDateStart(date["$d"])
+        setDateEnd(null)
+    } , [])
 
-    const onAcceptStartDate = useCallback(() => {
-        if(newStartSelect.current) {
-            newStartSelect.current["$L"] = "th"
-            setDateStart(newStartSelect.current)
-            setDateEnd("")
-        }
-    }, [])
+    const onChangeEnd = useCallback((date) => {
+        requestWeatherStation(dateStart.getTime() , date["$d"].getTime())
+    } , [dateStart, requestWeatherStation])
 
     useEffect(() => {
         const { now , dayAgo } = new DateGAP().getDayRangeFromNow(0)
@@ -173,11 +169,10 @@ export default function WeatherStation() {
                     <Stack
                         width={"45%"}
                     >
-                        <DatePickerApp
+                        <DatePickerAccept
                             label={"วันเริ่มต้น"}
                             value={dateStart}
-                            onChange={onChangeStartDate}
-                            onAccept={onAcceptStartDate}
+                            onAcceptData={onChangeStart}
                             sxTextField={{
                                 "& .MuiPickersInputBase-sectionContent" : {
                                     fontSize : "12px"
@@ -193,7 +188,7 @@ export default function WeatherStation() {
                     <Stack
                         width={"45%"}
                     >
-                        <DatePickerApp
+                        <DatePickerAccept
                             label={"วันสิ้นสุด"}
                             value={dateEnd}
                             sxTextField={{
@@ -202,6 +197,7 @@ export default function WeatherStation() {
                                 }
                             }}
                             minDate={dateStart}
+                            onAcceptData={onChangeEnd}
                         />
                     </Stack>
                 </Stack>
