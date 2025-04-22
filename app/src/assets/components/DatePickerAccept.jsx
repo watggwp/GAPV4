@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import DatePickerApp from "../../assets/components/DatePicker"
+import DatePickerApp from "./DatePickerApp"
 
 export default function DatePickerAccept({ label , value , onAcceptData , sxTextField , minDate }) {
     const [tempValue, setTempValue] = useState(null)
