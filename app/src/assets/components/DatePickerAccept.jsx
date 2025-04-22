@@ -1,13 +1,14 @@
 import { useCallback, useState } from "react"
 import DatePickerApp from "./DatePickerApp"
 
-export default function DatePickerAccept({ label , value , onAcceptData , sxTextField , minDate }) {
+export default function DatePickerAccept({ label , value , onAcceptData , onChangeData , sxTextField , minDate }) {
     const [tempValue, setTempValue] = useState(null)
 
     const onChange = useCallback((date) => {
         date["$L"] = "th"
         setTempValue(date)
-    }, [])
+        onChangeData?.(date)
+    }, [onChangeData])
 
     const onAccept = useCallback(() => {
         if(tempValue) {

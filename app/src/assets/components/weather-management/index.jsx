@@ -39,7 +39,9 @@ export default function WeatherManagement({
         { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
     ]
 }) {
+    const isDesktopPicker = useMediaQuery('(pointer: fine)')
     const isMediaSm = useMediaQuery((theme) => theme.breakpoints.down("md"))
+
     const [ dayAgo , setDayAgo ] = useState(0)
     const [ selectedTab , setSelectedTab ] = useState(0)
 
@@ -160,7 +162,8 @@ export default function WeatherManagement({
                                 <DatePickerAccept
                                     label={"วันเริ่มต้น"}
                                     value={dateStart}
-                                    onAcceptData={onChangeStart}
+                                    onAcceptData={!isDesktopPicker ? onChangeStart : undefined}
+                                    onChangeData={isDesktopPicker ? onChangeStart : undefined}
                                     sxTextField={{
                                         "& .MuiPickersInputBase-sectionContent" : {
                                             fontSize : "12px"
@@ -185,7 +188,8 @@ export default function WeatherManagement({
                                         }
                                     }}
                                     minDate={dateStart}
-                                    onAcceptData={onChangeEnd}
+                                    onAcceptData={!isDesktopPicker ? onChangeEnd : undefined}
+                                    onChangeData={isDesktopPicker ? onChangeEnd : undefined}
                                 />
                             </Stack>
                         </Stack>
