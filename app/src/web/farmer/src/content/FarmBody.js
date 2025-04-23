@@ -12,8 +12,10 @@ import DataForm from "./DataForm/DataForm";
 import Success from "./Success/Success";
 import Report from "./Report/Report";
 import InformationReport from "./InformationReport";
+import { useFarmer } from "../main";
 
-const FarmBody = ({liff , uid , id_farmhouse}) => {
+const FarmBody = ({ id_farmhouse }) => {
+    const { liff } = useFarmer()
     const [Body , setBody] = useState(<></>)
     const [Page , setPage] = useState("HOME")
 
@@ -61,7 +63,7 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
             if(GetPath()[1] === "p") {
                 const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_farmhouse , id_form_plant : formplantID})
                 if(await CloseAccount(result , setPage)) {
-                    setBody(<MenuPlant setBody={setBody} id_house={id_farmhouse} id_plant={formplantID} setPage={setPage} liff={liff}/>)
+                    setBody(<MenuPlant setBody={setBody} id_house={id_farmhouse} id_plant={formplantID} setPage={setPage}/>)
                 }
             }
             else if(GetPath()[1] === "z") {
@@ -158,7 +160,9 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
                     </div>
                 </div>
                 <div style={{paddingTop : `${paddingBody}px`}} className="body-main">
-                    {Body}
+                    {
+                        Body
+                    }
                 </div>
             </div>
             <div onClick={CloseNav} ref={Nav} className="background-nav">
@@ -193,8 +197,6 @@ const FarmBody = ({liff , uid , id_farmhouse}) => {
                                 </svg>
                                 <span>รายงานข้อมูลพื้นฐาน</span>
                              </div>
-
-
                         </div>
                     </div>
                 </div>

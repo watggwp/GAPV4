@@ -1,3 +1,5 @@
+'use strict';
+
 const mysql = require('mysql2')
 require('dotenv').config().parsed
 
@@ -21,13 +23,18 @@ class ConnectionPool {
 
     executeQuery(query, params) {
         return new Promise((resolve, reject) => {
-            this.pool.query(query, params, (error, results) => {
-                if (error) {
-                    console.error('Error executing query:', error);
-                    return reject(error);
-                }
-                resolve(results);
-            });
+            try {
+                this.pool.query(query, params, (error, results) => {
+                    if (error) {
+                        console.error('Error executing query:', error);
+                        reject(error);
+                    }
+                    resolve(results);
+                });
+            } catch(error) {
+                console.log(error)
+                reject(error);
+            }
         });
     }
     

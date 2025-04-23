@@ -595,27 +595,22 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) 
                                 </div>
                                 {
                                     Type === "plant" ?
-                                    <>
                                         <div className="field-text">
                                             <span>ประเภท</span>
                                             <div className="data-text">{DataIn.type_plant}</div>
                                         </div> 
-                                        <div className="field-text">
-                                            <span>สายพันธุ์พืช</span>
-                                            <div className="data-text">{DataIn.variety_name}</div>
-                                        </div> 
-                                    </>    
                                         :
                                     Type === "pest" ? 
-                                    <div className="field-text">
-                                            <span></span>
-                                            <div className="data-text"></div>
-                                        </div> :
-                                    Type === "pest" ? 
-                                    <div className="field-text">
-                                            <span></span>
-                                            <div className="data-text"></div>
-                                        </div> :
+                                        <>
+                                            <div className="field-text">
+                                                <span></span>
+                                                <div className="data-text"></div>
+                                            </div> 
+                                            <div className="field-text">
+                                                <span></span>
+                                                <div className="data-text"></div>
+                                            </div>
+                                        </> :
                                     Type === "fertilizer" ? 
                                         <div className="field-text">
                                             <span>สูตรปุ๋ย</span>
@@ -631,6 +626,10 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) 
                             { 
                                 Type === "plant" ?
                                     <div className="row">
+                                        <div className="field-text max-box row-text">
+                                            <span>สายพันธุ์พืช</span>
+                                            <div className="data-text">{DataIn.variety_name || "ยังไม่ระบุ"}</div>
+                                        </div> 
                                         <div className="field-text max-box row-text">
                                             <span>จำนวนวันที่จะเก็บเกี่ยว</span>
                                             <div className="data-text">{DataIn.qty_harvest} วัน</div>

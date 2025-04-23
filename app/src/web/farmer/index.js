@@ -24,7 +24,7 @@ const id = {
     "house" : process.env.REACT_APP_LINE_HOUSE ,
     "form" : process.env.REACT_APP_LINE_FORM ,
     "houses" : process.env.REACT_APP_LINE_HOUSELIST,
-    "weather-station" : "2007276444-r1K5bRnj"
+    "weather-station" : process.env.REACT_APP_WEATHER_STATION,
 }
 ReactDOM.createRoot(document.getElementById('farmer')).render(
     <ThemeFarmer>

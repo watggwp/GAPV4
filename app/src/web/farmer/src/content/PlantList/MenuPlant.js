@@ -8,8 +8,11 @@ import Success from "../Success/Success";
 import DataForm from "../DataForm/DataForm";
 import Report from "../Report/Report";
 import EcphForm from "../EcphForm/EcphForm";
+import WeatherGreenhouse from "../Sensor";
+import { useFarmer } from "../../main";
 
-const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => {
+const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => {
+    const { liff } = useFarmer()
     const NavBody = useRef()
     const [DotReport, setDotReport] = useState([])
     const [getDotEditPlant, setDotEditPlant] = useState(false)
@@ -52,7 +55,10 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
             }
             else if (page === "e") {
                 setBody(<EcphForm setBody={setBody} setPage={setPage} houseID={id_house} formplantID={id_plant} liff={liff} />);
-            }            
+            }
+            else if (page === "s") {
+                setBody(<WeatherGreenhouse/>)
+            }     
             else if (page === "r") {
                 setBody(<Report setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />)
             }
@@ -101,7 +107,9 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                             <img src="/ecph.png" ></img>
                         </div>
                         <span>EC/pH</span>
-                        {DotReport.checkEditSoil ? <div className="dot-someting"></div> : <></>}
+                        {
+                            DotReport.checkEditSoil && <div className="dot-someting"/>
+                        }
                     </div>
 
                     <div onClick={() => selectMenu("s")} className="frame-menu frame-sensor">
@@ -109,7 +117,9 @@ const MenuPlant = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) 
                             <img src="/เก็บ.png" ></img>
                         </div>
                         <span>เซนเซอร์</span>
-                        {DotReport.checkEditSensor ? <div className="dot-someting"></div> : <></>}
+                        {
+                            DotReport.checkEditSensor && <div className="dot-someting"/>
+                        }
                     </div>
                 </div>
                 <div className="report-farm"

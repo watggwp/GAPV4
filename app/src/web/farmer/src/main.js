@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {clientMo}  from "../../../assets/js/moduleClient";
 import {useLiff} from "../../../assets/js/module";
 import MenuMain from "../src/content/mainFarmHouse";
@@ -14,10 +14,39 @@ const FarmerContext = createContext({
     uid : ""
 })
 
-const MainFarmer = ({socket , idLiff , Path}) => {
-    const [body , setBody] = useState(<></>)
-    const [init , Liff] = useLiff(idLiff)
+const MainFarmer = ({ socket , idLiff , Path }) => {
+    const [ body , setBody ] = useState(<></>)
+    const [ init , Liff ] = useLiff(idLiff)
     const [ uid , setUid ] = useState("")
+
+    const LoadPage = useCallback(async (uid, Liff) => {
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
+        setUid(uid)
+        if (Path === "signup" && result !== "error auth") {
+            if (result === "close" || result === "no account") setBody(<Signup liff={Liff} uid={uid} />);
+            else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
+
+        } else if (Path === "houses" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<HouseList liff={Liff} uid={uid} />);
+
+        } else if (Path === "house" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<House liff={Liff} uid={uid} />);
+
+        } else if (Path === "weather-station" && result !== "error auth") {
+            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
+            else if (result === "search") setBody(<WeatherStation/>);
+
+        } else if (Path === "form" && result !== "error auth") {
+            const auth = window.location.pathname.split("/")[3];
+            if (auth && result !== "close") {
+                setBody(<MenuMain/>);
+            } else CloseAccount("not line", null, "ไม่พบบัญชี");
+        } else {
+            CloseAccount("not line", null, "พบปัญหาจากระบบ");
+        }
+    } , [Path])
 
     useEffect(()=>{
         init.then(()=>{
@@ -42,37 +71,7 @@ const MainFarmer = ({socket , idLiff , Path}) => {
             CloseAccount("not line" , null , "พบปัญหาจากระบบ")
         })
 
-    } , [])
-
-    const LoadPage = async (uid, Liff) => {
-        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
-        console.log(Path)
-        setUid(uid)
-        if (Path === "signup" && result !== "error auth") {
-            if (result === "close" || result === "no account") setBody(<Signup liff={Liff} uid={uid} />);
-            else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
-
-        } else if (Path === "houses" && result !== "error auth") {
-            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<HouseList liff={Liff} uid={uid} />);
-
-        } else if (Path === "house" && result !== "error auth") {
-            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<House liff={Liff} uid={uid} />);
-
-        } else if (Path === "weather-station" && result !== "error auth") {
-            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<WeatherStation/>);
-
-        } else if (Path === "form" && result !== "error auth") {
-            const auth = window.location.pathname.split("/")[3];
-            if (auth && result !== "close") {
-                setBody(<MenuMain liff={Liff} uid={uid} />);
-            } else CloseAccount("not line", null, "ไม่พบบัญชี");
-        } else {
-            CloseAccount("not line", null, "พบปัญหาจากระบบ");
-        }
-    };
+    } , [Liff, LoadPage, init])
 
     return(
         <FarmerContext.Provider

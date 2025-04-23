@@ -144,7 +144,7 @@ const ListForm = ({ setBody, setPage, id_house, liff, isClick = 0 }) => {
     const OpenMenuPlant = async (id_table_list) => {
         const result = await clientMo.post("/api/farmer/account/check");
         if (await CloseAccount(result, setPage)) {
-            setBody(<MenuPlant setBody={setBody} id_house={id_house} id_plant={id_table_list} setPage={setPage} liff={liff} isClick={1} />);
+            setBody(<MenuPlant setBody={setBody} id_house={id_house} id_plant={id_table_list} setPage={setPage} isClick={1} />);
         }
     }
 
