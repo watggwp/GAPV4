@@ -5018,5 +5018,37 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
             }
         })
     })
-
+    app.get('/api/weather_greenhouse', (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+    
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout');
+            return;
+        }
+    
+        let con = Database.createConnection(listDB);
+    
+        apifunc.auth(con, username, password, res, "acc_doctor").then(async (result) => {
+            con.end();
+    
+            try {
+                const data = await pool.executeQuery(
+                    "SELECT * FROM weather_greenhouse ORDER BY time DESC",
+                    []
+                );
+                res.status(200).send(data); // ส่งข้อมูลพร้อม status code 200
+            } catch (err) {
+                console.error('Query Error:', err);
+                res.status(500).send(); // ส่ง error 500
+            }
+    
+        }).catch((err) => {
+            con.end();
+            if (err === "not pass" || err === "connect") {
+                res.redirect('/api/logout');
+            }
+        });
+    });
+    
 }
