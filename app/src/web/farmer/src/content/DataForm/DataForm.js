@@ -210,7 +210,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     const ReturnPage = async () => {
         const result = await clientMo.post("/api/farmer/account/check");
         if (await CloseAccount(result, setPage)) {
-            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />);
+            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} />);
         }
     };
 

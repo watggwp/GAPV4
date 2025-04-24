@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function router(app) {
     // router admin
     app.get('/admin' , (req, res) => {

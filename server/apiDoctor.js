@@ -4424,32 +4424,43 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                         type_request == "pest" ? "pest_id" : "id"
                     )
                     try {
-                        const checkDataOpenDuplicate = state ? await new Promise((resole , reject)=>{
-                            const Where = (
-                                type_request == "plant" || type_request == "source" ? "fromMain.name = fromSub.name" : 
-                                type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
-                                type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
-                                ""
-                            )
 
-                            con.query(
-                                `
-                                    SELECT (
-                                        SELECT EXISTS (
-                                            SELECT ${columnID}
-                                            FROM ${From} as fromSub
-                                            WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                        const checkDataOpenDuplicate = (
+                            state ? 
+                                await (( async () => {
+                                    const Where = (
+                                        type_request == "plant" ? "fromMain.name = fromSub.name AND fromMain.variety_name = fromSub.variety_name" :
+                                        type_request == "source" ? "fromMain.name = fromSub.name" : 
+                                        type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
+                                        type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
+                                        ""
+                                    )
+        
+                                    try {
+                                        const resultOverlap = await pool.executeQuery(
+                                            `
+                                                SELECT (
+                                                    SELECT EXISTS (
+                                                        SELECT ${columnID}
+                                                        FROM ${From} as fromSub
+                                                        WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                                                    )
+                                                ) as verify
+                                                FROM ${From} as fromMain
+                                                WHERE ${columnID} = ?
+                                            ` , [
+                                                req.body.id_list , req.body.id_list
+                                            ]
                                         )
-                                    ) as verify
-                                    FROM ${From} as fromMain
-                                    WHERE ${columnID} = ?
-                                ` , [ req.body.id_list , req.body.id_list ] , 
-                                (err , result) => {
-                                    if(err) reject(err)
-                                    else resole(!result[0].verify)
-                                }
-                            )
-                        }) : true
+
+                                        return !resultOverlap[0]?.verify
+                                    } catch(err) {
+                                        con.end()
+                                        res.send("error")
+                                    }
+                                }))() : 
+                                true
+                        )
                         if(checkDataOpenDuplicate) {
                             con.query(
                                 `

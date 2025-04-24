@@ -15,8 +15,6 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
   const [editEcValue, setEditEcValue] = useState("");
   const [editPhValue, setEditPhValue] = useState("");
 
-
-
   const fetchHistory = useCallback(async () => {
     try {
       const { data } = await RequestAPI.post("/api/farmer/ecph/history", {
@@ -107,7 +105,6 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
                 setPage={setPage}
                 id_house={houseID}
                 id_plant={formplantID}
-                liff={liff}
                 isClick={1}
               />
             )

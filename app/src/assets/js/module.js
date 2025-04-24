@@ -1,5 +1,5 @@
 import liff from "@line/liff";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import "../style/camera.scss";
 import { clientMo } from "./moduleClient";
@@ -136,8 +136,8 @@ const Socket = (eventSc , message) => {
 }
 
 const useLiff = (idLiff) => {
-    const Liff = liff
-    const init = Liff.init({liffId:idLiff})
+    const Liff = useMemo(() => liff , [])
+    const init = useMemo(() => Liff.init({liffId:idLiff}) , [Liff, idLiff])
     return [init , Liff];
 }
 

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "../../assets/style/page/data/ManageData.scss"
 import { GetLinkUrlOfSearch, MapsJSX } from "../../../../../assets/js/module";
 import { clientMo } from "../../../../../assets/js/moduleClient";
+import { Stack } from "@mui/material";
 
 const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , session}) => {
     const StatusRef = useRef()
@@ -159,7 +160,7 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                         </div> : <></>
                 }
             </div>
-            <div className="detail" state={StateEdit ? "1" : "0"}>
+            <Stack className="detail" state={StateEdit ? "1" : "0"} alignItems={"center"} padding={0.5}>
                 { 
                     Type === 'plant' ?
                         !StateEdit ?
@@ -183,7 +184,10 @@ const ManageData = ({Ref , setPopup , DataOfPage , Type , Fetch , RowPresent , s
                             <EditSource CheckEdit={CheckEdit} Data={Data} ErrReport={ErrReport}/>     
                     : <></>
                 }
-            </div>
+            </Stack>
+            {/* <div className="detail" state={StateEdit ? "1" : "0"}>
+                
+            </div> */}
             { StateEdit ?
                 <div className="bt-manage">
                     <div className="password">
