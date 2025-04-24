@@ -1,31 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import { DayJSX } from "../../../../../assets/js/module";
+import { useGreenhouse } from "..";
+import { useParams } from "react-router";
 
-const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
+const List = ({ type_page , OpenPopup }) => {
+    const { greenhouse_id , gap_id } = useParams()
+
+    const { setCurrentPage } = useGreenhouse()
     const [listData, setListData] = useState([]);
     const [DotSome , setDotSome] = useState([]);
-    
-    useEffect(() => {
-        StartLoad(DetailFetchList);
-    }, [DetailFetchList]);
 
-    const StartLoad = async (DetailPage) => {
-        await FetchData();
-        if (DetailPage.isClick === 1)
-            window.history.pushState({}, null, `/farmer/form/${DetailPage.id_house}/s/${DetailPage.id_plant}/${DetailFetchList.type}`);
-    };
-
-    const FetchData = async () => {
+    const FetchData = useCallback(async () => {
         try {
             const result = await clientMo.get(
-                `/api/farmer/report/list?id_farmhouse=${DetailFetchList.id_house}&id_plant=${DetailFetchList.id_plant}&type=${DetailFetchList.type}`
+                `/api/farmer/report/list?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}&type=${type_page}`
             );
 
-            console.log("API Response:", result);
-
-            if (await CloseAccount(result, setPage)) {
+            if (await CloseAccount(result, setCurrentPage)) {
                 const data = JSON.parse(result);
                 console.log("Raw Data:", data);
                 data.sort((a, b) => {
@@ -43,7 +36,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    };
+    } , [gap_id, greenhouse_id, setCurrentPage, type_page])
 
     const AcknowledgeData = async (id, type) => {
         console.log("Sending acknowledge request for ID:", id, "Type:", type);
@@ -53,7 +46,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
             type: type
         });
     
-        if (await CloseAccount(result, setPage)) {
+        if (await CloseAccount(result, setCurrentPage)) {
             console.log("Acknowledged successfully:", result);
     
             setListData(prevData =>
@@ -75,21 +68,23 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
         }
     };
     
-    
+    useEffect(() => {
+        FetchData();
+    }, [FetchData]);
 
     return (
         <>
             {listData.map((val, key) => (
                <div
-               className={`list-in-${DetailFetchList.type} ${
-                   (DetailFetchList.type === "h" && val.date_of_farmer) || 
-                   (DetailFetchList.type !== "h" && val.acknowledged) 
+               className={`list-in-${type_page} ${
+                   (type_page === "h" && val.date_of_farmer) || 
+                   (type_page !== "h" && val.acknowledged) 
                        ? "acknowledged-card" 
                        : ""
                }`}
                key={val.id}
            >           
-                    {DetailFetchList.type === "h" ? (
+                    {type_page === "h" ? (
                         <>
                             <div className="row first">
                                 <div className="type-head">{val.type_success ? "เก็บผลผลิต" : "เก็บผลตัวอย่าง"}</div>
@@ -110,7 +105,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                                 </div>
                             </div>
                         </>
-                    ) : DetailFetchList.type === "cf" ? (
+                    ) : type_page === "cf" ? (
                         <>
                             <div className="row">
                                 <div className="in-row column">
@@ -131,7 +126,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                                 </div>
                             )}
                         </>
-                    ) : DetailFetchList.type === "cp" ? (
+                    ) : type_page === "cp" ? (
                         <>
                             <div className="row">
                                 <div className="in-row column">
@@ -160,7 +155,7 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                     ) : null}
     
                     {/*Show 'ผู้ตรวจสอบ' ONLY for cf and cp types */}
-                    {DetailFetchList.type !== "h" && (
+                    {type_page !== "h" && (
                         <div className="row">
                             <div className="in-row">
                                 <span>ผู้ตรวจสอบ</span>
@@ -169,8 +164,8 @@ const List = ({ liff, setPage, DetailFetchList, OpenPopup }) => {
                         </div>
                     )}
     
-                    {DetailFetchList.type !== "h" && !val.acknowledged && (
-                        <button onClick={() => AcknowledgeData(val.id, DetailFetchList.type)} className="ack-button">
+                    {type_page !== "h" && !val.acknowledged && (
+                        <button onClick={() => AcknowledgeData(val.id, type_page)} className="ack-button">
                             รับทราบ
                         </button>
                     )}

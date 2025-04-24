@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { clientMo } from "../../../../assets/js/moduleClient";
 import "../assets/InformationReport.scss";
 
-const InformationReport = ({ setPage }) => {
+const InformationReport = () => {
     const [statistics, setStatistics] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);

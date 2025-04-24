@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM  from "react-dom/client";
 import io from "socket.io-client"
-import MainFarmer from "./src/main";
 import ThemeFarmer from "./theme";
+import Router from "./router";
 
 
 // const socket = new WebSocket();
@@ -18,16 +18,9 @@ const socket = io(window.location.protocol+"//"+window.location.host)
 //     ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)
 // })
 
-let Path = window.location.pathname.split("/")[2]
-const id = {
-    "signup" : process.env.REACT_APP_LINE_SIGNUP ,
-    "house" : process.env.REACT_APP_LINE_HOUSE ,
-    "form" : process.env.REACT_APP_LINE_FORM ,
-    "houses" : process.env.REACT_APP_LINE_HOUSELIST,
-    "weather-station" : process.env.REACT_APP_WEATHER_STATION,
-}
 ReactDOM.createRoot(document.getElementById('farmer')).render(
     <ThemeFarmer>
-        <MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>
+        <Router/>
     </ThemeFarmer>
 )
+

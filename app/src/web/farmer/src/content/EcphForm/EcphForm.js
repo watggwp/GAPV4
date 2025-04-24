@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./EcphForm.scss";
 import RequestAPI from "../../../../../assets/js/requestAPI";
-import MenuPlant from "../PlantList/MenuPlant";
+import { useNavigate, useParams } from "react-router";
 
-const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
+const EcphForm = () => {
+  const { greenhouse_id , gap_id } = useParams()
+  const navigator = useNavigate()
+
   const [ecValue, setEcValue] = useState("");
   const [phValue, setPhValue] = useState("");
   const [history, setHistory] = useState([]);
@@ -18,13 +21,13 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
   const fetchHistory = useCallback(async () => {
     try {
       const { data } = await RequestAPI.post("/api/farmer/ecph/history", {
-        id_formplant: formplantID,
+        id_formplant: greenhouse_id,
       });
       setHistory(data);
     } catch (err) {
       console.error("Error loading history:", err);
     }
-  }, [formplantID]);
+  }, [greenhouse_id]);
 
   const handleSubmit = useCallback(async () => {
     const ec = editingId ? editEcValue : ecValue;
@@ -47,7 +50,7 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
         });
       } else {
         response = await RequestAPI.post("/api/farmer/ecph/save", {
-          id_formplant: formplantID,
+          id_formplant: greenhouse_id,
           ec_value: ec,
           ph_value: ph,
         });
@@ -72,16 +75,12 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
     } finally {
       setLoading(false);
     }
-  }, [ecValue, phValue, editEcValue, editPhValue, editingId, formplantID, fetchHistory]);
+  }, [ecValue, phValue, editEcValue, editPhValue, editingId, greenhouse_id, fetchHistory]);
 
 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
-
-  useEffect(() => {
-    setPage("EcphForm");
-  }, [setPage]);
 
   const formatDateTimeTH = (timestamp) => {
     const date = new Date(timestamp);
@@ -93,24 +92,16 @@ const EcphForm = ({ setBody, setPage, houseID, formplantID, liff }) => {
     return `${day}-${month}-${year} ${time}`;
   };
 
+  const onReturnMenu = useCallback(() => 
+    navigator(`/farmer/form/${greenhouse_id}/p/${gap_id}`)
+  , [gap_id, greenhouse_id, navigator])
+
   return (
     <section id="ecph-form-page">
       <div className="head">
         <div
           className="return"
-          onClick={() =>
-            setBody(
-              <MenuPlant
-                setBody={setBody}
-                setPage={setPage}
-                id_house={houseID}
-                id_plant={formplantID}
-                isClick={1}
-              />
-            )
-          }
-
-
+          onClick={onReturnMenu}
         >
           <svg fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
             <g fillRule="evenodd">

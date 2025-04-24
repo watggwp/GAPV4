@@ -3,8 +3,11 @@ import { clientMo } from "../../../../assets/js/moduleClient";
 import { Loading , MapsJSX, ReportAction, ResizeImg } from "../../../../assets/js/module";
 
 import "./House.scss"
+import { useFarmer } from "../main";
 
-const House = ({liff , uid}) => {
+const House = () => {
+    const {liff , uid} = useFarmer()
+    
     const ImageCurrent = useRef()
     const [PreviewImage , setPreview] = useState("/view-preview-img.svg")
     const ControlImage = useRef()

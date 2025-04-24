@@ -2,9 +2,15 @@ import React , {useEffect , useRef, useState} from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DatePickerThai, DateSelect, DayJSX, Loading } from "../../../../../assets/js/module";
 import { CloseAccount } from "../../method";
+import { Stack } from "@mui/material";
+import { useParams } from "react-router";
+import { useGreenhouse } from "..";
 
-const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage}) =>{
-    const [getTimeOut , setTimeOut] = useState(0)
+const PopupInsertPlant = ({setPopup , RefPop , ReloadData}) =>{
+    const { setCurrentPage } = useGreenhouse()
+    const { greenhouse_id , gap_id } = useParams()
+
+    const timeout = useRef(0)
     
     const [DateNowOnForm , setDateNowOnForm] = useState(`${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`)
     const [getDateOut , setDateOut] = useState("")
@@ -78,13 +84,14 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
 
     useEffect(()=>{
         if(YearOut.current) YearOut.current.classList.add("report-not")
-    } , [YearOut.current])
+    } , [])
 
     useEffect(()=>{
         return() => {
-            clearTimeout(getTimeOut)
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            clearTimeout(timeout.current)
         }
-    } , [getTimeOut])
+    } , [])
     
     // useEffect(() => {
     //     FetchVarieties(selectedPlant);
@@ -97,7 +104,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     // }, [selectedPlant]);
     
     useEffect(()=>{
-        clearTimeout(getTimeOut)
+        clearTimeout(timeout.current)
     } , [getHistoryPlantLoad])
 
     // const FetchVarieties = async (plantId) => {
@@ -186,7 +193,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     
     // const FetchPlant = async () => {
     //     const Data = await clientMo.post("/api/farmer/plant/list")
-    //     if(await CloseAccount(Data , setPage)) {
+    //     if(await CloseAccount(Data , setCurrentPage)) {
     //         const LIST = JSON.parse(Data)
     //         setDataPlant(LIST)
     //     }
@@ -195,7 +202,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     const FetchPlant = async () => {
         const Data = await clientMo.post("/api/farmer/plant/list")
         YearOut.current.classList.add("report-not")
-        if(await CloseAccount(Data , setPage)) {
+        if(await CloseAccount(Data , setCurrentPage)) {
             const LIST = JSON.parse(Data)
             setDataPlant(LIST)
         }
@@ -209,13 +216,13 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
         setHistory(true);
         FormContent.current.setAttribute("over", "");
     
-        setTimeOut(setTimeout(async () => {
+        timeout.current = setTimeout(async () => {
             const Data = await clientMo.post("/api/farmer/formplant/history", {
-                id_farmhouse: id_house,
+                id_farmhouse: greenhouse_id,
                 name_plant_list: name_plant_list
             });
     
-            if (await CloseAccount(Data, setPage)) {
+            if (await CloseAccount(Data, setCurrentPage)) {
                 try {
                     const Object = JSON.parse(Data);
     
@@ -265,7 +272,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             }
     
             ChangeCHK();
-        }, 1500));
+        }, 1500)
     };
    
     
@@ -301,7 +308,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
             // // const selectedVarietyName = selectedVariety ? selectedVariety.variety_name : "";
     
             const data = {
-                id_farmhouse: id_house,
+                id_farmhouse: greenhouse_id,
                 name_plant : type.value,
                 // name_variety: selectedVarietyName,
                 generetion: generetion.value,
@@ -326,7 +333,7 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
     
             setWait(true);
             const response = await clientMo.post("/api/farmer/formplant/insert", data);
-            if (await CloseAccount(response, setPage)) {
+            if (await CloseAccount(response, setCurrentPage)) {
                 cancel();
                 ReloadData();
                 setWait(false);
@@ -612,14 +619,20 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             : <span className="dot-required">*</span>
                                         }
                                     <label className="frame-textbox">
-                                    <span>พื้นที่</span>
-                                        <select className="report-not" onChange={Change} ref={System} defaultValue={""}>
-                                        <option disabled value="">เลือก</option>
-                                        <option value={"โรงเรือน"}>โรงเรือน</option>
-                                        <option value={"ไร่"}>ไร่</option>
-                                        <option value={"ตารางเมตร"}>ตารางเมตร</option>
-                                    </select>
-                                       <input className="report-not" onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder}></input>
+                                        <Stack>
+                                            <Stack direction={"row"}>
+                                                <span>พื้นที่</span>
+                                                <select className="report-not" onChange={Change} ref={System} defaultValue={""}>
+                                                    <option disabled value="">เลือก</option>
+                                                    <option value={"โรงเรือน"}>โรงเรือน</option>
+                                                    <option value={"ไร่"}>ไร่</option>
+                                                    <option value={"ตารางเมตร"}>ตารางเมตร</option>
+                                                </select>
+                                            </Stack>
+                                            <Stack marginTop={1} alignItems={"center"}>
+                                                <input className="report-not" style={{ width : "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder}></input>
+                                            </Stack>
+                                        </Stack>
                                      </label>
                                     </div>
                                     <div className="row">
@@ -632,8 +645,6 @@ const PopupInsertPlant = ({setPopup , RefPop , id_house , ReloadData , setPage})
                                             <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} onInputIn={ChangeCHK} refIn={DateOut} className="report-not"/>
                                             {/* <input className="report-not" onInput={ChangeCHK} ref={DateOut} type="date"></input> */}
                                         </label>
-
-
                                     </div>
                                 </div>
                             </div>

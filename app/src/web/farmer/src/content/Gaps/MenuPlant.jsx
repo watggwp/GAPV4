@@ -3,30 +3,33 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./Menu.scss"
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
-import ListFactor from "../Factor/ListFactor";
-import Success from "../Success/Success";
-import DataForm from "../DataForm/DataForm";
-import Report from "../Report/Report";
-import EcphForm from "../EcphForm/EcphForm";
-import WeatherGreenhouse from "../Sensor";
-import { useFarmer } from "../../main";
+import { useNavigate, useParams } from "react-router";
+import { useGreenhouse } from "..";
 
-const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => {
-    const { liff } = useFarmer()
+const MenuPlant = () => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const navigator = useNavigate()
+    
+    const { setCurrentPage } = useGreenhouse()
     const NavBody = useRef()
-    const [DotReport, setDotReport] = useState([])
+    const [ DotReport, setDotReport ] = useState([])
     const [getDotEditPlant, setDotEditPlant] = useState(false)
 
+    const FetchCheck = useCallback(async () => {
+        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`)
+        await CloseAccount(result, setCurrentPage) && setDotReport(JSON.parse(result))
+    } , [gap_id, greenhouse_id, setCurrentPage])
+
     useEffect(() => {
-        setPage("MENU ON LIST")
-        if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${id_house}/p/${id_plant}`)
+        // if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${greenhouse_id}/p/${gap_id}`)
 
         // FetchFormPlant()
         FetchCheck()
 
         // if(document.getElementById("loading").classList[0] !== "hide") 
-        clientMo.unLoadingPage()
-    }, [])
+        // clientMo.unLoadingPage()
+    }, [FetchCheck])
 
     // const FetchFormPlant = async () => {
     //     const result = await clientMo.post("/api/farmer/formplant/select" , {id_formplant : id_plant , id_farmhouse : id_house})
@@ -36,48 +39,47 @@ const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => 
     //     }
     // }
 
-    const FetchCheck = async () => {
-        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${id_house}&id_plant=${id_plant}`)
-        if (await CloseAccount(result, setPage)) {
-            setDotReport(JSON.parse(result))
-        }
-    }
-
     const selectMenu = useCallback(async (page) => {
-        const result = await clientMo.post("/api/farmer/account/check")
-        if (await CloseAccount(result, setPage)) {
-            if (page === "plant") setBody(<DataForm id_house={id_house} id_plant={id_plant} setBody={setBody} setPage={setPage} liff={liff} isClick={1} />)
-            else if (page === "z" || page === "c") {
-                setBody(<ListFactor setBody={setBody} setPage={setPage} id_house={id_house} typeHraf={{ id_form_plant: id_plant, type: page }} isClick={1} />)
-            }
-            else if (page === "h") {
-                setBody(<Success setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} type={"menu:h"} isClick={1} liff={liff} />)
-            }
-            else if (page === "e") {
-                setBody(<EcphForm setBody={setBody} setPage={setPage} houseID={id_house} formplantID={id_plant} liff={liff} />);
-            }
-            else if (page === "s") {
-                setBody(<WeatherGreenhouse/>)
-            }     
-            else if (page === "r") {
-                setBody(<Report setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />)
-            }
+        switch(page) {
+            case "gap_data" :
+                navigator(`/farmer/form/${greenhouse_id}/d/${gap_id}`)
+                break;
+            case "fertilizer" :
+                navigator(`/farmer/form/${greenhouse_id}/z/${gap_id}`)
+                break;
+            case "chemical" :
+                navigator(`/farmer/form/${greenhouse_id}/c/${gap_id}`)
+                break;
+            case "success" :
+                navigator(`/farmer/form/${greenhouse_id}/s/${gap_id}/h`)
+                break;
+            case "ec/ph" :
+                navigator(`/farmer/form/${greenhouse_id}/ec-ph/${gap_id}`)
+                break;
+            case "sensor" :
+                navigator(`/farmer/form/${greenhouse_id}/sensor/${gap_id}`)
+                break;
+            case "report" :
+                navigator(`/farmer/form/${greenhouse_id}/r/${gap_id}`)
+                break;
+            default :
+                break;
         }
-    } , [id_house, id_plant, liff, setBody, setPage])
+    } , [gap_id, greenhouse_id, navigator])
 
     return (
         <section ref={NavBody} className="nav-first">
             <div className="all-menu">
                 <div className="head">Menu</div>
                 <div className="row">
-                    <div onClick={() => selectMenu("plant")} className="frame-menu frame-plant">
+                    <div onClick={() => selectMenu("gap_data")} className="frame-menu frame-plant">
                         <div className="img">
                             <img src="/plant_glow.jpg"></img>
                         </div>
                         <span>ข้อมูลการปลูก</span>
                         {DotReport.checkEditPlant ? <div className="dot-someting"></div> : <></>}
                     </div>
-                    <div onClick={() => selectMenu("z")} className="frame-menu frame-ferti">
+                    <div onClick={() => selectMenu("fertilizer")} className="frame-menu frame-ferti">
                         <div className="img">
                             <img src="/fertilizer.jpg"></img>
                         </div>
@@ -86,14 +88,14 @@ const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => 
                     </div>
                 </div>
                 <div className="row">
-                    <div onClick={() => selectMenu("c")} className="frame-menu frame-chemi">
+                    <div onClick={() => selectMenu("chemical")} className="frame-menu frame-chemi">
                         <div className="img">
                             <img src="/chemical.jpg"></img>
                         </div>
                         <span>สารเคมีที่ใช้</span>
                         {DotReport.checkEditChemical ? <div className="dot-someting"></div> : <></>}
                     </div>
-                    <div onClick={() => selectMenu("h")} className="frame-menu frame-success">
+                    <div onClick={() => selectMenu("success")} className="frame-menu frame-success">
                         <div className="img">
                             <img src="/เก็บ.png"></img>
                         </div>
@@ -102,7 +104,7 @@ const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => 
                     </div>
                 </div>
                 <div className="row">
-                    <div onClick={() => selectMenu("e")} className="frame-menu frame-ecph">
+                    <div onClick={() => selectMenu("ec/ph")} className="frame-menu frame-ecph">
                         <div className="img">
                             <img src="/ecph.png" ></img>
                         </div>
@@ -112,7 +114,7 @@ const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => 
                         }
                     </div>
 
-                    <div onClick={() => selectMenu("s")} className="frame-menu frame-sensor">
+                    <div onClick={() => selectMenu("sensor")} className="frame-menu frame-sensor">
                         <div className="img">
                             <img src="/เก็บ.png" ></img>
                         </div>
@@ -123,7 +125,7 @@ const MenuPlant = ({ setBody , id_house , id_plant , setPage, isClick = 0 }) => 
                     </div>
                 </div>
                 <div className="report-farm"
-                    onClick={() => selectMenu("r")}
+                    onClick={() => selectMenu("report")}
                 >
                     <img src="/report.png"></img>
                     {DotReport[0] ? DotReport[0].report ? <div className="dot-someting"></div> : <></> : <></>}

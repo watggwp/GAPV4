@@ -1,102 +1,81 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
-import MenuPlant from "../PlantList/MenuPlant";
 
 import "./Success.scss"
-import { DayJSX, Loading } from "../../../../../assets/js/module";
+import { Loading } from "../../../../../assets/js/module";
 import List from "./ListSuccess";
+import { useNavigate, useParams } from "react-router";
+import { useGreenhouse } from "..";
 
-const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isClick = 0}) => {
+const Success = ({ type_page }) => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const navigator = useNavigate()
+
+    const { setCurrentPage } = useGreenhouse()
+
     const Popup = useRef()
     // const [List , setList] = useState(<></>)
     const [PopupState , setPopup] = useState(<></>)
 
     const [DotSome , setDotSome] = useState([])
-    const [listData, setListData] = useState([]);
+    const [listData, setListData] = useState([])
 
-    const [DataPage , setDataPage] = useState({
-        id_house : id_house,
-        id_plant : id_plant,
-        type : type.split(":")[1],
-        isClick : isClick
-    })
+    const ChangeMenu = useCallback((type) => {
+        navigator(`/farmer/form/${greenhouse_id}/s/${gap_id}/${type}`)
+    } , [gap_id, greenhouse_id, navigator])
 
-    useEffect(()=>{
-        setPage("Success")
-
-        FetchCheck()
-        // if(document.getElementById("loading").classList[0] !== "hide")
-            clientMo.unLoadingPage()
-    } , [])
-
-    useEffect(()=>{
-        if(!isClick) {
-            setDataPage({
-                id_house : id_house,
-                id_plant : id_plant,
-                type : type.split(":")[1],
-                isClick : isClick
-            })
-        }
-    } , [type])
-
-    const ChangeMenu = (type) => {
-        setDataPage({
-            id_house : id_house,
-            id_plant : id_plant,
-            type : type,
-            isClick : 1
-        })
-    }
-
-    const FetchCheck = async () => {
-        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${id_house}&id_plant=${id_plant}`);
-        if (await CloseAccount(result, setPage)) {
+    const requestAlertReport = useCallback(async () => {
+        const result = await clientMo.get(`/api/farmer/report/check?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`);
+        if (await CloseAccount(result, setCurrentPage)) {
             setDotSome(JSON.parse(result)); // อัปเดต DotSome
         }
-    };
+    } , [gap_id, greenhouse_id, setCurrentPage])
     
     useEffect(() => {
-        setPage("Success");
+        requestAlertReport()
+        const interval = setInterval(requestAlertReport, 5000)
     
-        FetchCheck(); // โหลดข้อมูลครั้งแรก
-        const interval = setInterval(FetchCheck, 5000); // ดึงข้อมูลทุก 5 วินาที
-    
-        return () => clearInterval(interval); // ล้างเมื่อออกจากหน้านี้
-    }, [id_house, id_plant]);
+        clientMo.unLoadingPage()
+        return () => clearInterval(interval)
+    }, [requestAlertReport]);
     
 
     const OpenPopup = async (id_table_success , type , name_station , Dom) => {
         const result = await clientMo.post("/api/farmer/success/get" , {
-            id_farmhouse : id_house , id_plant : id_plant , id_table : id_table_success
+            id_farmhouse : greenhouse_id , id_plant : gap_id , id_table : id_table_success
         })
-        if(await CloseAccount(result , setPage)) {
+        if(await CloseAccount(result , setCurrentPage)) {
             const ob = JSON.parse(result)
-            if(ob[0]) setPopup(<PopupSuccess Ref={Popup} setPopup={setPopup}
-                                    Data={{
-                                        id_success : ob[0].id_success,
-                                        name_station : name_station
-                                    }} setListData={setListData}/>)
-            else setPopup(<PopupSuccess Ref={Popup} setPopup={setPopup} setPage={setPage} Dom={Dom}
-                            Data={{
-                                id_table : id_table_success,
-                                type : type,
-                                name_station : name_station
-                            }} 
-                            MainData={{
-                                id_house : id_house,
-                                id_plant : id_plant
-                            }}setListData={setListData}/>)
+            if(ob[0]) setPopup(
+                <PopupSuccess 
+                    Ref={Popup} setPopup={setPopup}
+                    Data={{
+                        id_success : ob[0].id_success,
+                        name_station : name_station
+                    }} setListData={setListData}
+                />
+            )
+            else setPopup(
+                    <PopupSuccess 
+                        Ref={Popup} 
+                        setPopup={setPopup} 
+                        Dom={Dom}
+                        Data={{
+                            id_table : id_table_success,
+                            type : type,
+                            name_station : name_station
+                        }}
+                        setListData={setListData}
+                    />
+                )
         }
     }
 
-    const ReturnPage = async () =>{
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} />)
-        }
-    }
+    const ReturnPage = useCallback(async () => {
+        navigator(`/farmer/form/${greenhouse_id}/p/${gap_id}`)
+    } , [gap_id, greenhouse_id, navigator])
 
     return (
         <>
@@ -110,11 +89,11 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                         </g>
                     </svg>
                 </div>
-                <span>{DataPage.type === "h" ? "การเก็บเกี่ยว" : DataPage.type === "cf" ? "ตรวจสอบแบบฟอร์ม" : DataPage.type === "cp" ? "ตรวจสอบผลผลิต" : ""}</span>
+                <span>{type_page === "h" ? "การเก็บเกี่ยว" : type_page === "cf" ? "ตรวจสอบแบบฟอร์ม" : type_page === "cp" ? "ตรวจสอบผลผลิต" : ""}</span>
             </div>
             <div className="menu-container">
                 <button 
-                    className={`menu-button harvest ${DataPage.type === "h" ? "active" : ""}`} 
+                    className={`menu-button harvest ${type_page === "h" ? "active" : ""}`} 
                     onClick={() => ChangeMenu("h")}
                 >
                     การเก็บเกี่ยว
@@ -122,7 +101,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                 </button>
 
                 <button 
-                    className={`menu-button form-check ${DataPage.type === "cf" ? "active" : ""}`} 
+                    className={`menu-button form-check ${type_page === "cf" ? "active" : ""}`} 
                     onClick={() => ChangeMenu("cf")}
                 >
                     ผลตรวจแบบฟอร์ม
@@ -130,7 +109,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
                 </button>
 
                 <button 
-                    className={`menu-button product-check ${DataPage.type === "cp" ? "active" : ""}`} 
+                    className={`menu-button product-check ${type_page === "cp" ? "active" : ""}`} 
                     onClick={() => ChangeMenu("cp")}
                 >
                     ผลตรวจผลผลิต
@@ -140,7 +119,7 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
 
             <div className="content-success">
                 <div className="list-success">
-                    <List liff={liff} setPage={setPage} DetailFetchList={DataPage} OpenPopup={OpenPopup} setListData={setListData}/>
+                    <List type_page={type_page} OpenPopup={OpenPopup}/>
                 </div>
             </div>
             <div ref={Popup} className="popup">
@@ -151,15 +130,21 @@ const Success = ({ setBody , id_house , id_plant , liff , setPage , type , isCli
     )
 }
 
-const PopupSuccess = ({Ref , setPopup , setPage , Dom ,setListData,
-    Data = {type : "" , id_table : "" , id_success : "" , name_station : ""} , 
-    MainData = {id_plant : "" , id_house : ""}}) => {
+const PopupSuccess = ({
+    Ref , 
+    setPopup, 
+    Dom ,
+    setListData,
+    Data = { type : "" , id_table : "" , id_success : "" , name_station : "" } , 
+}) => {
+    const { greenhouse_id , gap_id } = useParams()
         
+    const { setCurrentPage } = useGreenhouse()
     const [Load , setLoad] = useState(false)
     
     useEffect(()=>{
         Ref.current.setAttribute("show" , "")
-    } , [])
+    } , [Ref])
 
     const cancel = () => {
         Ref.current.removeAttribute("show")
@@ -170,14 +155,14 @@ const PopupSuccess = ({Ref , setPopup , setPage , Dom ,setListData,
 
     const Confirm = async () => {
         const data = {
-            id_farmhouse : MainData.id_house,
-            id_plant : MainData.id_plant,
+            id_farmhouse : greenhouse_id,
+            id_plant : gap_id,
             id_table_success : Data.id_table,
         }
 
         setLoad(true)
         const result = await clientMo.post("/api/farmer/success/update" , data)
-        if(await CloseAccount(result , setPage)){
+        if(await CloseAccount(result , setCurrentPage)){
             Dom.target.innerHTML = "แสดงรหัส"
             setListData(prevData =>
                 prevData.map(item =>

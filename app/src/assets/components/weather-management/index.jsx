@@ -115,7 +115,7 @@ export default function WeatherManagement({
             alignItems={"center"}
         >
             <Grid container width={"100%"} height={"100%"} justifyContent={"center"}>
-                <Grid size={{ sm : 12 , md : 6 }} height={isMediaSm ? "55%" : "100%"}>
+                <Grid size={{ sm : 12 , md : 6 }} height={isMediaSm ? "55%" : "100%"} minHeight={isMediaSm ? "300px" : 0}>
                     <TabsGAP 
                         value={selectedTab} 
                         onChange={onChangeTab} 

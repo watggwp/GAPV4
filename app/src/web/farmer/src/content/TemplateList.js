@@ -4,8 +4,15 @@ import "../assets/Template.scss"
 // import { CloseAccount } from "../method";
 // import { clientMo } from "../../../../assets/js/moduleClient";
 
-const Template = ({PopUp = {PopupRef : null , PopupBody : <></>} ,
-List , Loading , action , Option = {TextHead : "" , img : ""} , actionReturn}) => {
+const Template = ({
+    PopUp = {PopupRef : null , PopupBody : <></>} ,
+    List , 
+    Loading , 
+    action , 
+    Option = {TextHead : "" , img : ""} , 
+    actionReturn ,
+    disabledAdd = false
+}) => {
     const PopupSection = useMemo(()=>PopUp.PopupRef ? PopUp.PopupRef : createRef() , [])
     return(
         <section className="plant">
@@ -27,11 +34,14 @@ List , Loading , action , Option = {TextHead : "" , img : ""} , actionReturn}) =
                         }
                         <span>{Option.TextHead}</span>
                     </div>
-                    <div onClick={action} className="frame-menu">
+                    <div onClick={ !disabledAdd ? action : undefined } className="frame-menu">
                         <div className="img">
                             <img src={Option.img}></img>
                         </div>
-                        { action ? <span>เพิ่มการบันทึก</span> : <></> }
+                        { 
+                            (action && !disabledAdd) &&
+                                <span>เพิ่มการบันทึก</span> 
+                        }
                     </div> 
                 </div>
                 <div className="list-plant">
