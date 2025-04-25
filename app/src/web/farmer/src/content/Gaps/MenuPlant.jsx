@@ -5,6 +5,10 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import { useNavigate, useParams } from "react-router";
 import { useGreenhouse } from "..";
+import env from "../../../../../env";
+import { Chip, Stack, Typography } from "@mui/material";
+
+const { path_icon : { sensor_greenhouse_bg , pump } } = env
 
 const MenuPlant = () => {
 
@@ -22,7 +26,7 @@ const MenuPlant = () => {
     } , [gap_id, greenhouse_id, setCurrentPage])
 
     useEffect(() => {
-        // if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${greenhouse_id}/p/${gap_id}`)
+        // if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${greenhouse_id}/${gap_id}/p`)
 
         // FetchFormPlant()
         FetchCheck()
@@ -42,25 +46,28 @@ const MenuPlant = () => {
     const selectMenu = useCallback(async (page) => {
         switch(page) {
             case "gap_data" :
-                navigator(`/farmer/form/${greenhouse_id}/d/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/d`)
                 break;
             case "fertilizer" :
-                navigator(`/farmer/form/${greenhouse_id}/z/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/z`)
                 break;
             case "chemical" :
-                navigator(`/farmer/form/${greenhouse_id}/c/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/c`)
                 break;
             case "success" :
-                navigator(`/farmer/form/${greenhouse_id}/s/${gap_id}/h`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/s/h`)
                 break;
             case "ec/ph" :
-                navigator(`/farmer/form/${greenhouse_id}/ec-ph/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/ec-ph`)
+                break;
+            case "pump" :
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/pump`)
                 break;
             case "sensor" :
-                navigator(`/farmer/form/${greenhouse_id}/sensor/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/sensor`)
                 break;
             case "report" :
-                navigator(`/farmer/form/${greenhouse_id}/r/${gap_id}`)
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/r`)
                 break;
             default :
                 break;
@@ -114,16 +121,49 @@ const MenuPlant = () => {
                         }
                     </div>
 
-                    <div onClick={() => selectMenu("sensor")} className="frame-menu frame-sensor">
-                        <div className="img">
-                            <img src="/เก็บ.png" ></img>
+                    <div onClick={() => selectMenu("pump")} className="frame-menu frame-pump">
+                        <div className="img" style={{ backgroundColor : "white" }}>
+                            <img src={pump} ></img>
                         </div>
-                        <span>เซนเซอร์</span>
+                        <span>ปั้มน้ำ</span>
                         {
                             DotReport.checkEditSensor && <div className="dot-someting"/>
                         }
                     </div>
                 </div>
+                <Stack 
+                    borderRadius={4} 
+                    direction={"row"} width={"calc(100% - 28px)"} maxWidth={"300px"} 
+                    justifyContent={"start"}
+                    alignItems={"center"}
+                    padding={2}
+                    onClick={() => selectMenu("sensor")}
+                    sx={{
+                        backgroundImage : `url(${sensor_greenhouse_bg})`,
+                        backgroundSize : "100%",
+                        backgroundPositionY : "-40px"
+                    }}
+                >
+                    <Stack>
+                        <Chip
+                            label={
+                                <Typography color="primary" fontWeight={900} fontSize={"24px"} >เซนเซอร์</Typography>
+                            }
+                            sx={{
+                                bgcolor : "white"
+                            }}
+                        />
+                        <Chip
+                            label={
+                                <Typography color="primary" fontWeight={900} fontSize={"24px"} >ในโรงเรือน</Typography>
+                            }
+                            sx={{
+                                marginTop : 1,
+                                bgcolor : "white"
+                            }}
+                        />
+                    </Stack>
+                </Stack>
                 <div className="report-farm"
                     onClick={() => selectMenu("report")}
                 >

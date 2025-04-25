@@ -1,4 +1,4 @@
-#weather-sensor-farmer {
+#template-page-farmer {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -18,16 +18,16 @@
         position: relative;
 
         .return {
-        background-color: #daf1ee;
-        height: 1.5em;
-        left: 0;
-        display: flex;
-        position: absolute;
-        border-radius: 0px 15px 15px 0px;
-        padding: 0.3em 0.5em;
-        padding-right: 0.8em;
-        box-shadow: 0px 2px 2px rgb(173, 173, 173);
-
+            background-color: #daf1ee;
+            height: 1.5em;
+            left: 0;
+            display: flex;
+            position: absolute;
+            border-radius: 0px 15px 15px 0px;
+            padding: 0.3em 0.5em;
+            padding-right: 0.8em;
+            box-shadow: 0px 2px 2px rgb(173, 173, 173);
+            
             svg {
                 fill: rgb(255, 0, 0);
                 font-weight: 900;

@@ -88,10 +88,10 @@ module.exports = function router(app) {
     app.get('/farmer/form/:id_farm' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
     });
-    app.get('/farmer/form/:id_farm/:page/:id_form_plant' , (req, res) => {
+    app.get('/farmer/form/:id_farm/:id_form_plant/:page' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
     });
-    app.get('/farmer/form/:id_farm/:page/:id_form_plant/:sub_page' , (req, res) => {
+    app.get('/farmer/form/:id_farm/:id_form_plant/:page/:sub_page' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
     });
 }

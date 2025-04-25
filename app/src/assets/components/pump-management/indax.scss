@@ -1,0 +1,315 @@
+#pump-management {
+    max-width: 400px;
+    margin: 0 auto;
+    font-family: Sans-font;
+    
+    .section {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .schedule-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px;
+        background: #eee;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .switch input {
+        display: none;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: #ccc;
+        transition: 0.4s;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #4caf50;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .home-container {
+        text-align: center;
+        padding: 3rem;
+        background-color: #fdf4e7;
+        min-height: 100vh;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 20px;
+        justify-items: center;
+        margin-top: 2rem;
+    }
+
+    .menu-button {
+        background-color: #ffffff;
+        border: 2px solid #ddd;
+        padding: 1rem;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 200px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-button:hover {
+        background-color: #f0f0f0;
+    }
+
+    .pump-image {
+        width: 150px;
+        height: auto;
+        margin-bottom: 0rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-align: center;
+    }
+
+    .back-button-container {
+        text-align: left;
+        margin-bottom: 10px;
+    }
+
+    .back-button {
+        background-color: transparent;
+        border: none;
+        color: #333;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .back-button:hover {
+        background-color: #e0e0e0;
+    }
+
+    .back {
+        width: 20px;
+        height: auto;
+    }
+
+    /*history*/
+
+    .back-button-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    input[type="time"],
+    input[type="number"] {
+        padding: 10px 14px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        background-color: #fff;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+    input[type="time"]:focus,
+    input[type="number"]:focus {
+        border-color: #4caf50;
+        outline: none;
+    }
+
+    /*ปุ่ม*/
+    button.add-button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: #e0e0e0;
+        color: #333;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    button.add-button:hover {
+        background-color: #d5d5d5;
+    }
+
+    .schedule-item button {
+        background-color: #ffcccc;
+        color: #900;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .schedule-item button:hover {
+        background-color: #ffb3b3;
+    }
+
+    .control-box {
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .state-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .state-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .state-dot.on {
+        background-color: #4caf50;
+    }
+
+    .state-dot.off {
+        background-color: #ccc;
+    }
+
+    .state-text {
+        font-size: 16px;
+    }
+}
+
+
+#pump-management-history {
+    font-family: Sans-font;
+    
+    .back-button,
+    .history-button {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 8px;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+    }
+
+    .back-button:hover,
+    .history-button:hover {
+        background-color: #f0f0f0;
+    }
+
+    .back {
+        width: 20px;
+        height: auto;
+    }
+
+    .history-panel {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100vh;
+        background-color: #fff;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        transition: right 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .history-panel.show {
+        right: 0;
+    }
+
+    .history-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+    }
+
+    .close-button {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .history-content {
+        padding: 0px 16px;
+        height: calc(100% - 67px);
+        overflow: auto;
+    }
+
+    .history-content h4 {
+        margin-top: 20px;
+        color: #4caf50;
+    }
+
+    .history-item {
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        background: #f9f9f9;
+        border-radius: 12px;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+    }
+}

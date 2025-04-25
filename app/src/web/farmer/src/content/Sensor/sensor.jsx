@@ -1,17 +1,17 @@
 import { Stack } from "@mui/material";
 import WeatherManagement from "../../../../../assets/components/weather-management";
-import MenuPlant from "../Gaps/MenuPlant";
 import { useCallback } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 
 export default function SensorGreenhouse() {
 
-    const { greenhouse_id , gap_id } = useParams()
+    const { greenhouse_id , gap_id , device_id } = useParams()
+    const navigator = useNavigate()
 
     const onReturn = useCallback(() =>
-        navigator(`/farmer/form/${greenhouse_id}/p/${gap_id}`)
-    , [gap_id, greenhouse_id])
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/sensor`)
+    , [gap_id, greenhouse_id, navigator])
 
     return(
         <section id="weather-sensor-farmer">
@@ -31,13 +31,17 @@ export default function SensorGreenhouse() {
             </div>
             <Stack height={"calc(100% - 55px)"} width={"100%"} overflow={"scroll"}>
                 <WeatherManagement
-                    endpointData="/api/farmer/weather-station"
+                    endpointData={`/api/sensor/weather-greenhouse/${greenhouse_id}/${device_id}`}
+                    query={{
+                        r : "farmer"
+                    }}
                     columnTimestamp="timestamp"
                     columns={[
-                        { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
-                        { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
+                        { field: 'air_temperature', name: 'อุณหภูมิ' , color : "green" },
+                        { field: 'air_humidity', name: 'ความชื้น' , color : "yellow" },
                         { field: 'light', name: 'แสง' , color : "orange" },
-                        { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
+                        { field: 'soil_temperature', name: 'อุณหภูมิดิน' , color : "red" },
+                        { field: 'soil_humidity', name: 'ความชื้นดิน' , color : "blue" },
                     ]}
                 />
             </Stack>

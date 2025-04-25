@@ -23,7 +23,7 @@ const Success = ({ type_page }) => {
     const [listData, setListData] = useState([])
 
     const ChangeMenu = useCallback((type) => {
-        navigator(`/farmer/form/${greenhouse_id}/s/${gap_id}/${type}`)
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/s/${type}`)
     } , [gap_id, greenhouse_id, navigator])
 
     const requestAlertReport = useCallback(async () => {
@@ -74,7 +74,7 @@ const Success = ({ type_page }) => {
     }
 
     const ReturnPage = useCallback(async () => {
-        navigator(`/farmer/form/${greenhouse_id}/p/${gap_id}`)
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)
     } , [gap_id, greenhouse_id, navigator])
 
     return (

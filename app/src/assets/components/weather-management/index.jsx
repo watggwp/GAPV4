@@ -31,6 +31,7 @@ const TabGAP = styled((props) => <Tab disableRipple {...props} />)({
 
 export default function WeatherManagement({
     endpointData = "/api/farmer/weather-station",
+    query = {},
     columnTimestamp = "timestamp",
     columns = [
         { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
@@ -64,7 +65,8 @@ export default function WeatherManagement({
         setDateEnd(new Date(endtime))
         const { data , status } = await RequestAPI.get(endpointData , {
             "st" : starttime,
-            "et" : endtime
+            "et" : endtime,
+            ...query
         })
         setLoadingHistory(false)
 
@@ -86,7 +88,7 @@ export default function WeatherManagement({
                 break;
         }
         isMount && clientMo.unLoadingPage()
-    } , [columnTimestamp, endpointData])
+    } , [columnTimestamp, endpointData, query])
 
     const onChanageDayAgo = useCallback((event) => {
         const { now , dayAgo } = new DateGAP().getDayRangeFromNow(event.target.value)

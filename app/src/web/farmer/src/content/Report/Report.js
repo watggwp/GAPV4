@@ -19,7 +19,7 @@ const Report = () => {
     }, []);
 
     const ReturnPage = useCallback(async () => {
-        navigator(`/farmer/form/${greenhouse_id}/p/${gap_id}`)
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)
     } , [gap_id, greenhouse_id, navigator])
 
     return (

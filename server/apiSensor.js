@@ -14,7 +14,7 @@ module.exports = function apiSensor(app, pool = new Pool()) {
 				const password = req.session.pass_doctor;
 			
 				if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-					res.status(403).send({
+					return res.status(403).send({
 						errors : "authorize error"
 					})
 				}
@@ -22,13 +22,62 @@ module.exports = function apiSensor(app, pool = new Pool()) {
 			case "farmer" :
 				const uid = req.session.uidFarmer
 				if (!uid) {
-					res.status(403).send({
+					return res.status(403).send({
 						errors : "authorize error"
 					});
 				}
 				break;
 			default :
-				res.status(403).send({
+				return res.status(403).send({
+					errors : "authorize error"
+				});
+		}
+    
+		try {
+			const data = await pool.executeQuery(
+				`
+					SELECT id , device_id , status , create_timestamp
+					FROM sensor_weather_greenhouse 
+					WHERE greenhouse_id = ?
+					ORDER BY create_timestamp DESC
+				`, [ greenhouse_id ]
+			);
+			return res.status(200).send({
+				devices : data
+			}); // ส่งข้อมูลพร้อม status code 200
+		} catch (err) {
+			return res.status(500).send({
+				"errors" : "external"
+			})
+		}
+    })
+
+	app.get('/api/sensor/weather-greenhouse/:greenhouse_id/:device_id', async (req, res) => {
+
+		const { greenhouse_id , device_id } = req.params
+		const role = req.query.r
+		
+        switch(role) {
+			case "doctor" :
+				const username = req.session.user_doctor;
+				const password = req.session.pass_doctor;
+			
+				if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+					return res.status(403).send({
+						errors : "authorize error"
+					})
+				}
+				break;
+			case "farmer" :
+				const uid = req.session.uidFarmer
+				if (!uid) {
+					return res.status(403).send({
+						errors : "authorize error"
+					});
+				}
+				break;
+			default :
+				return res.status(403).send({
 					errors : "authorize error"
 				});
 		}
@@ -37,54 +86,20 @@ module.exports = function apiSensor(app, pool = new Pool()) {
 			const data = await pool.executeQuery(
 				`
 					SELECT * 
-					FROM sensor_weather_greenhouse 
-					WHERE greenhouse_id = ?
-					ORDER BY create_timestamp DESC
-				`, [ greenhouse_id ]
+					FROM weather_greenhouse wg
+					LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
+					WHERE swg.greenhouse_id = ? AND swg.device_id = ?
+					ORDER BY wg.timestamp DESC
+				`, [
+					greenhouse_id , device_id
+				]
 			);
-			res.status(200).send(data); // ส่งข้อมูลพร้อม status code 200
+			return res.status(200).send({
+				details : data
+			}); // ส่งข้อมูลพร้อม status code 200
 		} catch (err) {
 			console.error('Query Error:', err);
-			res.status(500).send({
-				"errors" : "external"
-			})
-		}
-    })
-
-	app.get('/api/sensor/weather-greenhouse/:greenhouse_id/:device_id', async (req, res) => {
-
-		const { greenhouse_id } = req.params
-		const role = req.query.r
-
-        switch(role) {
-			case "doctor" :
-				const username = req.session.user_doctor;
-				const password = req.session.pass_doctor;
-			
-				if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-					res.status(403).send({
-						errors : "authorize error"
-					})
-				}
-			case "farmer" :
-				const uid = req.session.uidFarmer
-				if (!uid) {
-					res.status(403).send({
-						errors : "authorize error"
-					});
-				}
-		}
-    
-		try {
-			const data = await pool.executeQuery(
-				`
-					SELECT * FROM weather-greenhouse ORDER BY time DESC
-				`, []
-			);
-			res.status(200).send(data); // ส่งข้อมูลพร้อม status code 200
-		} catch (err) {
-			console.error('Query Error:', err);
-			res.status(500).send({
+			return res.status(500).send({
 				"errors" : "external"
 			})
 		}
@@ -112,10 +127,10 @@ module.exports = function apiSensor(app, pool = new Pool()) {
 				]
 			)
 
-			res.status(200).send("success");
+			return res.status(200).send("success");
 		} catch(err) {
 			console.error("DB Error:", err);
-			res.status(500).send("Failed to insert sensor data");
+			return res.status(500).send("Failed to insert sensor data");
 		}
 	})
 
@@ -159,10 +174,10 @@ module.exports = function apiSensor(app, pool = new Pool()) {
 				)
 	
 				console.log("✅ Inserted to DB:", result.insertId);
-				res.status(200).send("success");
+				return res.status(200).send("success");
 			} catch(err) {
 				console.error("❌ DB Error:", err);
-				res.status(500).send("Failed to insert sensor data");
+				return res.status(500).send("Failed to insert sensor data");
 			}
 			
 		} catch(err) {
