@@ -13,12 +13,13 @@ class ClientRequestAPI {
         withCredentials : true
     }
 
-    async post (url , data) {
+    async post (url , data , options = {}) {
         return await axios.post(`${HOST_API}${url}` , data , {
             headers: {
                 "Content-Type" : "application/json",
             },
-            ...this.options
+            ...this.options,
+            ...options,
         })
     }
     async postForm(url , data) {
@@ -44,6 +45,13 @@ class ClientRequestAPI {
     }
     async get(url , query) {
         return await axios.get(`${HOST_API}${url}` , {
+            params : query,
+            ...this.options
+        })
+    }
+
+    async delete(url , query) {
+        return await axios.delete(`${HOST_API}${url}` , {
             params : query,
             ...this.options
         })

@@ -89,7 +89,8 @@ export default function Sensor() {
                                                     bgcolor : "secondary.main",
                                                     width : "98%",
                                                     maxWidth : "250px",
-                                                    position : "relative"
+                                                    position : "relative",
+                                                    boxShadow : (theme) => `0px 2px 4px ${theme.palette.primary.main}`
                                                 }}
                                             >
                                                 <img src={sensor_greenhouse} style={{ 

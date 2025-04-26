@@ -1,5 +1,6 @@
 #pump-management {
     max-width: 400px;
+    width: 90%;
     margin: 0 auto;
     font-family: Sans-font;
     
@@ -149,6 +150,7 @@
         flex-direction: column;
         gap: 10px;
         align-items: center;
+        width: 98%;
     }
     input[type="time"],
     input[type="number"] {

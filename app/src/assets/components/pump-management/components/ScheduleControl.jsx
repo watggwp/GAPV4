@@ -1,48 +1,142 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ScheduleList from './ScheduleList';
-import ToggleSwitch from './ToggleSwitch';
-import { Box } from '@mui/material';
+import { Box, Button, Stack } from '@mui/material';
+import { usePumpManagement } from '..';
+import RequestAPI from '../../../js/requestAPI';
+import { useRef } from 'react';
+import ApproveDialogApp from '../../ApproveDialogApp';
 
-export default function ScheduleControl({ schedules, setSchedules, enableSchedule, setEnableSchedule }) {
+import TimePickerApp from "../../TimePickerApp"
+
+export default function ScheduleControl() {
+    const { device_id , role } = usePumpManagement()
     const [time, setTime] = useState('');
     const [duration, setDuration] = useState('');
+    
+    const [ schedules , setSchedules ] = useState([])
+    const [ loading , setLoading ] = useState(false)
+    const [ loadingAdd , setLoadingAdd ] = useState(false)
 
-    const handleAdd = () => {
+    const [ openApprove , setOpenApprove ] = useState(false)
+    const deleteID = useRef(0)
+
+    const requestSchedule = useCallback( async () => {
+        setLoading(true)
+        const { data , status } = await RequestAPI.get(`/api/pump/${device_id}/schedule` , {
+            r : role
+        })
+        setLoading(false)
+
+        switch(status) {
+            case 200 :
+                const { schedules : schedulesRequest } = data
+                setSchedules(schedulesRequest)
+                break;    
+            default :
+                break;
+        }
+    } , [device_id, role])
+
+    const handleAdd = useCallback( async () => {
         if (time && duration) {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('th-TH')
+            setLoadingAdd(true)
+            const { data , status } = await RequestAPI.post(`/api/pump/${device_id}/schedule` , {
+                start_time : time,
+                duration : duration
+            } , {
+                params : {
+                    r : role
+                }
+            })
+            setLoadingAdd(false)
 
-            setSchedules(prev => [...prev, { time, duration, date: dateStr }]);
+            switch(status) {
+                case 200 :
+                    const { data : lastSchedules } = data
+                    setSchedules((crrSchedule) => [
+                        ...lastSchedules,
+                        ...crrSchedule
+                    ])
+                    break;
+                default :
+                    break;
+            }
+
             setTime('');
             setDuration('');
         }
-    };
+    } , [device_id, duration, role, time])
 
-    const handleDelete = (index) => {
-        setSchedules(prev => prev.filter((_, i) => i !== index));
-    };
+    const handleDelete = useCallback((id) => {
+        deleteID.current = id
+
+        setOpenApprove(true)
+    } , [])
+
+    const onConfirmDelete = useCallback( async () => {
+        const { status } = await RequestAPI.delete(`/api/pump/${device_id}/schedule/${deleteID.current}`, {
+            r : role
+        })
+
+        switch(status) {
+            case 200 :
+                setSchedules((currSchedules) => {
+                    const indexSchedule = currSchedules.findIndex(sc => sc.id === deleteID.current)
+                    currSchedules.splice(indexSchedule , 1)
+                    return [...currSchedules]
+                })
+                break;
+            default :
+                break;
+        }
+
+        setOpenApprove(false)
+    } , [device_id, role])
+
+    useEffect(() => {
+        requestSchedule()
+    }, [requestSchedule])
 
     return (
         <Box className="section control-box" bgcolor={"secondary.main"}>
-            <div className="state-label">
-                <span className={`state-dot ${enableSchedule ? 'on' : 'off'}`}></span>
-                <span className="state-text">STATE {enableSchedule ? 'ON' : 'OFF'}</span>
-            </div>
-
             <h2>ตั้งเวลา เปิด-ปิด ปั๊ม</h2>
-            <ToggleSwitch isOn={enableSchedule} onToggle={() => setEnableSchedule(!enableSchedule)} />
+            <div className="input-group">
+                <label style={{ width : "100%" }}>
+                    เวลา
+                    <Stack>
+                        <TimePickerApp
+                            value={time}
+                            onChange={(date) => setTime(date)}
+                            sxTextField={{
+                                "& .MuiPickersInputBase-root" : {
+                                    borderRadius : "12px",
+                                    backgroundColor : "white"
+                                }
+                            }}
+                        />
+                    </Stack>
+                    {/* <input type="time" value={time} onChange={e => setTime(e.target.value)} /> */}
+                </label>
+                <label style={{ width : "100%" }}>
+                    จำนวน (นาที)
+                    <input type="number" style={{ textAlign : "center" }} value={duration} onChange={e => setDuration(e.target.value)} />
+                </label>
+                <Button disabled={loadingAdd} sx={{ marginTop : 1 }} variant="contained" size="small" onClick={handleAdd}>เพิ่ม</Button>
+            </div>
             {
-                enableSchedule && (
-                    <>
-                        <div className="input-group">
-                            <label>เวลา</label>
-                            <input type="time" value={time} onChange={e => setTime(e.target.value)} />
-                            <label>จำนวน (นาที)</label>
-                            <input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
-                            <button className="add-button" onClick={handleAdd}>เพิ่ม</button>
-                        </div>
+                !loading && (
+                    <React.Fragment>
                         <ScheduleList schedules={schedules} onDelete={handleDelete} />
-                    </>
+                        <ApproveDialogApp
+                            open={openApprove}
+                            setOpen={setOpenApprove}
+                            title={"ยืนยันลบตั้งเวลา"}
+                            detail={
+                                "ลบรายการตั้งเวลาที่เลือก, ยืนยันหรือไม่"
+                            }
+                            onAgree={onConfirmDelete}
+                        />
+                    </React.Fragment>
                 )
             }
         </Box>

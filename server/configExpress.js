@@ -1,9 +1,5 @@
 const router = require('./routerApi');
-const apiAdmin = require('./apiAdmin');
-const apiDoctor = require('./apiDoctor');
-const apiFarmer = require('./apiFarmer');
-const apiSensor = require('./apiSensor');
-const message = require('./apiMessaging');
+
 const dbpackage = require('./dbConfig');
 const ConnectPool = require('./connectPool');
 const apifunc = require('./apifunc');
@@ -20,6 +16,15 @@ const db = require('mysql2');
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
 const fs = require('fs');
+
+const apiAdmin = require('./apiAdmin');
+const apiDoctor = require('./apiDoctor');
+const apiFarmer = require('./apiFarmer');
+const apiMessage = require('./apiMessaging');
+const apiPump = require('./apiPump');
+const apiWeatherStation = require('./apiWeatherStation');
+const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
+
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
@@ -116,8 +121,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
-    apiSensor(app , Pool)
-    message(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
+    apiWeatherStation(app , Pool)
+    apiWeatherGreenhouse(app , Pool)
+    apiPump(app , Pool)
+    apiMessage(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
     // page error 404
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));

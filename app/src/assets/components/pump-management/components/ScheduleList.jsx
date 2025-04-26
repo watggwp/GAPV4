@@ -1,3 +1,4 @@
+import { Stack, Typography } from '@mui/material';
 import React from 'react';
 
 export default function ScheduleList({ schedules, onDelete }){
@@ -7,8 +8,11 @@ export default function ScheduleList({ schedules, onDelete }){
             {
                 schedules.map((item, index) => (
                     <div key={index} className="schedule-item">
-                        <span>เปิด {item.time} เป็นเวลา {item.duration} นาที</span>
-                        <button onClick={() => onDelete(index)}>ลบ</button>
+                        <Stack justifyContent={"center"} alignItems={"start"}>
+                            <Typography>เปิด {item.start_time}</Typography>
+                            <Typography>เป็นเวลา {item.duration} นาที</Typography>
+                        </Stack>
+                        <button onClick={() => onDelete(item.id)}>ลบ</button>
                     </div>
                 ))
             }

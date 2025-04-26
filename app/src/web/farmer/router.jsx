@@ -4,7 +4,7 @@ import MainFarmer from "./src/main";
 
 import SignUp from "./src/singupFile/Signup";
 import House from "./src/houseFile/House";
-import HouseList from "./src/HouseList/HouseList";
+import HouseList from "./src/HouseList";
 import WeatherStation from "./src/weather-station";
 import Greenhouse from "./src/content";
 import Gaps from "./src/content/Gaps";
@@ -19,6 +19,8 @@ import InformationReport from "./src/content/InformationReport";
 import Sensor from "./src/content/Sensor";
 import SensorGreenhouse from "./src/content/Sensor/sensor";
 import PumpControlPage from "./src/content/Pump";
+import Houses from "./src/HouseList/houses";
+import HouseSetup from "./src/HouseList/setup";
 
 export default function Router() {
     return(
@@ -27,7 +29,10 @@ export default function Router() {
                 <Route path="/farmer" element={<MainFarmer/>}>
                     <Route path="signup" element={<SignUp/>} />
                     <Route path="house" element={<House/>} />
-                    <Route path="houses" element={<HouseList/>} />
+                    <Route path="houses" element={<HouseList/>}>
+                        <Route index element={<Houses/>} />
+                        <Route path=":greenhouse_id" element={<HouseSetup/>} />
+                    </Route>
                     <Route path="weather-station" element={<WeatherStation/>} />
                     <Route path="form/:greenhouse_id" element={<Greenhouse/>}>
                         <Route index element={

@@ -1,4 +1,4 @@
-import { Box } from "@mui/material"
+import { Box, Stack } from "@mui/material"
 import { useCallback } from "react"
 import { useNavigate } from "react-router"
 import "./index.scss"
@@ -34,7 +34,9 @@ export default function TemplagePage({
                     {title}
                 </Box>
             </div>
-            {children}
+            <Stack height={"calc(100% - 55px)"} width={"100%"} overflow={"auto"}>
+                {children}
+            </Stack>
         </section>
     )
 }
