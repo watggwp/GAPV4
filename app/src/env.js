@@ -9,6 +9,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ControlPointRoundedIcon from '@mui/icons-material/ControlPointRounded';
 import ReplyAllRoundedIcon from '@mui/icons-material/ReplyAllRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
 const env = {
     Background,
@@ -20,8 +21,9 @@ const env = {
         pump : Pump,
     },
     icon : {
-        history : HistoryRoundedIcon,
         close : CloseRoundedIcon,
+        delete : DeleteRoundedIcon,
+        history : HistoryRoundedIcon,
         plus : ControlPointRoundedIcon,
         replyAll : ReplyAllRoundedIcon
     }

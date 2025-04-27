@@ -42,7 +42,12 @@ export const template = {
     devices : {
         path : "",
         query : {},
-        pathParams : {}
+        pathParams : {},
+        columnsData : {
+            id : "",
+            device_id : "",
+            status : "",
+        }
     } , 
     add : {
         path : "",
@@ -52,7 +57,8 @@ export const template = {
     delete : {
         path : "",
         query : {},
-        pathParams : {}
+        pathParams : {},
+        typeDelete : ""
     } , 
     status : {
         path : "",
@@ -89,7 +95,7 @@ export default function DeviceManagement({
 
     const [ page , setPage ] = useState("index")
 
-    const pageEndpoint = useMemo(() => 
+    const pageData = useMemo(() => 
         menuDatas.find(menu => menu.id === page)?.endpoints
     , [menuDatas, page])
 
@@ -112,10 +118,10 @@ export default function DeviceManagement({
                             icon={categories[categoriesMapping[page]].icon}
                             color={categories[categoriesMapping[page]].color}
                             subColor={categories[categoriesMapping[page]].subColor}
-                            endpointDevices={pageEndpoint?.devices}
-                            endpointAdd={pageEndpoint?.add}
-                            endpointDelete={pageEndpoint?.delete}
-                            endpointStatus={pageEndpoint?.status}
+                            dataDevices={pageData?.devices}
+                            dataAdd={pageData?.add}
+                            dataDelete={pageData?.delete}
+                            dataStatus={pageData?.status}
                         />
                 }
             </DeviceManagementContext.Provider>

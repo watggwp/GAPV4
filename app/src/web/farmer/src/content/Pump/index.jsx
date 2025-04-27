@@ -22,8 +22,8 @@ export default function PumpControlPage() {
 
     const requestPumps = useCallback( async () => {
         setLoading(true)
-        const { data , status } = await RequestAPI.get("/api/pump" , {
-            greenhouse_id
+        const { data , status } = await RequestAPI.get(`/api/pump/${greenhouse_id}` , {
+            r : "farmer"
         })
         setLoading(false)
 

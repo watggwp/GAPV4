@@ -35,12 +35,13 @@ class ClientRequestAPI {
             ...this.options
         })
     }
-    async put (url , data) {
+    async put (url , data , options = {}) {
         return await axios.put(`${HOST_API}${url}` , data , {
             headers: {
                 "Content-Type" : "application/json",
             },
-            ...this.options
+            ...this.options,
+            ...options,
         })
     }
     async get(url , query) {

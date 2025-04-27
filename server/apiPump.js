@@ -29,8 +29,33 @@ module.exports = function apiPump(app, pool = new Pool()) {
     cron.schedule('*/10 * * * *', updateScheduleCache);
     updateScheduleCache();
 
-    app.get('/api/pump', async (req, res) => {
-        const { greenhouse_id } = req.query
+    app.get('/api/pump/:greenhouse_id', async (req, res) => {
+        const { params : { greenhouse_id } , query : { r : role } } = req
+        
+        switch(role) {
+            case "doctor" :
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+            
+                if (username === '' || password === '') {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    })
+                }
+                break;
+            case "farmer" :
+                const uid = req.session.uidFarmer
+                if (!uid) {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    });
+                }
+                break;
+            default :
+                return res.status(403).send({
+                    errors : "authorize error"
+                });
+        }
 
         try {
             const devices = await pool.executeQuery(`
@@ -53,11 +78,127 @@ module.exports = function apiPump(app, pool = new Pool()) {
         }
     })
 
-    app.post("/api/pump/:device_id/control", async (req, res) => {
-        const { device_id } = req.params
-        const { action } = req.body;
+    app.put("/api/pump/:greenhouse_id" , async (req , res) => {
+        const { body : { device_id } , params : { greenhouse_id } , query : { r : role } } = req
         
-        const { r : roleUser } = req.query
+        switch(role) {
+            case "doctor" :
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+            
+                if (username === '' || password === '') {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    })
+                }
+                break;
+            case "farmer" :
+                const uid = req.session.uidFarmer
+                if (!uid) {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    });
+                }
+                break;
+            default :
+                return res.status(403).send({
+                    errors : "authorize error"
+                });
+        }
+        
+        if (!device_id || !greenhouse_id) {
+            return res.status(400).json({ 
+                message: 'กรุณาระบุ device_id และ greenhouse_id' 
+            })
+        }
+            
+        try {
+            const devicesExists = await pool.executeQuery(
+                `SELECT * FROM sensor_pump_greenhouse WHERE device_id = ? LIMIT 1` ,
+                [ device_id ]
+            )
+
+            if (devicesExists.length === 0) return res.status(404).json({ 
+                message: 'ไม่พบอุปกรณ์นี้ในระบบ' 
+            })
+
+            const device = devicesExists[0];
+    
+            if (device.status !== 'not register') return res.status(409).json({
+                message: 'อุปกรณ์นี้อยู่ในสถานะ เปิดใช้งาน\nไม่สามารถลงทะเบียนใหม่ได้'
+            });
+    
+            const { affectedRows } = await pool.executeQuery(`
+                UPDATE sensor_pump_greenhouse 
+                SET status = 'on' , greenhouse_id = ?
+                WHERE device_id = ?
+            `, [greenhouse_id, device_id])
+
+            if(affectedRows) return res.json({ message: 'ลงทะเบียนอุปกรณ์สำเร็จ' });
+            else return res.status(409).json({ message: 'ลงทะเบียนอุปกรณ์ไม่สำเร็จ' });
+        } catch(err) {
+            console.log(err)
+            return res.status(500).json({ 
+                message: 'ระบบมีปัญหา' 
+            })
+        }
+    })
+
+    app.put("/api/pump" , async (req , res) => {
+        const { query : { r : role } , body : { id , type } } = req;
+        
+        switch(role) {
+            case "doctor" :
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+            
+                if (username === '' || password === '') {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    })
+                }
+                break;
+            case "farmer" :
+                const uid = req.session.uidFarmer
+                if (!uid) {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    });
+                }
+                break;
+            default :
+                return res.status(403).send({
+                    errors : "authorize error"
+                });
+        }
+
+        try {
+            let sqlQuery = ""
+            let params = []
+            switch(type) {
+                case "unregister" :
+                    sqlQuery = `
+                        UPDATE sensor_pump_greenhouse 
+                        SET status = 'not register', greenhouse_id = NULL 
+                        WHERE id = ?
+                    `
+                    params = [ id ]
+                    break;
+            }
+
+            const result = await pool.executeQuery(sqlQuery , params)
+
+            if (result.affectedRows === 0) return res.status(404).json({ message: 'ไม่พบอุปกรณ์ที่ต้องการอัปเดต' });
+            
+            res.json({ message: 'แก้ไขข้อมูลเรียบร้อยแล้ว' });
+        } catch(err) {
+            console.log(err)
+            return res.status(500).json({ error: err.message });
+        }
+    })
+
+    app.post("/api/pump/:device_id/control", async (req, res) => {
+        const { params : { device_id } , body : { action } , query : { r : roleUser } } = req
         const { user_doctor , pass_doctor , role_doctor , uidFarmer : uid_line } = req.session
 
         const Authen = new AuthorizeUser(pool) 

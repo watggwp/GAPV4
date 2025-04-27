@@ -29,12 +29,65 @@ export default function HouseSetup() {
                                 },
                                 pathParams : {
                                     greenhouse_id
+                                },
+                                columnsData : {
+                                    id : "id",
+                                    device_id : "device_id",
+                                    status : "status"
                                 }
+                            },
+                            add : {
+                                path : "/api/sensor/weather-greenhouse/:greenhouse_id",
+                                query : {
+                                    r : "farmer"
+                                },
+                                pathParams : {
+                                    greenhouse_id
+                                },
+                            },
+                            delete : {
+                                path : "/api/sensor/weather-greenhouse",
+                                query : {
+                                    r : "farmer"
+                                },
+                                typeDelete : "unregister"
                             }
                         }
                     },
                     {
-                        id : "pump"
+                        id : "pump",
+                        endpoints : {
+                            devices : {
+                                path : `/api/pump/:greenhouse_id`,
+                                query : {
+                                    r : "farmer"
+                                },
+                                pathParams : {
+                                    greenhouse_id
+                                },
+                                columnsData : {
+                                    id : "id",
+                                    device_id : "device_id",
+                                    status : "status"
+                                }
+                            },
+                            add : {
+                                path : "/api/pump/:greenhouse_id",
+                                query : {
+                                    r : "farmer"
+                                },
+                                pathParams : {
+                                    greenhouse_id
+                                },
+                            },
+                            delete : {
+                                path : "/api/pump/",
+                                query : {
+                                    r : "farmer"
+                                },
+                                typeDelete : "unregister"
+                            }
+                        }
                     }
                 ]}
             />

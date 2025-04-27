@@ -3,17 +3,16 @@
 require('dotenv').config();
 const Pool = require("./connectPool")
 
-module.exports = function apiSensor(app, pool = new Pool()) {
+module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
     app.get('/api/sensor/weather-greenhouse/:greenhouse_id', async (req, res) => {
-        const { greenhouse_id } = req.params
-        const role = req.query.r
+        const { params : { greenhouse_id } , query : { r : role } } = req
         
         switch(role) {
             case "doctor" :
                 const username = req.session.user_doctor;
                 const password = req.session.pass_doctor;
             
-                if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+                if (username === '' || password === '') {
                     return res.status(403).send({
                         errors : "authorize error"
                     })
@@ -37,8 +36,8 @@ module.exports = function apiSensor(app, pool = new Pool()) {
             const data = await pool.executeQuery(
                 `
                     SELECT id , device_id , status , create_timestamp
-                    FROM sensor_weather_greenhouse 
-                    WHERE greenhouse_id = ?
+                    FROM sensor_weather_greenhouse
+                    WHERE greenhouse_id = ? AND NOT status = 'not register'
                     ORDER BY create_timestamp DESC
                 `, [ greenhouse_id ]
             );
@@ -53,16 +52,14 @@ module.exports = function apiSensor(app, pool = new Pool()) {
     })
 
     app.get('/api/sensor/weather-greenhouse/:greenhouse_id/:device_id', async (req, res) => {
-
-        const { greenhouse_id , device_id } = req.params
-        const role = req.query.r
+        const { params : { greenhouse_id , device_id } , query : { r : role } } = req
         
         switch(role) {
             case "doctor" :
                 const username = req.session.user_doctor;
                 const password = req.session.pass_doctor;
             
-                if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+                if (username === '' || password === '') {
                     return res.status(403).send({
                         errors : "authorize error"
                     })
@@ -105,6 +102,126 @@ module.exports = function apiSensor(app, pool = new Pool()) {
         }
     })
 
+    app.put("/api/sensor/weather-greenhouse/:greenhouse_id" , async (req , res) => {
+        const { body : { device_id } , params : { greenhouse_id } , query : { r : role } } = req
+        
+        switch(role) {
+            case "doctor" :
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+            
+                if (username === '' || password === '') {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    })
+                }
+                break;
+            case "farmer" :
+                const uid = req.session.uidFarmer
+                if (!uid) {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    });
+                }
+                break;
+            default :
+                return res.status(403).send({
+                    errors : "authorize error"
+                });
+        }
+        
+        if (!device_id || !greenhouse_id) {
+            return res.status(400).json({ 
+                message: 'กรุณาระบุ device_id และ greenhouse_id' 
+            })
+        }
+            
+        try {
+            const devicesExists = await pool.executeQuery(
+                `SELECT * FROM sensor_weather_greenhouse WHERE device_id = ? LIMIT 1` ,
+                [ device_id ]
+            )
+
+            if (devicesExists.length === 0) return res.status(404).json({ 
+                message: 'ไม่พบอุปกรณ์นี้ในระบบ' 
+            })
+
+            const device = devicesExists[0];
+    
+            if (device.status !== 'not register') return res.status(409).json({
+                message: 'อุปกรณ์นี้อยู่ในสถานะ เปิดใช้งาน\nไม่สามารถลงทะเบียนใหม่ได้'
+            });
+    
+            const { affectedRows } = await pool.executeQuery(`
+                UPDATE sensor_weather_greenhouse 
+                SET status = 'on' , greenhouse_id = ?
+                WHERE device_id = ?
+            `, [greenhouse_id, device_id])
+
+            if(affectedRows) return res.json({ message: 'ลงทะเบียนอุปกรณ์สำเร็จ' });
+            else return res.status(409).json({ message: 'ลงทะเบียนอุปกรณ์ไม่สำเร็จ' });
+        } catch(err) {
+            console.log(err)
+            return res.status(500).json({ 
+                message: 'ระบบมีปัญหา' 
+            })
+        }
+    })
+
+    app.put("/api/sensor/weather-greenhouse" , async (req , res) => {
+        const { query : { r : role } , body : { id , type } } = req;
+        
+        switch(role) {
+            case "doctor" :
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+            
+                if (username === '' || password === '') {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    })
+                }
+                break;
+            case "farmer" :
+                const uid = req.session.uidFarmer
+                if (!uid) {
+                    return res.status(403).send({
+                        errors : "authorize error"
+                    });
+                }
+                break;
+            default :
+                return res.status(403).send({
+                    errors : "authorize error"
+                });
+        }
+
+        try {
+            let sqlQuery = ""
+            let params = []
+            switch(type) {
+                case "unregister" :
+                    sqlQuery = `
+                        UPDATE sensor_weather_greenhouse 
+                        SET status = 'not register', greenhouse_id = NULL 
+                        WHERE id = ?
+                    `
+                    params = [ id ]
+                    break;
+            }
+
+            const result = await pool.executeQuery(sqlQuery , params)
+
+            if (result.affectedRows === 0) return res.status(404).json({ message: 'ไม่พบอุปกรณ์ที่ต้องการอัปเดต' });
+            
+            res.json({ message: 'แก้ไขข้อมูลเรียบร้อยแล้ว' });
+        } catch(err) {
+            console.log(err)
+            return res.status(500).json({ error: err.message });
+        }
+    })
+
+    // insert sensor
     app.post("/api/sensor/weather-greenhouse", async (req, res) => {
         // แสดงข้อมูลที่ TTN ส่งมาใน console
         console.log("📥 Received TTN data:", req.body);
