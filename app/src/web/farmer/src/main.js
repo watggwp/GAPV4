@@ -72,6 +72,10 @@ const MainFarmer = () => {
             await init
 
             if(!Liff.isInClient()) {
+                if(process.env.NODE_ENV !== "development") {
+                    CloseAccount("not line" , null , "โปรดเข้าระบบด้วยไลน์")
+                    return
+                }
                 let UID = "U9dc7e4d3e19d44d0e5aaab17438073ba"
                 RouterPage(UID , Liff)
                 return

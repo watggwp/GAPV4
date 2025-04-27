@@ -59,7 +59,6 @@ module.exports = {
   appPublic: resolveApp(`public/${process.argv[2]}`),
 
   appStatic: {
-    public : resolveApp(`public/${process.argv[2]}`),
     style : resolveApp('src/assets/style'),
     js : resolveApp('src/assets/js'),
     img : resolveApp('src/assets/img'),

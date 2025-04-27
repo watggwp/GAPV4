@@ -45,7 +45,7 @@ module.exports = function (proxy, allowedHost) {
     compress: true,
     static: [
       {
-        directory: paths.appStatic.public,
+        directory: paths.appPublic,
         publicPath: [paths.publicUrlOrPath],
         watch: {
           ignored: ignoredFiles(paths.appSrc),
