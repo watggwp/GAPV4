@@ -31,7 +31,7 @@ const TabGAP = styled((props) => <Tab disableRipple {...props} />)({
 
 export default function WeatherManagement({
     endpointData = "/api/farmer/weather-station",
-    query = {},
+    query,
     columnTimestamp = "timestamp",
     columns = [
         { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
@@ -66,7 +66,7 @@ export default function WeatherManagement({
         const { data , status } = await RequestAPI.get(endpointData , {
             "st" : starttime,
             "et" : endtime,
-            ...query
+            ...(query || {})
         })
         setLoadingHistory(false)
 

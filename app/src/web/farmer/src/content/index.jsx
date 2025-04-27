@@ -18,6 +18,9 @@ export default function Greenhouse() {
     const [ verifiedGreenhouse , setVerifiedGreenhouse ] = useState(false)
 
     const VerifiedGreenhouse = useCallback(async () => {
+
+        if(!greenhouse_id) return
+
         const result = await clientMo.post('/api/farmer/farmhouse/select' , {
             id_farmhouse : greenhouse_id,
             uid : uid
