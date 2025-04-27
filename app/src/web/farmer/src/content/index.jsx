@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import {clientMo}  from "../../../../assets/js/moduleClient";
 import { CloseAccount } from "../method";
 import { useFarmer } from "../main";
-import { useParams } from "react-router";
+import { Outlet, useParams } from "react-router";
 import GreenhouseOutlet from "./outlet";
 
 const GreenhouseContext = createContext({
@@ -10,7 +10,11 @@ const GreenhouseContext = createContext({
     setCurrentPage : () => {}
 })
 
-export default function Greenhouse() {
+export default function GreenhouseIndex() {
+    return(<Outlet/>)
+}
+
+export function Greenhouse() {
     const { greenhouse_id } = useParams()
     const { uid , liff } = useFarmer()
 
