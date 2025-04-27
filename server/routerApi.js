@@ -81,6 +81,10 @@ module.exports = function router(app) {
     app.get('/farmer/house' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
     });
+
+    app.get('/farmer/weather-station' , (req, res) => {
+        res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
+    });
     
     app.get('/farmer/form' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/farmer/index.html'));
