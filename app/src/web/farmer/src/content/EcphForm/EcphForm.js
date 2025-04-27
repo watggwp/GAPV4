@@ -23,7 +23,7 @@ const EcphForm = () => {
       const { data } = await RequestAPI.post("/api/farmer/ecph/history", {
         id_formplant: greenhouse_id,
       });
-      setHistory(data);
+      if(Array.isArray(data)) setHistory(data);
     } catch (err) {
       console.error("Error loading history:", err);
     }

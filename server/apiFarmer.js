@@ -3055,26 +3055,15 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             const uid = auth.data.uid_line;
             const { id_formplant } = req.body;
 
-            // con.query(
-            //     `SELECT id_farmer FROM acc_farmer WHERE uid_line = ? LIMIT 1`, [uid],
-            // (err, rows) => {
-            //     if (err || !rows.length) {
-            //     con.end();
-            //     return res.send("farmer not found");
-            //     }
-
-            //     const id_farmer = rows[0].id_farmer;
             con.query(
                 `SELECT id, timestamp, ec_value, ph_value FROM ecph WHERE id_formplant = ? ORDER BY timestamp DESC LIMIT 10`,
                 [id_formplant],
                 (err2, result) => {
                     con.end();
-                    if (err2) return res.send("query error");
+                    if (err2) return res.send([]);
                     res.send(result);
                 }
             );
-            // }
-            // );
         } catch (err) {
             console.log(err)
             con.end();
