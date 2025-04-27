@@ -144,7 +144,7 @@ function DeviceManagementHome() {
                     const { id , title , icon , color , subColor , allowedRoles } = categories[categoriesMapping[idMenu]]
 
                     return(
-                        <Grid key={id} size={{ xs : 12 , sm : 4 }} >
+                        <Grid key={id} size={{ xs : 12 , sm : 4 }} justifyContent={"center"} display={"flex"}>
                             <Stack
                                 sx={{
                                     width : "98%",

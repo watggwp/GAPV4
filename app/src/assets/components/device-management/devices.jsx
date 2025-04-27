@@ -101,13 +101,11 @@ export default function Devices({
             <Stack
                 sx={{
                     width : "100%",
-                    maxWidth : "300px",
-                    borderRadius : 4,
                     height : "60px",
-                    overflow : "hidden"
                 }}
+                alignItems={"center"}
             >
-                <Stack width={"100%"} height={"100%"} overflow={"hidden"} direction={"row"} bgcolor={subColor}>
+                <Stack borderRadius={4} maxWidth={"300px"} width={"100%"} height={"100%"} overflow={"hidden"} direction={"row"} bgcolor={subColor}>
                     <Stack width={"30%"} height={"100%"} padding={1} bgcolor={color}>
                         <img src={icon} width={"100%"} height={"100%"} />
                     </Stack>
@@ -134,7 +132,7 @@ export default function Devices({
                                 {
                                     devices.map((devices) => {
                                         return (
-                                            <Grid key={devices[dataDevices?.columnsData?.id]} size={{ xs : 12 , md : 6 }}>
+                                            <Grid key={devices[dataDevices?.columnsData?.id]} size={{ xs : 12 , md : 6 }} display={"flex"} justifyContent={"center"}>
                                                 <Stack
                                                     width={"100%"}
                                                     maxWidth={"300px"}
