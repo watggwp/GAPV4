@@ -56,7 +56,7 @@ module.exports = {
   dotenv: resolveRoot('.env'),
   appPath: resolveApp('.'),
   appBuild: resolveRoot(buildPath),
-  appPublic: resolveApp('public'),
+  appPublic: resolveApp(`public/${process.argv[2]}`),
 
   appStatic: {
     public : resolveApp(`public/${process.argv[2]}`),
