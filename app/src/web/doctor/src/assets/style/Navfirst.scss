@@ -115,6 +115,13 @@
             box-shadow: 0px 4px 4px #6d2a73;
         }
 
+        .bt-menu-frame.sensor {
+            background: linear-gradient(180deg , rgb(251, 211, 160) , white);
+        }
+        .bt-menu-frame.sensor:hover {
+            box-shadow: 0px 4px 4px #da862d;
+        }
+
         @media only screen and (max-width : 800px) {
             .bt-menu-frame {
                 width: 120px;

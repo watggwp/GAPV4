@@ -27,7 +27,6 @@ const PageGroup = () => {
  
       if (Array.isArray(result)) {
         setGroupData(result);
-        setGroupData(result);
  
         const initialMapping = new Map();
         result.forEach((item , idx) => {
@@ -83,21 +82,22 @@ const PageGroup = () => {
  
       switch(result.status) {
         case 200 :
-          setGroupData((group) => {
-            const { index } = groupMapping.get(selectedToggleId);
-            if (group[index]) {
-              group[index]["status"] = status;
-            }
-            return [...group];
-          });
-          setGroupMapping(group => {
-            group.set(selectedToggleId , {
-              ...group.get(selectedToggleId),
-              status : status
-            })
+          fetchGroupData()
+          // setGroupData((group) => {
+          //   const { index } = groupMapping.get(selectedToggleId);
+          //   if (group[index]) {
+          //     group[index]["status"] = status;
+          //   }
+          //   return [...group];
+          // });
+          // setGroupMapping(group => {
+          //   group.set(selectedToggleId , {
+          //     ...group.get(selectedToggleId),
+          //     status : status
+          //   })
 
-            return new Map([...group])
-          })
+          //   return new Map([...group])
+          // })
           setText(`${status ? "เปิด" : "ปิด"}สถานะการจัดกลุ่มสำเร็จ`);
           setStatusReport(1);
           break;

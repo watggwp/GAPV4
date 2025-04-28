@@ -113,7 +113,7 @@ const ListData = ({
       HrefPage.get().indexOf("plant") >= 0
         ? "ชนิดพืช" : 
       HrefPage.get().indexOf("station") >= 0
-        ? "ศูนย์ส่งเสริม" : 
+        ? "ศูนย์" : 
       HrefPage.get().indexOf("group") >= 0
         ? "รายการจัดกลุ่มข้อมูล" : 
       HrefPage.get().indexOf("chemical") >= 0
@@ -1160,7 +1160,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
               : type === "plant"
               ? "ชนิดพืช"
               : type === "station"
-              ? "ศูนย์ส่งเสริม"
+              ? "ศูนย์"
               : type === "chemical"
               ? "สารเคมี"
               : type === "pest"
@@ -1187,7 +1187,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
               : type === "plant"
               ? "พืชสายพันธุ์"
               : type === "station"
-              ? "ศูนย์ส่งเสริม"
+              ? "ศูนย์"
               : type === "chemical"
               ? "สารเคมี"
               : type === "pest"

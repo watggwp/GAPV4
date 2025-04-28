@@ -4,6 +4,7 @@ import SensorStationIcon from './assets/icon/sensors/weather_station.svg';
 import SensorGreenhouse from "./assets/icon/sensors/sensorGH.svg"
 import SensorGreenhouseBg from "./assets/icon/sensors/sensor_greenhouse_bg.svg"
 import Pump from "./assets/icon/pump/pump_icon.svg"
+import SensorSmall from "./assets/icon/sensors/sensor-small.svg"
 
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -14,6 +15,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 const env = {
     Background,
     path_icon : {
+        sensor_small : SensorSmall,
         sensor_station : SensorStationIcon,
         sensor_greenhouse : SensorGreenhouse,
         sensor_pump : pumpIcon,

@@ -144,8 +144,9 @@ $FontText : 5vw;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
-                    height: 90%;
+                    height: 90vh;
                     width: 100%;
+                    max-height: 700;
                     .head-form {
                         display: flex;
                         justify-content: center;

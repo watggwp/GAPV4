@@ -136,8 +136,8 @@ const Socket = (eventSc , message) => {
 }
 
 const useLiff = (idLiff) => {
-    const Liff = useMemo(() => liff , [])
-    const init = useMemo(() => Liff.init({liffId:idLiff}) , [Liff, idLiff])
+    const Liff = liff
+    const init = Liff.init({liffId:idLiff})
     return [init , Liff];
 }
 

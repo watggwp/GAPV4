@@ -55,6 +55,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const FetchProfile = async () => {
         const result = await clientMo.get("/api/doctor/profile/get")
         if(result) {
+            console.log(result)
             setProfile(JSON.parse(result))
         }
         else setSession()

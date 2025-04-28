@@ -328,6 +328,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
               INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
               INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
               WHERE p.pest_name LIKE ? OR c.name LIKE ? OR pl.name LIKE ? OR pc.safe_days LIKE ?
+              ORDER BY pc.status DESC
               `, [ `%${search}%` , `%${search}%` , `%${search}%` , `%${search}%` ] ,
               (err, results) => {
                 if (err) {
@@ -991,7 +992,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
         })
     })
 
-    app.post('/api/doctor/plant/list' , (req , res)=>{
+    app.get('/api/doctor/plant/list' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
     
@@ -1002,40 +1003,50 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     
         let con = Database.createConnection(listDB)
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
             if(result['result'] === "pass") {
-                con.query(
-                    `
-                    SELECT name , 
-                    (
-                        SELECT COUNT(name_plant)
-                        FROM formplant , 
-                            (
-                                SELECT id_farm_house 
-                                FROM housefarm , 
-                                    (
-                                        SELECT uid_line , link_user
-                                        FROM acc_farmer
-                                        WHERE (register_auth = 0 OR register_auth = 1) and station = ?
-                                    ) as farmer
-                                WHERE housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
-                            ) as house
-                        WHERE formplant.name_plant = plant_list.name and house.id_farm_house = formplant.id_farm_house
-                    ) as countPlant
-                    FROM plant_list
-                    WHERE is_use = 1
-                    ORDER BY name
-                    ` , [result.data.station_doctor]
-                    , (err , result)=>{
-                    if (err) {
-                        dbpacket.dbErrorReturn(con, err, res);
-                        console.log("query");
-                        return 0
-                    }
+
+                const { is_variety_name } = req.query
+
+                try {
+                    const plants = await pool.executeQuery(
+                        `
+                        SELECT name , 
+                        (
+                            SELECT COUNT(name_plant)
+                            FROM formplant , 
+                                (
+                                    SELECT id_farm_house 
+                                    FROM housefarm , 
+                                        (
+                                            SELECT uid_line , link_user
+                                            FROM acc_farmer
+                                            WHERE (register_auth = 0 OR register_auth = 1) and station = ?
+                                        ) as farmer
+                                    WHERE housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                                ) as house
+                            WHERE formplant.name_plant = plant_list.name and house.id_farm_house = formplant.id_farm_house
+                        ) as count
+                        ${
+                            is_variety_name ? `
+                                , GROUP_CONCAT(variety_name) as variety_names
+                            ` : ""
+                        }
+                        FROM plant_list
+                        WHERE is_use = 1
+                        GROUP BY name
+                        ORDER BY name
+                        ` , [result.data.station_doctor]
+                    )
+
                     con.end()
-                    res.send(result)
-                    
-                })
+                    res.send({
+                        plants : plants
+                    })
+                } catch(err) {
+                    console.log(err)
+                    res.redirect('/api/logout')
+                }
             }
         }).catch((err)=>{
             con.end()

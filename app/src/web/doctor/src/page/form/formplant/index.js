@@ -3,6 +3,8 @@ import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module"
 import "../../../assets/style/page/form/FormEdit.scss";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { DoctorContext } from "../../../Doctor";
+import { inputBaseClasses, MenuItem, Select, selectClasses, Stack, TextField, textFieldClasses } from "@mui/material";
+import RequestAPI from "../../../../../../assets/js/requestAPI";
 
 export default function FormPlant({
     data,
@@ -14,6 +16,12 @@ export default function FormPlant({
 }) {
     const [editValue, setLocalEditValue] = useState({});
     const [localMode, setLocalMode] = useState(mode);
+
+    const [ plants , setPlants ] = useState({
+        plants : [],
+        mapping_plants : new Map()
+    })
+    const [ loadingPlants , setLoadingPlants ] = useState(false)
 
     const { profile } = useContext(DoctorContext) //role
 
@@ -27,6 +35,35 @@ export default function FormPlant({
     const DatePlant = useRef()
     const DateHarvest = useRef()
     const DateSuccess = useRef()
+
+    const fetchPlantList = useCallback(async () => {
+        setLoadingPlants(true)
+        const { data , status } = await RequestAPI.get("/api/doctor/plant/list" , {
+            is_variety_name : true
+        })
+        setLoadingPlants(false)
+        try {
+            if(typeof data === "string") throw new Error("data error")
+            
+            const { plants } = data
+
+            if(!Array.isArray(plants)) throw new Error("data error")
+                
+            setPlants((plantsData) => {
+                plantsData = {
+                    plants : [],
+                    mapping_plants : new Map()
+                }
+                plants.forEach(plant => {
+                    const { name , variety_names } = plant
+                    plantsData.plants.push(plant)
+                    plantsData.mapping_plants.set(name , variety_names.split(",").filter(name => name))
+                })
+
+                return plantsData
+            })
+        } catch(e) {}
+    } , [])
 
     const extractLatLngFromGoogleMapsUrl = (url) => {
         const match = url.match(/@([-.\d]+),([-.\d]+)/);
@@ -53,7 +90,7 @@ export default function FormPlant({
             ...editValue,
             [name]: value
         }));
-    }, []);
+    }, [])
 
     useEffect(() => {
         setMode("view");
@@ -62,17 +99,7 @@ export default function FormPlant({
         setLocalMode("view");
     }, [setMode, setEditValue]);
 
-    const toggleMode = () => {
-        if (localMode === "view") {
-            setLocalMode("edit");
-            setMode("edit");
-        } else {
-            handleSaveToAPI();
-        }
-    };
-
-    // ฟังก์ชันบันทึกข้อมูลไป API
-    const handleSaveToAPI = async () => {
+    const handleSaveToAPI = useCallback(async () => {
         const { because , ...editDatas } = editValue
         console.log("🟢 บันทึกค่า editValue:", editDatas);
 
@@ -107,7 +134,17 @@ export default function FormPlant({
         } catch (error) {
             console.error("❌ API ERROR:", error);
         }
-    };
+    } , [FetchContent, data.id, data.id_farm_house, editValue, setEditValue, setMode])
+
+    const toggleMode = useCallback(() => {
+        if (localMode === "view") {
+            setLocalMode("edit");
+            setMode("edit");
+            fetchPlantList()
+        } else {
+            handleSaveToAPI();
+        }
+    } , [fetchPlantList, handleSaveToAPI, localMode, setMode])
 
     const onCancel = () => {
         console.log("❌ ยกเลิกการแก้ไข");
@@ -122,14 +159,16 @@ export default function FormPlant({
             {
                 Boolean(profile?.doctor_role ) && //role
                 <div className="button-group">
-                {localMode === "edit" ? (
-                    <>
-                        <button disabled={DisabledButtonEdit} onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
-                        <button onClick={onCancel} className="cancel-btn">ยกเลิก</button>
-                    </>
-                ) : (
-                    <button onClick={toggleMode} className="toggle-btn">แก้ไข</button>
-                )}
+                {
+                    localMode === "edit" ? (
+                        <>
+                            <button disabled={DisabledButtonEdit} onClick={handleSaveToAPI} className="toggle-btn">บันทึก</button>
+                            <button onClick={onCancel} className="cancel-btn">ยกเลิก</button>
+                        </>
+                    ) : (
+                        <button onClick={toggleMode} className="toggle-btn">แก้ไข</button>
+                    )
+                }
             </div>
             }
 
@@ -137,16 +176,31 @@ export default function FormPlant({
             {localMode === "edit" && (
                 <div className="content-data">
                     <div className="data-row">
-                        <div className={`data-main ${getResize >= 450 ? "in-1" : "in-1 screen-small"}`}>
+                        <Stack>
                             <span className="head-data">หมายเหตุ</span>
-                            <input 
+                            {/* <input 
                                 type="text" 
+                                
+                            /> */}
+                            <TextField
+                                hiddenLabel
                                 className="data-show" 
                                 placeholder="ใส่หมายเหตุ" 
                                 value={editValue.because ?? ""} 
                                 onChange={(event) => onEdit("because", event.target.value)} 
+                                size="small"
+                                multiline
+                                rows={3}
+                                sx={{
+                                    [`& .${inputBaseClasses.root}`] : {
+                                        bgcolor : "white"
+                                    }
+                                }}
                             />
-                        </div>
+                        </Stack>
+                        {/* <div className={`data-main ${getResize >= 450 ? "in-1" : "in-1 screen-small"}`}>
+                            
+                        </div> */}
                     </div>
                 </div>
             )}
@@ -154,34 +208,99 @@ export default function FormPlant({
             <div className="content-data">
                 <div className="number">1.</div>
                 <div className="data-row">
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืช</span>
                             <input className="data-show" disabled
                                 value={editValue.type_main ?? data.type_main} 
-                                readOnly={localMode==="view"} 
+                                readOnly={localMode === "view"} 
                                 onChange={(event) => onEdit("type_main", event.target.value)} />
                         </div>
 
                         <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อพืช</span>
-                            <input className="data-show" 
-                                value={editValue.name_plant ?? data.name_plant} 
-                                readOnly={localMode==="view"} 
-                                onChange={(event) => onEdit("name_plant", event.target.value)} />
+                            {
+                                localMode === "view" ?
+                                    <input className="data-show" 
+                                        readOnly
+                                        value={editValue.name_plant ?? data.name_plant} 
+                                    />
+                                    : 
+                                    <Select
+                                        value={editValue.name_plant ?? data.name_plant}
+                                        onChange={(event) => onEdit("name_plant", event.target.value)}
+                                        size="small"
+                                        sx={{
+                                            [`& .${selectClasses.select}`] : {
+                                                bgcolor : "white"
+                                            },
+                                            textAlign : "center"
+                                        }}
+                                        MenuProps={{
+                                            PaperProps: {
+                                                style: {
+                                                    maxHeight: 300,
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        {
+                                            plants.plants.map(({ name }) =>
+                                                <MenuItem value={name} >{name}</MenuItem>
+                                            )
+                                        }
+                                    </Select>
+                            }
                         </div>
                         
                         <div className={`data-main in-1 screen-small`}>
                             <span className="head-data">ชื่อสายพันธุ์พืช</span>
-                            <input className="data-show" 
-                                value={editValue.variety_name ?? data.variety_name} 
-                                readOnly={localMode==="view"} 
-                                onChange={(event) => onEdit("variety_name", event.target.value)} />
+                            {
+                                localMode === "view" ?
+                                    <input className="data-show" 
+                                        readOnly
+                                        value={editValue.name_varieties ?? data.name_varieties} 
+                                    />
+                                    : 
+                                    (
+                                        plants.mapping_plants?.get(editValue.name_plant ?? data.name_plant)?.length ?
+                                            <Select
+                                                value={(editValue.name_varieties ?? data.name_varieties) || ""}
+                                                onChange={(event) => onEdit("name_varieties", event.target.value)}
+                                                size="small"
+                                                sx={{
+                                                    [`& .${selectClasses.select}`] : {
+                                                        bgcolor : "white"
+                                                    },
+                                                    textAlign : "center",
+                                                }}
+                                                displayEmpty
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        style: {
+                                                            maxHeight: 300,
+                                                        },
+                                                    },
+                                                }}
+                                            >
+                                                <MenuItem disabled value={""} >เลือกสายพันธุ์พืช</MenuItem>
+                                                {
+                                                    plants.mapping_plants?.get(editValue.name_plant ?? data.name_plant)?.map((name) =>
+                                                        <MenuItem value={name} >{name}</MenuItem>
+                                                    )
+                                                }
+                                            </Select> :
+                                            <input className="data-show" 
+                                                readOnly
+                                                value={"ไม่พบสายพันธุ์พืช"} 
+                                            />
+                                    )
+                            }
                         </div>
                     </div>
 
                     {/* วันที่เพาะกล้า */}
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">วันที่เพาะกล้า</span>
                             {localMode === "view" ? (
@@ -194,14 +313,16 @@ export default function FormPlant({
                         {/* วันที่ปลูก */}
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">วันที่ปลูก</span>
-                            {localMode === "view" ? (
-                                <span className="data-show">{formatDateThai(data.date_plant)}</span>
-                            ) : (
-                                <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={(dateNew) => onEdit("date_plant", dateNew)}/>
-                            )}
+                            {
+                                localMode === "view" ? (
+                                    <span className="data-show">{formatDateThai(data.date_plant)}</span>
+                                ) : (
+                                    <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={(dateNew) => onEdit("date_plant", dateNew)}/>
+                                )
+                            }
                         </div>
                     </div>
-                    <div className="row">
+                    <div className="row-content">
                         {/* วันที่คาดว่าจะเก็บเกี่ยว */}
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">วันที่คาดว่าจะเก็บเกี่ยว</span>
@@ -227,7 +348,7 @@ export default function FormPlant({
                         </div>
                     </div>
 
-                    <div className="row">
+                    <div className="row-content">
                         {/* พื้นที่เพาะปลูก */}
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">พื้นที่</span>
@@ -272,7 +393,7 @@ export default function FormPlant({
                         </div>
                     </div>
 
-                    <div className="row">
+                    <div className="row-content">
                         <span className="head-text">ระยะการปลูก</span>
                         <div className="text-body">
                             {/* ระยะระหว่างต้น */}
@@ -313,7 +434,7 @@ export default function FormPlant({
                         </div>
                     </div>
 
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">รุ่นที่ปลูก</span>
                             {localMode === "view" ? (
@@ -334,7 +455,7 @@ export default function FormPlant({
             <div className="content-data">
                 <div className="number">2.</div>
                 <div className="data-row">
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main in-1 column ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>รูปแบบการปลูก</span>
                             {localMode === "view" ? (
@@ -355,7 +476,7 @@ export default function FormPlant({
             <div className="content-data">
                 <div className="number">3.</div>
                 <div className="data-row">
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>แหล่งน้ำ</span>
                             {localMode === "view" ? (
@@ -376,7 +497,7 @@ export default function FormPlant({
             <div className="content-data">
                 <div className="number">4.</div>
                 <div className="data-row">
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
                             <span className="head-data" style={{width : "110px"}}>วิธีการให้น้ำ</span>
                             {localMode === "view" ? (
@@ -397,14 +518,14 @@ export default function FormPlant({
             <div className="content-data">
                 <div className="number">5.</div>
                 <div className="data-row">
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main in-1 ${getResize < 450 ? "screen-small" : ""}`}>
                             <span style={{width : "100%"}} className="head-data">ประวัติการใช้พื้นที่และการเกิดโรค</span>
                         </div>
                     </div>
 
                     {/* ชนิดพืชก่อนหน้า & โรค/แมลงที่พบ */}
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ชนิดพืชก่อนหน้า</span>
                             {localMode === "view" ? (
@@ -435,7 +556,7 @@ export default function FormPlant({
                     </div>
 
                     {/* ปริมาณการเกิด & การป้องกันกำจัด */}
-                    <div className="row">
+                    <div className="row-content">
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">ปริมาณการเกิด</span>
                             {localMode === "view" ? (
@@ -470,42 +591,45 @@ export default function FormPlant({
             {data.location_house && (
                 <div className="content-data">
                     <div className="data-row">
-                        <div className="row">
+                        <div className="row-content">
                             <div className="data-main in-1 column">
                                 <span className="head-data">ตำแหน่งที่ทำการเกษตรกร</span>
-
-                                {localMode === "view" ? (
-                                    <MapsJSX
-                                        lat={data.location_house.x}
-                                        lng={data.location_house.y}
-                                    />
-                                ) : (
-                                    <div className="edit-map">
-                                        <label>ลิงก์ Google Maps:</label>
-                                        <input 
-                                            type="text" 
-                                            className="data-input"
-                                            placeholder="วางลิงก์จาก Google Maps"
-                                            onChange={(event) => {
-                                                const url = event.target.value;
-                                                onEdit("mapUrl", url);
-
-                                                const coords = extractLatLngFromGoogleMapsUrl(url);
-                                                if (coords) {
-                                                    onEdit("lat", coords.lat);
-                                                    onEdit("lng", coords.lng);
-                                                }
-                                            }}
+                                {
+                                    localMode === "view" ? (
+                                        <MapsJSX
+                                            lat={data.location_house.x}
+                                            lng={data.location_house.y}
                                         />
+                                    ) : (
+                                        <div className="edit-map">
+                                            <label>ลิงก์ Google Maps:</label>
+                                            <input 
+                                                type="text" 
+                                                className="data-input"
+                                                placeholder="วางลิงก์จาก Google Maps"
+                                                onChange={(event) => {
+                                                    const url = event.target.value;
+                                                    onEdit("mapUrl", url);
 
-                                        {editValue.lat && editValue.lng && (
-                                            <MapsJSX
-                                                lat={editValue.lat}
-                                                lng={editValue.lng}
+                                                    const coords = extractLatLngFromGoogleMapsUrl(url);
+                                                    if (coords) {
+                                                        onEdit("lat", coords.lat);
+                                                        onEdit("lng", coords.lng);
+                                                    }
+                                                }}
                                             />
-                                        )}
-                                    </div>
-                                )}
+
+                                            {
+                                                editValue.lat && editValue.lng && (
+                                                    <MapsJSX
+                                                        lat={editValue.lat}
+                                                        lng={editValue.lng}
+                                                    />
+                                                )
+                                            }
+                                        </div>
+                                    )
+                                }
                             </div>
                         </div>
                     </div>

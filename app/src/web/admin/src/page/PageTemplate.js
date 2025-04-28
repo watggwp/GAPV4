@@ -173,7 +173,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                 <option value="plant">แสดงรายการชนิดพืช</option>
                 <option value="chemical">แสดงรายการสารเคมี</option>
                 <option value="pest">แสดงรายการโรคพืช / ศัตรูพืช</option>
-                <option value="station">แสดงรายการศูนย์ส่งเสริม</option>
+                <option value="station">แสดงรายการศูนย์</option>
             </>
         )}
 
