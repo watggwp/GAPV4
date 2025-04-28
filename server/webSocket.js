@@ -1,11 +1,17 @@
-module.exports = function WebSocketServ (server , sessionMiddleware , Database , listDB , apifunc) {
+module.exports = function WebSocketServ (server , sessionMiddleware , origins , Database , listDB , apifunc) {
     // const WebSoc = require('ws')
     // const Socket = new WebSoc.Server({server})
 
     // let Push = new Map()
     
     const {Server} = require('socket.io')
-    const io = new Server(server)
+    const io = new Server(server , {
+        cors: {
+            origin: origins,
+            methods: ['GET', 'POST'],
+            credentials: true,
+        }
+    })
     io.engine.use(sessionMiddleware);
     io.on("connection" , (socket_client)=>{
 

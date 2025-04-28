@@ -84,19 +84,22 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(sessionMiddleware)
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
-    // protocal websocket
-    const io = WebSocket(server , sessionMiddleware , db , listDB , apifunc)
- 
+    
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
+    const origins = [
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`, 
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`, 
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
+        ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
+        `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`
+    ]
+    
+    // protocal websocket
+    const io = WebSocket(server , sessionMiddleware , origins , db , listDB , apifunc)
+
     app.use(cors({
-        origin : [
-            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
-            `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
-            ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
-            `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`
-        ],
+        origin : origins,
         credentials: true,
     }))
     

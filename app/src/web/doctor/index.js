@@ -7,7 +7,10 @@ import ThemeProviderApp from "../../ThemeProvider";
 
 const root = ReactDOM.createRoot(document.getElementById('doctor'))
 // const socket = new WebSocket();
-const socket = io(window.location.protocol+"//"+window.location.host)
+const socket = io(
+    process.env.NODE_ENV !== "development" ?
+     process.env.REACT_APP_API_PUBLIC : `${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`
+)
 
 // socket.on('connect' , ()=>{
     

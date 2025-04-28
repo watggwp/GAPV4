@@ -2027,13 +2027,17 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                             if(err) con.end()
                             else {
                                 try {
-                                    await Line.pushMessage(req.body.uid_line , {
-                                        type : "text" , text : `ส่งจากหมอ ${result["data"].fullname_doctor} : \n${TextSend}`
-                                    })
+                                    await Line.pushMessage(
+                                        req.body.uid_line , 
+                                        {
+                                            type : "text" , text : `ส่งจากหมอ ${result["data"].fullname_doctor} : \n${TextSend}`
+                                        }
+                                    )
                                     socket.to(req.body.uid_line).emit("new_msg")
                                     res.send("113")
                                     con.end()
                                 } catch(e){
+                                    console.log(e)
                                     con.query(
                                         `
                                         DELETE FROM message_user

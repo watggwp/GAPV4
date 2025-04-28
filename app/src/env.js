@@ -6,6 +6,9 @@ import SensorGreenhouseBg from "./assets/icon/sensors/sensor_greenhouse_bg.svg"
 import Pump from "./assets/icon/pump/pump_icon.svg"
 import SensorSmall from "./assets/icon/sensors/sensor-small.svg"
 
+// /doctor-svgrepo-com.svg
+import UserNotfound from "./assets/icon/doctor-svgrepo-com.svg"
+
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ControlPointRoundedIcon from '@mui/icons-material/ControlPointRounded';
@@ -21,6 +24,7 @@ const env = {
         sensor_pump : pumpIcon,
         sensor_greenhouse_bg : SensorGreenhouseBg,
         pump : Pump,
+        user_not_found : UserNotfound
     },
     icon : {
         close : CloseRoundedIcon,

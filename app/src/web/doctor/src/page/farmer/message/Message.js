@@ -2,6 +2,10 @@ import React , {useState , useRef , useEffect} from "react"
 import io from "socket.io-client"
 import { clientMo } from "../../../../../../assets/js/moduleClient"
 import { DownLoadImage, Loading, OpenImageMax, PopupDom } from "../../../../../../assets/js/module"
+import env from "../../../../../../env"
+
+const { path_icon : { user_not_found } } = env
+
 const Messageing = ({Data , FetData , session , socket = io() , is_change}) => {
     const [message , SetMessage] = useState([])
     const [Startmessage , SetStartMessage] = useState(false)
@@ -164,7 +168,7 @@ const Messageing = ({Data , FetData , session , socket = io() , is_change}) => {
                             <div key={parseInt(val.id)} className="user-other" is_me={val.is_me ? "" : null}>
                                 { !val.is_me ? 
                                     <div className="img">
-                                        <img src={val.img_doctor ?? Data.img}></img>
+                                        <img src={(val.img_doctor ?? Data.img) || user_not_found}></img>
                                     </div> : <></>
                                 }
                                 <div className="message-detail">
