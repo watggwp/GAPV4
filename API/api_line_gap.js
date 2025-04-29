@@ -209,7 +209,13 @@ const RichMenu = {
 
 
 
+const arr = ['U915317b45fea27966b03ff8e47960321','Ua8b22795d7a7836d34964c41eb7e79f8','Ueb1127b25325ef4c44e790ba5f733972','U7de7081c9429b3810494b67b196b862c','Ua92e362c792ca72b2e2fce43a7786997','U9c9c9a62c127ac538165eaba8baf2c55','Ubc97a05b552c98d1d7a3c095cb57f24d','Uf611da5001eb34b1625d09a32c1881b1','Ud29f09fa731cf161a9217be0226af0fd','Uf053bedbbccd5bf7469c5f0a2cbe6f97','U9dc7e4d3e19d44d0e5aaab17438073ba','Ufadde6f0e899997ca28b7b15696ca4eb','U503dd2e67d74458b812b1ad73db59528','U4cb7823978dc23ae8db37e47fc51ad16','Uf752bef2dca57caefe5a5de4e088ed53','U7ed1d8dd5dfe3f78b05a32920efac403','Ufb3d4a35af0562f74d347e331225b6ad','Uc313adfcf9c82f297837b819e9b4a032','Ucf65620e358a49241e9e662ae4e0db1b']
 
+arr.forEach(async uid => {
+  try {
+    await richmenu.linkRichMenuToUser(uid , "richmenu-1ad0b74503b95ac42c125dc5120d6b7f")
+  } catch(err) {}
+})
 
 
 

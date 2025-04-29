@@ -59,7 +59,7 @@ export default function Sensor() {
                     </g>
                     </svg>
                 </div>
-                <span>เซ็นเซอร์ในโรงเรือน</span>
+                <span>สภาพอากาศในโรงเรือน</span>
             </div>
             <Stack height={"calc(100% - 55px)"} width={"100%"} overflow={"scroll"}>
                 {
@@ -70,69 +70,73 @@ export default function Sensor() {
                             width={"100%"}
                         >
                             {
-                                devices.map(({ device_id , status , create_timestamp }) => 
-                                    <Grid 
-                                        key={device_id}
-                                        size={{ xs : 12 , md : 4 }}
-                                    >
-                                        <Stack
-                                            width={"100%"}
-                                            justifyContent={"center"}
-                                            alignItems={"center"}
-                                            marginTop={1}
-                                            marginBottom={1}
+                                devices.length ?
+                                    devices.map(({ device_id , status , create_timestamp }) => 
+                                        <Grid 
+                                            key={device_id}
+                                            size={{ xs : 12 , md : 4 }}
                                         >
-                                            <CardActionArea
-                                                onClick={() => onClickDevice(device_id)}
-                                                sx={{
-                                                    borderRadius : 4,
-                                                    bgcolor : "secondary.main",
-                                                    width : "98%",
-                                                    maxWidth : "250px",
-                                                    position : "relative",
-                                                    boxShadow : (theme) => `0px 2px 4px ${theme.palette.primary.main}`
-                                                }}
+                                            <Stack
+                                                width={"100%"}
+                                                justifyContent={"center"}
+                                                alignItems={"center"}
+                                                marginTop={1}
+                                                marginBottom={1}
                                             >
-                                                <img src={sensor_greenhouse} style={{ 
-                                                    position : "absolute" , 
-                                                    width : "18px" ,
-                                                    right : "-4px",
-                                                    bottom : "-8px",
-                                                    transform : "rotate(20deg)"
-                                                }}/>
-                                                <Stack
-                                                    padding={1}
-                                                    paddingLeft={1.5}
-                                                    paddingRight={1.5}
-                                                    width={"100%"}
+                                                <CardActionArea
+                                                    onClick={() => onClickDevice(device_id)}
+                                                    sx={{
+                                                        borderRadius : 4,
+                                                        bgcolor : "secondary.main",
+                                                        width : "98%",
+                                                        maxWidth : "250px",
+                                                        position : "relative",
+                                                        boxShadow : (theme) => `0px 2px 4px ${theme.palette.primary.main}`
+                                                    }}
                                                 >
+                                                    <img src={sensor_greenhouse} style={{ 
+                                                        position : "absolute" , 
+                                                        width : "18px" ,
+                                                        right : "-4px",
+                                                        bottom : "-8px",
+                                                        transform : "rotate(20deg)"
+                                                    }}/>
                                                     <Stack
-                                                        alignItems={"end"}
+                                                        padding={1}
+                                                        paddingLeft={1.5}
+                                                        paddingRight={1.5}
+                                                        width={"100%"}
                                                     >
-                                                        <Chip
-                                                            sx={{
-                                                                height : "25px",
-                                                                bgcolor : "white"
-                                                            }}
-                                                            label={
-                                                                <Typography fontSize={"12px"}>
-                                                                    { new DateGAP(create_timestamp).format2Str("DD-MM-YYYY") }
-                                                                </Typography>
-                                                            }
-                                                        />
+                                                        <Stack
+                                                            alignItems={"end"}
+                                                        >
+                                                            <Chip
+                                                                sx={{
+                                                                    height : "25px",
+                                                                    bgcolor : "white"
+                                                                }}
+                                                                label={
+                                                                    <Typography fontSize={"12px"}>
+                                                                        { new DateGAP(create_timestamp).format2Str("DD-MM-YYYY") }
+                                                                    </Typography>
+                                                                }
+                                                            />
+                                                        </Stack>
+                                                        <Stack
+                                                            alignItems={"start"}
+                                                        >
+                                                            <Typography fontSize={"18px"}>
+                                                                { device_id }
+                                                            </Typography>
+                                                        </Stack>
                                                     </Stack>
-                                                    <Stack
-                                                        alignItems={"start"}
-                                                    >
-                                                        <Typography fontSize={"18px"}>
-                                                            { device_id }
-                                                        </Typography>
-                                                    </Stack>
-                                                </Stack>
-                                            </CardActionArea>
-                                        </Stack>
-                                    </Grid>
-                                )
+                                                </CardActionArea>
+                                            </Stack>
+                                        </Grid>
+                                    ) :
+                                    <Stack>
+                                        <Typography>ไม่พบตัววัดสภาพแวดล้อมในโรงเรือน</Typography>
+                                    </Stack>
                             }
                         </Grid>
                 }

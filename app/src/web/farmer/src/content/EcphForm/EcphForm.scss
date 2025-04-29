@@ -64,7 +64,7 @@
           width: 100%;
           margin-bottom: 5px;
 
-          .row {
+          .row-data {
             display: flex;
             flex-direction: column;
             margin-bottom: 1rem;
@@ -80,6 +80,7 @@
 
               span {
                 margin-bottom: 0.5em;
+                text-align: center;
               }
 
               input,
@@ -158,67 +159,42 @@
     }   
     .history-table {
       width: 100%;
-      border-collapse: collapse;
       font-family: Sans-font;
-      font-size: 3.8vw; // 🔽 ลดจาก 4.2vw
-      margin-top: 1em;
-      table-layout: fixed;
-    
-      thead {
-        background-color: #daf1ee;
-      }
-    
-      th, td {
-        padding: 0.8em 0.4em; // 🔽 ลด padding ให้ไม่สูงเกิน
-        text-align: center;
-        border: 1px solid #b5d4cc;
-        word-break: break-word;
-        vertical-align: middle;
-      }
-    
-      th {
-        font-weight: bold;
-        color: #2a6d62;
-        font-size: 4vw; // 🔽 ลดจาก 4.5vw
-      }
-    
-      td {
-        font-size: 3.6vw; // 🔽 ลดจาก 4.2vw
-      }
+      font-size: 15px;
+      min-height: 100px;
     
       .td-actions {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        gap: 0.4em;
-        padding: 0.5em 0;
-      }
-    
-      .td-actions button {
-        width: auto;
-        min-width: 3.5em;
-        padding: 0.4em 0.8em;
-        font-size: 3.4vw; // 🔽 ลดขนาด font ปุ่ม
-        border-radius: 10px;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.2s ease;
-      }
-    
-      .td-actions button:first-child {
-        background-color: #4caf50;
-        color: white;
-      }
-    
-      .td-actions button:last-child {
-        background-color: #f44336;
-        color: white;
-      }
-    
-      .td-actions button:hover {
-        opacity: 0.9;
+        justify-content: space-evenly;
+        flex-direction: row;
+        height: 100%;
+
+        button {
+          width: auto;
+          min-width: 3.5em;
+          padding: 0.4em 0.8em;
+          font-size: 14px;
+          border-radius: 10px;
+          border: none;
+          font-weight: bold;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        button:first-child {
+          background-color: #4caf50;
+          color: white;
+        }
+
+        button:last-child {
+          background-color: #f44336;
+          color: white;
+        }
+
+        button:hover {
+          opacity: 0.9;
+        }
       }
     }
     

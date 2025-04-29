@@ -6,7 +6,8 @@ const ConnentPool = require('./connectPool');
 const RichSign = process.env.RICH_SIGN
 const RichHouse = process.env.RICH_HOUSE
 
-const { Server } = require('socket.io')
+const { Server } = require('socket.io');
+const AuthorizeUser = require('./core/authorize');
 const io = new Server()
 
 module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , apifunc, dbpacket, listDB, socket = io, LINE = line) {
@@ -3185,7 +3186,22 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
                 details : "error auth"
             });
         }
-    });
+    })
+
+    app.get("/api/farmer/profile" , async ( req , res ) => {
+        const { session : { uidFarmer } } = req
+
+        const authen = new AuthorizeUser(pool)
+        try {
+            const { profile } = await authen.farmer(uidFarmer , {
+                select : "acc_farmer.fullname , station_list.id_station , station_list.name"
+            })
+        } catch(err) {
+            res.status(404).json({
+                message : "Not found user"
+            })
+        }
+    })
 }
 
 const authCheck = (con, dbpacket, res, req, LINE = line) => {

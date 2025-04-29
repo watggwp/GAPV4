@@ -9,8 +9,8 @@ import DetailEdit from "../DetailEdit";
 import DetailFactor from "./DetailFactor";
 import { useNavigate, useParams } from "react-router";
 import { useGreenhouse } from "..";
-import Fertilizer from "./type/fertilizer";
-import Chemical from "./type/chemical";
+import Fertilizer from "./card/fertilizer";
+import Chemical from "./card/chemical";
  
 const ListFactor = ({ type_path_factor }) => {
 

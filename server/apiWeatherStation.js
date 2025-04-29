@@ -40,7 +40,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
                     LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
                     WHERE sws.station_signature = ? AND ws.timestamp BETWEEN ? AND ?
                     ORDER BY ws.timestamp DESC
-                `, [ station_signature ]
+                `, [ station_signature , new Date(Number(st)) , new Date(Number(et)) ]
             );
             return res.status(200).send({
                 details : data

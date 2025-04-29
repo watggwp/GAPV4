@@ -42,12 +42,14 @@ class AuthorizeUser {
         }
     }
 
-    async farmer(uid_line) {
+    async farmer(uid_line , options = { select : "*" }) {
+        const { select } = options
         try {
             const [ profile ] = await this.Pool.executeQuery(
                 `
-                SELECT * 
-                FROM acc_farmer 
+                SELECT ${select}
+                FROM acc_farmer
+                LEFT JOIN station_list ON station_list.id = acc_farmer.station
                 WHERE uid_line = ? AND (register_auth = 0 OR register_auth = 1)
                 ORDER BY register_auth DESC , date_register DESC
                 LIMIT 1

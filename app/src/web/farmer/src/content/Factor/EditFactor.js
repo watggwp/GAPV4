@@ -308,9 +308,6 @@ useEffect(() => {
     }
   };
 
-
-
-
   const containsHidePopup = useCallback((element , target) => {
     setTimeout(() => {
         !element.contains(target) && element.setAttribute("remove","")

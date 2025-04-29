@@ -10,120 +10,98 @@ import {
 import { useParams } from "react-router";
 import { useGreenhouse } from "..";
 
+const getDateNow = () => {
+    return `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`
+}
+
 const PopupInsertFactor = ({
-  setPopup,
-  RefPop,
-  type_path,
-  ReloadData,
+    setPopup,
+    RefPop,
+    type_path,
+    ReloadData,
 }) => {
 
-  const { greenhouse_id , gap_id } = useParams()
-  const { setCurrentPage } = useGreenhouse()
+    const { greenhouse_id , gap_id } = useParams()
+    const { setCurrentPage } = useGreenhouse()
 
-  const DateNowOnForm = `${new Date().getFullYear()}-${(
-    "0" + (new Date().getMonth() + 1).toString()
-  ).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`;
-  const [getDateOut, setDateOut] = useState("");
-  const [pestChemicalData, setPestChemicalData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [currentFormId, setCurrentFormId] = useState(null);
+    const [pestChemicalData, setPestChemicalData] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-  // State สำหรับการแจ้งเตือน
-  const [popupMessage, setPopupMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
+    // State สำหรับการแจ้งเตือน
+    const [popupMessage, setPopupMessage] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
 
-  // same
-  const DateUse = useRef();
-  const NameMainFactor = useRef();
-  const NameFactor = useRef();
-  const Use = useRef();
-  const Volume = useRef();
-  const Unit = useRef();
-  const Source = useRef();
+    const [ useDate , setUseDate ] = useState(getDateNow())
+    const [ primaryName , setPrimaryName ] = useState("")
+    const [ secondaryName , setSecondayName ] = useState("")
+    const [ use , setUse ] = useState("")
+    const [ volume , setVolume ] = useState("")
+    const [ unit , setUnit ] = useState("")
+    const [ source , setSource ] = useState("")
 
-  // chemical
-  const NameInsect = useRef();
-  const Rate = useRef();
-  const DateSafe = useRef();
+    //  chemical
+    const [ insectName , setInsectName ] = useState("")
+    const [ rate , setRate ] = useState("")
+    const [ safeDate , setSafeDate ] = useState("")
 
-  const [DataFactor, setDataFactor] = useState([]);
-  const [DataSource, setSource] = useState([]);
+    const [ factors, setFactors ] = useState([]);
+    const [ sources, setSources ] = useState([]);
 
-  const ListSearchName = useRef();
-  const [ListSelectName, setListName] = useState(<></>);
+    const [ loadingSecondaryName, setLoadingSecondaryName ] = useState(false);
+    const [ loadingPrimaryName, setLoadingPrimaryName ] = useState(false);
 
-  const ListSearchFactorNameMain = useRef();
-  const [ListSelectNameMain, setListOther] = useState(<></>);
+    // State และ Refs สำหรับศัตรูพืช
+    const [pests, setPests] = useState([]);
+    const [loadingPest, setLoadingPest] = useState(false);
+    const [currentPlantPlantName, setCurrentPlantName] = useState(""); // ชื่อสายพันธุ์พืช
 
-  const BTConfirm = useRef();
+    const [getWait, setWait] = useState(false);
 
-  const [LoadSearchName, setLoadName] = useState(false);
-  const [LoadSearchNameMain, setLoadNameMain] = useState(false);
+    const fetchFactor = useCallback(async (type) => {
+        setLoadingSecondaryName(true);
+        setLoadingPrimaryName(true);
+        const data = await clientMo.post("/api/farmer/factor/get/auto", {
+            type: type
+        });
 
-  // State และ Refs สำหรับศัตรูพืช
-  const [DataPests, setDataPests] = useState([]);
-  const [ListSelectPests, setListPests] = useState(<></>);
-  const ListSearchPests = useRef();
-  const [LoadSearchPests, setLoadPests] = useState(false);
+        setLoadingSecondaryName(false);
+        setLoadingPrimaryName(false);
+        if (await CloseAccount(data, setCurrentPage)) {
+            const list = JSON.parse(data);
+            list.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+            list.sort((a, b) => a.name_formula.localeCompare(b.name_formula, 'th'));
+            setFactors(list);
+            
+            return list;
+        }
+    } , [setCurrentPage])
 
-  const [formId, setFormId] = useState(""); // สำหรับ formId
-  const [currentPlantPlantName, setCurrentPlantName] = useState(""); // ชื่อสายพันธุ์พืช
-  const [error, setError] = useState(null); // สำหรับข้อความแสดงข้อผิดพลาด
+    // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
+    const FetchPests = useCallback(async () => {
+        setLoadingPest(true)
+        const data = await clientMo.post("/api/farmer/pests")
+        setLoadingPest(false)
+        if (await CloseAccount(data, setCurrentPage)) {
+            let list = JSON.parse(data);
+            list = list.map((item) => ({
+                ...item,
+                pest_name: item.pest_name.trim() 
+            }));
+            const collator = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
+            list.sort((a, b) => collator.compare(a.pest_name, b.pest_name));
 
-  const [getWait, setWait] = useState(false);
-  useEffect(() => {
-    RefPop.current.setAttribute("show", "");
-    FetchFactor(type_path === "z" ? "fertilizer" : "chemical");
-    FetchSource();
-    // (type_path === "z") ? FetchFactor("fertilizer") : FetchFactor("chemical")
-  }, []);
-
-  useEffect(() => {
-    console.log("Pest Chemical Data Updated:", pestChemicalData);
-  }, [pestChemicalData]);
-
-  const FetchFactor = async (type) => {
-    setLoadName(false);
-    setLoadNameMain(false);
-    const Data = await clientMo.post("/api/farmer/factor/get/auto", {
-      type: type
-    });
-    if (await CloseAccount(Data, setCurrentPage)) {
-      const LIST = JSON.parse(Data);
-      LIST.sort((a, b) => a.name.localeCompare(b.name, 'th'));
-      LIST.sort((a, b) => a.name_formula.localeCompare(b.name_formula, 'th'));
-      setDataFactor(LIST);
-      setLoadName(true);
-      setLoadNameMain(true);
-      return LIST;
-    }
-  };
-
-  // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
-  const FetchPests = async () => {
-    setLoadPests(false);
-    const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
-    if (await CloseAccount(Data, setCurrentPage)) {
-      let LIST = JSON.parse(Data);
-      LIST = LIST.map((item) => ({
-        ...item,
-        pest_name: item.pest_name.trim() 
-    }));
-    const collator = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
-    LIST.sort((a, b) => collator.compare(a.pest_name, b.pest_name));
-
-      setDataPests(LIST);
-      setLoadPests(true);
-      return LIST;
-    }
-  };
+            setPests(list);
+            
+            return list;
+        }
+    } , [setCurrentPage])
 
   // ฟังก์ชันโหลดข้อมูลจาก API
   const FetchPestChemicalData = useCallback(async () => {
     setLoading(true);
     try {
       const Data = await clientMo.post("/api/farmer/pest-chemical", {
-        id_form_plant: formId
+        id_form_plant: gap_id
       }); // เรียก API
 
       console.log("Full API Response:", JSON.stringify(Data, null, 2));
@@ -193,7 +171,7 @@ const PopupInsertFactor = ({
     ListSearchPests.current.removeAttribute("remove");
 
     try {
-      let search = DataPests.filter(
+      let search = pests.filter(
         (val) => val.pest_name.indexOf(e.target.value) >= 0
       ).map((val) => val.pest_name);
       search.sort((a, b) => a.localeCompare(b, 'th'));
@@ -238,11 +216,11 @@ const PopupInsertFactor = ({
     FetchPests();
   }, [FetchPests]);
 
-  const FetchSource = async () => {
+  const fetchSource = async () => {
     const Data = await clientMo.post("/api/farmer/source/get");
     if (await CloseAccount(Data, setCurrentPage)) {
       const LIST = JSON.parse(Data);
-      setSource(LIST);
+      setSources(LIST);
     }
   };
 
@@ -308,7 +286,7 @@ const PopupInsertFactor = ({
     let isValid = true;
   
     // ตรวจสอบชื่อสารเคมี
-    if (!DataFactor.some((val) => val.name === NameFactor.current?.value.trim())) {
+    if (!factors.some((val) => val.name === NameFactor.current?.value.trim())) {
       NameFactor.current.style.border = "2px solid red";
       isValid = false;
     } else {
@@ -317,7 +295,7 @@ const PopupInsertFactor = ({
   
     // ตรวจสอบชื่อสามัญสารเคมี
     if (
-      !DataFactor.some((val) => val.name_formula === NameMainFactor.current?.value.trim())
+      !factors.some((val) => val.name_formula === NameMainFactor.current?.value.trim())
     ) {
       NameMainFactor.current.style.border = "2px solid red";
       isValid = false;
@@ -326,7 +304,7 @@ const PopupInsertFactor = ({
     }
   
     // ตรวจสอบศัตรูพืช
-    if (!DataPests.some((val) => val.pest_name === NameInsect.current?.value.trim())) {
+    if (!pests.some((val) => val.pest_name === NameInsect.current?.value.trim())) {
       NameInsect.current.style.border = "2px solid red";
       isValid = false;
     } else {
@@ -334,7 +312,7 @@ const PopupInsertFactor = ({
     }
   
     return isValid;
-  } , [DataFactor, DataPests])
+  } , [factors, pests])
 
   // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
   const ConfirmChemi = useCallback(async () => {
@@ -433,7 +411,7 @@ const PopupInsertFactor = ({
     ListSearchName.current.removeAttribute("remove");
 
     try {
-      let search = DataFactor;
+      let search = factors;
       search = search
         .filter(
           (val) =>
@@ -485,7 +463,7 @@ const PopupInsertFactor = ({
     ListSearchFactorNameMain.current.removeAttribute("remove");
 
     try {
-      let search = DataFactor;
+      let search = factors;
       search = search
         .filter(
           (val) =>
@@ -535,7 +513,7 @@ const PopupInsertFactor = ({
     try {
       if (Use.current.value === "") {
         Use.current.value =
-          DataFactor.filter(
+          factors.filter(
             (val) =>
               val.name_formula === NameMainFactor.current.value &&
               val.name === NameFactor.current.value
@@ -598,7 +576,7 @@ const PopupInsertFactor = ({
           plantNameValue
         });
         // ดึงประเภทศัตรูพืช (type_pest) ถ้ามี
-        const pestType = DataPests.find(
+        const pestType = pests.find(
           (entry) => entry.pest_name === pestValue
         )?.type_pest || 'ศัตรูพืช/โรคพืช';  // ถ้าไม่พบ type_pest จะใช้ค่าเริ่มต้น
 
@@ -616,17 +594,17 @@ const PopupInsertFactor = ({
     const value = e.target.value.trim();
   
     if (type === "NameFactor") {
-      if (DataFactor.some((val) => val.name === value)) {
+      if (factors.some((val) => val.name === value)) {
         NameFactor.current.style.border = "2px solid transparent";
       }
       // ล้างค่าชื่อสามัญสารเคมีเมื่อเปลี่ยนชื่อสารเคมี
         NameMainFactor.current.value = "";
     } else if (type === "NameMainFactor") {
-      if (DataFactor.some((val) => val.name_formula === value)) {
+      if (factors.some((val) => val.name_formula === value)) {
         NameMainFactor.current.style.border = "2px solid transparent";
       }
     } else if (type === "NameInsect") {
-      if (DataPests.some((val) => val.pest_name === value)) {
+      if (pests.some((val) => val.pest_name === value)) {
         NameInsect.current.style.border = "2px solid transparent";
       }
     }
@@ -651,6 +629,13 @@ const PopupInsertFactor = ({
     setSearch.forEach((val) => ObjectName.push(val));
     return ObjectName;
   };
+
+  useEffect(() => {
+        RefPop.current.setAttribute("show", "")
+        fetchFactor(type_path === "z" ? "fertilizer" : "chemical");
+        fetchSource()
+        // (type_path === "z") ? fetchFactor("fertilizer") : fetchFactor("chemical")
+    }, [fetchFactor, fetchSource, RefPop, type_path]);
 
   return (
     // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
@@ -689,11 +674,11 @@ const PopupInsertFactor = ({
                           <span>ว/ด/ป ที่ใช้</span>
                           <DatePickerThai
                             classNameMain="input-date"
-                            defaultDate={DateNowOnForm}
+                            defaultDate={DateNowOnForm.current}
                             refIn={DateUse}
                             onInputIn={ChangeFerti}
                           />
-                          {/* <input onChange={ChangeFerti} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
+                          {/* <input onChange={ChangeFerti} defaultValue={DateNowOnForm.current} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
                         </label>
                       </div>
                       <div className="row">
@@ -705,24 +690,24 @@ const PopupInsertFactor = ({
                             <div className="input-select-popup">
                               <input
                                 onChange={
-                                  LoadSearchName ? SearchNameFactor : null
+                                  loadingSecondaryName ? SearchNameFactor : null
                                 }
                                 onMouseDown={
-                                  LoadSearchName ? SearchNameFactor : null
+                                  loadingSecondaryName ? SearchNameFactor : null
                                 }
                                 placeholder={
-                                  !LoadSearchName ? "กำลังโหลด" : "กรอกชื่อปุ๋ย"
+                                  !loadingSecondaryName ? "กำลังโหลด" : "กรอกชื่อปุ๋ย"
                                 }
                                 ref={NameFactor}
-                                readOnly={!LoadSearchName ? true : null}
-                                disabled={!LoadSearchNameMain ? true : null}
+                                readOnly={!loadingSecondaryName ? true : null}
+                                disabled={!loadingPrimaryName ? true : null}
                               ></input>
                               <div
                                 ref={ListSearchName}
                                 remove=""
                                 className="list-input-search"
                               >
-                                {LoadSearchName ? (
+                                {loadingSecondaryName ? (
                                   ListSelectName
                                 ) : (
                                   <div
@@ -751,31 +736,31 @@ const PopupInsertFactor = ({
                           <div className="input-select-other">
                             <input
                               onChange={
-                                LoadSearchNameMain
+                                loadingPrimaryName
                                   ? SearchFactorNameOther
                                   : null
                               }
                               onMouseDown={
-                                LoadSearchNameMain
+                                loadingPrimaryName
                                   ? SearchFactorNameOther
                                   : null
                               }
                               ref={NameMainFactor}
                               type="text"
                               placeholder={
-                                LoadSearchNameMain
+                                loadingPrimaryName
                                   ? "กรอกสูตรปุ๋ย"
                                   : "กำลังโหลด"
                               }
-                              readOnly={!LoadSearchNameMain ? true : null}
-                              disabled={!LoadSearchNameMain ? true : null}
+                              readOnly={!loadingPrimaryName ? true : null}
+                              disabled={!loadingPrimaryName ? true : null}
                             ></input>
                             <div
                               ref={ListSearchFactorNameMain}
                               remove=""
                               className="list-input-search"
                             >
-                              {LoadSearchNameMain ? (
+                              {loadingPrimaryName ? (
                                 ListSelectNameMain
                               ) : (
                                 <div
@@ -833,7 +818,7 @@ const PopupInsertFactor = ({
                         <label className="frame-textbox">
                           <span>แหล่งที่ซื้อ</span>
                           {/* <input onChange={ChangeFerti} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
-                          {DataSource ? (
+                          {sources ? (
                             <select
                               onChange={ChangeFerti}
                               ref={Source}
@@ -842,8 +827,8 @@ const PopupInsertFactor = ({
                               <option value={""} disabled>
                                 เลือก
                               </option>
-                              {DataSource ? (
-                                DataSource.map((val, key) => (
+                              {sources ? (
+                                sources.map((val, key) => (
                                   <option value={val.name} key={val.id}>
                                     {val.name}
                                   </option>
@@ -874,13 +859,13 @@ const PopupInsertFactor = ({
                           <span>ว/ด/ป ที่พ่นสาร</span>
                           <DatePickerThai
                             classNameMain="input-date"
-                            defaultDate={DateNowOnForm}
+                            defaultDate={DateNowOnForm.current}
                             refIn={DateUse}
                             onInputIn={() => {
                               ChangeChemi();
                             }}
                           />
-                          {/* <input onChange={ChangeChemi} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
+                          {/* <input onChange={ChangeChemi} defaultValue={DateNowOnForm.current} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
                         </label>
                       </div>
                       <div className="row">
@@ -893,16 +878,16 @@ const PopupInsertFactor = ({
                               <input
                                 onChange={(e) => {
                                   handleInputChange(e, "NameFactor");
-                                  if (LoadSearchName) {
+                                  if (loadingSecondaryName) {
                                     SearchNameFactor(e);
                                   }
                                   
                                 }}
-                                onMouseDown={LoadSearchName ? SearchNameFactor : null}
-                                placeholder={LoadSearchName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
+                                onMouseDown={loadingSecondaryName ? SearchNameFactor : null}
+                                placeholder={loadingSecondaryName ? "กรอกชื่อสารเคมี" : "กำลังโหลด"}
                                 ref={NameFactor}
-                                readOnly={!LoadSearchName ? true : null}
-                                disabled={!LoadSearchName ? true : null}
+                                readOnly={!loadingSecondaryName ? true : null}
+                                disabled={!loadingSecondaryName ? true : null}
                                 onBlur={(e) => {
                                   ValidateChemicalAndPest()
                                   containsHidePopup(ListSearchName.current, e.target);
@@ -913,7 +898,7 @@ const PopupInsertFactor = ({
                                 remove=""
                                 className="list-input-search"
                               >
-                                {LoadSearchName ? (
+                                {loadingSecondaryName ? (
                                   ListSelectName
                                 ) : (
                                   <div
@@ -943,16 +928,16 @@ const PopupInsertFactor = ({
                           <input
                             onChange={(e) => {
                               handleInputChange(e, "NameMainFactor");
-                              if (LoadSearchNameMain) {
+                              if (loadingPrimaryName) {
                                 SearchFactorNameOther(e);
                               }                              
                             }}
-                            onMouseDown={LoadSearchNameMain ? SearchFactorNameOther : null}
+                            onMouseDown={loadingPrimaryName ? SearchFactorNameOther : null}
                             ref={NameMainFactor}
                             type="text"
-                            placeholder={LoadSearchNameMain ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
-                            readOnly={!LoadSearchNameMain ? true : null}
-                            disabled={!LoadSearchNameMain ? true : null}
+                            placeholder={loadingPrimaryName ? "กรอกชื่อสามัญ" : "กำลังโหลด"}
+                            readOnly={!loadingPrimaryName ? true : null}
+                            disabled={!loadingPrimaryName ? true : null}
                             onBlur={(e) => {
                               containsHidePopup(ListSearchFactorNameMain.current, e.target);
                             }}
@@ -962,7 +947,7 @@ const PopupInsertFactor = ({
                               remove=""
                               className="list-input-search"
                             >
-                              {LoadSearchNameMain ? (
+                              {loadingPrimaryName ? (
                                 ListSelectNameMain
                               ) : (
                                 <div
@@ -992,15 +977,15 @@ const PopupInsertFactor = ({
                             <input
                               onChange={(e) => {
                                 handleInputChange(e, "NameInsect");
-                                if (LoadSearchPests) {
+                                if (loadingPest) {
                                   SearchPests(e);
                                 }                                
                               }}
-                              onMouseDown={LoadSearchPests ? SearchPests : null}
-                              placeholder={LoadSearchPests ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
+                              onMouseDown={loadingPest ? SearchPests : null}
+                              placeholder={loadingPest ? "กรอกชื่อศัตรูพืช" : "กำลังโหลด"}
                               ref={NameInsect}
-                              readOnly={!LoadSearchPests ? true : null}
-                              disabled={!LoadSearchPests ? true : null}
+                              readOnly={!loadingPest ? true : null}
+                              disabled={!loadingPest ? true : null}
                               onBlur={(e) => {
                                 ValidateChemicalAndPest();
                                 containsHidePopup(ListSearchPests.current, e.target);
@@ -1011,7 +996,7 @@ const PopupInsertFactor = ({
                                 remove=""
                                 className="list-input-search"
                               >
-                                {LoadSearchPests ? (
+                                {loadingPest ? (
                                   ListSelectPests
                                 ) : (
                                   <div
@@ -1095,7 +1080,7 @@ const PopupInsertFactor = ({
                         <label className="frame-textbox">
                           <span>แหล่งที่ซื้อ</span>
                           {/* <input onChange={ChangeChemi} ref={Source} type="text" placeholder="กรอกข้อมูล"></input> */}
-                          {DataSource ? (
+                          {sources ? (
                             <select
                               key={0}
                               onChange={ChangeChemi}
@@ -1105,8 +1090,8 @@ const PopupInsertFactor = ({
                               <option value={""} disabled>
                                 เลือก
                               </option>
-                              {DataSource ? (
-                                DataSource.map((val, key) => (
+                              {sources ? (
+                                sources.map((val, key) => (
                                   <option value={val.name} key={val.id}>
                                     {val.name}
                                   </option>
@@ -1144,29 +1129,31 @@ const PopupInsertFactor = ({
           >
             ยกเลิก
           </button>
-          {getWait ? (
-            <div
-              className="bt-confirm-factor"
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                padding: "2px",
-                height: "30.8px"
-              }}
-            >
-              <Loading size={27} border={5} color="white" animetion={true} />
-            </div>
-          ) : (
-            <button
-              ref={BTConfirm}
-              no=""
-              className="bt-confirm-factor"
-              onClick={type_path === "z" ? ConfirmFerti : ConfirmChemi}
-            >
-              ยืนยัน
-            </button>
-          )}
+          {
+            getWait ? (
+                    <div
+                        className="bt-confirm-factor"
+                        style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "2px",
+                        height: "30.8px"
+                        }}
+                    >
+                        <Loading size={27} border={5} color="white" animetion={true} />
+                    </div>
+                ) : (
+                    <button
+                        ref={BTConfirm}
+                        no=""
+                        className="bt-confirm-factor"
+                        onClick={type_path === "z" ? ConfirmFerti : ConfirmChemi}
+                    >
+                        ยืนยัน
+                    </button>
+                )
+          }
         </div>
       </div>
     </section>

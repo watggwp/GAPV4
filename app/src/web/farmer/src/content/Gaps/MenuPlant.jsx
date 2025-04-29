@@ -90,7 +90,7 @@ const MenuPlant = () => {
                         <div className="img">
                             <img src="/fertilizer.jpg"></img>
                         </div>
-                        <span>ปัจจัยการผลิต</span>
+                        <span>บันทึกปุ๋ย</span>
                         {DotReport.checkEditFertilizer ? <div className="dot-someting"></div> : <></>}
                     </div>
                 </div>
@@ -147,7 +147,7 @@ const MenuPlant = () => {
                     <Stack>
                         <Chip
                             label={
-                                <Typography color="primary" fontWeight={900} fontSize={"24px"} >เซนเซอร์</Typography>
+                                <Typography color="primary" fontWeight={900} fontSize={"24px"} >สภาพอากาศ</Typography>
                             }
                             sx={{
                                 bgcolor : "white"
