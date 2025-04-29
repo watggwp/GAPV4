@@ -84,7 +84,7 @@ const EcphForm = () => {
     fetchHistory();
   }, [fetchHistory]);
 
-  const formatDateTimeTH = (timestamp) => {
+  const formatDateTimeTH = useCallback((timestamp) => {
     const date = new Date(timestamp);
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -92,7 +92,7 @@ const EcphForm = () => {
     const time = date.toLocaleTimeString("th-TH", { hour12: false });
 
     return `${day}-${month}-${year} ${time}`;
-  };
+  } , [])
 
   const onReturnMenu = useCallback(() => 
     navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)

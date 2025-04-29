@@ -31,7 +31,7 @@ const Station = () => {
     } catch (error) {
       console.error("Error fetching station list:", error);
     }
-  }, []);
+  }, [])
 
   const requestEcPhData = useCallback(async () => {
     if (!selectedStation) return;
@@ -95,7 +95,7 @@ const Station = () => {
     contentRef.current.style.height = "70%";
     clientMo.unLoadingPage();
     fetchStationList();
-  }, [bannerCoverRef, contentRef, fetchStationList]);
+  }, [bannerCoverRef, contentRef, fetchStationList])
 
   useEffect(() => {
     if (graphType === "ec_ph") {
@@ -125,11 +125,13 @@ const Station = () => {
           size="small"
         >
           <MenuItem disabled value={""}>เลือกศูนย์</MenuItem>
-          {stationList.map((station, index) => (
-            <MenuItem key={index} value={station.id}>
-              {station.name}
-            </MenuItem>
-          ))}
+          {
+            stationList.map((station, index) => (
+              <MenuItem key={index} value={station.id}>
+                {station.name}
+              </MenuItem>
+            ))
+          }
         </Select>
         <Select value={""} size="small" displayEmpty>
           <MenuItem disabled value={""}>เลือกชนิดพืช</MenuItem>

@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM  from "react-dom/client";
 import io from "socket.io-client"
-import ThemeFarmer from "./theme";
 import Router from "./router";
+import ThemeProviderApp from "../../ThemeProvider";
 
 
 // const socket = new WebSocket();
@@ -19,8 +19,8 @@ const socket = io(window.location.protocol+"//"+window.location.host)
 // })
 
 ReactDOM.createRoot(document.getElementById('farmer')).render(
-    <ThemeFarmer>
+    <ThemeProviderApp>
         <Router/>
-    </ThemeFarmer>
+    </ThemeProviderApp>
 )
 

@@ -1,4 +1,4 @@
-import React , {Component, createContext, useContext, useEffect, useRef, useState} from "react";
+import React , {Component, createContext, useCallback, useContext, useEffect, useRef, useState} from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
@@ -15,7 +15,8 @@ import PageData from "./page/data/PageData";
 export const DoctorContext = createContext({
     profile : {},
     bannerCoverRef : { current : "" },
-    contentRef : { current : "" }
+    contentRef : { current : "" },
+    onSession : () => {}
 })
 
 export function useDoctor() {
@@ -106,14 +107,14 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
         else sessionoff()
     }
 
-    const sessionoff = (type = false) => {
+    const sessionoff = useCallback((type = false) => {
         if(type) {
             setMain(<Login setMain={setMain} socket={socket} isClick={1}/>)
         } else {
             setSession(<SessionOut/>)
             document.getElementById('session').setAttribute('show' , '')
         }
-    } 
+    } , [setMain, socket])
 
     const Resize = () => {
         const size = window.innerWidth
@@ -130,7 +131,8 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
             value={{
                 profile : getProfile,
                 bannerCoverRef : ImageCover,
-                contentRef : BodyRef
+                contentRef : BodyRef,
+                onSession : sessionoff
             }}
         >
             <div className="doctor"

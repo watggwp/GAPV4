@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Box, Grid, MenuItem, Select, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DataGrid } from "@mui/x-data-grid"
@@ -36,13 +36,16 @@ const TabGAP = styled((props) => <Tab disableRipple {...props} />)({
 export default function WeatherManagement({
     endpointData = "/api/farmer/weather-station",
     query,
+    startTime,
+    endTime,
     columnTimestamp = "timestamp",
     columns = [
         { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
         { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
         { field: 'light', name: 'แสง' , color : "orange" },
         { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
-    ]
+    ],
+    onChangeRange = (starttime , endtime) => {}
 }) {
     const isDesktopPicker = useMediaQuery('(pointer: fine)')
     const isMediaSm = useMediaQuery((theme) => theme.breakpoints.down("md"))
@@ -50,8 +53,8 @@ export default function WeatherManagement({
     const [ dayAgo , setDayAgo ] = useState(0)
     const [ selectedTab , setSelectedTab ] = useState(0)
 
-    const [ dateStart , setDateStart ] = useState(new Date())
-    const [ dateEnd , setDateEnd ] = useState(new Date())
+    const [ dateStart , setDateStart ] = useState(startTime ? new Date(startTime) : new Date())
+    const [ dateEnd , setDateEnd ] = useState(endTime ? new Date(endTime) : new Date())
 
     const [ chartDatas , setChartDatas ] = useState([])
 
@@ -62,6 +65,10 @@ export default function WeatherManagement({
         setSelectedTab(newValue)
     } , [])
 
+    const Query = useMemo(() => ({
+        r : query.r
+    }) , [query.r])
+
     const requestWeatherManagement = useCallback( async (starttime , endtime , isMount) => {
         setLoadingHistory(true)
 
@@ -70,7 +77,7 @@ export default function WeatherManagement({
         const { data , status } = await RequestAPI.get(endpointData , {
             "st" : starttime,
             "et" : endtime,
-            ...(query || {})
+            ...(Query || {})
         })
         setLoadingHistory(false)
 
@@ -92,7 +99,7 @@ export default function WeatherManagement({
                 break;
         }
         isMount && clientMo.unLoadingPage()
-    } , [columnTimestamp, endpointData, query])
+    } , [columnTimestamp, endpointData, Query])
 
     const onChanageDayAgo = useCallback((event) => {
         const { now , dayAgo } = new DateGAP().getDayRangeFromNow(event.target.value)
@@ -113,6 +120,10 @@ export default function WeatherManagement({
         const { now , dayAgo } = new DateGAP().getDayRangeFromNow(0)
         requestWeatherManagement(dayAgo.getTime() , now.getTime() , true)
     } , [requestWeatherManagement])
+
+    useEffect(() => {
+        onChangeRange?.(dateStart.getTime() , dateEnd.getTime())
+    } , [dateEnd, dateStart, onChangeRange])
     
     return(
         <Stack
@@ -136,7 +147,7 @@ export default function WeatherManagement({
                             })
                         }
                     </TabsGAP>
-                    <Stack width={"100%"} height={"calc(100% - 35px - 112px)"} marginTop={1} justifyContent={"center"} alignItems={"center"}>
+                    <Stack width={"100%"} height={`calc(100% - 35px - ${Boolean(!startTime && !endTime) ? "112px" : "10px"})`} marginTop={1} justifyContent={"center"} alignItems={"center"}>
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart
                                 data={chartDatas}
@@ -157,70 +168,74 @@ export default function WeatherManagement({
                             </LineChart>
                         </ResponsiveContainer>
                     </Stack>
-                    <Stack 
-                        width={"100%"}
-                        alignItems={"center"}
-                    >
-                        <Stack width={"95%"} direction={"row"} justifyContent={"space-between"} alignItems={"center"} marginTop={"8px"}>
-                            <Stack
-                                width={"45%"}
+                    {
+                        Boolean(!startTime && !endTime) && (
+                            <Stack 
+                                width={"100%"}
+                                alignItems={"center"}
                             >
-                                <DatePickerAccept
-                                    label={"วันเริ่มต้น"}
-                                    value={dateStart}
-                                    onAcceptData={!isDesktopPicker ? onChangeStart : undefined}
-                                    onChangeData={isDesktopPicker ? onChangeStart : undefined}
-                                    sxTextField={{
-                                        "& .MuiPickersInputBase-sectionContent" : {
-                                            fontSize : "12px"
-                                        },
-                                    }}
-                                />
+                                <Stack width={"95%"} direction={"row"} justifyContent={"space-between"} alignItems={"center"} marginTop={"8px"}>
+                                    <Stack
+                                        width={"45%"}
+                                    >
+                                        <DatePickerAccept
+                                            label={"วันเริ่มต้น"}
+                                            value={dateStart}
+                                            onAcceptData={!isDesktopPicker ? onChangeStart : undefined}
+                                            onChangeData={isDesktopPicker ? onChangeStart : undefined}
+                                            sxTextField={{
+                                                "& .MuiPickersInputBase-sectionContent" : {
+                                                    fontSize : "12px"
+                                                },
+                                            }}
+                                        />
+                                    </Stack>
+                                    <Box
+                                        width={"5%"}
+                                        height={"2px"}
+                                        bgcolor={"black"}
+                                    />
+                                    <Stack
+                                        width={"45%"}
+                                    >
+                                        <DatePickerAccept
+                                            label={"วันสิ้นสุด"}
+                                            value={dateEnd}
+                                            sxTextField={{
+                                                "& .MuiPickersInputBase-sectionContent" : {
+                                                    fontSize : "12px"
+                                                }
+                                            }}
+                                            minDate={dateStart}
+                                            onAcceptData={!isDesktopPicker ? onChangeEnd : undefined}
+                                            onChangeData={isDesktopPicker ? onChangeEnd : undefined}
+                                        />
+                                    </Stack>
+                                </Stack>
+                                <Stack width={"95%"} marginTop={"8px"}>
+                                    <Select size="small"
+                                        MenuProps={{
+                                            PaperProps: {
+                                                sx: {
+                                                    maxHeight: 200,
+                                                },
+                                            },
+                                        }}
+                                        onChange={onChanageDayAgo}
+                                        value={dayAgo}
+                                    >
+                                        <MenuItem value={0}>วันนี้</MenuItem>
+                                        <MenuItem value={1}>1 วัน</MenuItem>
+                                        <MenuItem value={3}>3 วัน</MenuItem>
+                                        <MenuItem value={7}>1 สัปดาห์</MenuItem>
+                                        <MenuItem value={21}>3 สัปดาห์</MenuItem>
+                                        <MenuItem value={30}>1 เดือน</MenuItem>
+                                        <MenuItem value={90}>3 เดือน</MenuItem>
+                                    </Select>
+                                </Stack>
                             </Stack>
-                            <Box
-                                width={"5%"}
-                                height={"2px"}
-                                bgcolor={"black"}
-                            />
-                            <Stack
-                                width={"45%"}
-                            >
-                                <DatePickerAccept
-                                    label={"วันสิ้นสุด"}
-                                    value={dateEnd}
-                                    sxTextField={{
-                                        "& .MuiPickersInputBase-sectionContent" : {
-                                            fontSize : "12px"
-                                        }
-                                    }}
-                                    minDate={dateStart}
-                                    onAcceptData={!isDesktopPicker ? onChangeEnd : undefined}
-                                    onChangeData={isDesktopPicker ? onChangeEnd : undefined}
-                                />
-                            </Stack>
-                        </Stack>
-                        <Stack width={"95%"} marginTop={"8px"}>
-                            <Select size="small"
-                                MenuProps={{
-                                    PaperProps: {
-                                        sx: {
-                                            maxHeight: 200,
-                                        },
-                                    },
-                                }}
-                                onChange={onChanageDayAgo}
-                                value={dayAgo}
-                            >
-                                <MenuItem value={0}>วันนี้</MenuItem>
-                                <MenuItem value={1}>1 วัน</MenuItem>
-                                <MenuItem value={3}>3 วัน</MenuItem>
-                                <MenuItem value={7}>1 สัปดาห์</MenuItem>
-                                <MenuItem value={21}>3 สัปดาห์</MenuItem>
-                                <MenuItem value={30}>1 เดือน</MenuItem>
-                                <MenuItem value={90}>3 เดือน</MenuItem>
-                            </Select>
-                        </Stack>
-                    </Stack>
+                        )
+                    }
                 </Grid>
                 <Grid
                     size={{ sm : 12 , md : 6 }}

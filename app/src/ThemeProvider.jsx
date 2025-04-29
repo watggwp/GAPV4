@@ -2,12 +2,18 @@ import { createTheme, ThemeProvider } from "@mui/material";
 
 const theme = createTheme({
     palette: {
-        primary: {
-            main: '#22C7A9',
+        bgSoft : {
+            main : "#A4FFC5"
         },
-        secondary: {
-            main: '#dc004e',
+        primary : {
+            main : "#379b7a"
         },
+        secondary : {
+            main : "#daf1ee"
+        }
+    },
+    typography: {
+        fontFamily: "Sans-font",
     },
 })
 

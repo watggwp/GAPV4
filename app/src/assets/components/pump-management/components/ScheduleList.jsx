@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function ScheduleList({ schedules, onDelete }){
     return (
-        <div className="schedule-list">
+        <div className="schedule-list" style={{ paddingTop : 16 }}>
             <h3>รายการตั้งค่า</h3>
             {
                 schedules.map((item, index) => (

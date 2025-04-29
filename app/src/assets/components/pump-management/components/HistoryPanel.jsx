@@ -31,7 +31,7 @@ export default function HistoryPanel({ show, onClose }) {
                 <div className="history-content">
                     {
                         logs.length === 0 ? (
-                            <p>ยังไม่มีประวัติ</p>
+                            <p style={{ textAlign : "center" }}>ยังไม่มีประวัติ</p>
                         ) : (
                             <>
                                 <h4>⏱️ ประวัติ Manual</h4>

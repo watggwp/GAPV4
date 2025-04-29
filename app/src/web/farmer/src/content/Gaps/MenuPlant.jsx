@@ -125,7 +125,7 @@ const MenuPlant = () => {
                         <div className="img" style={{ backgroundColor : "white" }}>
                             <img src={pump} ></img>
                         </div>
-                        <span>ปั้มน้ำ</span>
+                        <span>ปั๊มน้ำ</span>
                         {
                             DotReport.checkEditSensor && <div className="dot-someting"/>
                         }

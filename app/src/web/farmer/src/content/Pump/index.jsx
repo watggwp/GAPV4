@@ -71,7 +71,7 @@ export default function PumpControlPage() {
                                 marginTop={2}
                             >
                                 <Typography>
-                                    ไม่พบปั้มน้ำ
+                                    ไม่พบปั๊มน้ำ
                                 </Typography>
                             </Stack>
                     )

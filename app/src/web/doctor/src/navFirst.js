@@ -8,7 +8,7 @@ import { clientMo } from "../../../assets/js/moduleClient"
 import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
 import { useDoctor } from "./Doctor"
-import Station from "./page/station/station"
+import WeatherStation from "./page/station"
 
 const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
@@ -88,7 +88,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
     const station = useCallback(async () => {
         const context = await clientMo.post('/api/doctor/check')
         if(context)
-            setdoctor(<Station/>)
+            setdoctor(<WeatherStation/>)
         else setSession()
     } , [setSession, setdoctor])
 

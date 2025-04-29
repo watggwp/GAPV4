@@ -3196,6 +3196,10 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             const { profile } = await authen.farmer(uidFarmer , {
                 select : "acc_farmer.fullname , station_list.id_station , station_list.name"
             })
+
+            res.json({
+                profile
+            })
         } catch(err) {
             res.status(404).json({
                 message : "Not found user"

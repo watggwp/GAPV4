@@ -1326,7 +1326,8 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
             if (result['result'] === "pass") {
                 console.log("✅ Authentication Successful:", result['data']);
     
-                const Limit = isNaN(parseInt(req.body.limit)) ? 10 : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
+                const { body : { textSearch = "" , station_id = "" } } = req
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
                 console.log("🔹 Query Limit:", Limit);
     
                 let queryType;
@@ -1362,9 +1363,9 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                           AND filterFarmer.CheckOver != 1
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, filterFarmer.date_register ASC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
                     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 } else if (req.body.approve === 1) {
                     queryType = `
                     SELECT acc_farmer.id_table, acc_farmer.img, acc_farmer.fullname, acc_farmer.link_user, acc_farmer.date_register,
@@ -1398,9 +1399,9 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                           AND acc_farmer.date_register = farmer_main.DateLast
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, date_register DESC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 } else {
                     queryType = `
                     SELECT filterFarmer.*, 
@@ -1430,9 +1431,9 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                           AND filterFarmer.CheckOver != 1
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, filterFarmer.date_register ASC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 }
     
                 console.log("🔹 SQL Query:", queryType);
@@ -4889,7 +4890,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     });
 
     // gapv3
-    app.get('/api/doctor/station/:stationid/housefarm/' , (req , res)=>{
+    app.get('/api/doctor/station/:station_id/greenhouse' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
     
@@ -4900,24 +4901,28 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     
         let con = Database.createConnection(listDB)
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
-            const stationid = req.params.stationid
-            con.query(
-                `
-                SELECT h.*
-                FROM acc_farmer ac_f
-                LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
-                WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
-                GROUP BY h.id_farm_house;
-                ` , [stationid] , 
-                (err , station) => {
-                    con.end()
-                   
-                    res.send({
-                        houses:station
-                    })
-                }
-            )
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
+            const { params : { station_id } } = req
+            try {
+                const station = await pool.executeQuery(
+                    `
+                        SELECT h.*
+                        FROM acc_farmer ac_f
+                        LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+                        WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+                        GROUP BY h.id_farm_house;
+                    ` , 
+                    [station_id]
+                )
+    
+                con.end()
+                res.send({
+                    houses:station
+                })
+            } catch(err) {
+                con.end()
+                res.redirect('/api/logout')
+            }
         }).catch((err)=>{
             if(err == "not pass") {
                 con.end()
@@ -4928,7 +4933,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
         })
     })
 
-    app.get('/api/doctor/station/:stationid/ecph/' , (req , res)=>{
+    app.get('/api/doctor/station/:station_id/ecph/' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
     
@@ -4941,7 +4946,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     
         apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
             con.end()
-            const stationid = req.params.stationid 
+            const station_id = req.params.station_id 
             try {
                 const data = await pool.executeQuery(
                     `
@@ -4970,7 +4975,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                         ) mapping_ecph ON ecph.id = mapping_ecph.ecph_id
                         GROUP BY ecph.id_formplant
                     `,
-                    [stationid]
+                    [station_id]
                 )
                 res.send({
                     ecph: data
@@ -4989,7 +4994,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
             //     LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
             //     WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
             //     GROUP BY h.id_farm_house;
-            //     ` , [stationid] , 
+            //     ` , [station_id] , 
             //     (err , station) => {
             //         con.end()
                    
