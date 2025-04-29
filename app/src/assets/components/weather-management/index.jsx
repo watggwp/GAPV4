@@ -19,6 +19,10 @@ const TabsGAP = styled((props) => (
     }
 });
 
+// api query require : 
+// - st => start_time
+// - et => end_time
+// response json => { details }
 const TabGAP = styled((props) => <Tab disableRipple {...props} />)({
     height : "34px",
     minHeight : "34px" ,

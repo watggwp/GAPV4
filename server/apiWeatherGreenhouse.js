@@ -52,7 +52,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
     })
 
     app.get('/api/sensor/weather-greenhouse/:greenhouse_id/:device_id', async (req, res) => {
-        const { params : { greenhouse_id , device_id } , query : { r : role } } = req
+        const { params : { greenhouse_id , device_id } , query : { r : role , st , et } } = req
         
         switch(role) {
             case "doctor" :
@@ -85,10 +85,10 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                     SELECT * 
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
-                    WHERE swg.greenhouse_id = ? AND swg.device_id = ?
+                    WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
                     ORDER BY wg.timestamp DESC
                 `, [
-                    greenhouse_id , device_id
+                    greenhouse_id , device_id , new Date(Number(st)) , new Date(Number(et))
                 ]
             );
             return res.status(200).send({

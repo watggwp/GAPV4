@@ -5,7 +5,7 @@ const Pool = require("./connectPool")
 
 module.exports = function apiWeatherStation(app, pool = new Pool()) {
     app.get('/api/sensor/weather-station/:station_signature', async (req, res) => {
-        const { params : { greenhouse_id } , query : { r : role } } = req
+        const { params : { station_signature } , query : { r : role , st , et } } = req
         
         switch(role) {
             case "doctor" :
@@ -35,14 +35,15 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
         try {
             const data = await pool.executeQuery(
                 `
-                    SELECT id , device_id , status , create_timestamp
-                    FROM sensor_weather_greenhouse
-                    WHERE greenhouse_id = ? AND NOT status = 'not register'
-                    ORDER BY create_timestamp DESC
-                `, [ greenhouse_id ]
+                    SELECT ws.id , timestamp , temperature , humidity ,light , rainfall , pressure
+                    FROM weather_station ws
+                    LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
+                    WHERE sws.station_signature = ? AND ws.timestamp BETWEEN ? AND ?
+                    ORDER BY ws.timestamp DESC
+                `, [ station_signature ]
             );
             return res.status(200).send({
-                devices : data
+                details : data
             }); // ส่งข้อมูลพร้อม status code 200
         } catch (err) {
             return res.status(500).send({
