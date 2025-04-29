@@ -163,7 +163,7 @@ const RichMenu = {
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2006915135-bL5Werv3"
+//         "uri": "https://developers.line.biz/console/channel/2001354413"
 //       }
 //     },
 //     {
