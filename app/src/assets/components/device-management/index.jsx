@@ -93,7 +93,9 @@ export default function DeviceManagement({
     ],
 }) {
 
-    const [ page , setPage ] = useState("index")
+    const [ page , setPage ] = useState(
+        menuDatas.length === 1 ? menuDatas[0].id : "index"
+    )
 
     const pageData = useMemo(() => 
         menuDatas.find(menu => menu.id === page)?.endpoints

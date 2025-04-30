@@ -16,7 +16,8 @@ export const DoctorContext = createContext({
     profile : {},
     bannerCoverRef : { current : "" },
     contentRef : { current : "" },
-    onSession : () => {}
+    onSession : () => {},
+    setTextPage : () => {}
 })
 
 export function useDoctor() {
@@ -132,7 +133,8 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                 profile : getProfile,
                 bannerCoverRef : ImageCover,
                 contentRef : BodyRef,
-                onSession : sessionoff
+                onSession : sessionoff,
+                setTextPage
             }}
         >
             <div className="doctor"

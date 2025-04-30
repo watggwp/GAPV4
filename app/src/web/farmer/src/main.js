@@ -76,7 +76,7 @@ const MainFarmer = () => {
                     CloseAccount("not line" , null , "โปรดเข้าระบบด้วยไลน์")
                     return
                 }
-                let UID = "U9dc7e4d3e19d44d0e5aaab17438073ba"
+                let UID = "U915317b45fea27966b03ff8e47960321"
                 RouterPage(UID , Liff)
                 return
             }

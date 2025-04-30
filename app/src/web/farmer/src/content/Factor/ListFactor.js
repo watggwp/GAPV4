@@ -11,6 +11,7 @@ import { useNavigate, useParams } from "react-router";
 import { useGreenhouse } from "..";
 import Fertilizer from "./card/fertilizer";
 import Chemical from "./card/chemical";
+import InsertFactorData from "./Insert";
  
 const ListFactor = ({ type_path_factor }) => {
 
@@ -62,6 +63,12 @@ const ListFactor = ({ type_path_factor }) => {
                     RefPop={PopupRef} 
                     ReloadData={reload}
                 />
+                // <InsertFactorData 
+                //     type_path={type_path_factor}
+                //     setPopup={setPopupAdd} 
+                //     RefPop={PopupRef} 
+                //     ReloadData={reload}
+                // />
             )
         }
     } , [reload, setCurrentPage, type_path_factor])

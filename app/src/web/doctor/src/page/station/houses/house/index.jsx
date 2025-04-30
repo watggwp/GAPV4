@@ -47,10 +47,6 @@ export default function House({
         requestDevices()
     } , [requestDevices])
 
-    useEffect(() => {
-        console.log(selectedDeviceID)
-    } , [selectedDeviceID])
-
     return(
         <Stack
             justifyContent={"center"}

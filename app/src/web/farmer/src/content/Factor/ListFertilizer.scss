@@ -68,7 +68,7 @@ $FontText : 5vw;
                     display: flex;
                     justify-content: flex-start;
                     width: 100%;
-                    input {
+                    input:not(.MuiOutlinedInput-input) {
                         display: flex;
                         font-family: Sans-font;
                         border: 0;
@@ -235,7 +235,7 @@ $FontText : 5vw;
                                                     }
                                                 }
 
-                                                input , select , textarea {
+                                                input:not(.MuiOutlinedInput-input) , select , textarea:not(.MuiOutlinedInput-input) {
                                                     margin-left: 2px;
                                                     font-size: $FontText;
                                                     font-family: Sans-font;
@@ -245,8 +245,19 @@ $FontText : 5vw;
                                                     width: 50%;
                                                     border: 2px solid transparent;
                                                 }
-    
+
+                                                .input-date {
+                                                    input {
+                                                        width: 100%;
+                                                    }
+                                                }
+
                                                 textarea {
+                                                    font-size: $FontText;
+                                                    width: 100% !important;
+                                                }
+    
+                                                textarea:not(.MuiOutlinedInput-input) {
                                                     text-align: center;
                                                 }
     

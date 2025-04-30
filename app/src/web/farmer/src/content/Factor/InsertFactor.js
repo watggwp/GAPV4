@@ -100,7 +100,7 @@ const PopupInsertFactor = ({
   };
 
   // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
-  const FetchPests = async () => {
+  const FetchPests = useCallback(async () => {
     setLoadPests(false);
     const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
     if (await CloseAccount(Data, setCurrentPage)) {
@@ -116,7 +116,7 @@ const PopupInsertFactor = ({
       setLoadPests(true);
       return LIST;
     }
-  };
+  } , [setCurrentPage])
 
   // ฟังก์ชันโหลดข้อมูลจาก API
   const FetchPestChemicalData = useCallback(async () => {

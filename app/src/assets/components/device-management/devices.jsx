@@ -62,10 +62,6 @@ export default function Devices({
         setIdConfirmDelete(0)
     } , [])
 
-    const onReturn = useCallback(() => 
-        setPage("index")
-    , [setPage])
-
     useEffect(() => {
         requestDevices()
     } , [requestDevices])
@@ -132,7 +128,7 @@ export default function Devices({
                                 {
                                     devices.map((devices) => {
                                         return (
-                                            <Grid key={devices[dataDevices?.columnsData?.id]} size={{ xs : 12 , md : 6 }} display={"flex"} justifyContent={"center"}>
+                                            <Grid key={devices[dataDevices?.columnsData?.id]} size={{ xs : 12 }} display={"flex"} justifyContent={"center"}>
                                                 <Stack
                                                     width={"100%"}
                                                     maxWidth={"300px"}
@@ -181,17 +177,37 @@ export default function Devices({
                             </Grid>
                     }
                 </Stack>
-                <Stack direction={"row"} marginTop={1} marginBottom={1} justifyContent={"space-evenly"}>
-                    <Button onClick={onReturn} sx={{ width : "100px" , display : "flex" , justifyContent : "center" , alignItems : "center" }} variant="contained" size="small" >
-                        <Back/>
-                        <Typography marginLeft={1} fontSize={"12px"}>ย้อนกลับ</Typography>
-                    </Button>
-                    <Button onClick={onOpenAdd} sx={{ width : "100px" , display : "flex" , justifyContent : "center" , alignItems : "center" }} variant="contained" size="small" >
-                        <Add/>
-                        <Typography marginLeft={1} fontSize={"12px"}>เพิ่มอุปกรณ์</Typography>
-                    </Button>
-                </Stack>
+                <ButtonDevices
+                    onOpenAdd={onOpenAdd}
+                />
             </Stack>
+        </Stack>
+    )
+}
+
+function ButtonDevices({
+    onOpenAdd
+}) {
+
+    const { setPage , menuDatas } = useDeviceManagement()
+
+    const onReturn = useCallback(() => 
+        setPage("index")
+    , [setPage])
+
+    return(
+        <Stack direction={"row"} marginTop={1} marginBottom={1} justifyContent={"space-evenly"}>
+            {
+                menuDatas.length > 1 &&
+                <Button onClick={onReturn} sx={{ width : "100px" , display : "flex" , justifyContent : "center" , alignItems : "center" }} variant="contained" size="small" >
+                    <Back/>
+                    <Typography marginLeft={1} fontSize={"12px"}>ย้อนกลับ</Typography>
+                </Button>
+            }
+            <Button onClick={onOpenAdd} sx={{ width : "100px" , display : "flex" , justifyContent : "center" , alignItems : "center" }} variant="contained" size="small" >
+                <Add/>
+                <Typography marginLeft={1} fontSize={"12px"}>เพิ่มอุปกรณ์</Typography>
+            </Button>
         </Stack>
     )
 }

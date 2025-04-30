@@ -53,8 +53,8 @@ export default function WeatherManagement({
     const [ dayAgo , setDayAgo ] = useState(0)
     const [ selectedTab , setSelectedTab ] = useState(0)
 
-    const [ dateStart , setDateStart ] = useState(startTime ? new Date(startTime) : new Date())
-    const [ dateEnd , setDateEnd ] = useState(endTime ? new Date(endTime) : new Date())
+    const [ dateStart , setDateStart ] = useState(new Date())
+    const [ dateEnd , setDateEnd ] = useState(new Date())
 
     const [ chartDatas , setChartDatas ] = useState([])
 
@@ -117,9 +117,14 @@ export default function WeatherManagement({
     } , [dateStart, requestWeatherManagement])
 
     useEffect(() => {
+        if(startTime || endTime) {
+            requestWeatherManagement(startTime , endTime , true)
+            return
+        } 
+
         const { now , dayAgo } = new DateGAP().getDayRangeFromNow(0)
         requestWeatherManagement(dayAgo.getTime() , now.getTime() , true)
-    } , [requestWeatherManagement])
+    } , [endTime, requestWeatherManagement, startTime])
 
     useEffect(() => {
         onChangeRange?.(dateStart.getTime() , dateEnd.getTime())

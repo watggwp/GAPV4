@@ -753,7 +753,17 @@ Ref = {
     )
 }
 
-const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , onInputIn = null , className = "" , classNameMain = ""}) => {
+const DatePickerThai = ({
+    defaultDate = "" , 
+    offsetQtyDate = undefined , 
+    refIn = undefined , 
+    onInputIn = (e , offset) => {} , 
+    onChange = (_christDate, _thaiDate) => {},
+    className = "" , 
+    classNameMain = ""
+}) => {
+    const refDataInput = useRef()
+    
     const RefDatePicker = useRef()
     const [selectedDate, setSelectedDate] = useState(defaultDate ? new Date(defaultDate).toString() != 'Invalid Date' ? defaultDate : new Date().toISOString() : new Date().toISOString());
     const [getOffset , setOffset] = useState(offsetQtyDate)
@@ -774,9 +784,10 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
     } , [defaultDate])
 
     const handleDatePickerChange = (christDate, buddhistDate) => {
-        refIn.current.value = buddhistDate ? buddhistDate.split("-").reverse().join("-") : "";
-        refIn.current.click();
+        (refIn || refDataInput).current.value = buddhistDate ? buddhistDate.split("-").reverse().join("-") : "";
+        (refIn || refDataInput).current.click();
         setSelectedDate(christDate);
+        onChange?.(christDate , buddhistDate)
     };
 
     return(
@@ -786,9 +797,9 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
                     e.preventDefault()
                     const picker = RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0]
                     picker.click()
-                    if(onInputIn) onInputIn(e , getOffset)
+                    onInputIn?.(e , getOffset)
                 }} readOnly defaultValue={defaultDate ? defaultDate.split("-").map((val , index)=>index == 0 ? parseInt(val) + 543 : val).reverse().join("-") : ""} 
-                ref={refIn} type="text" placeholder="วัน/เดือน/ปี"
+                ref={refIn || refDataInput} type="text" placeholder="วัน/เดือน/ปี"
             ></input>
             <div ref={RefDatePicker}>
                 <ThaiDatePicker
@@ -800,10 +811,14 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
     )
 }
 
+function DatePickerThaiApp() {
+    
+}
+
 const ConvertDate = (date) => {
     return({
-        buddhistDate : date ? date.split("-").map((val , key)=> key == 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
-        christDate : date ? date.split("-").reverse().map((val , key)=> key == 0 ? parseInt(val) - 543 : val).join("-") : ""
+        buddhistDate : date ? date.split("-").map((val , key)=> key === 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
+        christDate : date ? date.split("-").reverse().map((val , key)=> key === 0 ? parseInt(val) - 543 : val).join("-") : ""
     })
 }
 
