@@ -59,23 +59,27 @@ export default function PumpControl({
             >
                 {
                     loading ?
-                    <LinearProgress color="primary" /> :
-                        (
-                            devices.length ?
-                                <Stack
-                                    height={"100%"}
-                                >
-                                    <Stack paddingTop={2} paddingBottom={2} direction={"row"} justifyContent={"center"} alignItems={"center"} width={"100%"} paddingLeft={"40px"}>
-                                        <Typography fontSize={25} fontWeight={900}> ควบคุมปั้ม</Typography>
-                                        <IconButton size="small" sx={{ marginLeft : 2 }} onClick={onOpenHistory}>
-                                            <History/>
-                                        </IconButton>
-                                        
-                                        <IconButton size="small" sx={{ marginLeft : 2 }} onClick={() => setOpen(false)}>
-                                            <Close/>
-                                        </IconButton>
+                        <LinearProgress color="primary" /> :
+                        <Stack
+                            height={"100%"}
+                        >
+                            <Stack paddingTop={2} paddingBottom={2} direction={"row"} justifyContent={"center"} alignItems={"center"} width={"100%"} paddingLeft={"40px"}>
+                                <Typography fontSize={25} fontWeight={900}> ควบคุมปั้ม</Typography>
+                                {
+                                    Boolean(devices.length) && 
+                                        (
+                                            <IconButton size="small" sx={{ marginLeft : 2 }} onClick={onOpenHistory}>
+                                                <History/>
+                                            </IconButton>
+                                        )
+                                }
+                                <IconButton size="small" sx={{ marginLeft : 2 }} onClick={() => setOpen(false)}>
+                                    <Close/>
+                                </IconButton>
 
-                                    </Stack>
+                            </Stack>
+                            {
+                                devices.length ?
                                     <Stack
                                         overflow={"auto"}
                                         height={"calc(100% - 70px)"}
@@ -86,18 +90,18 @@ export default function PumpControl({
                                             showHistory={openHistory}
                                             setShowHistory={setOpenHistory}
                                         />
+                                    </Stack> :
+                                    <Stack
+                                        justifyContent={"center"}
+                                        alignItems={"center"}
+                                        marginTop={2}
+                                    >
+                                        <Typography>
+                                            ไม่พบปั๊มน้ำ
+                                        </Typography>
                                     </Stack>
-                                </Stack> :
-                                <Stack
-                                    justifyContent={"center"}
-                                    alignItems={"center"}
-                                    marginTop={2}
-                                >
-                                    <Typography>
-                                        ไม่พบปั๊มน้ำ
-                                    </Typography>
-                                </Stack>
-                        )
+                            }
+                        </Stack>
                 }
             </Paper>
         </Stack>

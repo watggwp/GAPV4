@@ -111,7 +111,7 @@ export default function Devices({
                     </Stack>
                     <Stack width={"70%"} height={"100%"} justifyContent={"space-between"}>
                         <Stack height={"100%"} justifyContent={"center"} alignItems={"center"}>
-                            <Typography padding={1.5} fontSize={"14px"}>{title}</Typography>
+                            <Typography padding={1.5} fontSize={"18px"}>{title}</Typography>
                         </Stack>
                     </Stack>
                 </Stack>

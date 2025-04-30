@@ -144,7 +144,7 @@ function DeviceManagementHome() {
                     const { id , title , icon , color , subColor , allowedRoles } = categories[categoriesMapping[idMenu]]
 
                     return(
-                        <Grid key={id} size={{ xs : 12 , sm : 4 }} justifyContent={"center"} display={"flex"}>
+                        <Grid key={id} size={{ xs : 12 }} justifyContent={"center"} display={"flex"}>
                             <Stack
                                 sx={{
                                     width : "98%",
@@ -160,7 +160,7 @@ function DeviceManagementHome() {
                                     </Stack>
                                     <Stack width={"70%"} height={"100%"} justifyContent={"space-between"}>
                                         <Stack padding={1.5} height={"calc(100% - 50px)"} justifyContent={"center"}>
-                                            <Typography fontSize={"14px"}>{title}</Typography>
+                                            <Typography fontSize={"18px"}>{title}</Typography>
                                         </Stack>
                                         <Stack justifyContent={"center"} alignItems={"center"} height={"50px"}>
                                             <Button onClick={() => onSelectMenu(id)} size="small" variant="contained" >จัดการอุปกรณ์</Button>

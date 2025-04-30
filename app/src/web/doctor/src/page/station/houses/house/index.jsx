@@ -6,6 +6,7 @@ import { Button, IconButton, Modal, Paper, Stack, Typography } from "@mui/materi
 import { useWeatherStation } from "../..";
 import env from "../../../../../../../env";
 import PumpControl from "./pumpControl";
+import ManageDevices from "./manageDevices";
 
 
 const { icon : { close : Close } } = env
@@ -89,7 +90,7 @@ export default function House({
                     justifyContent={"start"}
                 >
                     <Button variant="contained" onClick={() => setOpenPumpControl(true)}>ควบคุมปั๊มน้ำ</Button>
-                    <Button sx={{ marginLeft : 2 }} variant="contained">จัดการอุปกรณ์</Button>
+                    <Button sx={{ marginLeft : 2 }} variant="contained" onClick={() => setOpenManageDevices(true)}>จัดการอุปกรณ์</Button>
                 </Stack>
                 <Stack
                     width={"100%"}
@@ -119,6 +120,8 @@ export default function House({
                                 <Stack
                                     width={"100%"}
                                     height={"100%"}
+                                    justifyContent={"center"}
+                                    alignItems={"center"}
                                 >
                                     <Typography>ไม่พบเครื่องวัดสภาพอากาศในโรงเรือน</Typography>
                                 </Stack>
@@ -133,6 +136,11 @@ export default function House({
                         open={openPumpControl}
                     >
                         <PumpControl setOpen={setOpenPumpControl}/>
+                    </Modal>
+                    <Modal
+                        open={openManageDevices}
+                    >
+                        <ManageDevices setOpen={setOpenManageDevices}/>
                     </Modal>
                 </HouseContext.Provider>
             </Paper>
