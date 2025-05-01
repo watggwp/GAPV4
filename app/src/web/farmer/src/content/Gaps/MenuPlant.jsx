@@ -115,7 +115,7 @@ const MenuPlant = () => {
                         <div className="img">
                             <img src="/ecph.png" ></img>
                         </div>
-                        <span>EC/pH</span>
+                        <span>Ec/pH</span>
                         {
                             DotReport.checkEditSoil && <div className="dot-someting"/>
                         }

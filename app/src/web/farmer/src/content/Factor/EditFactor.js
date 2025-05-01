@@ -174,29 +174,29 @@ useEffect(() => {
             setPestChemicalData(data);
             setCurrentPlantName(plant_name);
           } else {
-            console.warn("No pest-chemical data found:", data);
-            setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
-            setShowPopup(true);
+            // console.warn("No pest-chemical data found:", data);
+            // setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
+            // setShowPopup(true);
           }
         } else {
-          console.error(
-            "Invalid response structure or missing required fields"
-          );
-          setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
-          setShowPopup(true);
+        //   console.error(
+        //     "Invalid response structure or missing required fields"
+        //   );
+        //   setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
+        //   setShowPopup(true);
         }
       } else {
-        console.error("CloseAccount validation failed");
-        setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
-        setShowPopup(true);
+        // console.error("CloseAccount validation failed");
+        // setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+        // setShowPopup(true);
       }
     } catch (error) {
-      console.error(
-        "Error fetching pest-chemical data:",
-        error.message || error
-      );
-      setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
-      setShowPopup(true);
+    //   console.error(
+    //     "Error fetching pest-chemical data:",
+    //     error.message || error
+    //   );
+    //   setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+    //   setShowPopup(true);
     } finally {
       setLoading(false);
     }

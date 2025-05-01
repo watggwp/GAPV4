@@ -3,8 +3,7 @@ import "./ListFertilizer.scss";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import {
-  ConvertDate,
-  DatePickerThai,
+  DatePickerThaiApp,
   Loading
 } from "../../../../../assets/js/module";
 import { useParams } from "react-router";
@@ -13,18 +12,23 @@ import { Autocomplete, TextField } from "@mui/material";
 
 const getDateNow = () => {
     return new Date()
-    // return `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`
 }
 
-const InsertFactorData = ({
+export default function TemplatePopup({
     setPopup,
     RefPop,
     type_path,
     ReloadData,
-}) => {
-
+    editDefaultField
+}) {
     const { greenhouse_id , gap_id } = useParams()
     const { setCurrentPage } = useGreenhouse()
+
+    const endpointManage = useRef(
+        editDefaultField ?
+            "/api/farmer/factor/edit" :
+            "/api/farmer/factor/insert"
+    )
 
     const [pestChemicalData, setPestChemicalData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -34,18 +38,20 @@ const InsertFactorData = ({
     const [showPopup, setShowPopup] = useState(false);
     const [ errors , setErrors ] = useState({})
 
-    const [ useDate , setUseDate ] = useState(getDateNow())
-    const [ primaryName , setPrimaryName ] = useState("")
-    const [ secondaryName , setSecondaryName ] = useState("")
-    const [ use , setUse ] = useState("")
-    const [ volume , setVolume ] = useState("")
-    const [ unit , setUnit ] = useState(type_path === "z" ? "ลิตร" : "กรัม")
-    const [ source , setSource ] = useState("")
+    const [ useDate , setUseDate ] = useState(editDefaultField?.date || getDateNow())
+    const [ primaryName , setPrimaryName ] = useState(editDefaultField?.name || "")
+    const [ secondaryName , setSecondaryName ] = useState(editDefaultField?.formula_name || "")
+    const [ use , setUse ] = useState(editDefaultField?.use_is || "")
+    const [ volume , setVolume ] = useState(editDefaultField?.volume.split(" ")?.[0] || "")
+    const [ unit , setUnit ] = useState(editDefaultField?.volume.split(" ")?.[1] || (type_path === "z" ? "ลิตร" : "กรัม"))
+    const [ source , setSource ] = useState(editDefaultField?.source || "")
 
     //  chemical
-    const [ insectName , setInsectName ] = useState("")
-    const [ rate , setRate ] = useState("")
-    const [ safeDate , setSafeDate ] = useState(getDateNow())
+    const [ insectName , setInsectName ] = useState(editDefaultField?.subjectResult?.insect || "")
+    const [ rate , setRate ] = useState(editDefaultField?.rate || "")
+    const [ safeDate , setSafeDate ] = useState(editDefaultField?.date_safe || getDateNow())
+
+    const [ because , setBesauce ] = useState("")
 
     const [ factors, setFactors ] = useState([]);
     const [ sources, setSources ] = useState([]);
@@ -110,7 +116,7 @@ const InsertFactorData = ({
         }
     } , [setCurrentPage])
 
-  // ฟังก์ชันโหลดข้อมูลจาก API
+    // ฟังก์ชันโหลดข้อมูลจาก API
     const fetchPestChemicalData = useCallback(async () => {
         setLoading(true);
         try {
@@ -118,46 +124,41 @@ const InsertFactorData = ({
                 id_form_plant: gap_id
             });
 
-            console.log(Data)
             // ตรวจสอบว่า CloseAccount ผ่านหรือไม่
             if (await CloseAccount(Data, setCurrentPage)) {
                 const response = JSON.parse(Data); // แปลงข้อมูล JSON
 
-                console.log("Parsed Response Data:", response);
-
                 // ตรวจสอบโครงสร้างข้อมูล
                 if (response?.plant_name && Array.isArray(response.data)) {
                 const { plant_name, data } = response; // Destructure ข้อมูล
-                console.log("Plant Name:", plant_name);
-                console.log("Extracted Data:", data);
 
                 if (data.length > 0) {
                     setPestChemicalData(data);
                     setCurrentPlantName(plant_name);
                 } else {
-                    console.warn("No pest-chemical data found:", data);
-                    setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
-                    setShowPopup(true);
+                    // console.warn("No pest-chemical data found:", data);
+                    // setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
+                    // setShowPopup(true);
                 }
                 } else {
-                console.error(
-                    "Invalid response structure or missing required fields"
-                );
-                setPopupMessage("ไม่พบข้อมูลที่ตรงกันของชนิดพืช สารเคมี เเละศัตรูพืช");
-                setShowPopup(true);
+                    // console.error(
+                    //     "Invalid response structure or missing required fields"
+                    // );
+                    // setPopupMessage("ไม่พบข้อมูลที่ตรงกันของชนิดพืช สารเคมี เเละศัตรูพืช");
+                    // setShowPopup(true);
                 }
             } else {
-                console.error("CloseAccount validation failed");
-                setPopupMessage("เกิดข้อผิดพลาดในการตรวจสอบสารเคมีเเละศัตรูพืช");
-                setShowPopup(true);
+                // console.error("CloseAccount validation failed");
+                // setPopupMessage("เกิดข้อผิดพลาดในการตรวจสอบสารเคมีเเละศัตรูพืช");
+                // setShowPopup(true);
             }
         } catch (error) {
-            console.error(
-                "Error fetching pest-chemical data:",
-                error.message || error
-            );
-            setPopupMessage("เกิดข้อผิดพลาดในดึงข้อมูลสารเคมีเเละศัตรูพืช");
-            setShowPopup(true);
+            // console.error(
+            //     "Error fetching pest-chemical data:",
+            //     error.message || error
+            // );
+            // setPopupMessage("เกิดข้อผิดพลาดในดึงข้อมูลสารเคมีเเละศัตรูพืช");
+            // setShowPopup(true);
         } finally {
             setLoading(false)
         }
@@ -215,15 +216,9 @@ const InsertFactorData = ({
         } catch (e) {}
     } , [factors, primaryName, secondaryName, use])
 
-    const onConfirmFertilizer = useCallback(async () => {
-        if (
-            useDate &&
-            primaryName &&
-            use &&
-            volume &&
-            source
-        ) {
-            const DataInsert = {
+    const setUpData = useCallback(() => {
+        if(!editDefaultField) {
+            return {
                 id_farmhouse: greenhouse_id,
                 id_plant: gap_id,
                 date: useDate,
@@ -233,48 +228,83 @@ const InsertFactorData = ({
                 volume: volume + " " + unit,
                 source: source,
                 type_insert: type_path
-            };
-
-            setWait(true);
-            const result = await clientMo.post("/api/farmer/factor/insert",DataInsert);
-            if (await CloseAccount(result, setCurrentPage)) {
-                cancel();
-                ReloadData();
-                setWait(false);
             }
         } else {
-            const dataAll = new Map(
-                [
-                    ["useDate" , useDate],
-                    ["primaryName" , primaryName],
-                    ["secondaryName" , secondaryName],
-                    ["use" , use],
-                    ["volume" , volume],
-                    ["source" , source]
-                ]
-            )
 
-            setErrors(errors => {
-                const newErrors = { ...errors }
-                dataAll.forEach((data, title) => {
-                    if(data) delete newErrors[title]
-                    else newErrors[title] = true
-                })
+        }
+    } , [])
 
-                return newErrors
-            })
+    const onConfirmFertilizer = useCallback(async () => {
+        // if (
+        //     useDate &&
+        //     primaryName &&
+        //     secondaryName &&
+        //     use &&
+        //     volume &&
+        //     source
+        // ) {
+            
+        // } else {
+        //     const dataAll = new Map(
+        //         [
+        //             ["useDate" , useDate],
+        //             ["primaryName" , primaryName],
+        //             ["secondaryName" , secondaryName],
+        //             ["use" , use],
+        //             ["volume" , volume],
+        //             ["source" , source]
+        //         ]
+        //     )
+
+        //     setErrors(errors => {
+        //         const newErrors = { ...errors }
+        //         dataAll.forEach((data, title) => {
+        //             if(data) delete newErrors[title]
+        //             else newErrors[title] = true
+        //         })
+
+        //         return newErrors
+        //     })
+        // }
+
+        const requestData = {
+            id_farmhouse: greenhouse_id,
+            id_plant: gap_id,
+            date: useDate,
+            formula_name: secondaryName,
+            name: primaryName,
+            use: use,
+            volume: volume + " " + unit,
+            source: source,
+            type_insert: type_path
+        }
+
+        if(editDefaultField) {
+            // id_form : ObjectData.id,
+            // type_form : "fertilizer",
+            // because : because.value,
+            // dataChange : Object.fromEntries(new Map([...foundChange])),
+            // num : foundChange.length
+        }
+
+        setWait(true);
+        const result = await clientMo.post(endpointManage.current , requestData)
+        if (await CloseAccount(result, setCurrentPage)) {
+            cancel();
+            ReloadData();
+            setWait(false);
         }
     } , [ReloadData, cancel, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
 
     const onConfirmChemical = useCallback(async () => {
-        if (!validateInputs()) {
-            return;
-        }
+        // if (!validateInputs()) {
+        //     return;
+        // }
     
-        const DataInsert = {
+        const requestData = {
             id_farmhouse: greenhouse_id,
             id_plant: gap_id,
-            date: ConvertDate(useDate).christDate,
+            date: useDate,
             formula_name: secondaryName,
             name: primaryName,
             insect: insectName,
@@ -287,14 +317,13 @@ const InsertFactorData = ({
         };
     
         setWait(true);
-        console.log(DataInsert)
-        // const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
-        // if (await CloseAccount(result, setCurrentPage)) {
-        //     cancel();
-        //     ReloadData();
-        //     setWait(false);
-        // }
-    } , [ReloadData, cancel, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, validateInputs, volume])
+        const result = await clientMo.post(endpointManage.current, requestData);
+        if (await CloseAccount(result, setCurrentPage)) {
+            cancel();
+            ReloadData();
+            setWait(false);
+        }
+    } , [ReloadData, cancel, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
 
     const onChangeHowUse = useCallback(() => {
         primaryName && secondaryName && setHowUse()
@@ -360,8 +389,8 @@ const InsertFactorData = ({
     }, [fetchFactor, fetchSource, RefPop, type_path]);
 
     useEffect(() => {
-        fetchPestChemicalData()
-    }, [fetchPestChemicalData])
+        type_path !== "z" && fetchPestChemicalData()
+    }, [fetchPestChemicalData, type_path])
 
     useEffect(() => {
         fetchPests()
@@ -401,12 +430,12 @@ const InsertFactorData = ({
             {/* ป๊อปอัปแจ้งเตือน */}
             {showPopup && (
                 <div className="popup-overlay">
-                <div className="popup-content">
-                    <div className="icon">⚠️</div>
-                    <div className="title">การแจ้งเตือน</div>
-                    <p>{popupMessage}</p>
-                    <button onClick={() => setShowPopup(false)}>ปิด</button>
-                </div>
+                    <div className="popup-content">
+                        <div className="icon">⚠️</div>
+                        <div className="title">การแจ้งเตือน</div>
+                        <p>{popupMessage}</p>
+                        <button onClick={() => setShowPopup(false)}>ปิด</button>
+                    </div>
                 </div>
             )}
 
@@ -432,12 +461,11 @@ const InsertFactorData = ({
                                     <div className="row">
                                         <label className="frame-textbox">
                                             <span>ว/ด/ป ที่ใช้</span>
-                                            <DatePickerThai
-                                                classNameMain="input-date"
-                                                defaultDate={getDateNow()}
-                                                onChange={(date) => {
-                                                    setUseDate(date)
-                                                }}
+                                            <DatePickerThaiApp
+                                                className={"input-date"}
+                                                value={useDate}
+                                                onChange={(christDate) => setUseDate(christDate)}
+                                                format="DD-MM-YYYY"
                                             />
                                         </label>
                                     </div>
@@ -546,7 +574,6 @@ const InsertFactorData = ({
                                     <div className="row">
                                         <label className="frame-textbox">
                                             <span>แหล่งที่ซื้อ</span>
-                                            {/* <input onChange={ChangeFerti} ref={Source} type="text" placeholder="เลือกข้อมูล"></input> */}
                                             {!loadingSources ? (
                                                 <select
                                                     onChange={(e) => setSource(e.target.value)}
@@ -582,14 +609,12 @@ const InsertFactorData = ({
                                         <div className="row">
                                             <label className="frame-textbox">
                                                 <span>ว/ด/ป ที่พ่นสาร</span>
-                                                <DatePickerThai
-                                                    classNameMain="input-date"
-                                                    defaultDate={getDateNow()}
-                                                    onChange={(date) => {
-                                                        setUseDate(date)
-                                                    }}
+                                                <DatePickerThaiApp
+                                                    className={"input-date"}
+                                                    value={useDate}
+                                                    onChange={(christDate) => setUseDate(christDate)}
+                                                    format="DD-MM-YYYY"
                                                 />
-                                            {/* <input onChange={ChangeChemi} defaultValue={DateNowOnForm.current} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
                                             </label>
                                         </div>
                                         <div className="row">
@@ -651,47 +676,6 @@ const InsertFactorData = ({
                                                             setSecondaryName(value)
                                                         }}
                                                     />
-                                                    {/* <input
-                                                        onChange={(e) => {
-                                                        handleInputChange(e, "NameMainFactor");
-                                                        if (loadingPrimaryName) {
-                                                            SearchFactorNameOther(e);
-                                                        }                              
-                                                        }}
-                                                        onMouseDown={loadingPrimaryName ? SearchFactorNameOther : null}
-                                                        ref={NameMainFactor}
-                                                        type="text"
-                                                        placeholder={loadingPrimaryName ? "เลือกชื่อสามัญ" : "กำลังโหลด"}
-                                                        readOnly={!loadingPrimaryName ? true : null}
-                                                        disabled={!loadingPrimaryName ? true : null}
-                                                        onBlur={(e) => {
-                                                        containsHidePopup(ListSearchFactorNameMain.current, e.target);
-                                                        }}
-                                                    />
-                                                        <div
-                                                        ref={ListSearchFactorNameMain}
-                                                        remove=""
-                                                        className="list-input-search"
-                                                        >
-                                                        {loadingPrimaryName ? (
-                                                            ListSelectNameMain
-                                                        ) : (
-                                                            <div
-                                                            style={{
-                                                                display: "flex",
-                                                                justifyContent: "center",
-                                                                alignItems: "center"
-                                                            }}
-                                                            >
-                                                            <Loading
-                                                                size={"8vw"}
-                                                                border={"2vw"}
-                                                                color="green"
-                                                                animetion={true}
-                                                            />
-                                                            </div>
-                                                        )}
-                                                        </div> */}
                                                 </div>
                                             </label>
                                         </div>
@@ -722,47 +706,6 @@ const InsertFactorData = ({
                                                                 })
                                                             }}
                                                         />
-                                                    {/* <input
-                                                    onChange={(e) => {
-                                                        handleInputChange(e, "NameInsect");
-                                                        if (loadingPest) {
-                                                        SearchPests(e);
-                                                        }                                
-                                                    }}
-                                                    onMouseDown={loadingPest ? SearchPests : null}
-                                                    placeholder={loadingPest ? "เลือกชื่อศัตรูพืช" : "กำลังโหลด"}
-                                                    ref={NameInsect}
-                                                    readOnly={!loadingPest ? true : null}
-                                                    disabled={!loadingPest ? true : null}
-                                                    onBlur={(e) => {
-                                                        ValidateChemicalAndPest();
-                                                        containsHidePopup(ListSearchPests.current, e.target);
-                                                    }}
-                                                    />
-                                                    <div
-                                                        ref={ListSearchPests}
-                                                        remove=""
-                                                        className="list-input-search"
-                                                    >
-                                                        {loadingPest ? (
-                                                        ListSelectPests
-                                                        ) : (
-                                                        <div
-                                                            style={{
-                                                            display: "flex",
-                                                            justifyContent: "center",
-                                                            alignItems: "center"
-                                                            }}
-                                                        >
-                                                            <Loading
-                                                            size={"8vw"}
-                                                            border={"2vw"}
-                                                            color="green"
-                                                            animetion={true}
-                                                            />
-                                                        </div>
-                                                        )}
-                                                    </div> */}
                                                     </div>
                                                 </div>
                                             </label>
@@ -828,12 +771,18 @@ const InsertFactorData = ({
                                         <div className="row">
                                             <label className="frame-textbox">
                                                 <span>วันที่ปลอดภัย</span>
-                                                <DatePickerThai
+                                                {/* <DatePickerThai
                                                     classNameMain="input-date"
                                                     defaultDate={getDateNow()}
                                                     onChange={(date) => {
                                                         setSafeDate(date)
                                                     }}
+                                                /> */}
+                                                <DatePickerThaiApp
+                                                    className={"input-date"}
+                                                    value={safeDate}
+                                                    onChange={(christDate) => setSafeDate(christDate)}
+                                                    format="DD-MM-YYYY"
                                                 />
                                             {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
                                             </label>
@@ -905,6 +854,27 @@ const InsertFactorData = ({
                                         </div>
                                     </>
                                 )}
+                                {
+                                    Boolean(editDefaultField) &&
+                                        <div className="row">
+                                            <label className={`frame-textbox colume`}>
+                                                <span className="full">เหตุผลการแก้ไข</span>
+                                                <TextField
+                                                    value={because}
+                                                    onChange={(e) => setBesauce(e.target.value)}
+                                                    multiline
+                                                    rows={2}
+                                                    fullWidth
+                                                    sx={{
+                                                        bgcolor : "white",
+                                                        [`& .MuiInputBase-root`] : {
+                                                            padding : 1
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                }
                                 </div>
                             </div>
                         </div>
@@ -945,7 +915,5 @@ const InsertFactorData = ({
                 </div>
             </div>
         </section>
-    );
-};
-
-export default InsertFactorData;
+    )
+}
