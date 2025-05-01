@@ -2,21 +2,20 @@
     "nong-khiew-greenhouse": {
         "api": "http://localhost:3001/api/sensor/weather-greenhouse",
         "fields": [
-            "humi_air",
-            "temp_air",
+            "humidity",
+            "temperature",
             "light",
-            "temp_soil",
-            "humi_soil",
+            "soil_temperature",
+            "soil_humidity",
             "pressure"
         ]
     },
     "nong-khiew-weather": {
         "api": "http://localhost:3001/api/sensor/weather-station",
         "fields": [
-            "temp",
-            "humi",
+            "temperature",
+            "humidity",
             "light",
-            "rainfall",
             "pressure"
         ]
     }

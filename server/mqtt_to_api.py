@@ -38,20 +38,9 @@ def on_message(client, userdata, msg):
         decoded = payload["uplink_message"]["decoded_payload"]
 
         for field in config["fields"]:
-            key_out = {
-                "temp": "temperature",
-                "humi": "humidity",
-                "light": "light",
-                "rainfall": "rainfall",
-                "humi_air":"humidity_air",
-                "temp_air":"temperature_air",
-                "temp_soil":"temperature_soil",
-                "humi_soil":"humidity_soil",
-                "pressure":"pressure"
-            }.get(field, field)
             value = decoded.get(field)
             if value is not None:
-                data[key_out] = value
+                data[field] = value
 
         print(json.dumps(data, indent=2))
 
