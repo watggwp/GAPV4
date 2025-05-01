@@ -1,5 +1,5 @@
 {
-    "kae-noi-greenhouse": {
+    "nong-khiew-greenhouse": {
         "api": "http://localhost:3001/api/sensor/weather-greenhouse",
         "fields": [
             "humi_air",
@@ -10,7 +10,7 @@
             "pressure"
         ]
     },
-    "weather-station": {
+    "nong-khiew-weather": {
         "api": "http://localhost:3001/api/sensor/weather-station",
         "fields": [
             "temp",
