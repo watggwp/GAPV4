@@ -16,6 +16,7 @@ const db = require('mysql2');
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
 const fs = require('fs');
+const { spawn } = require('child_process')
 
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
@@ -28,6 +29,11 @@ const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
+    const python = spawn('python3', ['./mqtt/mqtt_to_api.py']);
+
+    python.stdout.on('sensor', data => console.log(`stdout: ${data}`));
+    python.stderr.on('sensor', data => console.error(`stderr: ${data}`));
+
     const mode = process.argv[2]
     const app = express();
 
