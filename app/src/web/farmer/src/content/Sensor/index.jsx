@@ -134,7 +134,12 @@ export default function Sensor() {
                                             </Stack>
                                         </Grid>
                                     ) :
-                                    <Stack>
+                                    <Stack
+                                        width={"100%"}
+                                        height={"100%"}
+                                        justifyContent={"center"}
+                                        alignItems={"center"}
+                                    >
                                         <Typography>ไม่พบตัววัดสภาพแวดล้อมในโรงเรือน</Typography>
                                     </Stack>
                             }
