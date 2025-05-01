@@ -281,7 +281,7 @@ export default function WeatherManagement({
                                             width={"100%"}
                                             height={"100%"}
                                         >
-                                            <Typography fontSize={"14px"}>ไม่พบข้อมูลจากเซนเซอร์</Typography>
+                                            <Typography fontSize={"14px"}>ไม่พบข้อมูลจากสภาพอากาศ</Typography>
                                         </Stack>
                                     )
                                 }}

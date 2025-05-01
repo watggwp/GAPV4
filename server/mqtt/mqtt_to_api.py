@@ -42,7 +42,7 @@ def on_message(client, userdata, msg):
             if value is not None:
                 data[field] = value
 
-        print(json.dumps(data, indent=2))
+        print(json.dumps(data, indent=2) , decoded)
 
         response = requests.post(config["api"], json=data)
         print(f"ส่งไปยัง API: {config['api']} → {response.status_code} - {response.text}")
