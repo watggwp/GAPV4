@@ -226,21 +226,32 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         // แสดงข้อมูลที่ TTN ส่งมาใน console
         console.log("📥 Received TTN data:", req.body);
         try {
-            const {
-                end_device_ids : {
-                    device_id
-                },
-                uplink_message : {
-                    decoded_payload : {
-                        humidity_air,
-                        humidity_soil,
-                        light,
-                        temperature_air,
-                        temperature_soil,
-                        pressure
-                    }
-                },
-                received_at : timestamp
+            // const {
+            //     end_device_ids : {
+            //         device_id
+            //     },
+            //     uplink_message : {
+            //         decoded_payload : {
+            //             humidity_air,
+            //             humidity_soil,
+            //             light,
+            //             temperature_air,
+            //             temperature_soil,
+            //             pressure
+            //         }
+            //     },
+            //     received_at : timestamp
+            // } = req.body
+
+            const { 
+                device_id, 
+                timestamp, 
+                humidity_air,
+                humidity_soil,
+                light,
+                temperature_air,
+                temperature_soil,
+                pressure 
             } = req.body
 
             try {
