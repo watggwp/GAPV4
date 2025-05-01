@@ -1,0 +1,23 @@
+{
+    "kae-noi-greenhouse": {
+        "api": "http://localhost:3001/api/sensor/weather-greenhouse",
+        "fields": [
+            "humi_air",
+            "temp_air",
+            "light",
+            "temp_soil",
+            "humi_soil",
+            "pressure"
+        ]
+    },
+    "weather-station": {
+        "api": "http://localhost:3001/api/sensor/weather-station",
+        "fields": [
+            "temp",
+            "humi",
+            "light",
+            "rainfall",
+            "pressure"
+        ]
+    }
+}

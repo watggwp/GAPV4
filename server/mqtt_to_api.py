@@ -1,44 +1,62 @@
 import paho.mqtt.client as mqtt 
 import json
 import requests
+from datetime import datetime
+import pytz 
 
 # === CONFIG ===
-API_URL = "http://localhost:3001/api/sensor"  # ชี้ไปยัง Node.js API 
 
 BROKER = "as1.cloud.thethings.industries"
 PORT = 1883
-USERNAME = "test-device@gap-weather-station"
-PASSWORD = "NNSXS.CN46PUYZYUZQXFBFDIFS2LM6MPFNWZYXHALE2YY.BFBOPV4GWJXFWCBKYRY2ZV7KSVG5RCPFG2NCVDYPKA5CWG6XWRTQ"
-TOPIC = "v3/test-device@gap-weather-station/devices/+/up"
+USERNAME = "test2-app@mootunlesyslab"
+PASSWORD = "NNSXS.CZGZQNSZOBUJYB4AGDVMCRZ26RBXMDDXPH457IY.UTHV3QNMVH5LFYSRR6HJU2OIHWNHGT3IIF3JPAZU42MSDOU6PAXA"
+TOPIC = "v3/test2-app@mootunlesyslab/devices/+/up"
+with open("device_config.json") as f:
+    DEVICE_CONFIG_MAP = json.load(f)
 
-# === MQTT Callback ===
+
 def on_message(client, userdata, msg):
     try:
-        print(f"Topic: {msg.topic}")
         payload = json.loads(msg.payload.decode())
 
         device_id = payload["end_device_ids"]["device_id"]
-        temp = payload["uplink_message"]["decoded_payload"].get("temperature")
-        humidity = payload["uplink_message"]["decoded_payload"].get("humidity")
-        light = payload["uplink_message"]["decoded_payload"].get("light") 
-        rainfall = payload["uplink_message"]["decoded_payload"].get("rainfall")
         timestamp = payload["received_at"]
+        timestamp_fixed = timestamp[:26] + "Z"
+        dt_utc = datetime.strptime(timestamp_fixed, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=pytz.utc)
+        dt_bangkok = dt_utc.astimezone(pytz.timezone("Asia/Bangkok"))
 
-        # สร้างข้อมูลที่จะส่งไปยัง API (ไม่มี station_id แล้ว)
+        config = DEVICE_CONFIG_MAP.get(device_id)
+        if not config:
+            print(f"ไม่พบ config สำหรับอุปกรณ์: {device_id}")
+            return
+
         data = {
             "device_id": device_id,
-            "timestamp": timestamp,
-            "temperature": temp,
-            "humidity": humidity,
-            "light": light,
-            "rainfall": rainfall
+            "timestamp": dt_bangkok.isoformat()
         }
 
-        # print(json.dumps(data, indent=2))  # เอาไว้ Debug ดูข้อมูล
+        decoded = payload["uplink_message"]["decoded_payload"]
 
-        # ส่ง POST ไปยัง API
-        response = requests.post(API_URL, json=data)
-        print(f"ส่งไปยัง API แล้ว: {response.status_code} - {response.text}")
+        for field in config["fields"]:
+            key_out = {
+                "temp": "temperature",
+                "humi": "humidity",
+                "light": "light",
+                "rainfall": "rainfall",
+                "humi_air":"humidity_air",
+                "temp_air":"temperature_air",
+                "temp_soil":"temperature_soil",
+                "humi_soil":"humidity_soil",
+                "pressure":"pressure"
+            }.get(field, field)
+            value = decoded.get(field)
+            if value is not None:
+                data[key_out] = value
+
+        print(json.dumps(data, indent=2))
+
+        response = requests.post(config["api"], json=data)
+        print(f"ส่งไปยัง API: {config['api']} → {response.status_code} - {response.text}")
 
     except Exception as e:
         print("Error:", e)
