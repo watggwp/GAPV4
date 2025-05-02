@@ -79,7 +79,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                         "type": "image",
                                                         "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
                                                         "size": "full",
-                                                        "aspectRatio": "20:13",
+                                                        "aspectRatio": "20:20",
                                                         "aspectMode": "cover",
                                                         "action" : {
                                                             type : "uri",
@@ -108,10 +108,10 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                                 "layout": "horizontal",
                                                                 "spacing": "md",
                                                                 "margin": "md",
-                                                                "contents": [
+                                                                "contents": (air_temperature !== null || air_humidity !== null) ? [
                                                                     {
                                                                         "type": "text",
-                                                                        "text": `อุณหภูมิ ${air_temperature}°C`,
+                                                                        "text": air_temperature ? `อุณหภูมิ ${air_temperature}°C` : "ไม่พบค่าอุณหภูมิ",
                                                                         "size": "sm",
                                                                         "color": "#888888",
                                                                         "flex": 1,
@@ -119,7 +119,16 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                                                     },
                                                                     {
                                                                         "type": "text",
-                                                                        "text": `ความชื้น ${air_humidity}%`,
+                                                                        "text": air_humidity ? `ความชื้น ${air_humidity}%` : "ไม่พบค่าความชื้น",
+                                                                        "size": "sm",
+                                                                        "color": "#888888",
+                                                                        "flex": 1,
+                                                                        "align": "center"
+                                                                    }
+                                                                ] : [
+                                                                    {
+                                                                        "type": "text",
+                                                                        "text": `ไม่พบเครื่องวัดสภาพอากาศ`,
                                                                         "size": "sm",
                                                                         "color": "#888888",
                                                                         "flex": 1,
