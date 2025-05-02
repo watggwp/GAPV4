@@ -274,7 +274,6 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                     ]
                 )
     
-                console.log("✅ Inserted to DB:", result.insertId);
                 return res.status(200).send("success");
             } catch(err) {
                 console.error("❌ DB Error:", err);
