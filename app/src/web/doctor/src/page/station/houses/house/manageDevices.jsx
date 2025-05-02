@@ -8,7 +8,7 @@ export default function ManageDevices({
     setOpen
 }) {
 
-    const { greenhouse_id } = useHouse()
+    const { greenhouse_id , requestDevices } = useHouse()
 
     return(
         <Stack
@@ -66,13 +66,15 @@ export default function ManageDevices({
                                         pathParams : {
                                             greenhouse_id
                                         },
+                                        onAddComplete : requestDevices
                                     },
                                     delete : {
                                         path : "/api/sensor/weather-greenhouse",
                                         query : {
                                             r : "doctor"
                                         },
-                                        typeDelete : "unregister"
+                                        typeDelete : "unregister",
+                                        onDeleteComplete : requestDevices
                                     }
                                 }
                             },

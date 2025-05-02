@@ -52,13 +52,15 @@ export const template = {
     add : {
         path : "",
         query : {},
-        pathParams : {}
+        pathParams : {},
+        onAddComplete : () => {}
     } , 
     delete : {
         path : "",
         query : {},
         pathParams : {},
-        typeDelete : ""
+        typeDelete : "",
+        onDeleteComplete : () => {}
     } , 
     status : {
         path : "",

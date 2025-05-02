@@ -5,9 +5,7 @@ import { Button, MenuItem, Modal, Select, Stack, Typography } from "@mui/materia
 import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
 import RequestAPI from "../../../../../assets/js/requestAPI";
-import { useRef } from "react";
 import { Grid } from "@mui/system";
-import DeviceManagement from "../../../../../assets/components/device-management";
 import ManageDevicesWeatherStation from "./manageDevice";
 
 const WeatherStationContext = createContext({
@@ -131,6 +129,15 @@ export default function WeatherStation() {
                     query={{
                         r : "doctor"
                     }}
+                    columns={
+                        [
+                            { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
+                            { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
+                            { field: 'light', name: 'แสง' , color : "orange" },
+                            { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
+                            { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
+                        ]
+                    }
                     onChangeRange={onUpdateRange}
                 />
             </Stack>

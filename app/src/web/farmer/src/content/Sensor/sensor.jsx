@@ -42,6 +42,7 @@ export default function SensorGreenhouse() {
                         { field: 'light', name: 'แสง' , color : "orange" },
                         { field: 'soil_temperature', name: 'อุณหภูมิดิน' , color : "red" },
                         { field: 'soil_humidity', name: 'ความชื้นดิน' , color : "blue" },
+                        { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
                     ]}
                 />
             </Stack>

@@ -89,14 +89,16 @@ class AuthorizeUser {
 
                 return {
                     result : true,
+                    profile : profile
                 }
             }
             case "farmer" : {
-                const { verified } = await this.farmer(uid_line)
+                const { profile , verified } = await this.farmer(uid_line)
 
                 if(!verified) return {
                     result : false,
-                    reason : "auth"
+                    reason : "auth",
+                    profile : {}
                 }
                 
                 try {
@@ -110,24 +112,28 @@ class AuthorizeUser {
 
                     if(!authorizeGreenhouse.length) return {
                         result : false,
-                        reason : "owner"
+                        reason : "owner",
+                        profile : {}
                     }
                         
                     return {
                         result : true,
+                        profile : profile
                     }
 
                 } catch (err) {
                     return {
                         result : false,
-                        reason : "owner"
+                        reason : "owner",
+                        profile : {}
                     }
                 }
             }
             default :
                 return {
                     result : false,
-                    reason : "system"
+                    reason : "system",
+                    profile : {}
                 }
         }
     }

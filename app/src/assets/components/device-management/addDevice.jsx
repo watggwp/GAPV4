@@ -32,6 +32,7 @@ export default function AddDevice({
         switch(status) {
             case 200 :
                 onClose()
+                dataAdd.onAddComplete?.()
                 requestDevices()
                 break;
             default :

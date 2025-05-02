@@ -34,7 +34,7 @@ const TabGAP = styled((props) => <Tab disableRipple {...props} />)({
 });
 
 export default function WeatherManagement({
-    endpointData = "/api/farmer/weather-station",
+    endpointData = "/api/sensor/weather-station",
     query,
     startTime,
     endTime,

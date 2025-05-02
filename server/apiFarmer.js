@@ -3142,52 +3142,6 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         }
     });
 
-    // weather-station
-    app.get("/api/farmer/weather-station", async (req, res) => {
-        if (!req.session.uidFarmer) return res.send("error auth");
-    
-        const con = Database.createConnection(listDB);
-        try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
-            const { data : { station } } = auth
-            if (station === undefined) {
-                con.end();
-                return res.status(404).send({
-                    "details" : "not found"
-                });
-            }
-
-            const { st , et } = req.query
-    
-            try {
-                const data = await pool.executeQuery(
-                    `
-                        SELECT ws.id , timestamp , temperature , humidity ,light , rainfall
-                        FROM weather_station ws
-                        LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
-                        LEFT JOIN station_list sl ON sws.station_signature = sl.id_station
-                        WHERE sl.id = ? AND timestamp BETWEEN ? AND ?
-                        ORDER BY timestamp DESC
-                    `,
-                    [ station , new Date(Number(st)) , new Date(Number(et)) ]
-                )
-                
-                return res.status(200).send({
-                    details : data
-                });
-            } catch(err) {
-                return res.status(500).send({
-                    details : "error"
-                });
-            }
-        } catch (err) {
-            con.end();
-            return res.status(403).send({
-                details : "error auth"
-            });
-        }
-    })
-
     app.get("/api/farmer/profile" , async ( req , res ) => {
         const { session : { uidFarmer } } = req
 

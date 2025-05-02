@@ -12,7 +12,8 @@ import ManageDevices from "./manageDevices";
 const { icon : { close : Close } } = env
 
 const HouseContext = createContext({
-    greenhouse_id : ""
+    greenhouse_id : "",
+    requestDevices : () => {}
 })
 
 export default function House({
@@ -111,6 +112,7 @@ export default function House({
                                         { field: 'light', name: 'แสง' , color : "orange" },
                                         { field: 'soil_temperature', name: 'อุณหภูมิดิน' , color : "red" },
                                         { field: 'soil_humidity', name: 'ความชื้นดิน' , color : "blue" },
+                                        { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
                                     ]}
                                 /> :
                                 <Stack
@@ -125,7 +127,8 @@ export default function House({
                 </Stack>
                 <HouseContext.Provider
                     value={{
-                        greenhouse_id
+                        greenhouse_id,
+                        requestDevices
                     }}
                 >
                     <Modal

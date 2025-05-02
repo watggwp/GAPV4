@@ -55,6 +55,7 @@ export default function WeatherStation() {
                                 { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
                                 { field: 'light', name: 'แสง' , color : "orange" },
                                 { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
+                                { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
                             ]}
                             query={{
                                 r : "farmer"
