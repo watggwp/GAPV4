@@ -6,8 +6,8 @@ const AuthorizeUser = require('./core/authorize');
 
 module.exports = function apiEcph(app, pool = new Pool()) {
     // gapv3
-    app.get("/api/farmer/ecph/:id_formplant", async (req, res) => {
-        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
+    app.get("/api/ecph/:id_formplant", async (req, res) => {
+        console.log("✅ เข้ามาที่ /api/ecph/history แล้ว");
 
         const { params : { id_formplant } , query : { r : role } } = req
 
@@ -51,13 +51,13 @@ module.exports = function apiEcph(app, pool = new Pool()) {
             return res.send({ history })
         } catch(err) {
             return res.status(500).send({
-                error : "เพิ่มข้อมูลไม่สำเร็จ"
+                error : "internal"
             })
         }
     })
 
-    app.post("/api/farmer/ecph/:id_formplant", async (req, res) => {
-        const { params : { id_formplant, ec_value, ph_value } , query : { r : role } } = req
+    app.post("/api/ecph/:id_formplant", async (req, res) => {
+        const { params : { id_formplant } , body : { ec_value, ph_value } , query : { r : role } } = req
 
         if (!ec_value || !ph_value) return res.send("missing")
 
@@ -100,7 +100,7 @@ module.exports = function apiEcph(app, pool = new Pool()) {
         }
     })
 
-    app.put("/api/farmer/ecph/:id", async (req, res) => {
+    app.put("/api/ecph/:id", async (req, res) => {
 
         const { params : { id } , body : { ec_value, ph_value } , query : { r : role } } = req
 
@@ -148,7 +148,7 @@ module.exports = function apiEcph(app, pool = new Pool()) {
         }
     })
 
-    app.delete("/api/farmer/ecph/:id", async (req, res) => {
+    app.delete("/api/ecph/:id", async (req, res) => {
 
         const { params : { id } , query : { r : role } } = req
 

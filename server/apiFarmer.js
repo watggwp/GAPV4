@@ -3005,142 +3005,142 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     // });
 
     // gapv3
-    app.post("/api/farmer/ecph/save", async (req, res) => {
-        if (!req.session.uidFarmer) return res.send("error auth");
+    // app.post("/api/farmer/ecph/save", async (req, res) => {
+    //     if (!req.session.uidFarmer) return res.send("error auth");
 
-        const con = Database.createConnection(listDB);
-        try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
-            const { id_formplant, ec_value, ph_value } = req.body;
+    //     const con = Database.createConnection(listDB);
+    //     try {
+    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const { id_formplant, ec_value, ph_value } = req.body;
 
-            if (!ec_value || !ph_value) {
-                con.end();
-                return res.send("missing");
-            }
+    //         if (!ec_value || !ph_value) {
+    //             con.end();
+    //             return res.send("missing");
+    //         }
 
-            const uid = auth.data.uid_line;
-            // con.query(
-            // `SELECT id FROM formplant WHERE uid_line = ? LIMIT 1`,
-            // [uid],
-            // (err, rows) => {
-            //     if (err || !rows.length) {
-            //     con.end();
-            //     return res.send("farmer not found");
-            //     }
+    //         const uid = auth.data.uid_line;
+    //         // con.query(
+    //         // `SELECT id FROM formplant WHERE uid_line = ? LIMIT 1`,
+    //         // [uid],
+    //         // (err, rows) => {
+    //         //     if (err || !rows.length) {
+    //         //     con.end();
+    //         //     return res.send("farmer not found");
+    //         //     }
 
-            //     const id_formplant = rows[0].id_formplant;
-            con.query(
-                `INSERT INTO ecph (id_formplant, ec_value, ph_value) VALUES (?, ?, ?)`,
-                [id_formplant, ec_value, ph_value],
-                (err2) => {
-                    con.end();
-                    if (err2) return res.send("insert error");
-                    res.send({ success: true });
-                }
-            );
-            // }
-            // );
-        } catch (err) {
-            con.end();
-            return res.send("error auth");
-        }
-    });
+    //         //     const id_formplant = rows[0].id_formplant;
+    //         con.query(
+    //             `INSERT INTO ecph (id_formplant, ec_value, ph_value) VALUES (?, ?, ?)`,
+    //             [id_formplant, ec_value, ph_value],
+    //             (err2) => {
+    //                 con.end();
+    //                 if (err2) return res.send("insert error");
+    //                 res.send({ success: true });
+    //             }
+    //         );
+    //         // }
+    //         // );
+    //     } catch (err) {
+    //         con.end();
+    //         return res.send("error auth");
+    //     }
+    // });
 
-    app.post("/api/farmer/ecph/history", async (req, res) => {
-        console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
-        if (!req.session.uidFarmer) return res.send("error auth");
+    // app.post("/api/farmer/ecph/history", async (req, res) => {
+    //     console.log("✅ เข้ามาที่ /api/farmer/ecph/history แล้ว");
+    //     if (!req.session.uidFarmer) return res.send("error auth");
 
-        const con = Database.createConnection(listDB);
-        try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
-            const uid = auth.data.uid_line;
-            const { id_formplant } = req.body;
+    //     const con = Database.createConnection(listDB);
+    //     try {
+    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const uid = auth.data.uid_line;
+    //         const { id_formplant } = req.body;
 
-            con.query(
-                `SELECT id, timestamp, ec_value, ph_value FROM ecph WHERE id_formplant = ? ORDER BY timestamp DESC LIMIT 10`,
-                [id_formplant],
-                (err2, result) => {
-                    con.end();
-                    if (err2) return res.send([]);
-                    res.send(result);
-                }
-            );
-        } catch (err) {
-            console.log(err)
-            con.end();
-            return res.send("error auth");
-        }
-    });
+    //         con.query(
+    //             `SELECT id, timestamp, ec_value, ph_value FROM ecph WHERE id_formplant = ? ORDER BY timestamp DESC LIMIT 10`,
+    //             [id_formplant],
+    //             (err2, result) => {
+    //                 con.end();
+    //                 if (err2) return res.send([]);
+    //                 res.send(result);
+    //             }
+    //         );
+    //     } catch (err) {
+    //         console.log(err)
+    //         con.end();
+    //         return res.send("error auth");
+    //     }
+    // });
 
-    app.post("/api/farmer/ecph/update", async (req, res) => {
-        if (!req.session.uidFarmer) return res.send("error auth");
+    // app.post("/api/farmer/ecph/update", async (req, res) => {
+    //     if (!req.session.uidFarmer) return res.send("error auth");
     
-        const con = Database.createConnection(listDB);
-        try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
-            const { id, ec_value, ph_value } = req.body;
+    //     const con = Database.createConnection(listDB);
+    //     try {
+    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const { id, ec_value, ph_value } = req.body;
     
-            if (!id || !ec_value || !ph_value) {
-                con.end();
-                return res.send("missing");
-            }
+    //         if (!id || !ec_value || !ph_value) {
+    //             con.end();
+    //             return res.send("missing");
+    //         }
     
-            con.query(
-                `UPDATE ecph SET ec_value = ?, ph_value = ? WHERE id = ?`,
-                [ec_value, ph_value, id],
-                (err2, result) => {
-                    con.end();
-                    if (err2) {
-                        console.error("❌ UPDATE ERROR:", err2);
-                        return res.send("update error");
-                    }
+    //         con.query(
+    //             `UPDATE ecph SET ec_value = ?, ph_value = ? WHERE id = ?`,
+    //             [ec_value, ph_value, id],
+    //             (err2, result) => {
+    //                 con.end();
+    //                 if (err2) {
+    //                     console.error("❌ UPDATE ERROR:", err2);
+    //                     return res.send("update error");
+    //                 }
     
-                    if (result.affectedRows === 0) {
-                        return res.send({ success: false, message: "ไม่พบข้อมูลที่ต้องการแก้ไข" });
-                    }
+    //                 if (result.affectedRows === 0) {
+    //                     return res.send({ success: false, message: "ไม่พบข้อมูลที่ต้องการแก้ไข" });
+    //                 }
     
-                    res.send({ success: true });
-                }
-            );
-        } catch (err) {
-            console.error("❌ AUTH ERROR:", err);
-            con.end();
-            return res.send("error auth");
-        }
-    });
+    //                 res.send({ success: true });
+    //             }
+    //         );
+    //     } catch (err) {
+    //         console.error("❌ AUTH ERROR:", err);
+    //         con.end();
+    //         return res.send("error auth");
+    //     }
+    // });
 
-    app.post("/api/farmer/ecph/delete", async (req, res) => {
-        if (!req.session.uidFarmer) return res.send("error auth");
+    // app.post("/api/farmer/ecph/delete", async (req, res) => {
+    //     if (!req.session.uidFarmer) return res.send("error auth");
     
-        const con = Database.createConnection(listDB);
-        try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
-            const { id } = req.body;
+    //     const con = Database.createConnection(listDB);
+    //     try {
+    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const { id } = req.body;
     
-            if (!id) {
-                con.end();
-                return res.send("missing");
-            }
+    //         if (!id) {
+    //             con.end();
+    //             return res.send("missing");
+    //         }
     
-            con.query(`DELETE FROM ecph WHERE id = ?`, [id], (err, result) => {
-                con.end();
-                if (err) {
-                    console.error("❌ DELETE ERROR:", err);
-                    return res.send("delete error");
-                }
+    //         con.query(`DELETE FROM ecph WHERE id = ?`, [id], (err, result) => {
+    //             con.end();
+    //             if (err) {
+    //                 console.error("❌ DELETE ERROR:", err);
+    //                 return res.send("delete error");
+    //             }
     
-                if (result.affectedRows === 0) {
-                    return res.send({ success: false, message: "ไม่พบแถวที่จะลบ" });
-                }
+    //             if (result.affectedRows === 0) {
+    //                 return res.send({ success: false, message: "ไม่พบแถวที่จะลบ" });
+    //             }
     
-                return res.send({ success: true });
-            });
-        } catch (err) {
-            console.error("❌ AUTH ERROR:", err);
-            con.end();
-            return res.send("error auth");
-        }
-    });
+    //             return res.send({ success: true });
+    //         });
+    //     } catch (err) {
+    //         console.error("❌ AUTH ERROR:", err);
+    //         con.end();
+    //         return res.send("error auth");
+    //     }
+    // });
 
     app.get("/api/farmer/profile" , async ( req , res ) => {
         const { session : { uidFarmer } } = req

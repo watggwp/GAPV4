@@ -3,10 +3,11 @@ import ReactDOM  from "react-dom/client";
 import io from "socket.io-client"
 import Router from "./router";
 import ThemeProviderApp from "../../ThemeProvider";
+import SockectIO from "../../SocketIO";
 
 
 // const socket = new WebSocket();
-const socket = io(window.location.protocol+"//"+window.location.host)
+// const socket = io(window.location.protocol+"//"+window.location.host)
 
 // socket.on('connect' , ()=>{
 //     let Path = window.location.pathname.split("/").reverse()[0]
@@ -20,7 +21,9 @@ const socket = io(window.location.protocol+"//"+window.location.host)
 
 ReactDOM.createRoot(document.getElementById('farmer')).render(
     <ThemeProviderApp>
-        <Router/>
+        <SockectIO>
+            <Router/>
+        </SockectIO>
     </ThemeProviderApp>
 )
 

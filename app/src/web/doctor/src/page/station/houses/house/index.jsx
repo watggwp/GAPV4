@@ -26,6 +26,7 @@ export default function House({
 
     const [ openPumpControl , setOpenPumpControl ] = useState(false)
     const [ openManageDevices , setOpenManageDevices ] = useState(false)
+    // const [ openManageSensorGap , setOpenManageSensorGap ] = useState(false)
 
     const requestDevices = useCallback( async () => {
         setLoadingDevice(true)
@@ -88,6 +89,7 @@ export default function House({
                 >
                     <Button variant="contained" onClick={() => setOpenPumpControl(true)}>ควบคุมปั๊มน้ำ</Button>
                     <Button sx={{ marginLeft : 2 }} variant="contained" onClick={() => setOpenManageDevices(true)}>จัดการอุปกรณ์</Button>
+                    {/* <Button sx={{ marginLeft : 2 }} variant="contained" onClick={() => setOpenManageSensorGap(true)}>จัดการ</Button> */}
                 </Stack>
                 <Stack
                     width={"100%"}

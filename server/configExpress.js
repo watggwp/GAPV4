@@ -25,6 +25,7 @@ const apiMessage = require('./apiMessaging');
 const apiPump = require('./apiPump');
 const apiWeatherStation = require('./apiWeatherStation');
 const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
+const apiEcph = require('./apiEcph');
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
@@ -130,6 +131,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
+    apiEcph(app , Pool)
     apiWeatherStation(app , Pool)
     apiWeatherGreenhouse(app , Pool)
     apiPump(app , Pool)

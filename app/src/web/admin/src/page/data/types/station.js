@@ -25,20 +25,20 @@ export default function Station() {
                 />
             </Grid>
             <Grid size={{ sm : 12 , md : 6 }}>
-                                <TextField
-                                    label="รหัสศูนย์"
-                                    variant="outlined"
-                                    value={Data.id_station}
-                                    slotProps={{
-                                        htmlInput : {
-                                            readOnly : true
-                                        },
-                                        inputLabel : {
-                                            shrink : true
-                                        }
-                                    }}
-                                />
-                </Grid>
+                <TextField
+                    label="รหัสศูนย์"
+                    variant="outlined"
+                    value={Data.id_station}
+                    slotProps={{
+                        htmlInput : {
+                            readOnly : true
+                        },
+                        inputLabel : {
+                            shrink : true
+                        }
+                    }}
+                />
+            </Grid>
             <Grid size={{ xs : 12 }}>
                 <MapsJSX lat={Data?.location?.x} lng={Data?.location?.y} w={"300vw"} h={"80vw"}/>
             </Grid>
