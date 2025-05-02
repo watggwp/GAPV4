@@ -17,7 +17,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                     const con = await ConnectDB()
                     try {
                         con.query(`
-                            SELECT id_farm_house , name_house 
+                            SELECT id_farm_house , name_house , air_temperature , air_humidity
                             FROM housefarm
                             JOIN (
                                 SELECT uid_line , link_user 
@@ -26,6 +26,13 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                 ORDER BY date_register DESC
                                 LIMIT 1
                             ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                            LEFT JOIN (
+                                SELECT air_temperature , air_humidity , greenhouse_id
+                                FROM sensor_weather_greenhouse swg
+                                LEFT JOIN weather_greenhouse wgh ON wgh.device_id = swg.device_id
+                                ORDER BY timestamp DESC
+                                LIMIT 1
+                            ) as swgh ON swgh.greenhouse_id = housefarm.id_farm_house
                             WHERE housefarm.status = '1'
                             ORDER BY id_farm_house DESC
                         ` , 
@@ -37,23 +44,93 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             if (!err) {
                                 let msg
                                 if(result[0]) {
-                                    msg =  {
-                                        type : "template",
-                                        altText : "โรงเรือน",
-                                        template : {
-                                            type : "image_carousel" ,
-                                            columns : Array.isArray(result) ? result.map(({ id_farm_house , name_house }) =>{
+                                    // msg =  {
+                                    //     type : "template",
+                                    //     altText : "โรงเรือน",
+                                    //     template : {
+                                    //         type : "image_carousel" ,
+                                    //         columns : Array.isArray(result) ? result.map(({ id_farm_house , name_house }) =>{
+                                    //             const key = new Date().getTime()
+                                    //             const name = name_house.toString()
+                                    //             return {
+                                    //                 imageUrl : `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
+                                    //                 action : {
+                                    //                     type : "uri",
+                                    //                     label : `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
+                                    //                     uri : `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
+                                    //                 }
+                                    //             }
+                                    //         }) : [] ,
+                                    //     }
+                                    // }
+
+                                    msg = {
+                                        "type": "flex",
+                                        "altText": "เลือกโรงเรือน",
+                                        "contents": {
+                                            "type": "carousel",
+                                            "contents": Array.isArray(result) ? result.map(({ id_farm_house , name_house , air_temperature , air_humidity }) =>{
                                                 const key = new Date().getTime()
                                                 const name = name_house.toString()
+                                                const lineLiff = `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
                                                 return {
-                                                    imageUrl : `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
-                                                    action : {
-                                                        type : "uri",
-                                                        label : `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
-                                                        uri : `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
+                                                    "type": "bubble",
+                                                    "hero": {
+                                                        "type": "image",
+                                                        "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
+                                                        "size": "full",
+                                                        "aspectRatio": "20:13",
+                                                        "aspectMode": "cover",
+                                                        "action" : {
+                                                            type : "uri",
+                                                            label : "iamageA",
+                                                            uri : lineLiff
+                                                        }
+                                                    },
+                                                    "body": {
+                                                        "type": "box",
+                                                        "layout": "vertical",
+                                                        "action" : {
+                                                            type : "uri",
+                                                            label : "iamageA",
+                                                            uri : lineLiff
+                                                        },
+                                                        "contents": [
+                                                            {
+                                                                "type": "text",
+                                                                "text": `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
+                                                                "weight": "bold",
+                                                                "size": "xl",
+                                                                "align": "center"
+                                                            },
+                                                            {
+                                                                "type": "box",
+                                                                "layout": "horizontal",
+                                                                "spacing": "md",
+                                                                "margin": "md",
+                                                                "contents": [
+                                                                    {
+                                                                        "type": "text",
+                                                                        "text": `อุณหภูมิ ${air_temperature}°C`,
+                                                                        "size": "sm",
+                                                                        "color": "#888888",
+                                                                        "flex": 1,
+                                                                        "align": "center"
+                                                                    },
+                                                                    {
+                                                                        "type": "text",
+                                                                        "text": `ความชื้น ${air_humidity}%`,
+                                                                        "size": "sm",
+                                                                        "color": "#888888",
+                                                                        "flex": 1,
+                                                                        "align": "center"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
                                                     }
                                                 }
-                                            }) : [] ,
+                                            }) : []
                                         }
                                     }
                                 }
@@ -204,129 +281,6 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                             text : "กรุณาสมัครบัญชีก่อนนะคะ \u2764"
                         }
 
-                        // msg = {
-                        //     "type": "flex",
-                        //     "altText": "เลือกโรงเรือน",
-                        //     "contents": {
-                        //         "type": "carousel",
-                        //         "contents": [
-                        //             {
-                        //                 "type": "bubble",
-                        //                 "hero": {
-                        //                     "type": "image",
-                        //                     "url": "https://example.com/imageA.jpg",
-                        //                     "size": "full",
-                        //                     "aspectRatio": "20:13",
-                        //                     "aspectMode": "cover",
-                        //                     "action" : {
-                        //                         type : "uri",
-                        //                         label : "iamageA",
-                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
-                        //                     }
-                        //                 },
-                        //                 "body": {
-                        //                     "type": "box",
-                        //                     "layout": "vertical",
-                        //                     "action" : {
-                        //                         type : "uri",
-                        //                         label : "iamageA",
-                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
-                        //                     },
-                        //                     "contents": [
-                        //                         {
-                        //                             "type": "text",
-                        //                             "text": "โรงเรือน A",
-                        //                             "weight": "bold",
-                        //                             "size": "xl",
-                        //                             "align": "center"
-                        //                         },
-                        //                         {
-                        //                             "type": "box",
-                        //                             "layout": "horizontal",
-                        //                             "spacing": "md",
-                        //                             "margin": "md",
-                        //                             "contents": [
-                        //                                 {
-                        //                                     "type": "text",
-                        //                                     "text": "อุณหภูมิ 25°C",
-                        //                                     "size": "sm",
-                        //                                     "color": "#888888",
-                        //                                     "flex": 1,
-                        //                                     "align": "center"
-                        //                                 },
-                        //                                 {
-                        //                                     "type": "text",
-                        //                                     "text": "ความชื้น 60%",
-                        //                                     "size": "sm",
-                        //                                     "color": "#888888",
-                        //                                     "flex": 1,
-                        //                                     "align": "center"
-                        //                                 }
-                        //                             ]
-                        //                         }
-                        //                     ]
-                        //                 }
-                        //             },
-                        //             {
-                        //                 "type": "bubble",
-                        //                 "hero": {
-                        //                     "type": "image",
-                        //                     "url": "https://example.com/imageA.jpg",
-                        //                     "size": "full",
-                        //                     "aspectRatio": "20:13",
-                        //                     "aspectMode": "cover",
-                        //                     "action" : {
-                        //                         type : "uri",
-                        //                         label : "iamageA",
-                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
-                        //                     }
-                        //                 },
-                        //                 "body": {
-                        //                     "type": "box",
-                        //                     "layout": "vertical",
-                        //                     "action" : {
-                        //                         type : "uri",
-                        //                         label : "iamageA",
-                        //                         uri : `https://liff.line.me/2006915135-MoVOdyjw`
-                        //                     },
-                        //                     "contents": [
-                        //                         {
-                        //                             "type": "text",
-                        //                             "text": "โรงเรือน A",
-                        //                             "weight": "bold",
-                        //                             "size": "xl",
-                        //                             "align": "center"
-                        //                         },
-                        //                         {
-                        //                             "type": "box",
-                        //                             "layout": "horizontal",
-                        //                             "spacing": "md",
-                        //                             "margin": "md",
-                        //                             "contents": [
-                        //                                 {
-                        //                                     "type": "text",
-                        //                                     "text": "อุณหภูมิ 25°C",
-                        //                                     "size": "sm",
-                        //                                     "color": "#888888",
-                        //                                     "flex": 1,
-                        //                                     "align": "center"
-                        //                                 },
-                        //                                 {
-                        //                                     "type": "text",
-                        //                                     "text": "ความชื้น 60%",
-                        //                                     "size": "sm",
-                        //                                     "color": "#888888",
-                        //                                     "flex": 1,
-                        //                                     "align": "center"
-                        //                                 }
-                        //                             ]
-                        //                         }
-                        //                     ]
-                        //                 }
-                        //             },
-                        //         ]
-                        //     }
-                        // }
                         con.end()
                     }
 
