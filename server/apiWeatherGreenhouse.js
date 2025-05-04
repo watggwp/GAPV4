@@ -269,7 +269,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                         humidity,
                         light,
                         soil_temperature,
-                        humidity_soil,
+                        soil_humidity,
                         pressure
                     ]
                 )
