@@ -40,41 +40,33 @@ export const categories = [
 
 export const template = { 
     devices : {
-        path : "",
-        query : {},
-        pathParams : {},
         columnsData : {
             id : "",
             device_id : "",
             status : "",
-        }
+        },
+        onLoadComplete : () => {},
     } , 
     add : {
-        path : "",
-        query : {},
-        pathParams : {},
         onAddComplete : () => {}
     } , 
     delete : {
-        path : "",
-        query : {},
-        pathParams : {},
-        typeDelete : "",
         onDeleteComplete : () => {}
     } , 
     status : {
-        path : "",
-        query : {},
-        pathParams : {}
+        onChangeStatusComplete : () => {}
     } 
 }
 
 const DeviceManagementContext = createContext({
     menuDatas : [ 
-        { id : "weather" , endpoints : template } , 
-        { id : "greenhouse" , endpoints : template } , 
-        { id : "pump" , endpoints : template }
+        { id : "weather" , data : template } , 
+        { id : "greenhouse" , data : template } , 
+        { id : "pump" , data : template }
     ],
+    greenhouseId : "",
+    stationSignature : "",
+    role : "",
     setPage : () => {},
 })
 
@@ -82,17 +74,20 @@ export default function DeviceManagement({
     menuDatas = [ 
         { 
             id : "weather" , 
-            endpoints : template
+            data : template
         } , 
         { 
             id : "greenhouse" , 
-            endpoints : template
+            data : template
         } , 
         { 
             id : "pump" , 
-            endpoints : template
+            data : template
         }
     ],
+    greenhouseId = "",
+    stationSignature = "",
+    role = ""
 }) {
 
     const [ page , setPage ] = useState(
@@ -100,7 +95,7 @@ export default function DeviceManagement({
     )
 
     const pageData = useMemo(() => 
-        menuDatas.find(menu => menu.id === page)?.endpoints
+        menuDatas.find(menu => menu.id === page)?.data
     , [menuDatas, page])
 
     return(

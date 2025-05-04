@@ -247,10 +247,10 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 device_id, 
                 timestamp, 
                 humidity,
-                humidity_soil,
+                soil_humidity,
                 light,
                 temperature,
-                temperature_soil,
+                soil_temperature,
                 pressure 
             } = req.body
 
@@ -268,7 +268,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                         temperature,
                         humidity,
                         light,
-                        temperature_soil,
+                        soil_temperature,
                         humidity_soil,
                         pressure
                     ]

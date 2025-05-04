@@ -3,7 +3,6 @@ import env from "../../../env";
 import { template, useDeviceManagement } from ".";
 import { useCallback, useEffect, useState } from "react";
 import RequestAPI from "../../js/requestAPI";
-import RoyalGapUtil from "../../core/RoyalGapUtil";
 import PopupApp from "../PopupApp";
 import AddDevice from "./addDevice";
 import DeleteDevice from "./deleteDevice";
@@ -21,7 +20,7 @@ export default function Devices({
     dataDelete = template["delete"],
 }) {
 
-    const { setPage } = useDeviceManagement()
+    const { greenhouseId , role } = useDeviceManagement()
     const [ devices , setDevices ] = useState([])
     const [ loading , setLoading ] = useState(true)
 
@@ -29,11 +28,11 @@ export default function Devices({
     const [ idConfirmDelete , setIdConfirmDelete ] = useState(0)
 
     const requestDevices = useCallback( async () => {
-        const { path , query , pathParams } = dataDevices
-
-        const pathRequest = RoyalGapUtil.mergePathParam(path , pathParams)
         setLoading(true)
-        const { data , status } = await RequestAPI.get(pathRequest , query)
+        const { data , status } = await RequestAPI.get(
+            greenhouseId ?`/api/sensor/weather-greenhouse/${greenhouseId}` : "/api/sensor/weather-greenhouse" , {
+            r : role
+        })
         setLoading(false)
 
         switch(status) {
@@ -44,7 +43,7 @@ export default function Devices({
             default :
                 break;
         }
-    } , [dataDevices])
+    } , [greenhouseId, role])
 
     const onOpenAdd = useCallback(() => {
         setOpenAdd(true)
@@ -103,7 +102,7 @@ export default function Devices({
             >
                 <Stack borderRadius={4} maxWidth={"300px"} width={"100%"} height={"100%"} overflow={"hidden"} direction={"row"} bgcolor={subColor}>
                     <Stack width={"30%"} height={"100%"} padding={1} bgcolor={color}>
-                        <img src={icon} width={"100%"} height={"100%"} />
+                        <img src={icon} width={"100%"} height={"100%"} alt="" />
                     </Stack>
                     <Stack width={"70%"} height={"100%"} justifyContent={"space-between"}>
                         <Stack height={"100%"} justifyContent={"center"} alignItems={"center"}>
