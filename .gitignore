@@ -4,6 +4,7 @@ testSetting
 assets/img/doctor/report/*.jpg
 build
 .env
+/app/src/assets/img/doctor/report/*.jpg
 # /package.json
 # package.json
 # Admin/.env
