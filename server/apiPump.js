@@ -202,7 +202,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { user_doctor , pass_doctor , role_doctor , uidFarmer : uid_line } = req.session
 
         const Authen = new AuthorizeUser(pool) 
-        const { result : AuthenResult , reason } = await Authen.deviceSystem(
+        const { profile : { id } , result : AuthenResult , reason } = await Authen.deviceSystem(
             {
                 uid_line,
                 username : user_doctor,
@@ -244,8 +244,8 @@ module.exports = function apiPump(app, pool = new Pool()) {
         }
     
         const insertLog = await pool.executeQuery(
-            `INSERT INTO pump_log (device_id, action, source) VALUES (?, ?, ?)`,
-            [device_id, action, "manual"]
+            `INSERT INTO pump_log (device_id, action, source , account_type , account_id) VALUES (?, ?, ? , ? , ?)`,
+            [device_id, action, "manual" , roleUser , id]
         );
 
         const { insertId } = insertLog
@@ -270,7 +270,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { user_doctor , pass_doctor , role_doctor , uidFarmer : uid_line } = req.session
 
         const Authen = new AuthorizeUser(pool) 
-        const { result : AuthenResult , reason } = await Authen.deviceSystem(
+        const { profile : { id } ,  result : AuthenResult , reason } = await Authen.deviceSystem(
             {
                 uid_line,
                 username : user_doctor,
@@ -317,8 +317,8 @@ module.exports = function apiPump(app, pool = new Pool()) {
                 return res.status(409).json({ error: "Schedule already exists for this device and time." });
             }
             const insertSchedule = await pool.executeQuery(
-                `INSERT INTO pump_schedule (device_id, start_time, duration) VALUES (?, ?, ?)`,
-                [device_id, newStartTime, duration]
+                `INSERT INTO pump_schedule (device_id, start_time, duration , account_type , account_id) VALUES (?, ?, ? , ? , ?)`,
+                [device_id, newStartTime, duration , roleUser , id]
             );
             await updateScheduleCache();
 
@@ -469,7 +469,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         );
 
         for (const row of dueSchedules) {
-            const { device_id, duration } = row;
+            const { device_id, duration , account_type , account_id } = row;
             const mode = 0x02;
 
             console.log(`Trigger schedule → ${device_id} (${duration} min)`);
@@ -482,8 +482,8 @@ module.exports = function apiPump(app, pool = new Pool()) {
             }
 
             await pool.executeQuery(
-                `INSERT INTO pump_log (device_id, action, source) VALUES (?, ?, ?)`,
-                [device_id, "on", "auto"]
+                `INSERT INTO pump_log (device_id, action, source , account_type , account_id) VALUES (? , ? , ? , ? , ?)`,
+                [device_id, "on", "auto" , account_type , account_id]
             );
         }
 

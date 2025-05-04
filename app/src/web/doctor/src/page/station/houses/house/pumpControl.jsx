@@ -53,7 +53,7 @@ export default function PumpControl({
             <Paper
                 sx={{
                     width : "90%",
-                    height : "90%",
+                    height : "80%",
                     maxWidth : 400
                 }}
             >

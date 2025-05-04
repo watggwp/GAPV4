@@ -8,11 +8,12 @@ class AuthorizeUser {
         this.Pool = pool
     }
 
-    async doctor(username , password , role) {
+    async doctor(username , password , role , options = { select : "*" }) {
+        const { select } = options
         try {
             const [ profile ] = await this.Pool.executeQuery(
                 `
-                SELECT * , uid_line_doctor as uid_line
+                SELECT ${select} , id_table_doctor as id , uid_line_doctor as uid_line
                 FROM acc_doctor
                 WHERE BINARY id_doctor = ? AND password_doctor = SHA2( ? , 256)
                 ${
@@ -47,7 +48,7 @@ class AuthorizeUser {
         try {
             const [ profile ] = await this.Pool.executeQuery(
                 `
-                SELECT ${select}
+                SELECT ${select} , id_table as id
                 FROM acc_farmer
                 LEFT JOIN station_list ON station_list.id = acc_farmer.station
                 WHERE uid_line = ? AND (register_auth = 0 OR register_auth = 1)

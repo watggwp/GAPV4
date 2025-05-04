@@ -29,8 +29,8 @@ export default function ApproveDialogApp({
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose}>ยกเลิก</Button>
-                <Button onClick={onAgree} autoFocus>
+                <Button onClick={handleClose} variant="contained" >ยกเลิก</Button>
+                <Button onClick={onAgree} variant="contained" autoFocus>
                     ยืนยัน
                 </Button>
             </DialogActions>
