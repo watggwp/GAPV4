@@ -27,7 +27,7 @@ def on_message(client, userdata, msg):
 
             config = DEVICE_CONFIG_MAP.get(device_id)
             if not config:
-                print(f"{timestamp} ไม่พบ config สำหรับอุปกรณ์: {device_id}")
+                print(f"{dt_bangkok.isoformat()} ไม่พบ config สำหรับอุปกรณ์: {device_id}" , payload)
                 return
 
             data = {
