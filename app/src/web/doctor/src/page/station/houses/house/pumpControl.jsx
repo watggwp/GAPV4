@@ -54,55 +54,55 @@ export default function PumpControl({
                 sx={{
                     width : "90%",
                     height : "80%",
-                    maxWidth : 400
+                    maxWidth : 400,
+                    borderRadius : 4
                 }}
             >
-                {
-                    loading ?
-                        <LinearProgress color="primary" /> :
-                        <Stack
-                            height={"100%"}
-                        >
-                            <Stack paddingTop={2} paddingBottom={2} direction={"row"} justifyContent={"center"} alignItems={"center"} width={"100%"} paddingLeft={"40px"}>
-                                <Typography fontSize={25} fontWeight={900}> ควบคุมปั้ม</Typography>
-                                {
-                                    Boolean(devices.length) && 
-                                        (
-                                            <IconButton size="small" sx={{ marginLeft : 2 }} onClick={onOpenHistory}>
-                                                <History/>
-                                            </IconButton>
-                                        )
-                                }
-                                <IconButton size="small" sx={{ marginLeft : 2 }} onClick={() => setOpen(false)}>
-                                    <Close/>
-                                </IconButton>
-
-                            </Stack>
-                            {
-                                devices.length ?
-                                    <Stack
-                                        overflow={"auto"}
-                                        height={"calc(100% - 70px)"}
-                                    >
-                                        <PumpManagement
-                                            device_id={devices[0].device_id}
-                                            role={"doctor"}
-                                            showHistory={openHistory}
-                                            setShowHistory={setOpenHistory}
-                                        />
-                                    </Stack> :
-                                    <Stack
-                                        justifyContent={"center"}
-                                        alignItems={"center"}
-                                        marginTop={2}
-                                    >
-                                        <Typography>
-                                            ไม่พบปั๊มน้ำ
-                                        </Typography>
-                                    </Stack>
-                            }
-                        </Stack>
-                }
+                <Stack
+                    height={"100%"}
+                >
+                    <Stack position={"relative"} paddingTop={2} paddingBottom={2} direction={"row"} justifyContent={"center"} alignItems={"center"} width={"100%"} paddingRight={2}>
+                        {
+                            Boolean(devices.length) && 
+                                (
+                                    <IconButton size="small" sx={{ position : "absolute", left : 18 }} onClick={onOpenHistory}>
+                                        <History/>
+                                    </IconButton>
+                                )
+                        }
+                        <Typography fontSize={25} fontWeight={900}> ควบคุมปั้ม</Typography>
+                        <IconButton size="small" sx={{ position : "absolute" , right : 18 }} onClick={() => setOpen(false)}>
+                            <Close/>
+                        </IconButton>
+                    </Stack>
+                    {
+                        loading ?
+                            <LinearProgress color="primary" /> :
+                                (
+                                    devices.length ?
+                                        <Stack
+                                            overflow={"auto"}
+                                            height={"calc(100% - 70px)"}
+                                        >
+                                            <PumpManagement
+                                                device_id={devices[0].device_id}
+                                                role={"doctor"}
+                                                showHistory={openHistory}
+                                                setShowHistory={setOpenHistory}
+                                            />
+                                        </Stack> :
+                                        <Stack
+                                            justifyContent={"center"}
+                                            alignItems={"center"}
+                                            marginTop={2}
+                                        >
+                                            <Typography>
+                                                ไม่พบปั๊มน้ำ
+                                            </Typography>
+                                        </Stack>
+                                )
+                    }
+                </Stack>
             </Paper>
         </Stack>
     )

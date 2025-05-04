@@ -60,7 +60,8 @@ export default function House({
                 sx={{
                     width : "90%",
                     height : "90%",
-                    padding : 2
+                    padding : 2,
+                    borderRadius : 4
                 }}
             >
                 <Stack
