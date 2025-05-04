@@ -121,14 +121,14 @@ const ManagePopup = ({setPopup , RefPop , id_form , session , Fecth , RefData}) 
                             setCountEdit(data.countStatus)
                             return (
                              <FormPlant
-                                    key={key}
-                                    data={data}
-                                    mode={mode}
-                                    setMode={setMode}
-                                    setEditValue={setEditValue}
-                                    getResize={getResize}
-                                    FetchContent={FetchContent}
-                                />
+                                key={key}
+                                data={data}
+                                mode={mode}
+                                setMode={setMode}
+                                setEditValue={setEditValue}
+                                getResize={getResize}
+                                FetchContent={FetchContent}
+                            />
                          )
                         } else if(type_form === 1) {
                             return (

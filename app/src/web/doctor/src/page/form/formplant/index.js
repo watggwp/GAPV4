@@ -327,7 +327,7 @@ export default function FormPlant({
                         <div className={`data-main ${getResize >= 450 ? "in-2" : "in-1 screen-small"}`}>
                             <span className="head-data">วันที่คาดว่าจะเก็บเกี่ยว</span>
                             {localMode === "view" ? (
-                                <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_harvest} />
+                                <DayJSX className="data-show" TYPE="small" TEXT="วันที่" DATE={data.date_harvest} />
                             ) : (
                                 <DateSelect RefDateValue={DateHarvest} Value={data.date_harvest} onChangeDate={(dateNew) => onEdit("date_harvest", dateNew)}/>
                             )}
@@ -338,7 +338,7 @@ export default function FormPlant({
                             <span className="head-data">วันที่เก็บเกี่ยว</span>
                             {localMode === "view" ? (
                                 data.date_success ? (
-                                    <DayJSX TYPE="small" TEXT="วันที่" DATE={data.date_success} />
+                                    <DayJSX className="data-show" TYPE="small" TEXT="วันที่" DATE={data.date_success} />
                                 ) : (
                                     <span className="data-show">ยังไม่เก็บเกี่ยว</span>
                                 )
