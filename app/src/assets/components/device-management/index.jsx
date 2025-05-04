@@ -19,6 +19,7 @@ export const categories = [
         color: '#d3b328',
         subColor: '#e9d88a',
         allowedRoles: ['admin'],
+        path : "/api/sensor/weather-station"
     },
     {
         id: 'greenhouse',
@@ -27,6 +28,7 @@ export const categories = [
         color: '#4caf50',
         subColor: '#a8e6a1',
         allowedRoles: ['admin', 'farmer'],
+        path : "/api/sensor/weather-greenhouse"
     },
     {
         id: 'pump',
@@ -35,38 +37,47 @@ export const categories = [
         color: '#4e7ddc',
         subColor: '#acc3f2',
         allowedRoles: ['admin', 'farmer'],
+        path : "/api/pump/"
     },
 ]
 
 export const template = { 
     devices : {
+        path : "",
+        query : {},
+        pathParams : {},
         columnsData : {
             id : "",
             device_id : "",
             status : "",
-        },
-        onLoadComplete : () => {},
+        }
     } , 
     add : {
+        path : "",
+        query : {},
+        pathParams : {},
         onAddComplete : () => {}
     } , 
     delete : {
+        path : "",
+        query : {},
+        pathParams : {},
+        typeDelete : "",
         onDeleteComplete : () => {}
     } , 
     status : {
-        onChangeStatusComplete : () => {}
+        path : "",
+        query : {},
+        pathParams : {}
     } 
 }
 
 const DeviceManagementContext = createContext({
     menuDatas : [ 
-        { id : "weather" , data : template } , 
-        { id : "greenhouse" , data : template } , 
-        { id : "pump" , data : template }
+        { id : "weather" , dataPage : template } , 
+        { id : "greenhouse" , dataPage : template } , 
+        { id : "pump" , dataPage : template }
     ],
-    greenhouseId : "",
-    stationSignature : "",
-    role : "",
     setPage : () => {},
 })
 
@@ -74,19 +85,20 @@ export default function DeviceManagement({
     menuDatas = [ 
         { 
             id : "weather" , 
-            data : template
+            dataPage : template,
+            stationSignature : ""
         } , 
         { 
             id : "greenhouse" , 
-            data : template
+            dataPage : template,
+            greenhouse_id : ""
         } , 
         { 
             id : "pump" , 
-            data : template
+            dataPage : template,
+            greenhouse_id : ""
         }
     ],
-    greenhouseId = "",
-    stationSignature = "",
     role = ""
 }) {
 
@@ -95,7 +107,7 @@ export default function DeviceManagement({
     )
 
     const pageData = useMemo(() => 
-        menuDatas.find(menu => menu.id === page)?.data
+        menuDatas.find(menu => menu.id === page)
     , [menuDatas, page])
 
     return(
@@ -117,10 +129,11 @@ export default function DeviceManagement({
                             icon={categories[categoriesMapping[page]].icon}
                             color={categories[categoriesMapping[page]].color}
                             subColor={categories[categoriesMapping[page]].subColor}
-                            dataDevices={pageData?.devices}
-                            dataAdd={pageData?.add}
-                            dataDelete={pageData?.delete}
-                            dataStatus={pageData?.status}
+                            dataDevices={pageData?.dataPage?.devices}
+                            dataAdd={pageData?.dataPage?.add}
+                            dataDelete={pageData?.dataPage?.delete}
+                            dataStatus={pageData?.dataPage?.status}
+                            isAll={pageData?.isAll}
                         />
                 }
             </DeviceManagementContext.Provider>
@@ -140,7 +153,7 @@ function DeviceManagementHome() {
         <Grid container spacing={2}>
             {
                 menuDatas.map(({ id : idMenu }) => {
-                    const { id , title , icon , color , subColor , allowedRoles } = categories[categoriesMapping[idMenu]]
+                    const { id , title , icon , color , subColor } = categories[categoriesMapping[idMenu]]
 
                     return(
                         <Grid key={id} size={{ xs : 12 }} justifyContent={"center"} display={"flex"}>

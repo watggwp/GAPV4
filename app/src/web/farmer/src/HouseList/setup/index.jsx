@@ -21,7 +21,7 @@ export default function HouseSetup() {
                 menuDatas={[
                     {
                         id : "greenhouse",
-                        endpoints : {
+                        dataPage : {
                             devices : {
                                 path : `/api/sensor/weather-greenhouse/:greenhouse_id`,
                                 query : {
@@ -56,7 +56,7 @@ export default function HouseSetup() {
                     },
                     {
                         id : "pump",
-                        endpoints : {
+                        dataPage : {
                             devices : {
                                 path : `/api/pump/:greenhouse_id`,
                                 query : {

@@ -27,7 +27,7 @@ export default function DeleteDevice({
         switch(status) {
             case 200 :
                 onClose()
-                dataDelete.onDeleteComplete?.()
+                dataDelete?.onDeleteComplete?.()
                 requestDevices()
                 break;
             default :

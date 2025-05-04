@@ -25,7 +25,7 @@ export default function ManageDevices({
                     padding : 3,
                     width : "90%",
                     maxWidth : 400,
-                    height : "90%",
+                    height : "80%",
                     flexDirection : "column"
                 }}
             >
@@ -43,7 +43,7 @@ export default function ManageDevices({
                         menuDatas={[
                             {
                                 id : "greenhouse",
-                                endpoints : {
+                                dataPage : {
                                     devices : {
                                         path : `/api/sensor/weather-greenhouse/:greenhouse_id`,
                                         query : {
@@ -80,7 +80,7 @@ export default function ManageDevices({
                             },
                             {
                                 id : "pump",
-                                endpoints : {
+                                dataPage : {
                                     devices : {
                                         path : `/api/pump/:greenhouse_id`,
                                         query : {

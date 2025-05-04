@@ -41,7 +41,7 @@ export default function ManageDevicesWeatherStation({
                         menuDatas={[
                             {
                                 id : "weather",
-                                endpoints : {
+                                dataPage : {
                                     devices : {
                                         path : `/api/sensor/weather-station/:selectedStation/list`,
                                         query : {
