@@ -1,5 +1,5 @@
 import paho.mqtt.client as mqtt 
-import json
+import json , os
 import requests
 from datetime import datetime
 import pytz 
@@ -7,11 +7,11 @@ import time
 
 # === CONFIG ===
 
-BROKER = "as1.cloud.thethings.industries"
+BROKER = os.environ["TTN_SENSOR_BROKER"]
 PORT = 1883
-USERNAME = "test2-app@mootunlesyslab"
-PASSWORD = "NNSXS.CZGZQNSZOBUJYB4AGDVMCRZ26RBXMDDXPH457IY.UTHV3QNMVH5LFYSRR6HJU2OIHWNHGT3IIF3JPAZU42MSDOU6PAXA"
-TOPIC = "v3/test2-app@mootunlesyslab/devices/+/up"
+USERNAME = os.environ["TTN_SENSOR_USERNAME"]
+PASSWORD = os.environ["TTN_SENSOR_PASSWORD"]
+TOPIC = os.environ["TTN_SENSOR_TOPIC"]
 
 with open("device_config.json") as f:
     DEVICE_CONFIG_MAP = json.load(f)
