@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt 
+from dotenv import load_dotenv
 import json , os
 import requests
 from datetime import datetime
@@ -6,6 +7,8 @@ import pytz
 import time
 
 # === CONFIG ===
+
+load_dotenv()
 
 BROKER = os.environ["TTN_SENSOR_BROKER"]
 PORT = 1883
@@ -15,7 +18,6 @@ TOPIC = os.environ["TTN_SENSOR_TOPIC"]
 
 with open("device_config.json") as f:
     DEVICE_CONFIG_MAP = json.load(f)
-
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
