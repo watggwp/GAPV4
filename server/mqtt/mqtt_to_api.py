@@ -16,7 +16,7 @@ USERNAME = os.environ["TTN_SENSOR_USERNAME"]
 PASSWORD = os.environ["TTN_SENSOR_PASSWORD"]
 TOPIC = os.environ["TTN_SENSOR_TOPIC"]
 
-with open("device_config.json") as f:
+with open("./server/mqtt/device_config.json") as f:
     DEVICE_CONFIG_MAP = json.load(f)
 
 def on_connect(client, userdata, flags, rc):
