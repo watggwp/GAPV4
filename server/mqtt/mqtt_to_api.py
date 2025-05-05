@@ -45,41 +45,44 @@ def on_message(client, userdata, msg):
         try:
             device_id = payload["end_device_ids"]["device_id"]
             timestamp = payload["received_at"]
+            print(f"📥 ข้อมูลใหม่จากอุปกรณ์: {device_id}")
+
             timestamp_fixed = timestamp[:26] + "Z"
             dt_utc = datetime.strptime(timestamp_fixed, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=pytz.utc)
             dt_bangkok = dt_utc.astimezone(pytz.timezone("Asia/Bangkok"))
 
             config = DEVICE_CONFIG_MAP.get(device_id)
             if not config:
-                # print(f"{dt_bangkok.isoformat()}  ไม่พบ config สำหรับอุปกรณ์: {device_id}", payload)
+                print(f"⚠️ ไม่พบ config สำหรับ device_id: {device_id}")
                 return
+
+            decoded = payload["uplink_message"].get("decoded_payload", {})
+            print("🔍 Decoded payload:", decoded)
 
             data = {
                 "device_id": device_id,
                 "timestamp": dt_bangkok.isoformat()
             }
 
-            decoded = payload["uplink_message"]["decoded_payload"]
-
             for field in config["fields"]:
                 value = decoded.get(field)
                 if value is not None:
                     data[field] = value
 
-            print(json.dumps(data, indent=2))
+            print("📦 Data to API:", data)
 
             try:
                 response = requests.post(config["api"], json=data)
-                # ไม่ต้อง print ถ้า post ไม่สำเร็จ
                 if response.ok:
                     print(f"📤 ส่งไปยัง API: {config['api']} → {response.status_code}")
-            except:
-                pass  # ไม่โชว์ error
-
-        except:
-            pass  # ไม่โชว์ error ภายใน block นี้
-    except:
-        pass  # ไม่โชว์ error json load
+                else:
+                    print(f"❌ ส่งไปยัง API ไม่สำเร็จ: {response.status_code} → {response.text}")
+            except Exception as e:
+                print(f"❗ เกิดข้อผิดพลาดในการส่ง API: {e}")
+        except Exception as e:
+            print(f"❌ เกิดข้อผิดพลาดใน on_message: {e}")
+    except Exception as e:
+        print(f"❌ เกิดข้อผิดพลาดขณะ decode JSON: {e}")
 
 
 # === Setup MQTT ===
