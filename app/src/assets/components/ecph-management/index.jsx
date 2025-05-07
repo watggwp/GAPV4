@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./index.scss";
 import { DataGrid } from "@mui/x-data-grid";
-import { Stack, Typography } from "@mui/material";
+import { Modal, Stack, Typography } from "@mui/material";
 import RequestAPI from "../../js/requestAPI";
 
 export default function EcPhManagement({
@@ -235,7 +235,7 @@ export default function EcPhManagement({
                                             hideFooter
                                             disableColumnSorting
                                             disableColumnMenu
-                                            rowHeight={36}
+                                            rowHeight={40}
                                             columnHeaderHeight={42}
                                             loading={loadingHistory}
                                         />
@@ -254,48 +254,58 @@ export default function EcPhManagement({
             </div>
 
             {/* ✅ Edit Modal */}
-            {
-                showEditModal && (
-                    <div className="modal-overlay">
-                        <div className="modal">
-                            <h3>แก้ไขค่า EC / pH</h3>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={editEcValue}
-                                onChange={(e) => setEditEcValue(e.target.value)}
-                                placeholder="ค่า EC"
-                            />
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={editPhValue}
-                                onChange={(e) => setEditPhValue(e.target.value)}
-                                placeholder="ค่า pH"
-                            />
-                            <div className="modal-buttons">
-                            <button
-                                onClick={async () => {
-                                    await handleSubmit();
-                                    setShowEditModal(false); // ปิด modal หลังอัปเดต
-                                    setSelectedItem(null);
-                                }}
-                            >
-                                อัปเดต
-                            </button>
-                                <button onClick={() => setShowEditModal(false)}>ยกเลิก</button>
-                            </div>
+            <Modal
+                open={showEditModal}
+            >
+                <Stack
+                    width={"100%"}
+                    height={"100%"}
+                    justifyContent={"center"}
+                    alignItems={"center"}
+                >
+                    <div className="ecph-modal">
+                        <h3>แก้ไขค่า EC / pH</h3>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={editEcValue}
+                            onChange={(e) => setEditEcValue(e.target.value)}
+                            placeholder="ค่า EC"
+                        />
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={editPhValue}
+                            onChange={(e) => setEditPhValue(e.target.value)}
+                            placeholder="ค่า pH"
+                        />
+                        <div className="modal-buttons">
+                        <button
+                            onClick={async () => {
+                                await handleSubmit();
+                                setShowEditModal(false); // ปิด modal หลังอัปเดต
+                                setSelectedItem(null);
+                            }}
+                        >
+                            อัปเดต
+                        </button>
+                            <button onClick={() => setShowEditModal(false)}>ยกเลิก</button>
                         </div>
                     </div>
-                )
-            }
-
+                </Stack>
+            </Modal>
 
             {/* ✅ Delete Modal */}
-            {
-                showDeleteModal && (
-                <div className="modal-overlay">
-                    <div className="modal">
+            <Modal
+                open={showDeleteModal}
+            >
+                <Stack
+                    width={"100%"}
+                    height={"100%"}
+                    justifyContent={"center"}
+                    alignItems={"center"}
+                >
+                    <div className="ecph-modal">
                         <h3>คุณต้องการลบรายการนี้หรือไม่?</h3>
                         <p>
                             EC: {selectedItem?.ec_value}, pH: {selectedItem?.ph_value}
@@ -324,9 +334,8 @@ export default function EcPhManagement({
                             <button onClick={() => setShowDeleteModal(false)}>ยกเลิก</button>
                         </div>
                     </div>
-                </div>
-                )
-            }
+                </Stack>
+            </Modal>
             </section>
     )
 }
