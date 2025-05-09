@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import ManualControl from './components/ManualControl';
 import ScheduleControl from './components/ScheduleControl';
 import HistoryPanel from './components/HistoryPanel';
@@ -6,6 +6,7 @@ import "./indax.scss";
 import { useCallback } from 'react';
 import RequestAPI from '../../js/requestAPI';
 
+export const DebounceTime = 120
 
 const PumpManagementContext = createContext({
     device_id : "",
@@ -21,7 +22,7 @@ export default function PumpManagement({
     showHistory,
     setShowHistory
 }) {
-    const [logs, setLogs] = useState([])
+    const [ logs, setLogs ] = useState([])
     const [ pumpIsOn , setPumpIsOn ] = useState(false)
 
     const setupPumpStage = useCallback((newLogs) => {

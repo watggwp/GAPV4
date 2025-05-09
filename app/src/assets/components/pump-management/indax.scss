@@ -33,6 +33,23 @@
         display: none;
     }
 
+    .switch {
+        .debounce {
+            position: absolute;
+            cursor: wait ;
+            background-color: #ccc;
+            transition: 0.4s;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
     .slider {
         position: absolute;
         cursor: pointer;

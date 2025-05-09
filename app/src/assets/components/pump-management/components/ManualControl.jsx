@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import ToggleSwitch from './ToggleSwitch';
 import { Box } from '@mui/material';
 import RequestAPI from '../../../js/requestAPI';
@@ -9,6 +9,8 @@ export default function ManualControl({
     setIsOn
 }) {
     const { device_id , role , setLogs , setupPumpStage } = usePumpManagement()
+
+    const [ loadingToggle , setLoadingToggle ] = useState(false)
 
     const addManualHistory = useCallback((newLogs) => {
         setLogs(prev => [
@@ -27,8 +29,8 @@ export default function ManualControl({
             action = "off"
         }
 
+        setLoadingToggle(true)
         setIsOn(prev => !prev)
-
         const { data , status } = await RequestAPI.post(`/api/pump/${device_id}/control` , {
             action : action
         } , {
@@ -36,6 +38,7 @@ export default function ManualControl({
                 r : role
             }
         })
+        setLoadingToggle(false)
 
         switch(status) {
             case 200 :
@@ -57,7 +60,7 @@ export default function ManualControl({
             </div>
 
             <h2>เปิด-ปิด ปั๊ม</h2>
-            <ToggleSwitch isOn={isOn} onToggle={handleToggle} />
+            <ToggleSwitch isOn={isOn} onToggle={handleToggle} loadingToggle={loadingToggle}/>
         </Box>
     );
 }

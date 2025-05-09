@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ScheduleList from './ScheduleList';
 import { Box, Button, Stack } from '@mui/material';
-import { usePumpManagement } from '..';
+import { DebounceTime, usePumpManagement } from '..';
 import RequestAPI from '../../../js/requestAPI';
 import { useRef } from 'react';
 import ApproveDialogApp from '../../ApproveDialogApp';
 
 import TimePickerApp from "../../TimePickerApp"
+import { useDebounce } from '../../useRoyalGAP';
 
 export default function ScheduleControl() {
     const { device_id , role } = usePumpManagement()
@@ -97,6 +98,12 @@ export default function ScheduleControl() {
         requestSchedule()
     }, [requestSchedule])
 
+    const timestamp = useMemo(() =>
+        schedules[schedules.length - 1]?.created_at || 0
+    , [schedules])
+
+    const debounce = useDebounce(timestamp , DebounceTime)
+
     return (
         <Box className="section control-box" bgcolor={"secondary.main"}>
             <h2>ตั้งเวลา เปิด-ปิด ปั๊ม</h2>
@@ -121,7 +128,20 @@ export default function ScheduleControl() {
                     จำนวน (นาที)
                     <input type="number" style={{ textAlign : "center" }} value={duration} onChange={e => setDuration(e.target.value)} />
                 </label>
-                <Button disabled={loadingAdd} sx={{ marginTop : 1 }} variant="contained" size="small" onClick={handleAdd}>เพิ่ม</Button>
+                <Button 
+                    disabled={loadingAdd || debounce > 0} 
+                    sx={{ 
+                        marginTop : 1 , textTransform : "none", 
+                        color : debounce > 0 ? "black !important" : undefined
+                    }} 
+                    variant="contained" 
+                    size="small" 
+                    onClick={handleAdd}
+                >
+                    {
+                        debounce > 0 ? `${debounce}s` : "เพิ่ม"
+                    }
+                </Button>
             </div>
             {
                 !loading && (

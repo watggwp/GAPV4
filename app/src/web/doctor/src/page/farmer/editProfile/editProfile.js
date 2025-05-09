@@ -64,10 +64,11 @@ const EditProfile = ({DataProfile , session , CheckEditFun}) => {
                 setListStation(search.sort((a , b)=>a.dist - b.dist).slice(0 , 2))
                 return { lag : Lagitude , lng : Longitude }
             } else {
-                setLag(DataProfile.location.x)
-                setLng(DataProfile.location.y)
+                const { location : { x , y } = {} } = DataProfile || {}
+                setLag(x)
+                setLng(y)
                 // setListStation([])
-                return { lag : DataProfile.location.x , lng : DataProfile.location.y }
+                return { lag : x , lng : y }
             }
 
             // let Location = valueLocation.split("/").filter((val)=>val.indexOf("data") >= 0)
@@ -128,7 +129,7 @@ const EditProfile = ({DataProfile , session , CheckEditFun}) => {
         const ckID = id_farmer.current.value && id_farmer.current.value != DataProfile.id_farmer
         const ckName = PatternCheck(fullname.current.value).fullname && fullname.current.value && fullname.current.value != DataProfile.fullname
         const ckLocation = lagIn != 0 && lngIn != 0 
-                            && (lagIn != DataProfile.location.x || lngIn != DataProfile.location.y)
+                            && (lagIn != DataProfile.location?.x || lngIn != DataProfile.location?.y)
         const ckStation = station.current ? station.current.value && station.current.value != DataProfile.station : ""
         const ckTel = Tel_number.current.value && Tel_number.current.value != DataProfile.tel_number
         const ckText_location = Text_location.current.value && Text_location.current.value != DataProfile.text_location
