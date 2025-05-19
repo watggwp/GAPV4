@@ -95,6 +95,8 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         pathRewrite: (path, req) => {
             if (path === '/') {
                 return '/gap-log-dashboard';
+            } else if (path === '/ws') {
+                return 'gap-log-dashboard-ws';
             }
             return '/gap-log-dashboard' + path;
         }
