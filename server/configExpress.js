@@ -92,9 +92,12 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         target: 'http://localhost:8000',
         changeOrigin: true,
         ws: true,
-        pathRewrite: {
-            '^/gap-log-dashboard': '/gap-log-dashboard',
-        },
+        pathRewrite: (path, req) => {
+            if (path === '/') {
+                return '/gap-log-dashboard';
+            }
+            return '/gap-log-dashboard' + path;
+        }
     }))
    
     // app.use(express.json())
