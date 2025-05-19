@@ -96,7 +96,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
             if (path === '/') {
                 return '/gap-log-dashboard';
             } else if (path === '/ws') {
-                return 'gap-log-dashboard-ws';
+                return '/gap-log-dashboard-ws';
             }
             return '/gap-log-dashboard' + path;
         }
