@@ -16,7 +16,8 @@ const db = require('mysql2');
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
 const fs = require('fs');
-const { spawn } = require('child_process')
+const { spawn } = require('child_process');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
@@ -85,6 +86,16 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         },
         resave : false
     })
+
+    // set proxy
+    app.use('/gap-log-dashboard', createProxyMiddleware({
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+        pathRewrite: {
+            '^/gap-log-dashboard': '/gap-log-dashboard',
+        },
+    }))
    
     // app.use(express.json())
     app.use(cookieParser())
