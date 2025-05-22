@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { Box, Grid, MenuItem, Select, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DataGrid } from "@mui/x-data-grid"
@@ -70,34 +70,39 @@ export default function WeatherManagement({
     }) , [query.r])
 
     const requestWeatherManagement = useCallback( async (starttime , endtime , isMount) => {
+        setHistoryDatas([])
+        setChartDatas([])
         setLoadingHistory(true)
 
-        setDateStart(new Date(starttime))
-        setDateEnd(new Date(endtime))
-        const { data , status } = await RequestAPI.get(endpointData , {
-            "st" : starttime,
-            "et" : endtime,
-            ...(Query || {})
+        startTransition( async () => {
+            setDateStart(new Date(starttime))
+            setDateEnd(new Date(endtime))
+            
+            const { data , status } = await RequestAPI.get(endpointData , {
+                "st" : starttime,
+                "et" : endtime,
+                ...(Query || {})
+            })
+            setLoadingHistory(false)
+
+            switch(status) {
+                case 200 :
+                    const { details } = data
+                    const newDatas = details?.map((item , index) => {
+                        return {
+                            ...item,
+                            id : index,
+                            timestamp : new DateGAP(item[columnTimestamp]).format2Str("DD/MM/YYYY HH:II"),
+                        }
+                    }) || []
+
+                    setChartDatas(Array.isArray(newDatas) ? newDatas.sort() : [])
+                    setHistoryDatas(newDatas)
+                    break;
+                default :
+                    break;
+            }
         })
-        setLoadingHistory(false)
-
-        switch(status) {
-            case 200 :
-                const { details } = data
-                const newDatas = details?.map((item , index) => {
-                    return {
-                        ...item,
-                        id : index,
-                        timestamp : new DateGAP(item[columnTimestamp]).format2Str("DD/MM/YYYY HH:II"),
-                    }
-                }) || []
-
-                setChartDatas(Array.isArray(newDatas) ? newDatas.sort() : [])
-                setHistoryDatas(newDatas)
-                break;
-            default :
-                break;
-        }
         isMount && clientMo.unLoadingPage()
     } , [columnTimestamp, endpointData, Query])
 
@@ -136,7 +141,7 @@ export default function WeatherManagement({
             height={"100%"}
             alignItems={"center"}
         >
-            <Grid container width={"100%"} height={"100%"} justifyContent={"center"}>
+            <Grid container width={"100%"} height={"100%"} justifyContent={"center"} flexDirection={!isMediaSm ? "row-reverse" : "row"}>
                 <Grid size={{ sm : 12 , md : 6 }} height={isMediaSm ? "55%" : "100%"} minHeight={isMediaSm ? "300px" : 0}>
                     <TabsGAP 
                         value={selectedTab} 
@@ -153,25 +158,28 @@ export default function WeatherManagement({
                         }
                     </TabsGAP>
                     <Stack width={"100%"} height={`calc(100% - 35px - ${Boolean(!startTime && !endTime) ? "112px" : "10px"})`} marginTop={1} justifyContent={"center"} alignItems={"center"}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                                data={chartDatas}
-                                margin={{
-                                    top: 5,
-                                    left: -30,
-                                    right: 30,
-                                    bottom: 5,
-                                }}
-                                width={250}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
-                                <YAxis fontSize={"12px"} />
-                                <Tooltip />
-                                <Legend wrapperStyle={{ fontSize: '12px'  , fontFamily : "Sans-font" , width : "100%" , left : 0 }} />
-                                <Line type="monotone" dataKey={columns[selectedTab].field} stroke={columns[selectedTab].color} name={columns[selectedTab].name} dot={false} />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        {
+                            !loadingHistory &&
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart
+                                        data={chartDatas}
+                                        margin={{
+                                            top: 5,
+                                            left: -30,
+                                            right: 30,
+                                            bottom: 5,
+                                        }}
+                                        width={250}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
+                                        <YAxis fontSize={"12px"} />
+                                        <Tooltip />
+                                        <Legend wrapperStyle={{ fontSize: '12px'  , fontFamily : "Sans-font" , width : "100%" , left : 0 }} />
+                                        <Line type="monotone" dataKey={columns[selectedTab].field} stroke={columns[selectedTab].color} name={columns[selectedTab].name} dot={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                        }
                     </Stack>
                     {
                         Boolean(!startTime && !endTime) && (
