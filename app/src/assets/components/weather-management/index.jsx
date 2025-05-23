@@ -77,7 +77,7 @@ export default function WeatherManagement({
         startTransition( async () => {
             setDateStart(new Date(starttime))
             setDateEnd(new Date(endtime))
-            
+
             const { data , status } = await RequestAPI.get(endpointData , {
                 "st" : starttime,
                 "et" : endtime,
@@ -96,7 +96,7 @@ export default function WeatherManagement({
                         }
                     }) || []
 
-                    setChartDatas(Array.isArray(newDatas) ? newDatas.sort() : [])
+                    setChartDatas(Array.isArray(newDatas) ? newDatas : [])
                     setHistoryDatas(newDatas)
                     break;
                 default :
@@ -141,7 +141,7 @@ export default function WeatherManagement({
             height={"100%"}
             alignItems={"center"}
         >
-            <Grid container width={"100%"} height={"100%"} justifyContent={"center"} flexDirection={!isMediaSm ? "row-reverse" : "row"}>
+            <Grid container width={"100%"} height={"100%"} justifyContent={"center"}>
                 <Grid size={{ sm : 12 , md : 6 }} height={isMediaSm ? "55%" : "100%"} minHeight={isMediaSm ? "300px" : 0}>
                     <TabsGAP 
                         value={selectedTab} 
