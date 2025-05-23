@@ -96,7 +96,7 @@ export default function WeatherManagement({
                         }
                     }) || []
 
-                    setChartDatas(Array.isArray(newDatas) ? newDatas : [])
+                    setChartDatas(Array.isArray(newDatas) ? newDatas.sort((a , b) => b.id - a.id) : [])
                     setHistoryDatas(newDatas)
                     break;
                 default :
