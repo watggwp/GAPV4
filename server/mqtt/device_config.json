@@ -1,6 +1,6 @@
 {
     "nong-khiew-greenhouse": {
-        "api": "http://localhost:3001/api/sensor/weather-greenhouse",
+        "api": "http://localhost:8031/api/sensor/weather-greenhouse",
         "fields": [
             "humidity",
             "temperature",
@@ -11,7 +11,7 @@
         ]
     },
     "kae-noi-greenhouse": {
-        "api": "http://localhost:3001/api/sensor/weather-greenhouse",
+        "api": "http://localhost:8031/api/sensor/weather-greenhouse",
         "fields": [
             "humidity",
             "temperature",
@@ -22,7 +22,7 @@
         ]
     },
     "mae-tho-greenhouse": {
-        "api": "http://localhost:3001/api/sensor/weather-greenhouse",
+        "api": "http://localhost:8031/api/sensor/weather-greenhouse",
         "fields": [
             "humidity",
             "temperature",
@@ -33,7 +33,7 @@
         ]
     },
     "nong-khiew-weather": {
-        "api": "http://localhost:3001/api/sensor/weather-station",
+        "api": "http://localhost:8031/api/sensor/weather-station",
         "fields": [
             "temperature",
             "humidity",
