@@ -42,7 +42,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     );
 
     python.stdout.setEncoding('utf8')
-    python.stdout.on('data', data => console.log(`stdout: ${data}`));
+    // python.stdout.on('data', data => console.log(`stdout: ${data}`));
     python.stderr.on('data', data => console.error(`stderr: ${data}`));
 
     const mode = process.argv[2]
