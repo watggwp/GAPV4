@@ -9,6 +9,7 @@ wordcut.init()
 const {Server} = require('socket.io')
 const LINE = require('./configLine');
 const ConnentPool = require('./connectPool');
+const RoyalGapEnv = require('./core/env');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
@@ -928,9 +929,9 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                     con.end()
                     res.send('account')
                 }
-                else if(result['data']['fullname_doctor'] 
-                        && result['data']['station_doctor']) {
-                      
+                else if(result['data']['fullname_doctor'] && result['data']['station_doctor']) {
+                    req.session.user_id = result['data']["id_table_doctor"]
+                    req.session.account_type = RoyalGapEnv.access_type.doctor
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password

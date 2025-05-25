@@ -8,6 +8,7 @@ const RichHouse = process.env.RICH_HOUSE
 
 const { Server } = require('socket.io');
 const AuthorizeUser = require('./core/authorize');
+const RoyalGapEnv = require('./core/env');
 const io = new Server()
 
 module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , apifunc, dbpacket, listDB, socket = io, LINE = line) {
@@ -24,6 +25,10 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             try {
                 const auth = await authCheck(con, dbpacket, res, req, LINE)
                 con.end()
+
+                req.session.user_id = auth["data"]["id_table"]
+                req.session.account_type = RoyalGapEnv.access_type.farmer
+                
                 res.send(auth.result)
             } catch (err) {
                 con.end()

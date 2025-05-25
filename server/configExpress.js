@@ -27,6 +27,7 @@ const apiPump = require('./apiPump');
 const apiWeatherStation = require('./apiWeatherStation');
 const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
 const apiEcph = require('./apiEcph');
+const logging = require('./middleware/userAccessLogs');
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
@@ -115,6 +116,9 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(sessionMiddleware)
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+    // middleware custom
+    app.use(logging(Pool))
     
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     const origins = [

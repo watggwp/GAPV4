@@ -26,13 +26,11 @@ class ConnectionPool {
             try {
                 this.pool.query(query, params, (error, results) => {
                     if (error) {
-                        console.error('Error executing query:', error);
                         reject(error);
                     }
                     resolve(results);
                 });
             } catch(error) {
-                console.log(error)
                 reject(error);
             }
         });
