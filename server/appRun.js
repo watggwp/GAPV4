@@ -12,9 +12,10 @@ module.exports = function appRun(username , password){
             const listener = await ngrok.forward({
                 addr: Port,
                 domain: process.env.NGROk_URL,
+                authtoken_from_env : true
             });
             
-            console.log('Ngrok URL:', listener.url)
+            console.log('Ngrok URL:', listener.url())
         }
     });
 }
