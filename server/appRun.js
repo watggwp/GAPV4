@@ -9,7 +9,7 @@ module.exports = function appRun(username , password){
         console.log('Start on port '+Port+'!\n');
 
         if(process.env.NGROk_URL) {
-            const ngrokGap = new ngrok.NgrokClient(process.env.NGROk_URL)
+            const ngrokGap = new ngrok.NgrokClient(`https:${process.env.NGROk_URL}`)
 
             const listener = await ngrokGap.startTunnel({
                 addr : Port,
