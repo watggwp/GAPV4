@@ -9,12 +9,11 @@ module.exports = function appRun(username , password){
         console.log('Start on port '+Port+'!\n');
 
         if(process.env.NGROk_URL) {
-            const url = await ngrok.connect({
-                proto: 'http',
+            const listener = await ngrok.forward({
                 addr: Port,
                 domain: process.env.NGROk_URL,
             });
-            console.log('Ngrok URL:', url)
+            console.log('Ngrok URL:', listener.url)
         }
     });
 }
