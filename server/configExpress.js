@@ -31,7 +31,7 @@ const apiEcph = require('./apiEcph');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
-    const python = spawn('python3', ['./mqtt/mqtt_to_api.py']);
+    const python = spawn('python3', ['./server/mqtt/mqtt_to_api.py']);
 
     python.stdout.on('sensor', data => console.log(`stdout: ${data}`));
     python.stderr.on('sensor', data => console.error(`stderr: ${data}`));
