@@ -6,5 +6,10 @@ module.exports = function appRun(username , password){
     const Port = parseInt(process.env.REACT_APP_API_PORT ?? "80")
     app.listen( Port , "0.0.0.0" , function () {
         console.log('Start on port '+Port+'!\n');
+
+        // if(process.argv[5]) {
+        //     process.env.NGROk_URL = process.argv[5]
+        //     console.log()
+        // }
     });
 }

@@ -37,13 +37,12 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
                 ...process.env,
                 PYTHONIOENCODING: 'utf-8'
             },
-            stdio: 'pipe',
+            stdio: ['ignore', 'ignore'],
         }
     );
 
     python.stdout.setEncoding('utf8')
-    // python.stdout.on('data', data => console.log(`stdout: ${data}`));
-    python.stderr.on('data', data => console.error(`stderr: ${data}`));
+    python.stdout.on('data', data => console.log(`stdout: ${data}`));
 
     const mode = process.argv[2]
     const app = express();
