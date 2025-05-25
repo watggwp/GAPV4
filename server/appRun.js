@@ -1,4 +1,4 @@
-const ngrok = require('ngrok')
+const ngrok = require("@ngrok/ngrok")
 
 const appConfig = require("./configExpress")
 module.exports = function appRun(username , password){
