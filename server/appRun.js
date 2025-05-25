@@ -1,5 +1,6 @@
+const ngrok = require('ngrok')
+
 const appConfig = require("./configExpress")
-const fs = require('fs')
 module.exports = function appRun(username , password){
     console.log("Load Server...")
     const app = appConfig(username , password , process.env.URL_SERVER) 
@@ -12,7 +13,7 @@ module.exports = function appRun(username , password){
             const url = await ngrok.connect({
                 proto: 'http',
                 addr: Port,
-                subdomain: process.env.NGROk_URL,  // ต้องสมัคร ngrok pro
+                subdomain: process.env.NGROk_URL,
             });
             console.log('Ngrok URL:', url)
         }
