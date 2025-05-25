@@ -16,6 +16,8 @@ USERNAME = os.environ["TTN_SENSOR_USERNAME"]
 PASSWORD = os.environ["TTN_SENSOR_PASSWORD"]
 TOPIC = os.environ["TTN_SENSOR_TOPIC"]
 
+API_PORT = os.environ["REACT_APP_API_PORT"]
+
 with open("./server/mqtt/device_config.json") as f:
     DEVICE_CONFIG_MAP = json.load(f)
 
@@ -74,9 +76,10 @@ def on_message(client, userdata, msg):
             print("📦 Data to API:", data)
 
             try:
-                response = requests.post(config["api"], json=data)
+                endpoint_api = config["api"].format(PORT=API_PORT)
+                response = requests.post(endpoint_api, json=data)
                 if response.ok:
-                    print(f"📤 ส่งไปยัง API: {config['api']} → {response.status_code}")
+                    print(f"📤 ส่งไปยัง API: {endpoint_api} → {response.status_code}")
                 else:
                     print(f"❌ ส่งไปยัง API ไม่สำเร็จ: {response.status_code} → {response.text}")
             except Exception as e:
