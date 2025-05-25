@@ -34,8 +34,8 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     const python = spawn('python', ['./server/mqtt/mqtt_to_api.py']);
 
     console.log(python.pid)
-    python.stdout.on('sensor', data => console.log(`stdout: ${data}`));
-    python.stderr.on('sensor', data => console.error(`stderr: ${data}`));
+    python.stdout.on('data', data => console.log(`stdout: ${data}`));
+    python.stderr.on('data', data => console.error(`stderr: ${data}`));
 
     const mode = process.argv[2]
     const app = express();
