@@ -1,4 +1,4 @@
-const ngrok = require("ngrok")
+const ngrok = require("@ngrok/ngrok")
 
 const appConfig = require("./configExpress")
 module.exports = function appRun(username , password){
@@ -9,12 +9,12 @@ module.exports = function appRun(username , password){
         console.log('Start on port '+Port+'!\n');
 
         if(process.env.NGROk_URL) {
-            const ngrokGap = new ngrok.NgrokClient(`https:${process.env.NGROk_URL}`)
-
-            const listener = await ngrokGap.startTunnel({
-                addr : Port,
-            })
-            console.log('Ngrok URL:', listener.uri)
+            const listener = await ngrok.forward({
+                addr: Port,
+                domain: process.env.NGROk_URL,
+            });
+            
+            console.log('Ngrok URL:', listener.url)
         }
     });
 }
