@@ -31,9 +31,14 @@ const apiEcph = require('./apiEcph');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
-    const python = spawn('python', ['./server/mqtt/mqtt_to_api.py']);
+    const python = spawn(
+        'python', ['./server/mqtt/mqtt_to_api.py'] , {
+            env : process.env,
+            stdio: 'pipe',
+        }
+    );
 
-    console.log(python.pid)
+    python.stdout.setEncoding('utf8')
     python.stdout.on('data', data => console.log(`stdout: ${data}`));
     python.stderr.on('data', data => console.error(`stderr: ${data}`));
 
