@@ -33,7 +33,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
  
     const python = spawn(
         'python', ['./server/mqtt/mqtt_to_api.py'] , {
-            env : process.env,
+            env : {
+                ...process.env,
+                PYTHONIOENCODING: 'utf-8'
+            },
             stdio: 'pipe',
         }
     );
