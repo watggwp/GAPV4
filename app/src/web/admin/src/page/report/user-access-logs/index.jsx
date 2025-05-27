@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import RequestAPI from "../../../../../../assets/js/requestAPI";
 import { useAdminContext } from "../../../Admin";
 import { Grid, MenuItem, Select, Stack, Tab, Tabs } from "@mui/material";
@@ -77,11 +77,15 @@ export default function UserAccessLogs({
                         onChange={onSelectedStation}
                         fullWidth
                     >
-                        <MenuItem value="" disabled>
-                            {
-                                loadingStations ? "กำลังโหลดศูนย์" : "เลือกศูนย์"
-                            }
-                        </MenuItem>
+                        {
+                            loadingStations ?
+                                <MenuItem value="" disabled>
+                                    กำลังโหลดศูนย์
+                                </MenuItem> :
+                                 <MenuItem value="">
+                                    ศูนย์ทั้งหมด
+                                </MenuItem>
+                        }
                         {
                             stations.map(({ id , name }) => 
                                 <MenuItem key={id} value={id}>{name}</MenuItem>
