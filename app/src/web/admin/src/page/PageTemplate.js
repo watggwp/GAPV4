@@ -4,6 +4,7 @@ import "../assets/style/page/List.scss"
 
 import ListData from "./ListData";
 import { InsertStatisticsProvider } from "./report/statistics/InsertStatistics";
+import UserAccessLogs from "./report/user-access-logs";
 
 export const PageTemplateContext = createContext({
     popupDataManage : {
@@ -31,7 +32,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     HrefData.get() === "group?default" ? "group" : 
                     HrefData.get() === "report?listlocation" ? "listlocation" : 
                     HrefData.get() === "report?graph" ? "graph" : 
-                    HrefData.get() === "report?statistics" ? "statistics" :  "",
+                    HrefData.get() === "report?statistics" ? "statistics" :
+                    HrefData.get() === "report?user-access-logs" ? "user-access-logs" :  "",
         changePath : addHref
     }) 
 
@@ -47,7 +49,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                     HrefData.get() === "group?default" ? "group" :  
                     HrefData.get() === "report?listlocation" ? "listlocation" : 
                     HrefData.get() === "report?graph" ? "graph" : 
-                    HrefData.get() === "report?statistics" ? "statistics" :  "",
+                    HrefData.get() === "report?statistics" ? "statistics" :
+                    HrefData.get() === "report?user-access-logs" ? "user-access-logs" :  "",
     })
 
     const [getTimeOut , setTimeOut] = useState(0)
@@ -91,7 +94,8 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
                         HrefData.get() === "group?default=pop" ? "group" : 
                         HrefData.get() === "report?listlocation=pop" ? "listlocation" : 
                         HrefData.get() === "report?graph=pop" ? "graph" : 
-                        HrefData.get() === "report?statistics=pop" ? "statistics" :  "";
+                        HrefData.get() === "report?statistics=pop" ? "statistics" :
+                        HrefData.get() === "report?user-access-logs=pop" ? "user-access-logs" :  "";
         setStatus({
             status : status, //ใช้ภายในหน้าได้
             changePath : false
@@ -103,7 +107,7 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
             if(auth(true)) {
                 setStatus({status : statusClick , changePath : true})
                 HrefData.set(`${HrefData.get().split("?")[0]}?${statusClick}=c`)
-                TextSearchRef.current.value = ""
+                if(TextSearchRef.current) TextSearchRef.current.value = ""
             }
         }
     }
@@ -134,104 +138,128 @@ const PageTemplate = ({socket , addHref = false , HrefData , modify , auth , ses
             }}
         >
             <section className="page-manage">
-    <InsertStatisticsProvider>
-        <div className="menu-page">
-            {/* แสดงปุ่มเพิ่มข้อมูล */}
-            {["default", "admin", "plant", "station", "group", "chemical", "pest", "report"].includes(StateOnPage.status) && (
-                <div className="bt-add">
-                    <svg 
-                        onClick={() => setPopupDataManage({ open: true, type: "insert" })} 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="1em" height="1em" viewBox="0 0 32 32">
-                        <path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/>
-                    </svg>
-                </div>
-            )}
+                <InsertStatisticsProvider>
+                    <div className="menu-page">
+                        {/* แสดงปุ่มเพิ่มข้อมูล */}
+                        {["default", "admin", "plant", "station", "group", "chemical", "pest", "report"].includes(StateOnPage.status) && (
+                            <div className="bt-add">
+                                <svg 
+                                    onClick={() => setPopupDataManage({ open: true, type: "insert" })} 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="1em" height="1em" viewBox="0 0 32 32">
+                                    <path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z"/>
+                                </svg>
+                            </div>
+                        )}
 
-{StateOnPage.status !== "group" && (
-    <select 
-        ref={dropdownRef}
-        className={`dropdown-status ${
-            ["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status) ? "dropdown-status-default" :
-            ["plant", "chemical", "pest", "station"].includes(StateOnPage.status) ? "dropdown-status-plant" :
-            ["listlocation", "graph", "statistics"].includes(StateOnPage.status) ? "dropdown-status-location" : ""
-        }`}
-        onChange={(e) => ChangeStatus(e.target.value)} 
-        value={StateOnPage.status}
-    >
-        {["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status) && (
-            <>
-                <option value="default">แสดงบัญชีผู้ส่งเสริมที่ยังไม่ถูกลบ</option>
-                <option value="delete">แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</option>
-                <option value="admin">แสดงบัญชีผู้ดูแลระบบที่ยังไม่ถูกลบ</option>
-                <option value="deleteAdmin">แสดงบัญชีผู้ดูแลระบบที่ถูกลบ</option>
-            </>
-        )}
+                        {
+                            StateOnPage.status !== "group" && (
+                                <select 
+                                    ref={dropdownRef}
+                                    className={`dropdown-status ${
+                                        ["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status) ? "dropdown-status-default" :
+                                        ["plant", "chemical", "pest", "station"].includes(StateOnPage.status) ? "dropdown-status-plant" :
+                                        ["listlocation", "graph", "statistics", "user-access-logs"].includes(StateOnPage.status) ? "dropdown-status-location" : ""
+                                    }`}
+                                    onChange={(e) => ChangeStatus(e.target.value)} 
+                                    value={StateOnPage.status}
+                                >
+                                    {["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status) && (
+                                        <>
+                                            <option value="default">แสดงบัญชีผู้ส่งเสริมที่ยังไม่ถูกลบ</option>
+                                            <option value="delete">แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</option>
+                                            <option value="admin">แสดงบัญชีผู้ดูแลระบบที่ยังไม่ถูกลบ</option>
+                                            <option value="deleteAdmin">แสดงบัญชีผู้ดูแลระบบที่ถูกลบ</option>
+                                        </>
+                                    )}
 
-        {["plant", "chemical", "pest", "station"].includes(StateOnPage.status) && (
-            <>
-                <option value="plant">แสดงรายการชนิดพืช</option>
-                <option value="chemical">แสดงรายการสารเคมี</option>
-                <option value="pest">แสดงรายการโรคพืช / ศัตรูพืช</option>
-                <option value="station">แสดงรายการศูนย์</option>
-            </>
-        )}
+                                    {["plant", "chemical", "pest", "station"].includes(StateOnPage.status) && (
+                                        <>
+                                            <option value="plant">แสดงรายการชนิดพืช</option>
+                                            <option value="chemical">แสดงรายการสารเคมี</option>
+                                            <option value="pest">แสดงรายการโรคพืช / ศัตรูพืช</option>
+                                            <option value="station">แสดงรายการศูนย์</option>
+                                        </>
+                                    )}
 
-        {["listlocation", "graph", "statistics"].includes(StateOnPage.status) && (
-            <>
-                <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
-                <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
-                <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
-            </>
-        )}
-    </select>
-)}
+                                    {["listlocation", "graph", "statistics" , "user-access-logs"].includes(StateOnPage.status) && (
+                                        <>
+                                            <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
+                                            <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
+                                            <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
+                                            <option value="user-access-logs">แสดงสถิติการเข้าใช้งานระบบ</option>
+                                        </>
+                                    )}
+                                </select>
+                            )
+                        }
 
-            {/* ปุ่มเฉพาะ group */}
-            {StateOnPage.status === "group" && (
-                <button className="bt-group" onClick={() => ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button>
-            )}
+                        {/* ปุ่มเฉพาะ group */}
+                        {StateOnPage.status === "group" && (
+                            <button className="bt-group" onClick={() => ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button>
+                        )}
 
-            {/* ค้นหา */}
-            <div className="search">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
-                    <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-                        <path d="m11.25 11.25l3 3"/>
-                        <circle cx="7.5" cy="7.5" r="4.75"/>
-                    </g>
-                </svg>
-                <input
-                    value={getTextSearchValue}
-                    autoComplete="none" 
-                    ref={TextSearchRef}
-                    onInput={(e)=>{
-                        setTextSearchValue(e.target.value);
-                        clearTimeout(getTimeOut);
-                        setTimeOut(setTimeout(() => {
-                            setTextSearch(e.target.value);
-                        }, 2000));
-                    }} 
-                    type="text"
-                    placeholder="Search"
-                />
-                <svg xmlns="http://www.w3.org/2000/svg" onClick={() => {
-                    clearTimeout(getTimeOut);
-                    setTextSearch("");
-                    TextSearchRef.current.value = "";
-                }} width="1em" height="1em" viewBox="0 0 32 32">
-                    <path fill="currentColor" d="M16 2C8.2 2 2 8.2 2 16s6.2 14 14 14s14-6.2 14-14S23.8 2 16 2zm5.4 21L16 17.6L10.6 23L9 21.4l5.4-5.4L9 10.6L10.6 9l5.4 5.4L21.4 9l1.6 1.6l-5.4 5.4l5.4 5.4l-1.6 1.6z"/>
-                </svg>
-            </div>
-        </div>
+                        {/* ค้นหา */}
+                        {
+                            StatusPage.status !== "user-access-logs" && (
+                                <div className="search">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
+                                        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                                            <path d="m11.25 11.25l3 3"/>
+                                            <circle cx="7.5" cy="7.5" r="4.75"/>
+                                        </g>
+                                    </svg>
+                                    <input
+                                        value={getTextSearchValue}
+                                        autoComplete="none" 
+                                        ref={TextSearchRef}
+                                        onInput={(e)=>{
+                                            setTextSearchValue(e.target.value);
+                                            clearTimeout(getTimeOut);
+                                            setTimeOut(setTimeout(() => {
+                                                setTextSearch(e.target.value);
+                                            }, 2000));
+                                        }} 
+                                        type="text"
+                                        placeholder="Search"
+                                    />
+                                    <svg xmlns="http://www.w3.org/2000/svg" onClick={() => {
+                                        clearTimeout(getTimeOut);
+                                        setTextSearch("");
+                                        TextSearchRef.current.value = "";
+                                    }} width="1em" height="1em" viewBox="0 0 32 32">
+                                        <path fill="currentColor" d="M16 2C8.2 2 2 8.2 2 16s6.2 14 14 14s14-6.2 14-14S23.8 2 16 2zm5.4 21L16 17.6L10.6 23L9 21.4l5.4-5.4L9 10.6L10.6 9l5.4 5.4L21.4 9l1.6 1.6l-5.4 5.4l5.4 5.4l-1.6 1.6z"/>
+                                    </svg>
+                                </div>
+                            )
+                        }
+                    </div>
 
-        {/* รายการแสดงผล */}
-        <div className="list-manage">
-            <ListData socket={socket} status={StatusPage} auth={auth} session={session} TabOn={TabOn} HrefPage={HrefData} setStateOnPage={setStateOnPage} modify={modify} textSearch={getTextSearch}
-            />
-        </div>
-    </InsertStatisticsProvider>
-</section>
-
+                    {/* รายการแสดงผล */}
+                    {
+                        StatusPage.status !== "user-access-logs" ? (
+                            <div className="list-manage">
+                                <ListData 
+                                    socket={socket} 
+                                    status={StatusPage} 
+                                    auth={auth} 
+                                    session={session} 
+                                    TabOn={TabOn}
+                                    HrefPage={HrefData} 
+                                    setStateOnPage={setStateOnPage} 
+                                    modify={modify} 
+                                    textSearch={getTextSearch}
+                                />
+                            </div>
+                        ) : (
+                            <UserAccessLogs
+                                HrefPage={HrefData}
+                                status={StatusPage}
+                            />
+                        )
+                    }
+                </InsertStatisticsProvider>
+            </section>
         </PageTemplateContext.Provider>
     )
 }

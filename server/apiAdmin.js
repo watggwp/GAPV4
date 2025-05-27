@@ -2,11 +2,14 @@
 
 const { request } = require('axios');
 const LINE = require('./configLine');
+const ConnectionPool = require('./connectPool');
+const RoyalGapEnv = require('./core/env');
+const { ca } = require('date-fns/locale');
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
-module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB , socket , Line = LINE) {
+module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , socket , Line = LINE) {
   
   app.post('/api/admin/check' , (req , res)=>{
     res.redirect('/api/admin/auth');
@@ -14,8 +17,8 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
   
 // doctor page
   app.post('/api/admin/doctor/list' , async (req , res)=>{
-    const username = req.session.user_admin
-    const password = req.session.pass_admin
+    const username = req.session.user_username
+    const password = req.session.user_password
     
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -70,8 +73,8 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
 
   // admin page
   app.post('/api/admin/admin/list' , async (req , res)=>{
-    const username = req.session.user_admin
-    const password = req.session.pass_admin
+    const username = req.session.user_username
+    const password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -124,8 +127,8 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
   })
 
   app.post('/api/admin/doctor/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
     
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -169,8 +172,8 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
   })
 
   app.post('/api/admin/role/get', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+    let username = req.session.user_username;
+    let password = req.session.user_password;
 
     if (!username || !password) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -239,8 +242,8 @@ module.exports = function apiAdmin (app , Database , apifunc , dbpacket , listDB
 });
 
 app.post('/api/admin/role/update', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
+  let username = req.session.user_username;
+  let password = req.session.user_password;
 
   if (!username || !password) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -299,8 +302,8 @@ app.post('/api/admin/role/update', async (req, res) => {
 
 
   app.post('/api/admin/admin/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -344,8 +347,8 @@ app.post('/api/admin/role/update', async (req, res) => {
   })
 
   app.post('/api/admin/doctor/because/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -390,8 +393,8 @@ app.post('/api/admin/role/update', async (req, res) => {
   })
 
   app.post('/api/admin/because/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -437,8 +440,8 @@ app.post('/api/admin/role/update', async (req, res) => {
 
   app.get('/api/admin/name' , (req , res)=>{
       
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
 
     if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
         res.redirect('/api/logout')
@@ -460,31 +463,30 @@ app.post('/api/admin/role/update', async (req, res) => {
     })
 })
 
-app.post('/api/admin/station/list' , (req , res)=>{
-  let con = Database.createConnection(listDB)
-  con.connect(( err )=>{
-      if (err) {
-          dbpacket.dbErrorReturn(con, err, res);
-          console.log("connect");
-          return 0;
-      }
+	app.post('/api/admin/station/list' , (req , res)=>{
+		let con = Database.createConnection(listDB)
+		con.connect(( err )=>{
+			if (err) {
+				dbpacket.dbErrorReturn(con, err, res);
+				console.log("connect");
+				return 0;
+			}
 
-      con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
-          if (err) {
-              dbpacket.dbErrorReturn(con, err, res);
-              console.log("query");
-              return 0
-          }
-          con.end()
-          res.send(result)
-          
-      })
-  })
-})
+			con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+				if (err) {
+					dbpacket.dbErrorReturn(con, err, res);
+					console.log("query");
+					return 0
+				}
+				con.end()
+				res.send(result)
+			})
+		})
+	})
 
 
   app.post('/api/admin/profile/text/edit' , (req , res)=>{
-    let username = req.session.user_admin
+    let username = req.session.user_username
     let password = req.body.password
 
     if(username === '' || !apifunc.authCsurf("admin" , req , res)) {
@@ -509,7 +511,7 @@ app.post('/api/admin/station/list' , (req , res)=>{
                 (err , resultEdit) => {
                     if(!err) {
                         if(req.body.type === "passwordNew") {
-                            req.session.pass_admin = req.body.value
+                            req.session.user_password = req.body.value
                         }
                         con.end()
                         res.send("1")
@@ -533,8 +535,8 @@ app.post('/api/admin/station/list' , (req , res)=>{
 })
 
 app.post('/api/admin/profile/image/edit' , (req , res)=>{
-  let username = req.session.user_admin
-  let password = req.session.pass_admin
+  let username = req.session.user_username
+  let password = req.session.user_password
 
   if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
       res.redirect('/api/logout')
@@ -566,8 +568,8 @@ app.post('/api/admin/profile/image/edit' , (req , res)=>{
 })
 
 app.get('/api/admin/profile/get', (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
+  let username = req.session.user_username;
+  let password = req.session.user_password;
 
   if(username === '' || password === '' || !apifunc.authCsurf("admin" , req , res)) {
       res.redirect('/api/logout')
@@ -619,7 +621,7 @@ app.post('/api/admin/add', async (req, res) => {
   console.log(req.body);
   
   if (req.body['id'] && req.body['passwordAdNew'] && req.body['passwordAd']) {
-      let username = req.session.user_admin;
+      let username = req.session.user_username;
       let password = req.body['passwordAd'];
 
       if (username === '') {
@@ -690,7 +692,7 @@ app.post('/api/admin/add', async (req, res) => {
   app.post('/api/admin/add/doctor' , async (req , res)=>{
     if(req.body['id_doctor'] && req.body['passwordDT'] && req.body['passwordAd']) {
         
-        let username = req.session.user_admin;
+        let username = req.session.user_username;
         let password = req.body['passwordAd'];
     
         if(username === '') {
@@ -764,7 +766,7 @@ app.post('/api/admin/add', async (req, res) => {
 
 
   app.post('/api/admin/manage/doctor' , async (req,res)=>{
-    let username = req.session.user_admin
+    let username = req.session.user_username
     let password = req.body['password']
   
     if(username === '') {
@@ -852,7 +854,7 @@ app.post('/api/admin/add', async (req, res) => {
   })
 
   // app.post('/api/admin/manage/admin' , async (req,res)=>{
-  //   let username = req.session.user_admin
+  //   let username = req.session.user_username
   //   let password = req.body['password']
   
   //   if(username === '') {
@@ -940,7 +942,7 @@ app.post('/api/admin/add', async (req, res) => {
   // })
 
   app.post('/api/admin/manage/admin', async (req, res) => {
-    let username = req.session.user_admin;
+    let username = req.session.user_username;
     let password = req.body['password'];
   
     if (username === '') {
@@ -1073,8 +1075,8 @@ app.post('/api/admin/add', async (req, res) => {
   // group page
 
   app.post('/api/admin/group/gets', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+    let username = req.session.user_username;
+    let password = req.session.user_password;
   
     if (!username || !password) {
       res.redirect('/api/logout');
@@ -1133,8 +1135,8 @@ app.post('/api/admin/add', async (req, res) => {
   });
 
   app.post('/api/admin/group/get', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+    let username = req.session.user_username;
+    let password = req.session.user_password;
   
     if (!username || !password) {
       res.redirect('/api/logout');
@@ -1191,8 +1193,8 @@ app.post('/api/admin/add', async (req, res) => {
   });
 
   app.post('/api/admin/group/insert' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
  
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -1266,8 +1268,8 @@ app.post('/api/admin/add', async (req, res) => {
   })
 
   app.post('/api/admin/group/edit' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
  
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -1354,8 +1356,8 @@ app.post('/api/admin/add', async (req, res) => {
   })
 
   app.post('/api/admin/group/search/safedate' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
  
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -1408,7 +1410,7 @@ app.post('/api/admin/add', async (req, res) => {
   })
 
   app.post('/api/admin/manage/group', async (req, res) => {
-    let username = req.session.user_admin;
+    let username = req.session.user_username;
     let password = req.body['password'];
 
     // ตรวจสอบว่าแอดมินเข้าสู่ระบบหรือไม่
@@ -1484,8 +1486,8 @@ app.post('/api/admin/add', async (req, res) => {
 
 // data page
 app.post('/api/admin/data/list', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
+  let username = req.session.user_username;
+  let password = req.session.user_password;
 
   if (username === '' || password === '') {
       res.redirect('/api/logout');
@@ -1550,8 +1552,8 @@ app.post('/api/admin/data/list', async (req, res) => {
 
 
 app.post('/api/admin/data/listforgroup', async (req, res) => {
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
+  let username = req.session.user_username;
+  let password = req.session.user_password;
  
   if (username === '' || password === '') {
       res.redirect('/api/logout');
@@ -1609,8 +1611,8 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
 
 
   app.post('/api/admin/data/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -1666,7 +1668,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
 
   app.post('/api/admin/data/insert', async (req, res) => {
     if (req.body.passwordAd && req.body.type) {
-        let username = req.session.user_admin;
+        let username = req.session.user_username;
         let password = req.body.passwordAd;
 
         if (username === '') {
@@ -1782,7 +1784,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
 });
 
 app.post('/api/admin/data/change', async (req, res) => {
-  let username = req.session.user_admin;
+  let username = req.session.user_username;
   let password = req.body['password'];
 
   if (username === '') {
@@ -1887,7 +1889,7 @@ app.post('/api/admin/data/change', async (req, res) => {
 
 
   app.post('/api/admin/data/edit' , async (req , res)=>{
-    let username = req.session.user_admin
+    let username = req.session.user_username
     let password = req.body['password']
   
     if(username === '') {
@@ -1973,8 +1975,8 @@ app.post('/api/admin/data/change', async (req, res) => {
   })
 
   app.post('/api/admin/google/maps/get' , async (req , res)=>{
-    let username = req.session.user_admin
-    let password = req.session.pass_admin
+    let username = req.session.user_username
+    let password = req.session.user_password
   
     if(username === '' || password === '') {
       res.redirect('/api/logout')
@@ -2024,8 +2026,8 @@ app.post('/api/admin/data/change', async (req, res) => {
       
       delete req.session.checkDelete
   
-      let username = req.session.user_admin
-      let password = req.session.pass_admin
+      let username = req.session.user_username
+      let password = req.session.user_password
   
       if(username === '' || password === '') {
         res.redirect('/api/logout')
@@ -2065,8 +2067,8 @@ app.post('/api/admin/data/change', async (req, res) => {
   // check Login
   app.all('/api/admin/auth', async (req, res) => {
     // เช็คการเข้าสู่ระบบจริงๆ
-    let username = req.session.user_admin ?? req.body['username'] ?? '';
-    let password = req.session.pass_admin ?? req.body['password'] ?? '';
+    let username = req.session.user_username ?? req.body['username'] ?? '';
+    let password = req.session.user_password ?? req.body['password'] ?? '';
 
     if (username === '' || password === '') {
         res.redirect('/api/logout');
@@ -2091,8 +2093,8 @@ app.post('/api/admin/data/change', async (req, res) => {
             }
 
             // บัญชีปกติ สามารถเข้าสู่ระบบได้
-            req.session.user_admin = username;
-            req.session.pass_admin = password;
+            req.session.user_username = username;
+            req.session.user_password = password;
             req.session.tokenSession = apifunc.getTokenCsurf(req);
 
             con.end();
@@ -2114,8 +2116,8 @@ app.post('/api/admin/data/change', async (req, res) => {
   })
 // report page
 app.post('/api/admin/report/list', async(req, res) => {
-  let username = req.session.user_admin
-  let password = req.session.pass_admin
+  let username = req.session.user_username
+  let password = req.session.user_password
 
   if(username === '' || password === '') {
     res.redirect('/api/logout')
@@ -2251,8 +2253,8 @@ app.post('/api/admin/report/list', async(req, res) => {
 
 
   app.post('/api/admin/statistic/get', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+    let username = req.session.user_username;
+    let password = req.session.user_password;
   
     if (username === '' || password === '') {
       res.redirect('/api/logout');
@@ -2304,8 +2306,8 @@ app.post('/api/admin/report/list', async(req, res) => {
   });
 
   app.post('/api/admin/chemical_pest/get', async (req, res) => {
-    let username = req.session.user_admin;
-    let password = req.session.pass_admin;
+    let username = req.session.user_username;
+    let password = req.session.user_password;
 
     if (!username || !password) {
         res.redirect('/api/logout');
@@ -2377,8 +2379,8 @@ app.post('/api/admin/report/list', async(req, res) => {
 //     console.log(" selectedData:", req.body.selectedData);
 //     console.log(" minCount:", req.body.minCount);
    
-//     let username = req.session.user_admin;
-//     let password = req.session.pass_admin;
+//     let username = req.session.user_username;
+//     let password = req.session.user_password;
  
 //     if (!username || !password) {
 //         res.redirect('/api/logout');
@@ -2460,198 +2462,298 @@ app.post('/api/admin/report/list', async(req, res) => {
 //     }
 // });
  
-app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
-  console.log("Raw body received:", JSON.stringify(req.body, null, 2));
- 
-  let username = req.session.user_admin;
-  let password = req.session.pass_admin;
- 
-  if (!username || !password) {
-      res.redirect('/api/logout');
-      return;
-  }
- 
-  let con = Database.createConnection(listDB);
-  console.log("Received selectedData:", req.body.selectedData);
-  console.log("Received minCount:", req.body.minCount);
- 
-  try {
-      const auth = await apifunc.auth(con, username, password, res, "admin");
-      if (auth['result'] === "pass") {
-          const { selectedData, minCount } = req.body;
- 
-          // บันทึกค่า minCount ลงในตาราง statistic
-          con.query(
-              `INSERT INTO statistic (role, count_day, id_role)
-              VALUES (?, ?, ?)
-              ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
-              ["admin", minCount, auth['data']['id']],
-              (err) => {
-                  if (err) {
-                      console.error("Database error while inserting minCount:", err);
-                      dbpacket.dbErrorReturn(con, err, res);
-                      return;
-                  }
-              }
-          );
- 
-          // ดึงข้อมูล uid_line ของ acc_farmer
-          con.query(
-              `SELECT af.uid_line
-               FROM formchemical fc
-               LEFT JOIN pests p ON fc.insect = p.pest_name
-               LEFT JOIN formplant fp ON fc.id_plant = fp.id
-               LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
-               LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-               WHERE af.station = ?
-               LIMIT 25;`,
-              [auth['data']['station_admin']],
-              async (err, result) => { // ใช้ async เพราะต้อง fetch chemical data
-                  if (err) {
-                      console.error("Database error while retrieving farmers:", err);
-                      dbpacket.dbErrorReturn(con, err, res);
-                      return;
-                  }
- 
-                  try {
-                      console.log("✅ Query Result (Farmers):", result);
-                      let uid = result.map(row => row.uid_line);
- 
-                      // **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
-                      for (let item in selectedData) {
-                            selectedData[item]["chemical_used"] = await new Promise((resolve) => {
-                              con.query(
-                                  `
-                                  SELECT 
-                                      pc.pest_id AS pest_id,
-                                      pc.chemical_id AS chemical_id,
-                                      p.pest_name AS pest_name,
-                                      c.name AS chemical_name,
-                                      c.name_formula AS chemical_formula
-                                  FROM pest_chemical AS pc
-                                  LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
-                                  LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
-                                  WHERE pc.pest_id = ? AND pc.status = 1
-                                  `, 
-                                  [selectedData[item].id], 
-                                  (err, results) => {
-                                      if (err) {
-                                          console.error("Database query error:", err);
-                                          con.end();
-                                          res.status(500).json({ error: "Database query failed" });
-                                          return;
-                                      }
-                  
-                                      if (results.length === 0) {
-                                          console.log("No data found");
-                                          con.end();
-                                          res.status(404).json({ message: "No data found" });
-                                          return;
-                                      }
-                  
-                                      // กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
-                                      const uniqueChemicalNames = new Set();
-                                      results.forEach(item => {
-                                          if (!uniqueChemicalNames.has(item.chemical_name)) {
-                                              uniqueChemicalNames.add(item.chemical_name);
-                                          }
-                                      });
-                  
-                                      // แปลงเป็น string พร้อมส่งไปยัง frontend
-                                      const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
-                  
-                                      resolve(chemicalNames)
-                                  }
-                              );
-                          })
-                          console.log(`🔍 Retrieved Chemical for Pest ${item.pest_name} (ID: ${item.pest_id}):`, item.chemical_used);
-                      }
- 
-                      //  **สร้างข้อความแจ้งเตือน**
-                      let textSend = selectedData.map(item =>
-                        `📢 ประกาศ: ขณะนี้ตรวจพบโรคพืช/ศัตรูพืช ${item.pest_name} ${item.count}จำนวน ระบาดในพื้นที่\n` +
-                        `ขอเตือนเกษตรกรที่ปลูก ${item.name_plants}\n` +
-                        `ถ้าพบว่าเป็น ${item.pest_name} ให้ใช้สารเคมี ${item.chemical_used} กำจัด`
-                    ).join("\n\n");
- 
-                      const uidSend = [...(new Set(uid))]
-                      console.log("📢 UIDs to send:", uidSend);
-                      console.log("📨 Text Message to Send:\n", textSend);
- 
-                      //  **ส่งข้อความแจ้งเตือน**
-                      con.end();
-                      Line.multicast(uidSend, { type: "text", text: textSend });
- 
-                  } catch (e) {
-                    con.end();
-                    console.error("Error sending Line message:", e);
-                  }
-                  res.send(result);
-              }
-          );
-      }
-  } catch (err) {
-      con.end();
-      console.error("❌ Authentication or unexpected error:", err);
-      if (err == "not pass") {
-          res.redirect('/api/logout');
-      }
-  }
-});
+	app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
+		console.log("Raw body received:", JSON.stringify(req.body, null, 2));
+	
+		let username = req.session.user_username;
+		let password = req.session.user_password;
+	
+		if (!username || !password) {
+			res.redirect('/api/logout');
+			return;
+		}
+	
+		let con = Database.createConnection(listDB);
+		console.log("Received selectedData:", req.body.selectedData);
+		console.log("Received minCount:", req.body.minCount);
+	
+		try {
+			const auth = await apifunc.auth(con, username, password, res, "admin");
+			if (auth['result'] === "pass") {
+				const { selectedData, minCount } = req.body;
+	
+				// บันทึกค่า minCount ลงในตาราง statistic
+				con.query(
+					`INSERT INTO statistic (role, count_day, id_role)
+					VALUES (?, ?, ?)
+					ON DUPLICATE KEY UPDATE count_day = VALUES(count_day)`,
+					["admin", minCount, auth['data']['id']],
+					(err) => {
+						if (err) {
+							console.error("Database error while inserting minCount:", err);
+							dbpacket.dbErrorReturn(con, err, res);
+							return;
+						}
+					}
+				);
+	
+				// ดึงข้อมูล uid_line ของ acc_farmer
+				con.query(
+					`SELECT af.uid_line
+					FROM formchemical fc
+					LEFT JOIN pests p ON fc.insect = p.pest_name
+					LEFT JOIN formplant fp ON fc.id_plant = fp.id
+					LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+					LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
+					WHERE af.station = ?
+					LIMIT 25;`,
+					[auth['data']['station_admin']],
+					async (err, result) => { // ใช้ async เพราะต้อง fetch chemical data
+						if (err) {
+							console.error("Database error while retrieving farmers:", err);
+							dbpacket.dbErrorReturn(con, err, res);
+							return;
+						}
+	
+						try {
+							console.log("✅ Query Result (Farmers):", result);
+							let uid = result.map(row => row.uid_line);
+	
+							// **ดึงข้อมูลสารเคมีของแต่ละ pest_id**
+							for (let item in selectedData) {
+								selectedData[item]["chemical_used"] = await new Promise((resolve) => {
+									con.query(
+										`
+										SELECT 
+											pc.pest_id AS pest_id,
+											pc.chemical_id AS chemical_id,
+											p.pest_name AS pest_name,
+											c.name AS chemical_name,
+											c.name_formula AS chemical_formula
+										FROM pest_chemical AS pc
+										LEFT JOIN pests AS p ON p.pest_id = pc.pest_id
+										LEFT JOIN chemical_list AS c ON c.id = pc.chemical_id
+										WHERE pc.pest_id = ? AND pc.status = 1
+										`, 
+										[selectedData[item].id], 
+										(err, results) => {
+											if (err) {
+												console.error("Database query error:", err);
+												con.end();
+												res.status(500).json({ error: "Database query failed" });
+												return;
+											}
+						
+											if (results.length === 0) {
+												console.log("No data found");
+												con.end();
+												res.status(404).json({ message: "No data found" });
+												return;
+											}
+						
+											// กรองข้อมูล: ถ้า name และ name_formula ซ้ำกันให้ใช้แค่ name
+											const uniqueChemicalNames = new Set();
+											results.forEach(item => {
+												if (!uniqueChemicalNames.has(item.chemical_name)) {
+													uniqueChemicalNames.add(item.chemical_name);
+												}
+											});
+						
+											// แปลงเป็น string พร้อมส่งไปยัง frontend
+											const chemicalNames = Array.from(uniqueChemicalNames).join(", ");
+						
+											resolve(chemicalNames)
+										}
+									);
+								})
+								console.log(`🔍 Retrieved Chemical for Pest ${item.pest_name} (ID: ${item.pest_id}):`, item.chemical_used);
+							}
+	
+							//  **สร้างข้อความแจ้งเตือน**
+							let textSend = selectedData.map(item =>
+							`📢 ประกาศ: ขณะนี้ตรวจพบโรคพืช/ศัตรูพืช ${item.pest_name} ${item.count}จำนวน ระบาดในพื้นที่\n` +
+							`ขอเตือนเกษตรกรที่ปลูก ${item.name_plants}\n` +
+							`ถ้าพบว่าเป็น ${item.pest_name} ให้ใช้สารเคมี ${item.chemical_used} กำจัด`
+						).join("\n\n");
+	
+							const uidSend = [...(new Set(uid))]
+							console.log("📢 UIDs to send:", uidSend);
+							console.log("📨 Text Message to Send:\n", textSend);
+	
+							//  **ส่งข้อความแจ้งเตือน**
+							con.end();
+							Line.multicast(uidSend, { type: "text", text: textSend });
+	
+						} catch (e) {
+						con.end();
+						console.error("Error sending Line message:", e);
+						}
+						res.send(result);
+					}
+				);
+			}
+		} catch (err) {
+			con.end();
+			console.error("❌ Authentication or unexpected error:", err);
+			if (err == "not pass") {
+				res.redirect('/api/logout');
+			}
+		}
+	});
 
+	// gapv3
+	app.get('/api/admin/user-access-logs' , async (req , res)=>{
+		let username = req.session.user_username
+		let password = req.session.user_password
+		
+		if(username === '' || password === '') {
+			res.redirect('/api/logout')
+			return 0
+		}
+	
+		let con = Database.createConnection(listDB)
+	
+		try {
+			const auth = await apifunc.auth(con , username , password , res , "admin")
+			if(auth['result'] === "pass") {
+				con.end()
 
+				const { station_id , user_type } = req.query
 
+				const user_mapping = {
+					table : "",
+					table_id : "",
+					fullname : ""
+				}
+				const arr_where = []
+				const arr_params = []
 
-  const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
-    let con = Database.createConnection(listDB)
-    con.connect( async ( err )=>{
-        if(!err) {
-            const Uid_line_send = await new Promise( async (resole , reject)=>{
-                const uid_send = new Array
-                await new Promise( async (resole , reject)=>{
-                    const ObjectProfile = await new Promise((resole , reject)=>{
-                        con.query(
-                            `
-                            SELECT uid_line_doctor
-                            FROM acc_doctor
-                            WHERE station_doctor = ? and status_account = 1 and status_delete = 0
-                            ` , [stationSend] , 
-                            (err , doctor) => {
-                                resole(doctor)
-                            }
-                        )
-                    })
-                    if(ObjectProfile.length > 0) {
-                        const List_uid = ObjectProfile.map((val)=>val.uid_line_doctor).filter((val)=>val)
-                        uid_send.push(...List_uid)
-                    }
-                    resole("")
-                })
-                resole(new Set(uid_send))
-            })
-            con.query(
-                `
-                INSERT notify_doctor 
-                (id_table_farmer , id_read , notify , station ) VALUES (? , ? , ? , ? )
-                ` , [id_table , '{}' , msg , stationSend] , 
-                (err , result) => {
-                    con.end()
-                }
-            )
-            
-            socket.to(`notify-${stationSend}`).emit("update")
-            if(Uid_line_send.size != 0) {
-                line.multicast([...Uid_line_send] , {type : "text" , text : `${msg}`})
-                    .catch(e=>{})
-            }
-        }
-    })
-  }
+				switch(Number(user_type)) {
+					case RoyalGapEnv.access_type.doctor :
+						user_mapping.table = "acc_doctor u"
+						user_mapping.table_id = "u.id_table_doctor"
+						user_mapping.fullname = "u.fullname_doctor"
+						station_id && arr_where.push("u.station_doctor = ?") && arr_params.push(station_id)
+						break;
+					case RoyalGapEnv.access_type.farmer :
+						user_mapping.table = "acc_farmer u"
+						user_mapping.table_id = "u.id_table"
+						user_mapping.fullname = "u.fullname"
+						station_id && arr_where.push("u.station = ?") && arr_params.push(station_id)
+						break;
+				}
+
+				arr_where.push("ual.user_type = ?")
+				arr_params.push(user_type)
+
+				if (!user_mapping.table || !user_mapping.table_id || !user_mapping.fullname) {
+					return res.status(400).json({
+						status: "error",
+						message: "Invalid user type"
+					})
+				}
+
+				try {
+					const user_access_logs = await pool.executeQuery(
+						`
+							SELECT 
+                CONCAT(ual.user_id , ual.user_type) as id,
+								${user_mapping.table_id} AS user_id , 
+								${user_mapping.fullname} AS fullname , 
+								(
+									SELECT access_date
+									FROM user_access_logs ual2
+									WHERE ual2.user_id = ual.user_id AND ual2.user_type = ual.user_type
+									ORDER BY ual2.access_date DESC
+									LIMIT 1
+								) as access_date ,
+								COUNT(*) AS total_access
+							FROM user_access_logs ual
+							LEFT JOIN ${user_mapping.table} ON ual.user_id = ${user_mapping.table_id}
+							WHERE ${arr_where.join(" AND ")} AND ual.access_date >= DATE(DATE_SUB(NOW(), INTERVAL 7 DAY))
+							GROUP BY ual.user_id , ual.user_type
+							ORDER BY ual.access_date DESC
+						`,
+						arr_params
+					)
+
+          const process_date = await pool.executeQuery(
+            `
+              SELECT DATE(DATE_SUB(NOW(), INTERVAL 7 DAY)) as start_date , DATE(NOW()) as now_date
+            `
+          )
+
+					return res.status(200).json({
+						status: "success",
+						user_access_logs: user_access_logs,
+            process_date : process_date[0]
+					})
+				} catch (error) {
+					console.error("Error fetching user access logs:", error);
+					return res.status(500).json({
+						status: "error",
+						message: "Database query error"
+					});
+				}
+			}
+		} catch (err) {
+			con.end()
+			if(err == "not pass") {
+				res.redirect('/api/logout')
+			}
+		}
+	})
+
+	const sendNotifyToDoctor = async (id_table , stationSend , msg) => {
+		let con = Database.createConnection(listDB)
+		con.connect( async ( err )=>{
+			if(!err) {
+				const Uid_line_send = await new Promise( async (resole , reject)=>{
+					const uid_send = new Array
+					await new Promise( async (resole , reject)=>{
+						const ObjectProfile = await new Promise((resole , reject)=>{
+							con.query(
+								`
+								SELECT uid_line_doctor
+								FROM acc_doctor
+								WHERE station_doctor = ? and status_account = 1 and status_delete = 0
+								` , [stationSend] , 
+								(err , doctor) => {
+									resole(doctor)
+								}
+							)
+						})
+						if(ObjectProfile.length > 0) {
+							const List_uid = ObjectProfile.map((val)=>val.uid_line_doctor).filter((val)=>val)
+							uid_send.push(...List_uid)
+						}
+						resole("")
+					})
+					resole(new Set(uid_send))
+				})
+				con.query(
+					`
+					INSERT notify_doctor 
+					(id_table_farmer , id_read , notify , station ) VALUES (? , ? , ? , ? )
+					` , [id_table , '{}' , msg , stationSend] , 
+					(err , result) => {
+						con.end()
+					}
+				)
+				
+				socket.to(`notify-${stationSend}`).emit("update")
+				if(Uid_line_send.size != 0) {
+					line.multicast([...Uid_line_send] , {type : "text" , text : `${msg}`})
+						.catch(e=>{})
+				}
+			}
+		})
+	}
 }
 
   // app.post('/api/admin/chkOver' , (req , res)=>{
-  //   let username = req.session.user_admin
-  //   let password = req.session.pass_admin
+  //   let username = req.session.user_username
+  //   let password = req.session.user_password
   
   //   if(username === '' || password === '') {
   //     res.redirect('/api/logout')
@@ -2729,7 +2831,7 @@ app.post('/api/admin/sendNotifyreport/get', async (req, res) => {
   
   // check action of user
   // app.post('/api/admin/checkUserAction' , (req , res)=> {
-  //   let username = req.session.user_admin ?? '';
+  //   let username = req.session.user_username ?? '';
   //   let password = req.body['password'] ?? '';
   
   //   if(username === '') {

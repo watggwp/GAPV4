@@ -32,6 +32,10 @@ const env = {
         history : HistoryRoundedIcon,
         plus : ControlPointRoundedIcon,
         replyAll : ReplyAllRoundedIcon
+    },
+    mapping_user_type : {
+        doctor : 1,
+        farmer : 2
     }
 }
 

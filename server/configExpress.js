@@ -156,7 +156,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
  
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app , db , apifunc , dbpackage , listDB , io , LINE)
+    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
     apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
     apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
     apiEcph(app , Pool)
