@@ -132,7 +132,7 @@ export default function WeatherManagement({
     } , [endTime, requestWeatherManagement, startTime])
 
     useEffect(() => {
-        onChangeRange?.(dateStart.getTime() , dateEnd.getTime())
+        onChangeRange?.(dateStart?.getTime() , dateEnd?.getTime())
     } , [dateEnd, dateStart, onChangeRange])
     
     return(
