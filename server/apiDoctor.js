@@ -195,7 +195,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         await RoyalGapLine.pushMessageToFarmerByFormID(
                                             id_plant,
                                             pool,
-                                            `เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/p`
+                                            `เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
                                         )
                                         // SendToFarmerHouse(con, id_plant, 
                                         //     `เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ที่ ${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/p`
