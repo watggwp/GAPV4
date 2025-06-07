@@ -3,7 +3,6 @@ const router = require('./routerApi');
 const dbpackage = require('./dbConfig');
 const ConnectPool = require('./connectPool');
 const apifunc = require('./apifunc');
-const LINE = require("./configLine");
 const WebSocket = require('./webSocket');
 
 const express = require('express');
@@ -156,9 +155,9 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
  
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
-    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io , LINE)
-    apiFarmer(app , db , Pool , apifunc , dbpackage , listDB , io , LINE)
+    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
+    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io)
+    apiFarmer(app , db , Pool , dbpackage , listDB , io)
     apiEcph(app , Pool)
     apiWeatherStation(app , Pool)
     apiWeatherGreenhouse(app , Pool)

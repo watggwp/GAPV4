@@ -1,10 +1,11 @@
 require('dotenv').config().parsed
-const line = require('./configLine')
 const fs = require('fs')
 
 const {Server} = require('socket.io')
 const io = new Server()
 const Report = require("./reportToAdmin")
+const RoyalGapEnv = require('./core/env')
+const RoyalGapLine = require('./configLine')
 
 module.exports = function Messaging (app , Database , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
@@ -57,7 +58,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     //                 action : {
                                     //                     type : "uri",
                                     //                     label : `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
-                                    //                     uri : `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
+                                    //                     uri : `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}?date=${key}`
                                     //                 }
                                     //             }
                                     //         }) : [] ,
@@ -72,7 +73,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                             "contents": Array.isArray(result) ? result.map(({ id_farm_house , name_house , air_temperature , air_humidity }) =>{
                                                 const key = new Date().getTime()
                                                 const name = name_house.toString()
-                                                const lineLiff = `https://liff.line.me/2006915135-MoVOdyjw/${id_farm_house}?date=${key}`
+                                                const lineLiff = `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}?date=${key}`
                                                 return {
                                                     "type": "bubble",
                                                     "hero": {
@@ -150,7 +151,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     }
                                 }
 
-                                line.replyMessage(replyToken , msg)
+                                RoyalGapLine.replyMessage(replyToken , msg)
                                 res.status(200).send('OK')
                             }
                         })
@@ -158,7 +159,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                         Report(e.toString())
                     }
                 } else {
-                    await line.replyMessage(replyToken , {
+                    await RoyalGapLine.replyMessage(replyToken , {
                         type : "text",
                         text : "พบปัญหาในการค้นหาข้อมูล\nรอสักครู่นะคะ \u2764"
                     })
@@ -262,9 +263,9 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                                     })
 
                                     con.end()
-                                    line.multicast([...uid_line_message_send] , {type : "text" , text : "มีข้อความจาก"+typeMessange})
+                                    RoyalGapLine.multicast([...uid_line_message_send] , {type : "text" , text : "มีข้อความจาก"+typeMessange})
                                         .catch(e=>{
-                                            line.replyMessage(replyToken , {
+                                            RoyalGapLine.replyMessage(replyToken , {
                                                 type : "text",
                                                 text : "พบปัญหาในการส่งข้อความ กรุณารอสักครู่และส่งข้อความใหม่อีกครั้ง \u2764"
                                             })
@@ -293,9 +294,9 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                         con.end()
                     }
 
-                    if(msg.type) line.replyMessage(replyToken , msg)
+                    if(msg.type) RoyalGapLine.replyMessage(replyToken , msg)
                 } else {
-                    line.replyMessage(replyToken , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"})
+                    RoyalGapLine.replyMessage(replyToken , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"})
                 }
             } 
         } else {

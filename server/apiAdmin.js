@@ -1,15 +1,15 @@
 'use strict';
 
 const { request } = require('axios');
-const LINE = require('./configLine');
 const ConnectionPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const { ca } = require('date-fns/locale');
+const RoyalGapLine = require('./configLine');
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
-module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , socket , Line = LINE) {
+module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , socket) {
   
   app.post('/api/admin/check' , (req , res)=>{
     res.redirect('/api/admin/auth');
@@ -2444,7 +2444,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 //                         console.log("Text to send:", textSend);
  
 //                         // ส่งข้อความแจ้งเตือนไปยัง acc_farmer
-//                         Line.multicast([...(new Set(uid))], { type: "text", text: textSend });
+//                         RoyalGapLine.multicast([...(new Set(uid))], { type: "text", text: textSend });
 //                     } catch (e) {
 //                         console.error("Error sending Line message:", e);
 //                     }
@@ -2582,7 +2582,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 	
 							//  **ส่งข้อความแจ้งเตือน**
 							con.end();
-							Line.multicast(uidSend, { type: "text", text: textSend });
+							RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
 	
 						} catch (e) {
 						con.end();

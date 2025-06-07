@@ -1,5 +1,4 @@
 require('dotenv').config().parsed
-const line = require('./configLine')
 const fs = require('fs')
 const ConnentPool = require('./connectPool');
 
@@ -9,9 +8,10 @@ const RichHouse = process.env.RICH_HOUSE
 const { Server } = require('socket.io');
 const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
+const RoyalGapLine = require('./configLine');
 const io = new Server()
 
-module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , apifunc, dbpacket, listDB, socket = io, LINE = line) {
+module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), dbpacket, listDB, socket = io) {
 
     app.post('/api/farmer/sign', async (req, res) => {
         if (req.session.user_doctor != undefined || req.session.pass_doctor != undefined) {
@@ -23,7 +23,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             req.session.uidFarmer = req.body['uid']
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.end()
 
                 req.session.user_id = auth["data"]["id_table"]
@@ -42,7 +42,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 // req.session.token = {
                 //     data : new Date().getTime().toString(),
                 //     time : new Date().
@@ -137,7 +137,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         const uidLine = req.session.uidFarmer ? req.session.uidFarmer : req.body.uidLine
         const userLine = await new Promise(async (resole, reject) => {
             try {
-                await LINE.getLinkToken(uidLine)
+                await RoyalGapLine.getLinkToken(uidLine)
                 resole(true)
             } catch (e) {
                 resole(false)
@@ -183,7 +183,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
                                             con.end()
                                             if (!err) {
                                                 if (result.affectedRows > 0) {
-                                                    if(!LINE.changeRichMenu(uidLine , RichHouse)) {
+                                                    if(!RoyalGapLine.changeRichMenu(uidLine , RichHouse)) {
                                                         fs.appendFileSync(__dirname.replace('\server', '/logs/errorfile.json'), `richMenuAddFarm : {id:${req.session.uidFarmer} , date : ${new Date().getTime}}`)
                                                     }
 
@@ -221,7 +221,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
 
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 if (auth) {
 
                     const overlap = await new Promise((resolve) => {
@@ -282,7 +282,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`
                             SELECT id_farm_house FROM housefarm
                             WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) and housefarm.id_farm_house = ?
@@ -308,7 +308,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(
                     `
                         SELECT name_house , img_house , id_farm_house , location
@@ -342,7 +342,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 con.query(
                     `
                     SELECT id_farm_house, name_house, img_house, location, status
@@ -383,7 +383,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
 
         let con = Database.createConnection(listDB);
         try {
-            const auth = await authCheck(con, dbpacket, res, req, LINE);
+            const auth = await authCheck(con, req);
 
             if (!auth || !auth.data || !auth.data.link_user) {
                 return res.status(403).json({ status: "error", message: "Invalid authentication data" });
@@ -421,7 +421,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 const name = (req.body.name) ? `name_house = "${req.body.name}"` : ""
                 const img = (req.body.img) ? `img_house = "${req.body.img}"` : ""
                 const location = (req.body.lag && req.body.lng) ? `location = POINT(${req.body.lag} , ${req.body.lng})` : ""
@@ -455,7 +455,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB);
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
 
                 const select = (req.body.id_formplant) ?
@@ -609,7 +609,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`
                             SELECT formplant.id , formplant.state_status
                             FROM formplant , 
@@ -643,7 +643,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //         let con = Database.createConnection(listDB);
 
     //         try {
-    //             const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //             const auth = await authCheck(con, req);
     //             const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
 
     //             const select = (req.body.id_formplant) ? 
@@ -951,7 +951,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`SELECT name, id, qty_harvest
                             FROM plant_list
                             WHERE is_use = 1
@@ -976,7 +976,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //         let con = Database.createConnection(listDB)
 
     //         try {
-    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             const auth = await authCheck(con , dbpacket , res , req )
     //             const QtyDate = await new Promise((resole , reject)=>{
     //                 con.query(
     //                     `
@@ -1028,7 +1028,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB);
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
 
                 // ดึงข้อมูลจำนวนวันที่ใช้เก็บเกี่ยว
                 const QtyDate = await new Promise((resolve) => {
@@ -1093,7 +1093,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 con.query(`
                     SELECT id_farm_house FROM housefarm
                     WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
@@ -1164,7 +1164,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //     if (req.session.uidFarmer) {
     //         let con = Database.createConnection(listDB);
     //         try {
-    //             const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //             const auth = await authCheck(con, req);
     //             con.query(`
     //                 SELECT formplant.*
     //                 FROM formplant, 
@@ -1280,7 +1280,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 con.query(`
                     SELECT formplant.*
                     FROM formplant, 
@@ -1407,7 +1407,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //         let con = Database.createConnection(listDB);
 
     //         try {
-    //             const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //             const auth = await authCheck(con, req);
     //             const type = req.body.id_edit ? "*" : "id_edit";
     //             const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "";
     //             con.query(` 
@@ -1472,7 +1472,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB);
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 const where = req.body.id_edit
                     ? `AND editform.id_edit = '${req.body.id_edit}'`
                     : "";
@@ -1712,7 +1712,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 const where = (req.body.id_factor) ?
                     `and form${req.body.type}.id = "${req.body.id_factor}"` :
                     ""
@@ -1801,7 +1801,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`SELECT * FROM ${req.body.type}_list WHERE is_use = 1`, (err, result) => {
                     con.end()
                     if (!err) {
@@ -1821,7 +1821,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //     if(req.session.uidFarmer) {
     //         let con = Database.createConnection(listDB)
     //         try {
-    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             const auth = await authCheck(con , dbpacket , res , req )
     //             con.query(`
     //                          SELECT formplant.id, formplant.state_status
     //                 FROM formplant,
@@ -1895,7 +1895,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 con.query(
                     `
                     SELECT formplant.id, formplant.state_status
@@ -2080,7 +2080,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //     if(req.session.uidFarmer) {
     //         let con = Database.createConnection(listDB)
     //         try {
-    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             const auth = await authCheck(con , dbpacket , res , req )
     //             const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
     //             if(TypeFrom) {
     //                 con.query(` 
@@ -2204,7 +2204,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB);
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
                 if (TypeFrom) {
                     con.query(`
@@ -2334,7 +2334,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //         let con = Database.createConnection(listDB)
 
     //         try {
-    //             const auth = await authCheck(con , dbpacket , res , req , LINE)
+    //             const auth = await authCheck(con , dbpacket , res , req )
     //             const type = req.body.id_edit ? "*" : "id_edit" ;
     //             const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "" ;
     //             const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
@@ -2404,7 +2404,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB);
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 const where = req.body.id_edit
                     ? `AND editform.id_edit = '${req.body.id_edit}'`
                     : "";
@@ -2496,7 +2496,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(
                     `
                             SELECT success_detail.id , formPlant.name_station , type_success , date_of_doctor , date_of_farmer
@@ -2536,7 +2536,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(
                     `
                             SELECT success_detail.id_success
@@ -2573,7 +2573,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
         if (req.session.uidFarmer) {
             let con = Database.createConnection(listDB)
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`
                             SELECT formplant.id
                             FROM formplant , 
@@ -2626,7 +2626,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(
                     `
                     SELECT (
@@ -2837,7 +2837,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE);
+                const auth = await authCheck(con, req);
                 //h = เก็บเกี่ยว
                 const Type = req.query.type === "h" ? "success_detail" :
                     req.query.type === "r" ? "report_detail" :
@@ -2911,7 +2911,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
             let con = Database.createConnection(listDB)
 
             try {
-                const auth = await authCheck(con, dbpacket, res, req, LINE)
+                const auth = await authCheck(con, req)
                 con.query(`SELECT id , name FROM source_list WHERE is_use = 1`, (err, result) => {
                     con.end()
                     if (!err) res.send(result)
@@ -2965,7 +2965,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
 
                 socket.to(`notify-${stationSend}`).emit("update")
                 if (Uid_line_send.size != 0) {
-                    line.multicast([...Uid_line_send], { type: "text", text: `${msg}` })
+                    RoyalGapLine.multicast([...Uid_line_send], { type: "text", text: `${msg}` })
                         .catch(e => {
                             console.log(e)
                         })
@@ -2978,7 +2978,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     //     if (req.session.uidFarmer) {
     //         let con = Database.createConnection(listDB);
     //         try {
-    //             const auth = await authCheck(con, dbpacket, res, req, LINE); // ตรวจสอบสิทธิ์
+    //             const auth = await authCheck(con, req); // ตรวจสอบสิทธิ์
     //             con.query(
     //                 `
     //                 SELECT id_farm_house, name_house, img_house, 
@@ -3015,7 +3015,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
 
     //     const con = Database.createConnection(listDB);
     //     try {
-    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const auth = await authCheck(con, req);
     //         const { id_formplant, ec_value, ph_value } = req.body;
 
     //         if (!ec_value || !ph_value) {
@@ -3057,7 +3057,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
 
     //     const con = Database.createConnection(listDB);
     //     try {
-    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const auth = await authCheck(con, req);
     //         const uid = auth.data.uid_line;
     //         const { id_formplant } = req.body;
 
@@ -3082,7 +3082,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     
     //     const con = Database.createConnection(listDB);
     //     try {
-    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const auth = await authCheck(con, req);
     //         const { id, ec_value, ph_value } = req.body;
     
     //         if (!id || !ec_value || !ph_value) {
@@ -3119,7 +3119,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     
     //     const con = Database.createConnection(listDB);
     //     try {
-    //         const auth = await authCheck(con, dbpacket, res, req, LINE);
+    //         const auth = await authCheck(con, req);
     //         const { id } = req.body;
     
     //         if (!id) {
@@ -3167,11 +3167,11 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool() , a
     })
 }
 
-const authCheck = (con, dbpacket, res, req, LINE = line) => {
+const authCheck = (con, req) => {
     return new Promise(async (resole, reject) => {
         const userLine = await new Promise(async (resole, reject) => {
             try {
-                await LINE.getLinkToken(req.session.uidFarmer)
+                await RoyalGapLine.getLinkToken(req.session.uidFarmer)
                 resole(true)
             } catch (e) {
                 resole(false)
@@ -3193,22 +3193,22 @@ const authCheck = (con, dbpacket, res, req, LINE = line) => {
                                     const ProfilePass = result.filter(profile => profile.register_auth == 0 || profile.register_auth == 1)
                                     if (ProfilePass.length != 0) {
                                         if (req.body['page'] === "signup") {
-                                            LINE.changeRichMenu(req.session.uidFarmer , RichHouse)
+                                            RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichHouse)
                                         }
                                         resole({
                                             result: "search",
                                             data: ProfilePass[0]
                                         })
                                     } else {
-                                        LINE.changeRichMenu(req.session.uidFarmer , RichSign)
+                                        RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichSign)
                                         reject("no")
                                     }
                                 }
                                 else {
-                                    LINE.changeRichMenu(req.session.uidFarmer , RichSign)
+                                    RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichSign)
                                     try {
-                                        LINE.unlinkRichMenuFromUser(req.session.uidFarmer)
-                                        LINE.linkRichMenuToUser(req.session.uidFarmer, RichSign)
+                                        RoyalGapLine.unlinkRichMenuFromUser(req.session.uidFarmer)
+                                        RoyalGapLine.linkRichMenuToUser(req.session.uidFarmer, RichSign)
                                     } catch (e) { }
                                     reject("no account")
                                 }
