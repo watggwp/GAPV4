@@ -5015,7 +5015,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
     const getGreenhouseIdByFromGapID = async ( formGapId ) => {
         const greenhouse = await pool.executeQuery(
             `
-                SELECT id_farm_house
+                SELECT fp.id_farm_house
                 FROM housefarm hf 
                 LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
                 WHERE fp.id = ?
