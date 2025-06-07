@@ -5024,7 +5024,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
             [ formGapId ]
         )
 
-        return greenhouse.id_farm_house
+        return greenhouse[0].id_farm_house
     }
 
     // const SendToFarmerHouse = async (con , id_plant , textSend , otherText = "") => {
