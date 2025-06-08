@@ -45,7 +45,7 @@ class LineGAP extends Line.Client {
 						text : message
 					} : {
 							"type": "flex",
-							"altText": "ข้อความใหม่จากระบบ",
+							"altText": "มีข้อความใหม่จากระบบ",
 							"contents": {
 								"type": "bubble",
 								"body": {

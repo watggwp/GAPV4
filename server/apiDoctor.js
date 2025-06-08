@@ -3091,7 +3091,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    `ผลการตรวจสอบการแก้ไขแบบบันทึก GAP\nผลการตรวจสอบ ไม่ผ่าน\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
+                                    `ผลการตรวจสอบการแก้ไขแบบบันทึก GAP\nผลการตรวจสอบ ไม่ผ่าน`,
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
+                                    }
                                 )
                                 
                                 // await SendToFarmerHouse(con , req.body.id_plant , "ผลการตรวจสอบการแก้ไขแบบบันทึก\nผลการตรวจสอบ ไม่ผ่าน")
@@ -3458,7 +3461,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                             await RoyalGapLine.pushMessageToFarmerByFormID(
                                 id_plant,
                                 pool,
-                                `หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่าง\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
+                                `หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่าง`,
+                                {
+                                    url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
+                                }
                             )
                             
                             // await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่าง")
@@ -3544,7 +3550,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 const { lineIds : arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    `หมอพืชให้คำแนะนำกับการปลูก\nคำแนะนำ : ${req.body.report_text}\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                    `หมอพืชให้คำแนะนำกับการปลูก\nคำแนะนำ : ${req.body.report_text}`,
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                    }
                                 )
                                 // const arrUID = await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชให้คำแนะนำกับการปลูก" , `\nคำแนะนำ : ${req.body.report_text}`)
                                 if(name) {
@@ -3743,7 +3752,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    `มีผลการตรวจสอบผลผลิต\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
+                                    `มีผลการตรวจสอบผลผลิต`,
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
+                                    }
                                 )
 
                                 // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบผลผลิต")
@@ -3821,7 +3833,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         await RoyalGapLine.pushMessageToFarmerByFormID(
                                             id_plant,
                                             pool,
-                                            `มีผลการตรวจสอบแบบบันทึก\n${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
+                                            `มีผลการตรวจสอบแบบบันทึก`,
+                                            {
+                                                url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
+                                            }
                                         )
 
                                         // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบแบบบันทึก")
