@@ -18,7 +18,7 @@ class LineGAP extends Line.Client {
 		}
 	}
 
-	async pushMessageToFarmerByFormID(formID , connectionPool = new ConnectionPool() , message) {
+	async pushMessageToFarmerByFormID(formID , connectionPool = new ConnectionPool() , message , buttonData = { url : "" }) {
 		try {
 			const resultFarmers = await connectionPool.executeQuery(
 				`
@@ -40,10 +40,37 @@ class LineGAP extends Line.Client {
 			try {
 				await this.multicast(
 					farmerLineIDs , 
-					{
+					!buttonData ? {
 						type : "text" , 
 						text : message
-					}
+					} : {
+							"type": "flex",
+							"altText": "ข้อความใหม่จากระบบ",
+							"contents": {
+								"type": "bubble",
+								"body": {
+									"type": "box",
+									"layout": "vertical",
+									"spacing": "md",
+									"contents": [
+										{
+											"type": "text",
+											"text": message,
+											"wrap": true
+										},
+										{
+											"type": "button",
+											"style": "primary",
+											"action": {
+												"type": "uri",
+												"label": "ดูข้อมูล",
+												"uri": buttonData.url
+											}
+										}
+									]
+								}
+							}
+						}
 				)
 				return {
 					lineIds : farmerLineIDs
