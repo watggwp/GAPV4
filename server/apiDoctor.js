@@ -3067,13 +3067,13 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const { id_plant } = req.body
+                const { id_plant , note } = req.body
                 con.query(
                     `
                         UPDATE editform
                         SET status = ? , note = ? , id_doctor = ?
                         WHERE id_edit = ?
-                    ` , [ req.body.status , req.body.note , result['data']['id_table_doctor'] , req.body.id_edit ] ,
+                    ` , [ req.body.status , note , result['data']['id_table_doctor'] , req.body.id_edit ] ,
                     async (err, result ) => {
                         if (!err) {
                             if(req.body.status == 2) {
@@ -3111,10 +3111,13 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                     pool,
                                     (gapData) => {
                                         const { greenhouse_name , plant_name } = gapData || {}
-                                        return [
+                                        const messages = [
                                             ...generateMessageTitle(greenhouse_name , plant_name),
                                             `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
                                         ]
+
+                                        if(note) messages.push(`หมายเหตุ: ${note}`)
+                                        return messages
                                     },
                                     {
                                         url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
