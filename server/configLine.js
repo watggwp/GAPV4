@@ -18,7 +18,12 @@ class LineGAP extends Line.Client {
 		}
 	}
 
-	async pushMessageToFarmerByFormID(formID , connectionPool = new ConnectionPool() , message , buttonData = { url : "" }) {
+	async pushMessageToFarmerByFormID(
+		formID , 
+		connectionPool = new ConnectionPool() , 
+		generateMessage = async (gapData = { greenhouse_name , plant_name }) => [] , 
+		buttonData = { url : "" }
+	) {
 		try {
 			const resultFarmers = await connectionPool.executeQuery(
 				`
@@ -36,13 +41,27 @@ class LineGAP extends Line.Client {
 			if(!farmerLineIDs.length) return {
 				lineIds : []
 			}
+
+			const resultGAP = await connectionPool.executeQuery(
+				`
+					SELECT
+						hf.name_house as greenhouse_name , 
+						fp.name_plant as plant_name
+					LEFT JOIN housefarm hf ON hf.link_user = af.link_user
+					LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
+					WHERE fp.id = ?
+					LIMIT 1
+				` , [ formID ]
+			)
+
+			const message = await generateMessage(resultGAP[0] || {})
 			
 			try {
 				await this.multicast(
 					farmerLineIDs , 
 					!buttonData ? {
 						type : "text" , 
-						text : message
+						text : message.join("\n")
 					} : {
 							"type": "flex",
 							"altText": "มีข้อความใหม่จากระบบ",
@@ -55,7 +74,7 @@ class LineGAP extends Line.Client {
 									"contents": [
 										{
 											"type": "text",
-											"text": message,
+											"text": message.join("\n"),
 											"wrap": true
 										},
 										{
