@@ -47,7 +47,7 @@ class LineGAP extends Line.Client {
 					SELECT
 						hf.name_house as greenhouse_name , 
 						fp.name_plant as plant_name
-					LEFT JOIN housefarm hf ON hf.link_user = af.link_user
+					FROM housefarm hf
 					LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
 					WHERE fp.id = ?
 					LIMIT 1
