@@ -159,7 +159,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 insertDetailsEdit.push("(? , ? , ? , ?)")
                                 insertDetailsEditParams.push([idEdit, subject, dataCurrent[0][subject], data.dataChange[subject]])
 
-                                titles.push(subject)
+                                titles.push(RoyalGapEnv.fields[subject])
                             }
 
                             const result = await new Promise((resolve) => {
@@ -211,15 +211,13 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                                 return [
                                                     ...generateMessageTitle(greenhouse_name , plant_name),
                                                     "เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ของท่าน",
-                                                    `โดยมีการแก้รายการ: ${titles.join(" , ")}`,
+                                                    `โดยมีการแก้ไขรายการ: ${titles.join(" , ")}`,
                                                 ]
                                             },
                                             {
                                                 url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
                                             }
                                         )
-
-                                        console.log(error)
                                         // SendToFarmerHouse(con, id_plant, 
                                         //     `เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ที่ ${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/p`
                                         // );
