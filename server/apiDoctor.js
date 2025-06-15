@@ -3791,7 +3791,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                         ` , [ id_plant , statusCheck , stateCheck , report_text , result.data.id_table_doctor ] ,
                         async (err , result) =>{
                             if (!err) {
-                                await RoyalGapLine.pushMessageToFarmerByFormID(
+                                const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
                                     (gapData) => {
@@ -3810,6 +3810,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                     }
                                 )
 
+                                console.log(error)
                                 // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบผลผลิต")
                                 if(req.body.stateCheck == 1) {
                                     con.query(
@@ -3883,7 +3884,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 ` , [ id_plant , statusCheck , report_text , result.data.id_table_doctor ] ,
                                 async (err , result) =>{
                                     if (!err) {
-                                        await RoyalGapLine.pushMessageToFarmerByFormID(
+                                        const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                             id_plant,
                                             pool,
                                             (gapData) => {
@@ -3904,6 +3905,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                             }
                                         )
 
+                                        console.log(error)
                                         // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบแบบบันทึก")
                                         con.end()
                                         res.send("113")
