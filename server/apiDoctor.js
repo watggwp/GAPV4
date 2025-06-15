@@ -3796,13 +3796,13 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                     pool,
                                     (gapData) => {
                                         const { greenhouse_name , plant_name } = gapData || {}
-                                        const validatePlantDetail = [
+                                        const messages = [
                                             ...generateMessageTitle(greenhouse_name , plant_name),
                                             `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
                                             `คะแนนการประเมิน: ${statusCheck}`
                                         ]
 
-                                        if(report_text) validatePlantDetail.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
+                                        if(report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
                                         return 
                                     },
                                     {
@@ -3888,16 +3888,16 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                             pool,
                                             (gapData) => {
                                                 const { greenhouse_name , plant_name } = gapData || {}
-                                                const validateForm = [
+                                                const messages = [
                                                     ...generateMessageTitle(greenhouse_name , plant_name),
                                                     `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
                                                 ]
 
-                                                if(report_text) validateForm.push(
+                                                if(report_text) messages.push(
                                                     `ข้อความจากเจ้าหน้าที่: ${report_text}`
                                                 )
 
-                                                return validateForm
+                                                return messages
                                             },
                                             {
                                                 url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
