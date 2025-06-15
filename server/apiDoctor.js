@@ -151,15 +151,22 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                             const insertDetailsEdit = []
                             const insertDetailsEditParams = []
 
-                            const titles = []
+                            const edits_content = []
                             for (const subject in data.dataChange) {
                                 updateDatasWhere.push(`${subject.replace(" " , "")} = ?`)
                                 updateDatasParams.push(data.dataChange[subject])
 
-                                insertDetailsEdit.push("(? , ? , ? , ?)")
-                                insertDetailsEditParams.push([idEdit, subject, dataCurrent[0][subject], data.dataChange[subject]])
+                                const prev = dataCurrent[0][subject]
+                                const current = data.dataChange[subject]
 
-                                titles.push(RoyalGapEnv.fields[subject])
+                                insertDetailsEdit.push("(? , ? , ? , ?)")
+                                insertDetailsEditParams.push([idEdit, subject, prev, data.dataChange[subject]])
+
+                                edits_content.push({
+                                    name : RoyalGapEnv.fields[subject],
+                                    prev : prev,
+                                    current : current
+                                })
                             }
 
                             const result = await new Promise((resolve) => {
@@ -211,7 +218,11 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                                 return [
                                                     ...generateMessageTitle(greenhouse_name , plant_name),
                                                     "เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ของท่าน",
-                                                    `โดยมีการแก้ไขรายการ: ${titles.join(" , ")}`,
+                                                    `โดยมีการแก้ไขรายการ:`,
+                                                    "",
+                                                    edits_content.map(({ name , prev , current }) => 
+                                                        `${name} จาก ${prev} เป็น ${current}`
+                                                    )
                                                 ]
                                             },
                                             {
@@ -3067,13 +3078,13 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-                const { id_plant , note } = req.body
+                const { id_plant , note , id_edit } = req.body
                 con.query(
                     `
                         UPDATE editform
                         SET status = ? , note = ? , id_doctor = ?
                         WHERE id_edit = ?
-                    ` , [ req.body.status , note , result['data']['id_table_doctor'] , req.body.id_edit ] ,
+                    ` , [ req.body.status , note , result['data']['id_table_doctor'] , id_edit ] ,
                     async (err, result ) => {
                         if (!err) {
                             if(req.body.status == 2) {
@@ -3106,6 +3117,16 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                 //         }
                                 //     }
                                 // )
+
+                                const editDatas = await pool.executeQuery(
+                                    `
+                                        SELECT subject_form , old_content , new_content 
+                                        FROM detailedit 
+                                        WHERE id_edit = ?
+                                    ` ,
+                                    [ id_edit ]
+                                )
+
                                 await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
@@ -3114,6 +3135,11 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         const messages = [
                                             ...generateMessageTitle(greenhouse_name , plant_name),
                                             `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
+                                            "ได้แก่:",
+                                            "",
+                                            editDatas.map(({ subject_form , old_content , new_content }) => 
+                                                `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
+                                            )
                                         ]
 
                                         if(note) messages.push(`หมายเหตุ: ${note}`)
@@ -3493,6 +3519,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                     return [
                                         ...generateMessageTitle(greenhouse_name , plant_name),
                                         `หมอพืชสั่งเก็บเกี่ยวผลผลิตตัวอย่าง`,
+                                        `รหัสการเก็บเกี่ยว: ${Random}`
                                     ]
                                 },
                                 {
