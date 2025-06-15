@@ -3135,8 +3135,8 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         const messages = [
                                             ...generateMessageTitle(greenhouse_name , plant_name),
                                             `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
-                                            "ได้แก่:",
                                             "",
+                                            "ได้แก่:",
                                             editDatas.map(({ subject_form , old_content , new_content }) => 
                                                 `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
                                             )
