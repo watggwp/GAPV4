@@ -3803,7 +3803,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         ]
 
                                         if(report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
-                                        return 
+                                        return messages
                                     },
                                     {
                                         url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
