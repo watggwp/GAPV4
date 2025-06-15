@@ -218,10 +218,10 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                                 return [
                                                     ...generateMessageTitle(greenhouse_name , plant_name),
                                                     "เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ของท่าน",
+                                                    ""
                                                     `โดยมีการแก้ไขรายการ:`,
-                                                    "",
                                                     edits_content.map(({ name , prev , current }) => 
-                                                        `${name} จาก ${prev} เป็น ${current}`
+                                                        `${name}: จาก ${prev} เป็น ${current}`
                                                     )
                                                 ]
                                             },
