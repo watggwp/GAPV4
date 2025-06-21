@@ -3,11 +3,11 @@ import env from "../../../env";
 import { template, useDeviceManagement } from ".";
 import { useCallback, useEffect, useState } from "react";
 import RequestAPI from "../../js/requestAPI";
-import RoyalGapUtil from "../../core/RoyalGapUtil";
 import PopupApp from "../PopupApp";
 import AddDevice from "./addDevice";
 import DeleteDevice from "./deleteDevice";
 import React from "react";
+import RoyalGapFrontendUtil from "../../core/RoyalGapUtil";
 
 const { icon : { replyAll : Back , plus : Add , delete : Delete } } = env
 
@@ -31,7 +31,7 @@ export default function Devices({
     const requestDevices = useCallback( async () => {
         const { path , query , pathParams } = dataDevices
 
-        const pathRequest = RoyalGapUtil.mergePathParam(path , pathParams)
+        const pathRequest = RoyalGapFrontendUtil.mergePathParam(path , pathParams)
         setLoading(true)
         const { data , status } = await RequestAPI.get(pathRequest , query)
         setLoading(false)

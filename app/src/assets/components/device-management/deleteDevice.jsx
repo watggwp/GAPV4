@@ -2,7 +2,7 @@ import { Button, Stack, Typography } from "@mui/material";
 import { template } from ".";
 import { useCallback } from "react";
 import RequestAPI from "../../js/requestAPI";
-import RoyalGapUtil from "../../core/RoyalGapUtil";
+import RoyalGapFrontendUtil from "../../core/RoyalGapUtil";
 
 export default function DeleteDevice({
     id = "",
@@ -16,7 +16,7 @@ export default function DeleteDevice({
     const requestDeviceUnregister = useCallback( async () => {
         const { path , query , pathParams , typeDelete } = dataDelete
 
-        const pathRequest = RoyalGapUtil.mergePathParam(path , pathParams)
+        const pathRequest = RoyalGapFrontendUtil.mergePathParam(path , pathParams)
         const { data , status } = await RequestAPI.put(pathRequest , {
             id : id,
             type : typeDelete

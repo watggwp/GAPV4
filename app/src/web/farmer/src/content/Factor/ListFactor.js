@@ -12,6 +12,7 @@ import { useGreenhouse } from "..";
 import Fertilizer from "./card/fertilizer";
 import Chemical from "./card/chemical";
 import InsertFactorData from "./Insert";
+import EditFactorData from "./edit";
  
 const ListFactor = ({ type_path_factor }) => {
 
@@ -57,18 +58,18 @@ const ListFactor = ({ type_path_factor }) => {
         const result = await clientMo.post("/api/farmer/account/check")
         if(await CloseAccount(result , setCurrentPage)) {
             setPopupAdd(
-                <PopupInsertFactor 
-                    type_path={type_path_factor}
-                    setPopup={setPopupAdd} 
-                    RefPop={PopupRef} 
-                    ReloadData={reload}
-                />
-                // <InsertFactorData 
+                // <PopupInsertFactor 
                 //     type_path={type_path_factor}
                 //     setPopup={setPopupAdd} 
                 //     RefPop={PopupRef} 
                 //     ReloadData={reload}
                 // />
+                <InsertFactorData 
+                    type_path={type_path_factor}
+                    setPopup={setPopupAdd} 
+                    RefPop={PopupRef} 
+                    ReloadData={reload}
+                />
             )
         }
     } , [reload, setCurrentPage, type_path_factor])
@@ -78,7 +79,14 @@ const ListFactor = ({ type_path_factor }) => {
         const result = await clientMo.post("/api/farmer/account/check")
         if(await CloseAccount(result , setCurrentPage)) {
             setPopupAdd(
-                <EditFactorPopup 
+                // <EditFactorPopup 
+                //     type_path={type_path_factor}
+                //     setPopup={setPopupAdd} 
+                //     RefPop={PopupRef} 
+                //     ReloadData={reload} 
+                //     ObjectData={DataObject}
+                // />
+                <EditFactorData
                     type_path={type_path_factor}
                     setPopup={setPopupAdd} 
                     RefPop={PopupRef} 

@@ -2,7 +2,7 @@ import { Button, Stack, TextField, Typography } from "@mui/material";
 import { template } from ".";
 import { useCallback, useMemo, useState } from "react";
 import RequestAPI from "../../js/requestAPI";
-import RoyalGapUtil from "../../core/RoyalGapUtil";
+import RoyalGapFrontendUtil from "../../core/RoyalGapUtil";
 
 export default function AddDevice({
     dataAdd = template["add"],
@@ -19,7 +19,7 @@ export default function AddDevice({
 
         const { path , query , pathParams } = dataAdd
 
-        const pathRequest = RoyalGapUtil.mergePathParam(path , pathParams)
+        const pathRequest = RoyalGapFrontendUtil.mergePathParam(path , pathParams)
 
         setLoading(true)
         const { data , status } = await RequestAPI.put(pathRequest , {

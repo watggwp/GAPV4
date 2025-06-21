@@ -1,6 +1,6 @@
 import TemplatePopup from "./templatePopup"
 
-const EditFactorPopup = ({
+const EditFactorData = ({
     setPopup , 
     RefPop , 
     type_path , 
@@ -18,4 +18,4 @@ const EditFactorPopup = ({
     )
 }
 
-export default EditFactorPopup
+export default EditFactorData

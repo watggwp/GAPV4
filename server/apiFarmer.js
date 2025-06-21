@@ -797,12 +797,17 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
 
 
-    app.post('/api/farmer/pests', authCheck, (req, res) => {
+    app.post('/api/farmer/pests', async (req, res) => {
         let con = Database.createConnection(listDB); // สร้างการเชื่อมต่อฐานข้อมูล
 
         console.log('Fetching all pests...');
 
         // คำสั่ง SQL เพื่อดึงข้อมูล pest_name ทั้งหมด
+        try {
+            const auth = await authCheck()
+        } catch(err) {
+
+        }
         con.query(`SELECT pest_id, pest_name, type_pest FROM pests`, (err, result) => {
             con.end(); // ปิดการเชื่อมต่อฐานข้อมูล
             if (!err) {
@@ -818,11 +823,17 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
 
 
-    app.post('/api/farmer/pest-chemical', authCheck, (req, res) => {
+    app.post('/api/farmer/pest-chemical', async (req, res) => {
         const con = Database.createConnection(listDB);
         const formId = req.body.id_form_plant;
 
         console.log("Received formId:", formId);
+
+        try {
+            const auth = await authCheck()
+        } catch(err) {
+            
+        }
 
         const queryFormplant = `SELECT name_plant FROM formplant WHERE id = ?;`;
         con.query(queryFormplant, [formId], (err, formResult) => {
@@ -897,12 +908,17 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
 
 
-    app.post('/api/farmer/report/acknowledge', authCheck, (req, res) => {
+    app.post('/api/farmer/report/acknowledge', async (req, res) => {
         let con = Database.createConnection(listDB);
 
         const { id, type } = req.body;
 
         console.log("Received acknowledge request:", req.body);
+        try {
+            const auth = await authCheck()
+        } catch(err) {
+            
+        }
 
         if (!id || !type) {
             console.log("Missing parameters");
@@ -1837,7 +1853,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                             if(result[0]) {
     //                                 if(result[0].state_status == 0 || result[0].state_status == 1) {
     //                                     let data = req.body
-    //                                     const sql = data.type_insert === "z" ? 
+    //                                     const sql = data.type_request === "z" ? 
     //                                                     `INSERT INTO formfertilizer 
     //                                                     ( 
     //                                                         id_plant , name , formula_name , use_is , volume , source , date
@@ -1845,7 +1861,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                                                         ? , ? , ? , ? , ? , ? , ?
     //                                                     );
     //                                                     ` : 
-    //                                                 data.type_insert === "c" ? 
+    //                                                 data.type_request === "c" ? 
     //                                                     `INSERT INTO formchemical 
     //                                                     ( 
     //                                                         id_plant , name , formula_name , insect , use_is , rate , volume , source , date_safe , date
@@ -1853,15 +1869,15 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                                                         ? , ? , ? , ? , ? , ? , ? , ? , ? , ?
     //                                                     );
     //                                                     ` : ""
-    //                                     const ArrayData = data.type_insert === "z" ? 
+    //                                     const ArrayData = data.type_request === "z" ? 
     //                                                         [ data.id_plant , data.name , data.formula_name , data.use , data.volume , data.source , new Date(data.date) ] :
-    //                                                     data.type_insert === "c" ? 
+    //                                                     data.type_request === "c" ? 
     //                                                         [ data.id_plant , data.name , data.formula_name , data.insect , data.use , data.rate , data.volume , data.source , new Date(data.dateSafe) , new Date(data.date) ] : []
 
     //                                     con.query(sql , ArrayData ,
     //                                                 (err , insert)=>{
     //                                                     try {
-    //                                                         sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert == "z" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${data.id_plant}`)
+    //                                                         sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_request == "z" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${data.id_plant}`)
     //                                                     } catch (e) {}
     //                                                     con.end()
     //                                                     res.send("insert")
@@ -1913,20 +1929,20 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
                                 if (result[0].state_status == 0 || result[0].state_status == 1) {
                                     let data = req.body;
                                     const sql =
-                                        data.type_insert === 'z'
+                                        data.type_request === 'z'
                                             ? `INSERT INTO formfertilizer 
                                                     (id_plant, name, formula_name, use_is, volume, source, date)
                                                 VALUES (?, ?, ?, ?, ?, ?, ?);`
-                                            : data.type_insert === 'c'
+                                            : data.type_request === 'c'
                                                 ? `INSERT INTO formchemical 
                                                     (id_plant, name, formula_name, insect, use_is, rate, volume, source, date_safe, date)
                                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
                                                 : '';
 
                                     const ArrayData =
-                                        data.type_insert === 'z'
+                                        data.type_request === 'z'
                                             ? [data.id_plant, data.name, data.formula_name, data.use, data.volume, data.source, new Date(data.date)]
-                                            : data.type_insert === 'c'
+                                            : data.type_request === 'c'
                                                 ? [
                                                     data.id_plant,
                                                     data.name,
@@ -1943,7 +1959,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
                                     // ตรวจสอบความสัมพันธ์ระหว่างศัตรูพืชและสารเคมี
                                     let notificationMessage = '';
-                                    if (data.type_insert === 'c') {
+                                    if (data.type_request === 'c') {
                                         try {
                                             const pestChemicalRelationValid = await checkPestChemicalRelation(data.insect, data.name, data.id_plant, con);
                                             // ดึงประเภทศัตรูพืชจากฐานข้อมูล
@@ -1965,7 +1981,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
                                             notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่มสารเคมี "${data.name}"\nที่ฟอร์มไอดี ${data.id_plant}\n\nไม่สามารถตรวจสอบสารเคมีกับศัตรูพืชได้`;
                                         }
                                     } else {
-                                        notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_insert === 'z' ? 'ปัจจัยการผลิต' : 'สารเคมี'}\nที่ฟอร์มไอดี ${data.id_plant}`;
+                                        notificationMessage = `เกษตรกร ${auth.data.fullname}\nมีการเพิ่ม${data.type_request === 'z' ? 'ปัจจัยการผลิต' : 'สารเคมี'}\nที่ฟอร์มไอดี ${data.id_plant}`;
                                     }
 
                                     // ดำเนินการบันทึกข้อมูล
@@ -2081,11 +2097,11 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //         let con = Database.createConnection(listDB)
     //         try {
     //             const auth = await authCheck(con , dbpacket , res , req )
-    //             const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
-    //             if(TypeFrom) {
+    //             const FactorType = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
+    //             if(FactorType) {
     //                 con.query(` 
-    //                         SELECT form${TypeFrom}.* , formplant.state_status
-    //                         FROM form${TypeFrom} ,
+    //                         SELECT form${FactorType}.* , formplant.state_status
+    //                         FROM form${FactorType} ,
     //                         (
     //                             SELECT formplant.id , formplant.state_status
     //                             FROM formplant , 
@@ -2095,7 +2111,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                                 ) as houseFarm
     //                             WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
     //                         ) as formplant
-    //                         WHERE form${TypeFrom}.id_plant = formplant.id and form${TypeFrom}.id = ?
+    //                         WHERE form${FactorType}.id_plant = formplant.id and form${FactorType}.id = ?
     //                     ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant , req.body.id_form] , 
     //                     (err , result)=>{
     //                         if (!err) {
@@ -2140,14 +2156,14 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                                                                     let strUpdate = arrUpdate.join(" , ")
     //                                                                     con.query(
     //                                                                         `
-    //                                                                         UPDATE form${TypeFrom} 
+    //                                                                         UPDATE form${FactorType} 
     //                                                                         SET ${strUpdate}
     //                                                                         WHERE id = ?
     //                                                                         ` , [ data.id_form ] , 
     //                                                                         (err , update) => {
     //                                                                             if (!err) {
     //                                                                                 try {
-    //                                                                                     sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nทำการแก้ไข${TypeFrom == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${req.body.id_plant}`)
+    //                                                                                     sendNotifyToDoctor(auth.data.id_table , auth.data.station , `เกษตรกร ${auth.data.fullname}\nทำการแก้ไข${FactorType == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nที่ฟอร์มไอดี ${req.body.id_plant}`)
     //                                                                                 } catch (e) {}
     //                                                                                 con.end()
     //                                                                                 res.send("133")
@@ -2205,121 +2221,144 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
             let con = Database.createConnection(listDB);
             try {
                 const auth = await authCheck(con, req);
-                const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
-                if (TypeFrom) {
-                    con.query(`
-                        SELECT form${TypeFrom}.*, formplant.state_status
-                        FROM form${TypeFrom}, 
-                            (
-                                SELECT formplant.id, formplant.state_status
-                                FROM formplant, 
-                                    (
-                                        SELECT id_farm_house FROM housefarm
-                                        WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
-                                    ) AS houseFarm
-                                WHERE formplant.id_farm_house = houseFarm.id_farm_house AND formplant.id = ?
-                            ) AS formplant
-                        WHERE form${TypeFrom}.id_plant = formplant.id AND form${TypeFrom}.id = ?
-                    `, [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant, req.body.id_form],
-                        (err, result) => {
-                            if (err) {
-                                con.end();
-                                res.send("error auth");
-                                return;
-                            }
+                const FactorType = (
+                    req.body.type_request == "z" ? 
+                        "fertilizer" : 
+                    req.body.type_request == "c" ? 
+                        "chemical" : 
+                        ""
+                )
+                
+                // , 
+                // (
+                //     SELECT formplant.id, formplant.state_status
+                //     FROM formplant, 
+                //         (
+                //             SELECT id_farm_house FROM housefarm
+                //             WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) AND housefarm.id_farm_house = ?
+                //         ) AS houseFarm
+                //     WHERE formplant.id_farm_house = houseFarm.id_farm_house AND formplant.id = ?
+                // ) AS formplant
 
-                            if (!result[0]) {
-                                con.end();
-                                res.send("not");
-                                return;
-                            }
+                if (FactorType) {
+                    try {
+                        const factorCurrent = await pool.executeQuery(
+                            `
+                                SELECT ft.*, fp.state_status
+                                FROM form${FactorType} ft
+                                LEFT JOIN formplant fp ON fp.id = ft.id_plant
+                                LEFT JOIN housefarm gh ON gh.id_farm_house = fp.id_farm_house
+                                WHERE (gh.uid_line = ? || gh.link_user = ?) AND gh.id_farm_house = ? AND fp.id = ? AND ft.id = ?
+                                LIMIT 1
+                            `,
+                            [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant, req.body.id_form]
+                        )
 
-                            const data = req.body;
-                            if (result[0].state_status === 0 || result[0].state_status === 1) {
-                                // ตรวจสอบว่าผู้ใช้เป็นหมอพืช
-                                const isDoctor = auth.data.user_type === 'doctor'; // ตรวจสอบฟิลด์ user_type
-                                const idDoctorEdit = isDoctor ? auth.data.id_user : null;
+                        const [ { state_status , ...factorData } ] = factorCurrent
+                        
+                        if([0 , 1].includes(state_status)) {
+                            // ตรวจสอบว่าผู้ใช้เป็นหมอพืช
 
-                                con.query(`
-                                INSERT INTO editform 
-                                    (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
-                                VALUES 
-                                    (?, ?, ?, ?, ?, ?, ?)
-                            `, [data.id_form, "", idDoctorEdit, data.because, "", 0, data.type_form],
-                                    (err, resultEdit) => {
-                                        if (err) {
-                                            dbpacket.dbErrorReturn(con, err, res);
-                                            console.log("insert editform");
-                                            return;
-                                        }
+                            const { id_user , user_type , id_form , because , change } = req.body;
+                            const isDoctor = user_type === 'doctor'; // ตรวจสอบฟิลด์ user_type
+                            const idDoctorEdit = isDoctor ? id_user : null;
 
-                                        if (resultEdit.insertId > 0) {
-                                            const arrUpdate = [];
-                                            let checkerr = false;
+                            const editForm = await pool.executeQuery(
+                                `
+                                    INSERT INTO editform 
+                                        (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                                    VALUES 
+                                        (?, ?, ?, ?, ?, ?, ?)
+                                `,
+                                [id_form, "", idDoctorEdit, because, "", 0, FactorType]
+                            )
 
-                                            for (let subject in data.dataChange) {
-                                                con.query(`
-                                            INSERT INTO detailedit
-                                                (id_edit, subject_form, old_content, new_content)
-                                            VALUES 
-                                                (?, ?, ?, ?)
-                                        `, [resultEdit.insertId, subject, result[0][subject], data.dataChange[subject]],
-                                                    (err, Edit) => {
-                                                        if (err) {
-                                                            dbpacket.dbErrorReturn(con, err, res);
-                                                            console.log("insert detailedit");
-                                                            checkerr = true;
-                                                            return;
-                                                        }
+                            const { insertId : insertIdEdit } = editForm
+                            if(insertIdEdit > 0) {
+                                const insertData = []
 
-                                                        if (Edit.insertId) {
-                                                            arrUpdate.push(`${subject}="${data.dataChange[subject]}"`);
-                                                            if (arrUpdate.length === data.num) {
-                                                                const strUpdate = arrUpdate.join(" , ");
-                                                                con.query(`
-                                                        UPDATE form${TypeFrom} 
-                                                        SET ${strUpdate}
-                                                        WHERE id = ?
-                                                    `, [data.id_form],
-                                                                    (err, update) => {
-                                                                        if (err) {
-                                                                            dbpacket.dbErrorReturn(con, err, res);
-                                                                            console.log("update form");
-                                                                            return;
-                                                                        }
-                                                                        con.end();
-                                                                        try {
-                                                                            sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไข${TypeFrom == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nรหัสฟอร์ม ${data.id_form}`);
-                                                                        } catch (e) {
-                                                                            console.error(e);
-                                                                        }
-                                                                        res.send("133");
-                                                                    });
-                                                            }
-                                                        }
-                                                    });
-                                                if (checkerr) {
-                                                    con.end();
-                                                    res.send("edit");
-                                                    break;
-                                                }
-                                            }
-                                        } else {
-                                            con.end();
-                                            res.send("edit");
-                                        }
-                                    });
+                                const queryUpdates = []
+                                const paramUpdates = []
+
+                                for (const subject in change) {
+                                    insertData.push(
+                                        [insertIdEdit, subject, factorData[subject], change[subject]]
+                                    )
+
+                                    queryUpdates.push(`${subject} = ?`)
+                                    paramUpdates.push(change[subject])
+                                }
+
+                                const placeholders = insertData.map(() => '(?, ?, ?, ?)').join(', ')
+                                const flatValues = insertData.flat()
+
+                                let insertIdDetail;
+                                try {
+                                    const { insertId } = await pool.executeQuery(
+                                        `
+                                            INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) 
+                                                VALUES ${placeholders}
+                                        `,
+                                        flatValues
+                                    )
+
+                                    insertIdDetail = insertId
+                                } catch(err) {
+                                    console.log(err)
+
+                                    await pool.executeQuery(
+                                        "DELETE FROM editform WHERE id_edit = ?" , [ insertIdEdit ]
+                                    )
+                                    return res.send("edit")
+                                }
+
+                                paramUpdates.push(id_form)
+                                try {
+                                    await pool.executeQuery(
+                                        `
+                                            UPDATE form${FactorType} 
+                                            SET ${queryUpdates.join(" , ")}
+                                            WHERE id = ?
+                                        `,
+                                        paramUpdates
+                                    )
+                                } catch(err) {
+                                    console.log(err)
+
+                                    await pool.executeQuery(
+                                        "DELETE FROM editform WHERE id_edit = ?" , [ insertIdEdit ]
+                                    )
+                                    await pool.executeQuery(
+                                        "DELETE FROM detailedit WHERE id_detail = ?" , [ insertIdDetail ]
+                                    )
+                                    return res.send("edit")
+                                }
+
+                                try {
+                                    await sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไข${FactorType == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nรหัสฟอร์ม ${id_form}`);
+                                } catch (e) {
+                                    console.error(e);
+                                }
                             } else {
-                                con.end();
-                                res.send("submit");
+                                return res.send("edit")
                             }
-                        });
+                        } else {
+                            return res.send("submit")
+                        }
+
+                    } catch(err) {
+                        console.log(err)
+                        return res.send("error auth")
+                    }
                 } else {
-                    res.send("error auth");
+                    return res.send("error auth");
                 }
+
+                con.end();
+                return res.send("133")
             } catch (err) {
                 con.end();
-                console.error(err);
+                console.log(err);
                 if (err === "no" || err === "no account") res.send("close");
                 else res.send("error auth");
             }
@@ -2337,13 +2376,13 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //             const auth = await authCheck(con , dbpacket , res , req )
     //             const type = req.body.id_edit ? "*" : "id_edit" ;
     //             const where = req.body.id_edit ? `and editform.id_edit = '${req.body.id_edit}'` : "" ;
-    //             const TypeFrom = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
-    //             if(TypeFrom) {
+    //             const FactorType = req.body.type_form == "fertilizer" ? "fertilizer" : req.body.type_form == "chemical" ? "chemical" : "";
+    //             if(FactorType) {
     //                 con.query(` 
     //                         SELECT editform.${type} FROM editform , 
     //                         (
-    //                             SELECT form${TypeFrom}.id
-    //                             FROM form${TypeFrom} ,
+    //                             SELECT form${FactorType}.id
+    //                             FROM form${FactorType} ,
     //                             (
     //                                 SELECT formplant.id
     //                                 FROM formplant , 
@@ -2353,7 +2392,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
     //                                     ) as houseFarm
     //                                 WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
     //                             ) as formplant
-    //                             WHERE form${TypeFrom}.id_plant = formplant.id and form${TypeFrom}.id = ?
+    //                             WHERE form${FactorType}.id_plant = formplant.id and form${FactorType}.id = ?
     //                         ) as factor
     //                         WHERE editform.id_form = factor.id and type_form = ? ${where}
     //                     ` , [ auth.data.uid_line , auth.data.link_user , req.body.id_farmhouse , req.body.id_plant , req.body.id_form_factor , req.body.type_form] , 
@@ -2408,17 +2447,17 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
                 const where = req.body.id_edit
                     ? `AND editform.id_edit = '${req.body.id_edit}'`
                     : "";
-                const TypeFrom = req.body.type_form === "fertilizer" ? "fertilizer" : req.body.type_form === "chemical" ? "chemical" : null;
+                const FactorType = req.body.type_form === "fertilizer" ? "fertilizer" : req.body.type_form === "chemical" ? "chemical" : null;
 
-                if (TypeFrom) {
+                if (FactorType) {
                     con.query(
                         `
                         SELECT editform.*, 
-                               form${TypeFrom}.name AS form_name,
+                               form${FactorType}.name AS form_name,
                                COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
                         FROM editform
-                        LEFT JOIN form${TypeFrom} ON editform.id_form = form${TypeFrom}.id
-                        LEFT JOIN formplant ON form${TypeFrom}.id_plant = formplant.id
+                        LEFT JOIN form${FactorType} ON editform.id_form = form${FactorType}.id
+                        LEFT JOIN formplant ON form${FactorType}.id_plant = formplant.id
                         LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
                         WHERE formplant.id_farm_house = (
                             SELECT id_farm_house FROM housefarm
@@ -2426,7 +2465,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
                             AND housefarm.id_farm_house = ?
                         ) 
                         AND formplant.id = ?
-                        AND form${TypeFrom}.id = ?
+                        AND form${FactorType}.id = ?
                         AND editform.type_form = ? ${where}
                         ORDER BY editform.date DESC
                     `,

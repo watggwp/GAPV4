@@ -9,6 +9,7 @@ import {
 import { useParams } from "react-router";
 import { useGreenhouse } from "..";
 import { Autocomplete, TextField } from "@mui/material";
+import RoyalGapFrontendUtil from "../../../../../assets/core/RoyalGapUtil";
 
 const getDateNow = () => {
     return new Date()
@@ -47,14 +48,42 @@ export default function TemplatePopup({
     const [ source , setSource ] = useState(editDefaultField?.source || "")
 
     //  chemical
-    const [ insectName , setInsectName ] = useState(editDefaultField?.subjectResult?.insect || "")
+    const [ insectName , setInsectName ] = useState(editDefaultField?.insect || "")
     const [ rate , setRate ] = useState(editDefaultField?.rate || "")
-    const [ safeDate , setSafeDate ] = useState(editDefaultField?.date_safe || getDateNow())
+    const [ safeDate , setSafeDate ] = useState(editDefaultField?.date_safe || "")
 
     const [ because , setBesauce ] = useState("")
 
     const [ factors, setFactors ] = useState([]);
     const [ sources, setSources ] = useState([]);
+
+    const PrimarySearch = useMemo(() => {
+        const factorsName = factors.map(({ name }) => name)
+        return {
+            factorsName : factorsName,
+            match : RoyalGapFrontendUtil.GetMatchSearch(
+                factorsName,
+                {
+                    threshold : 0.5
+                }
+            )
+        }
+    } , [factors])
+
+    const SecondarySearch = useMemo(() => {
+        const factorsName = factors
+            .filter(({ name }) => name === primaryName)
+            .map(({ name_formula }) => name_formula)
+        return {
+            factorsName : factorsName,
+            match : RoyalGapFrontendUtil.GetMatchSearch(
+                factorsName,
+                {
+                    threshold : 0.5
+                }
+            )
+        }
+    } , [factors, primaryName])
 
     const [ loadingSources , setLoadingSources ] = useState(true)
     const [ loadingSecondaryName, setLoadingSecondaryName ] = useState(false);
@@ -227,7 +256,7 @@ export default function TemplatePopup({
                 use: use,
                 volume: volume + " " + unit,
                 source: source,
-                type_insert: type_path
+                type_request: type_path
             }
         } else {
 
@@ -267,24 +296,36 @@ export default function TemplatePopup({
         //     })
         // }
 
-        const requestData = {
+        let requestData = {
             id_farmhouse: greenhouse_id,
             id_plant: gap_id,
-            date: useDate,
-            formula_name: secondaryName,
-            name: primaryName,
-            use: use,
-            volume: volume + " " + unit,
-            source: source,
-            type_insert: type_path
+            type_request: type_path
         }
 
-        if(editDefaultField) {
-            // id_form : ObjectData.id,
-            // type_form : "fertilizer",
-            // because : because.value,
-            // dataChange : Object.fromEntries(new Map([...foundChange])),
-            // num : foundChange.length
+        if(!editDefaultField) {
+            requestData = {
+                ...requestData,
+                date: useDate,
+                formula_name: secondaryName,
+                name: primaryName,
+                use: use,
+                volume: volume + " " + unit,
+                source: source,
+            }
+        } else {
+            requestData = {
+                ...requestData,
+                id_form : editDefaultField?.id,
+                because,
+                change : {
+                    ...(useDate !== editDefaultField.date && { date: useDate }),
+                    ...(secondaryName !== editDefaultField.formula_name && { formula_name: secondaryName }),
+                    ...(primaryName !== editDefaultField.name && { name: primaryName }),
+                    ...(use !== editDefaultField.use_is && { use }),
+                    ...(volume + " " + unit !== editDefaultField.volume && { volume: volume + " " + unit }),
+                    ...(source !== editDefaultField.source && { source }),
+                }
+            }
         }
 
         setWait(true);
@@ -294,27 +335,50 @@ export default function TemplatePopup({
             ReloadData();
             setWait(false);
         }
-    } , [ReloadData, cancel, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
 
     const onConfirmChemical = useCallback(async () => {
         // if (!validateInputs()) {
         //     return;
         // }
     
-        const requestData = {
+        let requestData = {
             id_farmhouse: greenhouse_id,
             id_plant: gap_id,
-            date: useDate,
-            formula_name: secondaryName,
-            name: primaryName,
-            insect: insectName,
-            use: use,
-            rate: rate,
-            volume: volume + " " + unit,
-            dateSafe: safeDate,
-            source: source,
-            type_insert: type_path,
+            type_request: type_path,
         };
+
+        if(!editDefaultField) {
+            requestData = {
+                ...requestData,
+                date: useDate,
+                formula_name: secondaryName,
+                name: primaryName,
+                insect: insectName,
+                use: use,
+                rate: rate,
+                volume: volume + " " + unit,
+                dateSafe: safeDate,
+                source: source,
+            }
+        } else {
+            requestData = {
+                ...requestData,
+                id_form : editDefaultField?.id,
+                because,
+                change : {
+                    ...(useDate !== editDefaultField.date && { date: useDate }),
+                    ...(secondaryName !== editDefaultField.formula_name && { formula_name: secondaryName }),
+                    ...(primaryName !== editDefaultField.name && { name: primaryName }),
+                    ...(use !== editDefaultField.use_is && { use }),
+                    ...(volume + " " + unit !== editDefaultField.volume && { volume: volume + " " + unit }),
+                    ...(source !== editDefaultField.source && { source }),
+                    ...(insectName !== editDefaultField.insect && { insect: insectName }),
+                    ...(rate !== editDefaultField.rate && { rate }),
+                    ...(safeDate !== editDefaultField.date_safe && { date_safe: safeDate }),
+                }
+            }
+        }
     
         setWait(true);
         const result = await clientMo.post(endpointManage.current, requestData);
@@ -323,7 +387,7 @@ export default function TemplatePopup({
             ReloadData();
             setWait(false);
         }
-    } , [ReloadData, cancel, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
 
     const onChangeHowUse = useCallback(() => {
         primaryName && secondaryName && setHowUse()
@@ -408,7 +472,8 @@ export default function TemplatePopup({
                 use &&
                 volume &&
                 source &&
-                unit 
+                unit &&
+                (editDefaultField ? because : true)
             ) :
             !Boolean(
                 useDate &&
@@ -420,9 +485,10 @@ export default function TemplatePopup({
                 insectName &&
                 rate &&
                 safeDate &&
-                validateInputs()
+                validateInputs() &&
+                (editDefaultField ? because : true)
             )
-    , [insectName, primaryName, rate, safeDate, source, type_path, unit, use, useDate, validateInputs, volume])
+    , [because, editDefaultField, insectName, primaryName, rate, safeDate, source, type_path, unit, use, useDate, validateInputs, volume])
 
     return (
     // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
@@ -483,10 +549,12 @@ export default function TemplatePopup({
                                                                 padding : "0px !important"
                                                             }
                                                         }}
+                                                        filterOptions={(options, { inputValue }) => {
+                                                            if (!inputValue) return options;
+                                                            return PrimarySearch.match.search(inputValue).map(r => r.item);
+                                                        }}
                                                         value={primaryName}
-                                                        options={
-                                                            factors.map(({ name }) => name)
-                                                        }
+                                                        options={PrimarySearch.factorsName}
                                                         renderInput={(params) => 
                                                             <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อปุ๋ย"} />
                                                         }
@@ -511,12 +579,12 @@ export default function TemplatePopup({
                                                             padding : "0px !important"
                                                         }
                                                     }}
+                                                    filterOptions={(options, { inputValue }) => {
+                                                        if (!inputValue) return options;
+                                                        return SecondarySearch.match.search(inputValue).map(r => r.item);
+                                                    }}
                                                     value={secondaryName}
-                                                    options={
-                                                        factors
-                                                            .filter(({ name }) => name === primaryName)
-                                                            .map(({ name_formula }) => name_formula)
-                                                    }
+                                                    options={SecondarySearch.factorsName}
                                                     renderInput={(params) => 
                                                         <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : (primaryName ? "เลือกสูตรปุ๋ย" : "ต้องเลือกชื่อก่อน")} />
                                                     }
@@ -631,10 +699,12 @@ export default function TemplatePopup({
                                                                 padding : "0px !important"
                                                             }
                                                         }}
+                                                        filterOptions={(options, { inputValue }) => {
+                                                            if (!inputValue) return options;
+                                                            return PrimarySearch.match.search(inputValue).map(r => r.item);
+                                                        }}
                                                         value={primaryName}
-                                                        options={
-                                                            factors.map(({ name }) => name)
-                                                        }
+                                                        options={PrimarySearch.factorsName}
                                                         renderInput={(params) => 
                                                             <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อสารเคมี"} />
                                                         }
@@ -662,12 +732,12 @@ export default function TemplatePopup({
                                                                 padding : "0px !important"
                                                             }
                                                         }}
+                                                        filterOptions={(options, { inputValue }) => {
+                                                            if (!inputValue) return options;
+                                                            return SecondarySearch.match.search(inputValue).map(r => r.item);
+                                                        }}
                                                         value={secondaryName}
-                                                        options={
-                                                            factors
-                                                                .filter(({ name }) => name === primaryName)
-                                                                .map(({ name_formula }) => name_formula)
-                                                        }
+                                                        options={SecondarySearch.factorsName}
                                                         renderInput={(params) => 
                                                             <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : ( primaryName ? "เลือกชื่อสามัญ" : "ต้องเลือกชื่อก่อน" )} />
                                                         }
