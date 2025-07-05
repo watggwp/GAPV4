@@ -217,9 +217,9 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                                 const { greenhouse_name , plant_name } = gapData || {}
                                                 return [
                                                     ...generateMessageTitle(greenhouse_name , plant_name),
-                                                    "เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ของท่าน",
+                                                    "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
                                                     "",
-                                                    `โดยมีการแก้ไขรายการ:`,
+                                                    `แก้ไขรายการ:`,
                                                     edits_content.map(({ name , prev , current }) => 
                                                         `${name}: จาก ${prev} เป็น ${current}`
                                                     )
@@ -3136,7 +3136,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                             ...generateMessageTitle(greenhouse_name , plant_name),
                                             `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
                                             "",
-                                            "ได้แก่:",
+                                            "รายการ:",
                                             editDatas.map(({ subject_form , old_content , new_content }) => 
                                                 `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
                                             )
@@ -3518,7 +3518,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                     const { greenhouse_name , plant_name } = gapData || {}
                                     return [
                                         ...generateMessageTitle(greenhouse_name , plant_name),
-                                        `หมอพืชสั่งเก็บเกี่ยวผลผลิตตัวอย่าง`,
+                                        `หมอพืชสั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
                                         `รหัสการเก็บเกี่ยว: ${Random}`
                                     ]
                                 },
@@ -3614,7 +3614,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                                         const { greenhouse_name , plant_name } = gapData || {}
                                         return [
                                             ...generateMessageTitle(greenhouse_name , plant_name),
-                                            `ได้มีคำแนะนำการปลูกจากหมอพืช`,
+                                            `มีคำแนะนำการปลูกจากหมอพืช`,
                                             '',
                                             req.body.report_text
                                         ]

@@ -2618,7 +2618,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 			if(auth['result'] === "pass") {
 				con.end()
 
-				const { station_id , user_type } = req.query
+				const { station_id , user_type , st , et } = req.query
 
 				const user_mapping = {
 					table : "",
@@ -2670,23 +2670,29 @@ app.post('/api/admin/report/list', async(req, res) => {
 								COUNT(*) AS total_access
 							FROM user_access_logs ual
 							LEFT JOIN ${user_mapping.table} ON ual.user_id = ${user_mapping.table_id}
-							WHERE ${arr_where.join(" AND ")} AND ual.access_date >= DATE(DATE_SUB(NOW(), INTERVAL 7 DAY))
+							WHERE ${arr_where.join(" AND ")} AND ual.access_date BETWEEN ? AND ?
 							GROUP BY ual.user_id , ual.user_type
 							ORDER BY ual.access_date DESC
 						`,
-						arr_params
+						[...arr_params , new Date(Number(st)) , new Date(Number(et))]
 					)
 
-          const process_date = await pool.executeQuery(
+          const count_access_date = await pool.executeQuery(
             `
-              SELECT DATE(DATE_SUB(NOW(), INTERVAL 7 DAY)) as start_date , DATE(NOW()) as now_date
-            `
+              SELECT ual.access_date , COUNT(*) as access_date_count
+              FROM user_access_logs ual
+              LEFT JOIN ${user_mapping.table} ON ual.user_id = ${user_mapping.table_id}
+							WHERE ${arr_where.join(" AND ")} AND ual.access_date BETWEEN ? AND ?
+              GROUP BY ual.access_date
+              ORDER BY ual.access_date ASC
+            `,
+            [...arr_params , new Date(Number(st)) , new Date(Number(et))]
           )
 
 					return res.status(200).json({
 						status: "success",
 						user_access_logs: user_access_logs,
-            process_date : process_date[0]
+            chart_access_logs : count_access_date
 					})
 				} catch (error) {
 					console.error("Error fetching user access logs:", error);

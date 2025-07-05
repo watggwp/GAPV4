@@ -1,11 +1,11 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from "react"
-import { Box, Grid, MenuItem, Select, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
+import { useCallback, useMemo, useState } from "react"
+import { Grid, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DataGrid } from "@mui/x-data-grid"
-import DatePickerAccept from "../DatePickerAccept"
 import RequestAPI from "../../js/requestAPI"
 import DateGAP from "../../core/DateGAP"
 import { clientMo } from "../../js/moduleClient"
+import DateRange from "../DateRange"
 
 const TabsGAP = styled((props) => (
     <Tabs
@@ -47,14 +47,9 @@ export default function WeatherManagement({
     ],
     onChangeRange = (starttime , endtime) => {}
 }) {
-    const isDesktopPicker = useMediaQuery('(pointer: fine)')
     const isMediaSm = useMediaQuery((theme) => theme.breakpoints.down("md"))
 
-    const [ dayAgo , setDayAgo ] = useState(0)
     const [ selectedTab , setSelectedTab ] = useState(0)
-
-    const [ dateStart , setDateStart ] = useState(new Date())
-    const [ dateEnd , setDateEnd ] = useState(new Date())
 
     const [ chartDatas , setChartDatas ] = useState([])
 
@@ -69,71 +64,42 @@ export default function WeatherManagement({
         r : query.r
     }) , [query.r])
 
-    const requestWeatherManagement = useCallback( async (starttime , endtime , isMount) => {
+    const PreprocessDateRange = useCallback((starttime , endtime , isMount) => {
         setHistoryDatas([])
         setChartDatas([])
         setLoadingHistory(true)
-
-        startTransition( async () => {
-            setDateStart(new Date(starttime))
-            setDateEnd(new Date(endtime))
-
-            const { data , status } = await RequestAPI.get(endpointData , {
-                "st" : starttime,
-                "et" : endtime,
-                ...(Query || {})
-            })
-            setLoadingHistory(false)
-
-            switch(status) {
-                case 200 :
-                    const { details } = data
-                    const newDatas = details?.map((item , index) => {
-                        return {
-                            ...item,
-                            id : index,
-                            timestamp : new DateGAP(item[columnTimestamp]).format2Str("DD/MM/YYYY HH:II"),
-                        }
-                    }) || []
-
-                    setChartDatas(Array.isArray(newDatas) ? newDatas.sort((a , b) => b.id - a.id) : [])
-                    setHistoryDatas(newDatas)
-                    break;
-                default :
-                    break;
-            }
-        })
-        isMount && clientMo.unLoadingPage()
-    } , [columnTimestamp, endpointData, Query])
-
-    const onChanageDayAgo = useCallback((event) => {
-        const { now , dayAgo } = new DateGAP().getDayRangeFromNow(event.target.value)
-        setDayAgo(event.target.value)
-        requestWeatherManagement(dayAgo.getTime() , now.getTime())
-    }, [requestWeatherManagement])
-
-    const onChangeStart = useCallback((date) => {
-        setDateStart(date["$d"])
-        setDateEnd(null)
     } , [])
 
-    const onChangeEnd = useCallback((date) => {
-        requestWeatherManagement(dateStart.getTime() , date["$d"].getTime())
-    } , [dateStart, requestWeatherManagement])
+    const ProcessRequestDateRange = useCallback( async (starttime , endtime , isMount) => {
+        const { data , status } = await RequestAPI.get(endpointData , {
+            "st" : starttime,
+            "et" : endtime,
+            ...(Query || {})
+        })
+        setLoadingHistory(false)
 
-    useEffect(() => {
-        if(startTime || endTime) {
-            requestWeatherManagement(startTime , endTime , true)
-            return
-        } 
+        switch(status) {
+            case 200 :
+                const { details } = data
+                const newDatas = details?.map((item , index) => {
+                    return {
+                        ...item,
+                        id : index,
+                        timestamp : new DateGAP(item[columnTimestamp]).format2Str("DD/MM/YYYY HH:II"),
+                    }
+                }) || []
 
-        const { now , dayAgo } = new DateGAP().getDayRangeFromNow(0)
-        requestWeatherManagement(dayAgo.getTime() , now.getTime() , true)
-    } , [endTime, requestWeatherManagement, startTime])
+                setChartDatas(Array.isArray(newDatas) ? newDatas.sort((a , b) => b.id - a.id) : [])
+                setHistoryDatas(newDatas)
+                break;
+            default :
+                break;
+        }
+    } , [Query, columnTimestamp, endpointData])
 
-    useEffect(() => {
-        onChangeRange?.(dateStart?.getTime() , dateEnd?.getTime())
-    } , [dateEnd, dateStart, onChangeRange])
+    const PostProcessDateRange = useCallback( async (starttime , endtime , isMount) => {
+        isMount && clientMo.unLoadingPage()
+    } , [])
     
     return(
         <Stack
@@ -183,70 +149,14 @@ export default function WeatherManagement({
                     </Stack>
                     {
                         Boolean(!startTime && !endTime) && (
-                            <Stack 
-                                width={"100%"}
-                                alignItems={"center"}
-                            >
-                                <Stack width={"95%"} direction={"row"} justifyContent={"space-between"} alignItems={"center"} marginTop={"8px"}>
-                                    <Stack
-                                        width={"45%"}
-                                    >
-                                        <DatePickerAccept
-                                            label={"วันเริ่มต้น"}
-                                            value={dateStart}
-                                            onAcceptData={!isDesktopPicker ? onChangeStart : undefined}
-                                            onChangeData={isDesktopPicker ? onChangeStart : undefined}
-                                            sxTextField={{
-                                                "& .MuiPickersInputBase-sectionContent" : {
-                                                    fontSize : "12px"
-                                                },
-                                            }}
-                                        />
-                                    </Stack>
-                                    <Box
-                                        width={"5%"}
-                                        height={"2px"}
-                                        bgcolor={"black"}
-                                    />
-                                    <Stack
-                                        width={"45%"}
-                                    >
-                                        <DatePickerAccept
-                                            label={"วันสิ้นสุด"}
-                                            value={dateEnd}
-                                            sxTextField={{
-                                                "& .MuiPickersInputBase-sectionContent" : {
-                                                    fontSize : "12px"
-                                                }
-                                            }}
-                                            minDate={dateStart}
-                                            onAcceptData={!isDesktopPicker ? onChangeEnd : undefined}
-                                            onChangeData={isDesktopPicker ? onChangeEnd : undefined}
-                                        />
-                                    </Stack>
-                                </Stack>
-                                <Stack width={"95%"} marginTop={"8px"}>
-                                    <Select size="small"
-                                        MenuProps={{
-                                            PaperProps: {
-                                                sx: {
-                                                    maxHeight: 200,
-                                                },
-                                            },
-                                        }}
-                                        onChange={onChanageDayAgo}
-                                        value={dayAgo}
-                                    >
-                                        <MenuItem value={0}>วันนี้</MenuItem>
-                                        <MenuItem value={1}>1 วัน</MenuItem>
-                                        <MenuItem value={3}>3 วัน</MenuItem>
-                                        <MenuItem value={7}>1 สัปดาห์</MenuItem>
-                                        <MenuItem value={21}>3 สัปดาห์</MenuItem>
-                                        <MenuItem value={30}>1 เดือน</MenuItem>
-                                        <MenuItem value={90}>3 เดือน</MenuItem>
-                                    </Select>
-                                </Stack>
-                            </Stack>
+                            <DateRange
+                                startTime={startTime}
+                                endTime={endTime}
+                                onChangeRange={onChangeRange}
+                                onChangeRangeStepPreprocess={PreprocessDateRange}
+                                onChangeRangeStepProcess={ProcessRequestDateRange}
+                                onChangeRangeStepPostprocess={PostProcessDateRange}
+                            />
                         )
                     }
                 </Grid>

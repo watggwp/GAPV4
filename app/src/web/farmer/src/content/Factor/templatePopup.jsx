@@ -563,6 +563,7 @@ export default function TemplatePopup({
                                                             setPrimaryName(value)
                                                             setSecondaryName("")
                                                         }}
+                                                        noOptionsText="ไม่พบปุ๋ย"
                                                     />
                                                 </div>
                                             </div>
@@ -590,6 +591,7 @@ export default function TemplatePopup({
                                                     }
                                                     readOnly={loadingSecondaryName || !primaryName}
                                                     onChange={(e , value) => setSecondaryName(value)}
+                                                    noOptionsText="ไม่พบสูตรปุ๋ย"
                                                 />
                                             </div>
                                         </label>
@@ -716,6 +718,7 @@ export default function TemplatePopup({
                                                                 chemicalNameData : value
                                                             })
                                                         }}
+                                                        noOptionsText="ไม่พบชื่อสารเคมี"
                                                     />
                                                 </div>
                                             </div>
@@ -745,6 +748,7 @@ export default function TemplatePopup({
                                                         onChange={(event , value) => {
                                                             setSecondaryName(value)
                                                         }}
+                                                        noOptionsText="ไม่พบชื่อสามัญสารเคมี"
                                                     />
                                                 </div>
                                             </label>
