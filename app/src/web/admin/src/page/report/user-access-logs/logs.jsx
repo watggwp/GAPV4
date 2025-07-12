@@ -50,36 +50,42 @@ export default function UserLogs({
     return(
         <Grid container size={{ xs : 12 }} minHeight={250} paddingBottom={1} spacing={1}>
             <Grid size={{ sm : 12 , md : 6 }}>
-                <DataGrid
-                    columns={[
-                        {
-                            field : "fullname",
-                            headerName : "ชื่อ - นามสกุล",
-                            flex : 3,
-                            minWidth : 300
-                        },
-                        {
-                            field : "total_access",
-                            headerName : "จำนวนเข้าใช้งาน",
-                            flex : 1.5,
-                            minWidth : 150
-                        },
-                        {
-                            field : "access_date",
-                            headerName : "วันล่าสุดที่เข้าใช้งาน",
-                            flex : 1.5,
-                            minWidth : 150,
-                            renderCell: ({ value }) => new DateGAP(value).format2Str("DD-MM-YYYY")
-                        }
-                    ]}
-                    rows={userAccessLogs}
-                    loading={loadingUserAccessLogs}
-                    hideFooterPagination
-                    hideFooter
-                />
+                <Stack
+                    width={"100%"}
+                    height={"100%"}
+                    maxHeight={"258px"}
+                >
+                    <DataGrid
+                        columns={[
+                            {
+                                field : "fullname",
+                                headerName : "ชื่อ - นามสกุล",
+                                flex : 3,
+                                minWidth : 300
+                            },
+                            {
+                                field : "total_access",
+                                headerName : "จำนวนเข้าใช้งาน",
+                                flex : 1.5,
+                                minWidth : 150
+                            },
+                            {
+                                field : "access_date",
+                                headerName : "วันล่าสุดที่เข้าใช้งาน",
+                                flex : 1.5,
+                                minWidth : 150,
+                                renderCell: ({ value }) => new DateGAP(value).format2Str("DD-MM-YYYY")
+                            }
+                        ]}
+                        rows={userAccessLogs}
+                        loading={loadingUserAccessLogs}
+                        hideFooterPagination
+                        hideFooter
+                    />
+                </Stack>
             </Grid>
             <Grid size={{ sm : 12 , md : 6 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" maxHeight={258}>
                     <LineChart
                         data={userAccessChartLogs}
                         width={250}
