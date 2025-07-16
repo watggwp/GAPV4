@@ -7,8 +7,7 @@ module.exports = function UserAccessLogsGAP(connectionPool = new ConnectPool()) 
         if(user_id && account_type) {
             try {
                 await connectionPool.executeQuery(`
-                    INSERT INTO user_access_logs ( user_id , user_type ) 
-                    VALUES (? , ?)
+                    INSERT INTO user_access_logs ( user_id , user_type ) VALUES (? , ?)
                     ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
                 ` , [ user_id , account_type ])
             } catch(err) {

@@ -48,12 +48,12 @@ export default function UserLogs({
     } , [requestLogs])
 
     return(
-        <Grid container size={{ xs : 12 }} minHeight={250} paddingBottom={1} spacing={1}>
+        <Grid container size={{ xs : 12 }} minHeight={230} paddingBottom={1} spacing={1}>
             <Grid size={{ sm : 12 , md : 6 }}>
                 <Stack
                     width={"100%"}
                     height={"100%"}
-                    maxHeight={"258px"}
+                    maxHeight={"250px"}
                 >
                     <DataGrid
                         columns={[
@@ -85,7 +85,7 @@ export default function UserLogs({
                 </Stack>
             </Grid>
             <Grid size={{ sm : 12 , md : 6 }}>
-                <ResponsiveContainer width="100%" height="100%" maxHeight={258}>
+                <ResponsiveContainer width="100%" height="100%" maxHeight={250}>
                     <LineChart
                         data={userAccessChartLogs}
                         width={250}
