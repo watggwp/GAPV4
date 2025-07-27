@@ -35,7 +35,24 @@ export default function UserLogs({
                     const { user_access_logs , chart_access_logs } = data
 
                     setUserAccessLogs(user_access_logs)
-                    setUserAccessChartLogs(chart_access_logs)
+                    
+
+                    const chart_access_logs_mapping = {}
+                    chart_access_logs.forEach(({ access_date , access_date_count }) => {
+                        chart_access_logs_mapping[new DateGAP(access_date).format2Str("DD-MM-YYYY")] = access_date_count
+                    })
+
+                    const dayMs = 24 * 60 * 60 * 1000;
+                    const result_date_access = [];
+                    for (let ts = startDate; ts <= endDate; ts += dayMs) {
+                        const formatDate = new DateGAP(ts).format2Str("DD-MM-YYYY")
+                        result_date_access.push({
+                            access_date : formatDate,
+                            access_date_count : chart_access_logs_mapping[formatDate] || 0
+                        })
+                    }
+
+                    setUserAccessChartLogs(result_date_access)
                     break;
                 default:
                     break;
@@ -91,7 +108,7 @@ export default function UserLogs({
                         width={250}
                     >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="access_date" tick={{ fontSize: 10 }} tickFormatter={(value) => new DateGAP(value).format2Str("DD-MM-YYYY")} />
+                        <XAxis dataKey="access_date" tick={{ fontSize: 10 }} />
                         <YAxis fontSize={"12px"} minTickGap={10} allowDecimals={false} />
                         <Tooltip />
                         <Legend wrapperStyle={{ fontSize: '12px'  , fontFamily : "Sans-font" , width : "100%" , left : 0 }} />

@@ -12,6 +12,10 @@ import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
+import { BrowserRouter, Route, Routes } from "react-router";
+import SchedulePlant from "./page/schedule/schedules";
+import SchedulePlants from "./page/schedule/schedulePlants";
+import ScheduleIndex from "./page/schedule";
 export const DoctorContext = createContext({
     profile : {},
     bannerCoverRef : { current : "" },
@@ -194,7 +198,16 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     </div> */}
                     <bot-main>
                         <bot-content>
-                            {body}
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path="/doctor/schedules" element={<ScheduleIndex/>}>
+                                        <Route index element={<SchedulePlant/>} />
+                                        <Route path=":plant_id" element={<SchedulePlants/>} />
+                                    </Route>
+                                    <Route path="*" element={body} />
+                                </Routes>
+                            </BrowserRouter>
+                            {/* {body} */}
                         </bot-content>
                     </bot-main>
                 </section>

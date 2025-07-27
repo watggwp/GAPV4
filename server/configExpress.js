@@ -26,6 +26,9 @@ const apiPump = require('./apiPump');
 const apiWeatherStation = require('./apiWeatherStation');
 const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
 const apiEcph = require('./apiEcph');
+const apiSchedules = require('./endpoints/schedules');
+const apiFertilizers = require('./endpoints/fertilizer');
+const apiPests = require('./endpoints/pest');
 const logging = require('./middleware/userAccessLogs');
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
@@ -163,6 +166,11 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiWeatherGreenhouse(app , Pool)
     apiPump(app , Pool)
     apiMessage(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
+    
+    apiSchedules(app , Pool)
+    apiFertilizers(app , Pool)
+    apiPests(app , Pool)
+    
     // page error 404
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));

@@ -9,8 +9,12 @@ import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
 import { useDoctor } from "./Doctor"
 import WeatherStation from "./page/station"
+import SchedulePlant from "./page/schedule/schedules"
+import { useNavigate } from "react-router"
 
 const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
+    const navigator = useNavigate()
+
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
 
     const { profile } = useDoctor()
@@ -76,6 +80,13 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
         else setSession()
     }
 
+    const schedules = useCallback(async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context) navigator("/doctor/schedules")
+            // setdoctor(<SchedulePlant/>)
+        else setSession()
+    } , [navigator, setSession])
+
     const report = async () => {
         const context = await clientMo.post('/api/doctor/check')
         if(context)
@@ -115,6 +126,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                         <>
                             <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
                             <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                            <ButtonMenu type={"plan"} textRow1={"กำหนด"} textRow2={"การปลูก"} action={schedules}/>
                         </>
                 }      
                 {

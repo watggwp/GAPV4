@@ -24,6 +24,7 @@ export default function DatePickerApp({ label , value , onChange , onAccept , on
               },
             }}
             minDate={minDate ? dayjs(minDate) : undefined}
+            format='DD-MM-YYYY'
         />
     </LocalizationProvider>
   );
