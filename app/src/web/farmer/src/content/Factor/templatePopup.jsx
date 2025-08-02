@@ -58,9 +58,9 @@ export default function TemplatePopup({
     const [ sources, setSources ] = useState([]);
 
     const PrimarySearch = useMemo(() => {
-        const factorsName = factors.map(({ name }) => name)
+        const factorsName = new Set([...factors.map(({ name }) => name)])
         return {
-            factorsName : factorsName,
+            factorsName : [...factorsName],
             match : RoyalGapFrontendUtil.GetMatchSearch(
                 factorsName,
                 {

@@ -1,19 +1,19 @@
-import { Autocomplete, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
+import { Autocomplete, autocompleteClasses, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RoyalGapFrontendUtil from "../../../../../../../../assets/core/RoyalGapUtil";
 import RequestAPI from "../../../../../../../../assets/js/requestAPI";
 
 export default function Fertilizer({
-    details , setDetails
+    details , onChangeDetails
 }) {
 
-    const [ nameFertilizer , setNameFertilizer ] = useState(details.name_fertilizer)
-    const [ formulaFertilizer , setFormulaFertilizer ] = useState(details.formula_fertilizer)
+    const [ nameFertilizer , setNameFertilizer ] = useState(details.name_fertilizer || "")
+    const [ formulaFertilizer , setFormulaFertilizer ] = useState(details.formula_fertilizer || "")
 
-    const [ volume , setVolume ] = useState(details.volume)
+    const [ volume , setVolume ] = useState(details.volume || "")
     const [ unitVolume , setUnitVolume ] = useState(details.unit_volume || "")
     
-    const [ isUse , setIsUse ] = useState(details.is_use || "")
+    const [ howUse , setHowUse ] = useState(details.how_use || "")
 
     const [ loadingNameFertilizer, setLoadingNameFertilizer ] = useState(false);
     const [ loadingFormulaFertilizer, setLoadingFormulaFertilizer ] = useState(false);
@@ -21,9 +21,9 @@ export default function Fertilizer({
     const [ fertilizers, setFertilizers ] = useState([]);
 
     const PrimarySearch = useMemo(() => {
-        const FertilizersName = fertilizers.map(({ name }) => name)
+        const FertilizersName = new Set(fertilizers.map(({ name }) => name))
         return {
-            FertilizersName : FertilizersName,
+            FertilizersName : [...FertilizersName],
             match : RoyalGapFrontendUtil.GetMatchSearch(
                 FertilizersName,
                 {
@@ -67,17 +67,45 @@ export default function Fertilizer({
         }
     } , [])
 
+    const onChangeIsUse = useCallback(({ target : { value } }) => {
+        setHowUse(value)
+        onChangeDetails("how_use" , value)
+    } , [onChangeDetails])
+
+    const onChangeNameFertilizer = useCallback((e , value) => {
+        setNameFertilizer(value)
+        setFormulaFertilizer("")
+
+        onChangeDetails("name_fertilizer" , value)
+        onChangeDetails("formula_fertilizer" , "")
+    } , [onChangeDetails])
+
+    const onChangeFormulaFertilizer = useCallback((e , value) =>  {
+        setFormulaFertilizer(value)
+        onChangeDetails("formula_fertilizer" , value)
+
+        if(!howUse) {
+            const howUseFilter = fertilizers.find(({ name , name_formula }) => {
+                if(name === nameFertilizer && name_formula === value) {
+                    return true
+                }
+
+                return false
+            }).how_use
+
+            onChangeIsUse({ target : { value : howUseFilter } })
+        }
+    }, [fertilizers, howUse, nameFertilizer, onChangeDetails, onChangeIsUse])
+ 
     const onChangeVolume = useCallback(({ target : { value } }) => {
         setVolume(value)
-    } , [])
+        onChangeDetails("volume" , value)
+    } , [onChangeDetails])
 
     const onChangeUnitVolume = useCallback(({ target : { value } }) => {
         setUnitVolume(value)
-    } , [])
-
-    const onChangeIsUse = useCallback(({ target : { value } }) => {
-        setIsUse(value)
-    } , [])
+        onChangeDetails("unit_volume" , value)
+    } , [onChangeDetails])
 
     useEffect(() => {
         fetchFertilizers()
@@ -92,6 +120,9 @@ export default function Fertilizer({
                         sx={{
                             [`& .MuiOutlinedInput-root`] : {
                                 padding : "0px !important"
+                            },
+                            [`& .${autocompleteClasses.input}`] : {
+                                padding : "7.5px 4px 7.5px 14px !important"
                             }
                         }}
                         filterOptions={(options, { inputValue }) => {
@@ -100,14 +131,16 @@ export default function Fertilizer({
                         }}
                         value={nameFertilizer}
                         options={PrimarySearch.FertilizersName}
-                        renderInput={(params) => 
-                            <TextField {...params} placeholder={loadingNameFertilizer ? "กำลังโหลด" : "เลือกชื่อปัจจัยการผลิต"} />
-                        }
-                        readOnly={loadingNameFertilizer}
-                        onChange={(e , value) => {
-                            setNameFertilizer(value)
-                            setFormulaFertilizer("")
+                        renderInput={(params) => {                            
+                            return(
+                                <TextField 
+                                    {...params} 
+                                    placeholder={loadingNameFertilizer ? "กำลังโหลด" : "เลือกชื่อปัจจัยการผลิต"} 
+                                />
+                            )
                         }}
+                        readOnly={loadingNameFertilizer}
+                        onChange={onChangeNameFertilizer}
                         noOptionsText="ไม่พบปัจจัยการผลิต"
                     />
                 </Grid>
@@ -117,6 +150,9 @@ export default function Fertilizer({
                         sx={{
                             [`& .MuiOutlinedInput-root`] : {
                                 padding : "0px !important"
+                            },
+                            [`& .${autocompleteClasses.input}`] : {
+                                padding : "7.5px 4px 7.5px 14px !important"
                             }
                         }}
                         filterOptions={(options, { inputValue }) => {
@@ -126,10 +162,13 @@ export default function Fertilizer({
                         value={formulaFertilizer}
                         options={SecondarySearch.factorsName}
                         renderInput={(params) => 
-                            <TextField {...params} placeholder={loadingFormulaFertilizer ? "กำลังโหลด" : (nameFertilizer ? "เลือกสูตรปัจจัยการผลิต" : "ต้องเลือกชื่อก่อน")} />
+                            <TextField 
+                                {...params} 
+                                placeholder={loadingFormulaFertilizer ? "กำลังโหลด" : (nameFertilizer ? "เลือกสูตรปัจจัยการผลิต" : "ต้องเลือกชื่อก่อน")} 
+                            />
                         }
                         readOnly={loadingFormulaFertilizer || !nameFertilizer}
-                        onChange={(e , value) => setFormulaFertilizer(value)}
+                        onChange={onChangeFormulaFertilizer}
                         noOptionsText="ไม่พบสูตรปัจจัยการผลิต"
                     />
                 </Grid>
@@ -164,7 +203,7 @@ export default function Fertilizer({
             <TextField
                 placeholder="วิธีการใช้"
                 size="small"
-                value={isUse}
+                value={howUse}
                 onChange={onChangeIsUse}
                 type="number"
                 rows={3}

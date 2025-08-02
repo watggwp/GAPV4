@@ -1,14 +1,21 @@
-import { Autocomplete, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
+import { Autocomplete, autocompleteClasses, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RoyalGapFrontendUtil from "../../../../../../../../assets/core/RoyalGapUtil";
 import RequestAPI from "../../../../../../../../assets/js/requestAPI";
 
 export default function Pests({
-    details , setDetails
+    details , onChangeDetails
 }) {
 
+    const [ pestName , setPestName ] = useState(details.pest_name || "")
+    const [ chemicalName , setChemicalName ] = useState(details.chemical_name || "")
     const [ volume , setVolume ] = useState(details.volume)
-    const [ unitVolume , setUnitVolume ] = useState(details.unitVolume || "")
+    const [ unitVolume , setUnitVolume ] = useState(details.unit_volume || "")
+
+    const [ loadingPests , setLoadingPests ] = useState(true)
+    const [ pests , setPests ] = useState([])
+
+    
 
     const onChangeVolume = useCallback(({ target : { value } }) => {
         setVolume(value)
@@ -25,6 +32,9 @@ export default function Pests({
                 sx={{
                     [`& .MuiOutlinedInput-root`] : {
                         padding : "0px !important"
+                    },
+                    [`& .${autocompleteClasses.input}`] : {
+                        padding : "7.5px 4px 7.5px 14px !important"
                     }
                 }}
                 // filterOptions={(options, { inputValue }) => {
@@ -48,6 +58,9 @@ export default function Pests({
                 sx={{
                     [`& .MuiOutlinedInput-root`] : {
                         padding : "0px !important"
+                    },
+                    [`& .${autocompleteClasses.input}`] : {
+                        padding : "7.5px 4px 7.5px 14px !important"
                     }
                 }}
                 // filterOptions={(options, { inputValue }) => {

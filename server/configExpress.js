@@ -18,6 +18,9 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+const logging = require('./middleware/userAccessLogs');
+const authorizer = require('./middleware/authorizer');
+
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
 const apiFarmer = require('./apiFarmer');
@@ -29,7 +32,7 @@ const apiEcph = require('./apiEcph');
 const apiSchedules = require('./endpoints/schedules');
 const apiFertilizers = require('./endpoints/fertilizer');
 const apiPests = require('./endpoints/pest');
-const logging = require('./middleware/userAccessLogs');
+
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
@@ -118,9 +121,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(sessionMiddleware)
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
-    // middleware custom
-    app.use(logging(Pool))
     
     const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     const origins = [
@@ -137,8 +137,13 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
 
     app.use(cors({
         origin : origins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     }))
+
+    // middleware custom
+    app.use(logging(Pool))
+    app.use("/api/schedules/*" , authorizer(Pool))
     
     // config environment
     app.use(upload.any())

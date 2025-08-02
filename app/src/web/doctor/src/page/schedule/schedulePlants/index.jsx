@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useState } from "react";
 import RequestAPI from "../../../../../../assets/js/requestAPI";
 import { useParams } from "react-router";
-import { Button, Chip, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Button, Chip, Dialog, IconButton, Stack, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DialogSchedule from "./dialog";
@@ -19,37 +19,10 @@ export default function SchedulePlants() {
     const [ loadingPlantSchedules , setLoadingPlantSchedules ] = useState(true)
 
     const [ plantProfile , setPlantProfile ] = useState({})
-    const [ plantSchedules , setPlantSchedules ] = useState([
-        {
-            id : 1,
-            age_plant : 4,
-            category : 1,
-            title : "ใส่ปุ๋ยให้พืช",
-            details : {
-                name_fertilizer : "ขี้ไก่",
-                formula_fertilizer : "15-14-0",
-                volume : 20,
-                unit_volume : "กก.",
-                is_use : "หว่านรอบโคนต้น"
-            },
-            last_update : new Date().getTime()
-        },
-        {
-            id : 2,
-            age_plant : 7,
-            repeat : true,
-            category : 1,
-            title : "ใส่ปุ๋ยให้พืช",
-            details : {
-                name_fertilizer : "ขี้วัว",
-                formula_fertilizer : "15-14-0",
-                volume : 20,
-                unit_volume : "กก.",
-                is_use : "หว่านรอบต้น"
-            },
-            last_update : new Date().getTime()
-        }
-    ])
+    const [ plantSchedules , setPlantSchedules ] = useState([])
+
+    const [ search , setSearch ] = useState("")
+    const searchQuery = useDeferredValue(search)
 
     const [ openDialog , setOpenDialog ] = useState({
         type : "",
@@ -57,21 +30,27 @@ export default function SchedulePlants() {
         in : false
     })
 
+    const onChangeSearch = useCallback(({ target : { value } }) => {
+        setSearch(value)
+    } , [])
+
     const requestSchedulePlants = useCallback( async () => {
         setLoadingPlantSchedules(true)
-        const { status , data } = await RequestAPI.get(`/api/schedules/${plant_id}`)
+        const { status , data } = await RequestAPI.get(`/api/schedules/${plant_id}` , {
+            s : searchQuery
+        })
         setLoadingPlantSchedules(false)
 
         switch(status) {
             case 200 :
                 const { plant_profile , schedule_plants } = data
                 setPlantProfile(plant_profile)
-                // setPlantSchedules(schedule_plants)
+                setPlantSchedules(schedule_plants)
                 break;
             default :
                 break;
         }
-    } , [plant_id])
+    } , [plant_id, searchQuery])
 
     const onOpenInsert = useCallback(() => {
         setOpenDialog({
@@ -82,7 +61,7 @@ export default function SchedulePlants() {
 
     const onOpenDetail = useCallback((schedule_id) => {
         setOpenDialog({
-            type : "insert",
+            type : "edit",
             id : schedule_id,
             in : true
         })
@@ -101,18 +80,31 @@ export default function SchedulePlants() {
 
     return(
         <Stack width={"100%"} height={"100%"} spacing={2} padding={2}>
-            <DialogSchedule
+            <Dialog 
                 open={openDialog.in}
-                type={openDialog.type}
-                schedule_id={openDialog.id}
-                onClose={onCloseDialog}
-            />
+                slotProps={{
+                    paper : {
+                        sx : {
+                            width : "98%",
+                            maxWidth : "600px"
+                        }
+                    }
+                }}
+            >
+                <DialogSchedule
+                    type={openDialog.type}
+                    schedule_id={openDialog.id}
+                    onClose={onCloseDialog}
+                    requestSchedulePlants={requestSchedulePlants}
+                />
+            </Dialog>
             <Stack direction={"row"} justifyContent={"space-between"}>
                 <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize : 20 }} />
                 <Stack spacing={2} direction={"row"} alignItems={"center"}>
                     <TextField
                         placeholder="ค้นหา"
                         size="small"
+                        onChange={onChangeSearch}
                     />
                     <Stack>
                         <IconButton size="small" onClick={onOpenInsert}>
@@ -159,58 +151,42 @@ export default function SchedulePlants() {
                         headerName : "รายละเอียด",
                         flex : 3,
                         minWidth : 300,
-                        renderCell : ({ row , value }) => (
-                            <Stack direction={"row"} spacing={1} width={"100%"} height={"100%"} alignItems={"center"}>
-                                {
-                                    row.category === 1 ?
-                                        <React.Fragment>
-                                            <Chip
-                                                color="primary"
-                                                variant="outlined"
-                                                label={`ชื่อ: ${value.name_fertilizer}`}
-                                            />
-                                            <Chip
-                                                color="primary"
-                                                variant="outlined"
-                                                label={`สูตร: ${value.formula_fertilizer}`}
-                                            />
-                                            <Chip
-                                                color="primary"
-                                                variant="outlined"
-                                                label={`ปริมาณ: ${value.volume} ${value.unit_volume}`}
-                                            />
-                                            <Chip
-                                                color="primary"
-                                                variant="outlined"
-                                                label={`วิธีการใช้: ${value.is_use}`}
-                                            />
-                                        </React.Fragment> :
-                                    row.category === 2 ?
-                                        <React.Fragment>
-                                        </React.Fragment> :
-                                        <></>
-                                }
-                            </Stack>
-                            // Object.entries(value).map(_detail => {
-                            //     const [ title , value ] = _detail
-
-                            //     const titleText = (
-                            //         title === "name_fertilizer" ?
-                            //             "ชื่อปัจจัยการผลิต" :
-                            //         title === "formula_fertilizer" ?
-                            //             "สูตรปัจจัยการผลิต" :
-                            //         title === "volume" ?
-                            //             "ปริมาณที่ต้องใช้"
-                            //     )
-                            //     return(
-                            //         <Chip
-                            //             label={
-                            //                 ``
-                            //             }
-                            //         />
-                            //     )
-                            // })
-                        )
+                        renderCell : ({ row , value : details }) => {
+                            const value = JSON.parse(details)?.[0] || {}
+                            return (
+                                <Stack direction={"row"} spacing={1} width={"100%"} height={"100%"} alignItems={"center"}>
+                                    {
+                                        row.category === 1 ?
+                                            <React.Fragment>
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`ชื่อ: ${value.name_fertilizer}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`สูตร: ${value.formula_fertilizer}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`ปริมาณ: ${value.volume} ${value.unit_volume}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`วิธีการใช้: ${value.how_use}`}
+                                                />
+                                            </React.Fragment> :
+                                        row.category === 2 ?
+                                            <React.Fragment>
+                                            </React.Fragment> :
+                                            <></>
+                                    }
+                                </Stack>
+                            )
+                        }
                     },
                     {
                         field : "last_update",
@@ -228,7 +204,7 @@ export default function SchedulePlants() {
                             <Button 
                                 variant="contained"
                                 fullWidth
-                                onClick={() => onOpenDetail(row.id)}
+                                onClick={() => onOpenDetail(row.uid)}
                             >
                                 คลิกดูรายละเอียด
                             </Button>
