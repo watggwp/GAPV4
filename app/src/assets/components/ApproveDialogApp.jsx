@@ -11,8 +11,9 @@ export default function ApproveDialogApp({
     open, setOpen ,
     title , detail ,
     onAgree = () => {},
+    loadingConfirm,
     disabledConfirm,
-    disabledCancel
+    disabledCancel,
 }) {
     const handleClose = useCallback(() => {
         setOpen(false);
@@ -34,7 +35,7 @@ export default function ApproveDialogApp({
             <DialogActions>
                 <Stack direction={"row"} spacing={2}>
                     <Button onClick={handleClose} variant="contained" color="error" disabled={disabledCancel}>ยกเลิก</Button>
-                    <Button onClick={onAgree} variant="contained" autoFocus disabled={disabledConfirm}>
+                    <Button onClick={onAgree} variant="contained" autoFocus disabled={disabledConfirm} loading={loadingConfirm}>
                         ยืนยัน
                     </Button>
                 </Stack>

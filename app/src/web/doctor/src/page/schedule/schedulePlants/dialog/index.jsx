@@ -30,6 +30,7 @@ export default function DialogSchedule({
     const [ repeat , setRepeat ] = useState(false)
 
     const [ loadingData , setLoadingData ] = useState(type === "edit")
+    const [ loadingSubmit , setLoadingSubmit ] = useState(false)
 
     const onChangeCategory = useCallback(({ target : { value } }) => {
         setCategory(value)
@@ -86,11 +87,13 @@ export default function DialogSchedule({
             repeat
         }
 
+        setLoadingSubmit(true)
         const { status } = await (
             type === "insert" ?
                 RequestAPI.post("/api/schedules" , insertData) :
                 RequestAPI.put(`/api/schedules/${plant_id}/${schedule_id}` , insertData)
         )
+        setLoadingSubmit(false)
 
         switch(status) {
             case 200 :
@@ -263,10 +266,15 @@ export default function DialogSchedule({
                                 />
                         }
                         <Stack spacing={4} direction={"row"}>
-                            <Button onClick={onClose} variant="contained" color="error" >ยกเลิก</Button>
+                            <Button onClick={onClose} variant="contained" color="error" 
+                                disabled={loadingSubmit}
+                            >
+                                ยกเลิก
+                            </Button>
                             <Button 
                                 variant="contained" color="primary" disabled={!EnabledComfirm} 
                                 onClick={onSubmitDialog} 
+                                loading={loadingSubmit}
                             >
                                 บันทึก
                             </Button>
@@ -353,7 +361,8 @@ const DeleteSchedule = ({
                     />
                 }
                 onAgree={onConfirm}
-                disabledConfirm={loadingConfirm || !password}
+                loadingConfirm={loadingConfirm}
+                disabledConfirm={!password}
                 disabledCancel={loadingConfirm}
             />
         </>
