@@ -14,8 +14,22 @@ export default function Pests({
 
     const [ loadingPests , setLoadingPests ] = useState(true)
     const [ pests , setPests ] = useState([])
+    const PestSelects = useMemo(() => {
+        const PestNames = new Set(pests.map(({ pest_name }) => pest_name))
+        return {
+            PestNames : [...PestNames],
+            match : RoyalGapFrontendUtil.GetMatchSearch(
+                PestNames,
+                {
+                    threshold : 0.5
+                }
+            )
+        }
+    } , [pests])
 
-    
+    const onChangePest = useCallback((e , value) => {
+        setPestName(value)
+    } , [])
 
     const onChangeVolume = useCallback(({ target : { value } }) => {
         setVolume(value)
@@ -24,6 +38,30 @@ export default function Pests({
     const onChangeUnitVolume = useCallback(({ target : { value } }) => {
         setUnitVolume(value)
     } , [])
+
+    const filterOptionPest = useCallback((options, { inputValue }) => {
+        if (!inputValue) return options;
+        return PestSelects.match.search(inputValue).map(r => r.item);
+    } , [PestSelects.match])
+
+    const onRequestPests = useCallback( async () => {
+        setLoadingPests(true)
+        const { status , data } = await RequestAPI.get("/api/pests")
+        setLoadingPests(false)
+
+        switch(status) {
+            case 200 :
+                const { pests } = data
+                setPests(pests)
+                break;
+            default :
+                break;
+        }
+    } , [])
+
+    useEffect(() => {
+        onRequestPests()
+    } , [onRequestPests])
 
     return(
         <Stack width={"100%"} spacing={2}>
@@ -37,21 +75,15 @@ export default function Pests({
                         padding : "7.5px 4px 7.5px 14px !important"
                     }
                 }}
-                // filterOptions={(options, { inputValue }) => {
-                //     if (!inputValue) return options;
-                //     return PrimarySearch.match.search(inputValue).map(r => r.item);
-                // }}
-                // value={nameFertilizer}
-                options={[]}
+                filterOptions={filterOptionPest}
+                value={pestName}
+                options={PestSelects.PestNames}
                 renderInput={(params) => 
                     <TextField {...params} placeholder={"เลือกโรคพืชที่เฝ้าระวัง"} />
                 }
-                // readOnly={loadingNameFertilizer}
-                // onChange={(e , value) => {
-                //     setNameFertilizer(value)
-                //     setFormulaFertilizer("")
-                // }}
-                // noOptionsText="ไม่พบปัจจัยการผลิต"
+                readOnly={loadingPests}
+                onChange={onChangePest}
+                noOptionsText="ไม่พบโรคพืช"
             />
             <Autocomplete
                 disableClearable

@@ -144,6 +144,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // middleware custom
     app.use(logging(Pool))
     app.use("/api/schedules/*" , authorizer(Pool))
+    app.use("/api/pests/*" , authorizer(Pool))
     
     // config environment
     app.use(upload.any())

@@ -48,7 +48,7 @@ export default function Fertilizer({
         }
     } , [fertilizers, nameFertilizer])
 
-    const fetchFertilizers = useCallback( async () => {
+    const onRequestFertilizer = useCallback( async () => {
         setLoadingNameFertilizer(true);
         setLoadingFormulaFertilizer(true);
         const { status , data } = await RequestAPI.get("/api/fertilizers");
@@ -108,8 +108,8 @@ export default function Fertilizer({
     } , [onChangeDetails])
 
     useEffect(() => {
-        fetchFertilizers()
-    } , [fetchFertilizers])
+        onRequestFertilizer()
+    } , [onRequestFertilizer])
 
     return(
         <Stack width={"100%"} spacing={2}>
