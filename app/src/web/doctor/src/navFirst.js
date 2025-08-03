@@ -126,7 +126,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                         <>
                             <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
                             <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
-                            <ButtonMenu type={"plan"} textRow1={"กำหนด"} textRow2={"การปลูก"} action={schedules}/>
+                            <ButtonMenu type={"plan"} textRow1={"แผน"} textRow2={"การปลูก"} action={schedules}/>
                         </>
                 }      
                 {

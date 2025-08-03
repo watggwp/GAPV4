@@ -12,7 +12,7 @@ export default function ScheduleIndex() {
 
         setTextPage([
             "หน้าหลัก",
-            "กำหนดการปลูก"
+            "แผนการปลูก"
         ])
 
         clientMo.unLoadingPage()
