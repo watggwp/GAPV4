@@ -1,0 +1,14 @@
+node_modules
+package-lock.json
+testSetting
+assets/img/doctor/report/*.jpg
+build
+.env
+/app/src/assets/img/doctor/report/*.jpg
+# /package.json
+# package.json
+# Admin/.env
+# Admin/package-lock.json
+# Admin/package.json
+# Admin/sql_DATABASE_DEV.sql
+# Admin/.gitignore

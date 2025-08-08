@@ -1,0 +1,263 @@
+.Information-Report {
+    width: 100vw; /* ขยายความกว้างเต็มหน้าจอ */
+    height: 100vh; /* ขยายความสูงเต็มหน้าจอ */
+    box-sizing: border-box; /* รวม padding และ border ในขนาดของ element */
+    padding: 0; /* ลบระยะ Padding ทั้งหมด */
+    margin: 0; /* ลบระยะ Margin ทั้งหมด */
+    overflow: auto; /* เพิ่ม Scroll หากเนื้อหาเกิน */
+    font-family: Sans-font;
+}
+
+
+/* ปุ่มเลือกข้อมูล */
+.option-btn {
+    display: flex; /* ใช้ Flexbox */
+    justify-content: center; /* จัดข้อความให้อยู่กลางแนวนอน */
+    align-items: center; /* จัดข้อความให้อยู่กลางแนวตั้ง */
+    text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+    padding: 10px; /* ขนาด Padding */
+    font-size: 18px; /* ขนาดตัวอักษร */
+    font-weight: bold; /* ตัวอักษรหนา */
+    color: #333; /* สีตัวอักษร */
+    background-color: #cdcbcb; /* สีพื้นหลังของปุ่ม */
+    border: 1px solid #cdcbcb; /* เส้นขอบบาง */
+    border-radius: 8px; /* ทำให้ปุ่มมุมมน */
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* เงาเล็กน้อย */
+    width: 230px; /* ความกว้างคงที่ */
+    height: 50px; /* ความสูงคงที่ */
+    line-height: 1.2; /* ระยะห่างระหว่างบรรทัด */
+    word-wrap: break-word; /* บังคับให้ข้อความห่อถ้ามันยาว */
+    font-family: Sans-font;
+}
+
+/* เอฟเฟกต์ Hover */
+.option-btn:hover {
+    background-color: #e6e6e6; /* สีพื้นหลังเมื่อ Hover */
+    // transform: translateY(-2px); /* ขยับขึ้นเล็กน้อยเมื่อ Hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15); /* เพิ่มเงา */
+}
+
+/* กล่องปุ่ม */
+.button-container {
+    display: flex;              /* ใช้ Flexbox */
+    flex-direction: column;     /* จัดปุ่มให้อยู่ในแนวตั้ง */
+    gap: 20px;                  /* ระยะห่างระหว่างปุ่ม */
+    justify-content: center;    /* จัดปุ่มให้อยู่ตรงกลางแนวนอน */
+    align-items: center;        /* จัดปุ่มให้อยู่ตรงกลางแนวตั้ง */
+    margin: 20px 0;             /* เว้นระยะห่างจากเนื้อหาอื่น */
+
+}
+
+
+
+
+
+/* ตาราง Ranking */
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้ตาราง */
+    border-radius: 8px; /* เพิ่มมุมมน */
+    overflow: hidden; /* ป้องกันขอบล้น */
+}
+
+.ranking-table th {
+    background-color: #4CAF50; /* สีพื้นหลังของหัวตาราง */
+    color: #fff; /* สีตัวอักษร */
+    font-weight: bold;
+    font-size: 18px; /* ขนาดตัวอักษรหัวข้อ */
+    text-align: center; /* จัดข้อความให้อยู่กลาง */
+    padding: 15px; /* ระยะห่างในเซลล์ */
+}
+
+.ranking-table td {
+    padding: 15px;
+    border: 1px solid #ddd; /* เส้นแบ่งระหว่างเซลล์ */
+    font-size: 18px; /* ขนาดตัวอักษร */
+    text-align: center; /* จัดข้อความให้อยู่กลาง */
+    color: #000000; /* สีตัวอักษร */
+}
+
+.ranking-table td:first-child,
+.ranking-table th:first-child {
+    text-align: center; /* จัดคอลัมน์ "อันดับ" ให้อยู่ตรงกลาง */
+}
+
+.ranking-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* สีพื้นหลังสลับแถว */
+}
+
+// .ranking-table tr:hover {
+//     background-color: #e7ffe7; /* สีพื้นหลังเมื่อชี้เมาส์ */
+// }
+
+/* หัวข้อของตาราง */
+.chart-heading {
+    font-size: 22px; /* ขนาดตัวอักษร */
+    font-weight: bold; /* ตัวอักษรหนา */
+    color: #4CAF50; /* สีเขียว */
+    text-align: center; /* จัดให้อยู่กลาง */
+    margin-bottom: 20px; /* ระยะห่างด้านล่าง */
+    font-family: Sans-font;
+}
+
+/* กล่องแสดงผล */
+.result-display {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px; /* มุมมน */
+    background-color: #fdfdfd; /* สีพื้นหลัง */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงา */
+    font-family: Sans-font;
+}
+
+/* สไตล์ข้อความเพิ่มเติม */
+.result-display h2 {
+    font-size: 20px; /* ขนาดตัวอักษรหัวข้อ */
+    font-weight: bold; /* ตัวอักษรหนา */
+    margin-bottom: 15px; /* ระยะห่างด้านล่าง */
+    color: #333; /* สีข้อความ */
+    text-align: center;
+}
+
+.result-display ul {
+    list-style: none; /* ลบสัญลักษณ์จุดหน้าข้อความ */
+    padding: 0;
+    margin: 0;
+}
+
+.result-display li {
+    font-size: 16px; /* ขนาดตัวอักษร */
+    margin-bottom: 10px; /* ระยะห่างระหว่างรายการ */
+    color: #555; /* สีข้อความ */
+}
+
+/* กล่องจำนวนเกษตรกรทั้งหมด */
+.total-farmers {
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Sans-font;
+}
+
+
+.chart-container {
+    margin: 20px 0;
+}
+
+.chart-heading {
+    width: 100%; /* ขยายความกว้างเต็มหน้าจอ */
+    margin: 0; /* ลบระยะห่างด้านนอกทั้งหมด */
+    padding: 15px 0; /* เพิ่ม Padding ด้านบนและล่าง */
+    text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+    background-color: #6dca6d; /* สีพื้นหลัง */
+    color: #000000; /* สีข้อความ */
+    box-sizing: border-box; /* รวม Padding ในขนาดของ element */
+    font-size: 22px; /* ขนาดตัวอักษร */
+    font-weight: bold; /* ตัวอักษรหนา */
+    margin-bottom: 20px; /* ระยะห่างด้านล่าง */
+    font-family: Sans-font;
+}
+
+.back-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #218838;
+    }
+}
+
+.error-text {
+    color: red;
+    font-size: 16px;
+    text-align: center;
+    display: flex;               /* ใช้ Flexbox */
+    justify-content: center;     /* จัดให้อยู่กลางแนวนอน */
+    align-items: center;         /* จัดให้อยู่กลางแนวตั้ง */
+    height: 100vh;               /* ให้ความสูงเต็มหน้าจอ */
+}
+
+
+.header {
+    position: fixed;          /* ให้ Header คงอยู่ด้านบน */
+    top: 0;                   /* ตำแหน่งอยู่บนสุดของหน้าจอ */
+    left: 0;                  /* ชิดซ้าย */
+    width: 100%;              /* ให้กว้างเต็มหน้าจอ */
+    height: 70px;             /* กำหนดความสูงของ Header */
+    background-color: #000000; /* สีพื้นหลังของ Header */
+    display: flex;            /* จัดให้โลโก้และข้อความอยู่ในแถวเดียวกัน */
+    align-items: center;      /* จัดให้อยู่ตรงกลางแนวตั้ง */
+    justify-content: space-between; /* กระจายโลโก้และไอคอน */
+    padding: 0 20px;          /* เพิ่ม Padding ซ้ายขวา */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* เพิ่มเงาใต้ Header */
+    z-index: 1000;            /* ให้ Header อยู่เหนือทุกอย่าง */
+}
+
+
+/* ตารางหมอพืชและที่ปรึกษา */
+.doctor-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    background-color: #fff; /* พื้นหลังสีขาว */
+    border-radius: 8px; /* มุมมน */
+    overflow: hidden; /* ป้องกันขอบล้น */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเล็กน้อย */
+}
+
+.doctor-table th {
+    background-color: #4CAF50; /* สีเขียวหัวตาราง */
+    color: #fff; /* ตัวอักษรสีขาว */
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 15px; /* ระยะห่างในเซลล์หัวตาราง */
+}
+
+.doctor-table td {
+    padding: 12px 15px; /* ระยะห่างในเซลล์ */
+    text-align: center; /* ข้อความจัดตรงกลาง */
+    border: 1px solid #ddd; /* เส้นขอบระหว่างเซลล์ */
+    color: #000000; /* สีตัวอักษร */
+}
+
+
+.option-btn.active {
+    background-color: #58c458;  /* เปลี่ยนเป็นสีเทาเมื่อกด */
+    color: #333;                /* สีตัวอักษร */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15); /* เพิ่มเงาเมื่อกด */
+}
+
+
+.no-data-text {
+    color: rgb(103, 103, 103);                     /* สีข้อความ */
+    font-size: 18px;                /* ขนาดตัวอักษร */
+    text-align: center;             /* จัดข้อความให้อยู่ตรงกลางแนวนอน */
+    display: flex;                  /* ใช้ Flexbox */
+    justify-content: center;        /* จัดให้อยู่กลางแนวนอน */
+    align-items: center;            /* จัดให้อยู่กลางแนวตั้ง */
+    height: 150px;                  /* ความสูงของข้อความ */
+    margin: 20px 0;                 /* ระยะห่างจากเนื้อหาอื่น */
+}
+

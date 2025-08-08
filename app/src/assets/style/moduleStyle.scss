@@ -1,0 +1,105 @@
+.image-size-max {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .option-on-image {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        z-index: 2;
+        top: 0;
+        width: 100%;
+        padding: 8px;
+
+        .close-image {
+            width: 35px;
+            height: 35px;
+            background-color: white;
+            border-radius: 50%;
+            padding: 2px;
+
+            svg {
+                width: 100%;
+                fill: #127261;
+            }
+        }
+
+        .download-image-on-msg {
+            background-color: white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            svg {
+                width: 100%;
+                height: 100%;
+                fill: transparent;
+            }
+        }
+    }
+
+    .img {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 5px;
+        // overflow: hidden;
+    }
+
+    .img.h {
+        // height: 80%;
+        // width: auto;
+        img {
+            height: 80vh;
+        }
+    }
+
+    .img.w {
+        // width: 80%;
+        // height: auto;
+        img {
+            width: 80vw;
+        }
+    }
+}
+
+report-dom {
+    body-report {
+        text-report {
+            font-family: Sans-font;
+            font-size: 18px;
+            font-weight: 900;
+            background-color: white;
+            padding: 5px 10px;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.456);
+            border-radius: 20px;
+        }
+
+        status-report {
+            margin: 5px 0px;
+            background-color: rgba(255, 255, 255, 0.456);
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.456);
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        box-button-report {
+            button {
+                font-family: Sans-font;
+                font-size: 16px;
+                font-weight: 900;
+                padding: 2px 18px;
+                border-radius: 50px;
+                background-color: #10c2b6;
+                color: white;
+                box-shadow: 0px 4px 4px rgba(166, 166, 166, 0.571);
+                cursor: pointer;
+            }
+
+            button:hover {
+                box-shadow: 0px 4px 4px #0a6660;
+            }
+        }
+    }
+}
