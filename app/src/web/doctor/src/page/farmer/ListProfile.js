@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { DayJSX, TimeJSX } from "../../../../../assets/js/module";
+import env from "../../../../../env";
+
+const { path_icon : { user_not_found } } = env
 
 const ListProfile = ({data , status , showPopup}) => {
     // const [base64String , setbase64String] = useState(String.fromCharCode(...data.img.data))
@@ -11,7 +14,7 @@ const ListProfile = ({data , status , showPopup}) => {
     return (
         <>
             <div className="img">
-                <img src={data.img}></img>
+                <img src={data.img || user_not_found}></img>
             </div>
             <div className="detail">
                 <div className="text fullname">

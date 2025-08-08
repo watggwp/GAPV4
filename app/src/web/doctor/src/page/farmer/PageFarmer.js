@@ -2,7 +2,7 @@ import React, { useEffect , useState , useRef, useCallback } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import "../../assets/style/page/farmer/PageFarmer.scss"
 import "../../assets/style/TemplantList.scss"
-import { DayJSX, LoadOtherDom, Loading, PopupDom, TimeJSX } from "../../../../../assets/js/module";
+import { LoadOtherDom, Loading, PopupDom } from "../../../../../assets/js/module";
 
 import ManagePopup from "./ManagePopup";
 import ListProfile from "./ListProfile";
@@ -18,23 +18,7 @@ const PageFarmer = ({setMain , session , socket , type = 0 , eleImageCover , Loa
     const TextSearchRef = useRef()
     const SelectOption = useRef()
 
-    useEffect(()=>{
-        eleImageCover.current.style.height = "40%"
-        eleBody.current.style.height = "60%"
-        setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
-        clientMo.unLoadingPage()
-
-        if(LoadType.split(":")[1] === "pop")
-            chkPath()
-    } , [LoadType])
-
-    useEffect(()=>{
-        return(()=>{
-            clearTimeout(getTimeOut)
-        })
-    } , [getTimeOut])
-
-    const chkPath = () => {
+    const chkPath = useCallback(() => {
         if(LoadType.split(":")[0] === "ap") {
             setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
             setStatus({
@@ -56,7 +40,22 @@ const PageFarmer = ({setMain , session , socket , type = 0 , eleImageCover , Loa
             })
         }
             
-    }
+    } , [LoadType , setTextStatus])
+
+    useEffect(()=>{
+        eleImageCover.current.style.height = "40%"
+        eleBody.current.style.height = "60%"
+        setTextStatus(["หน้าหลัก" , "ทะเบียนเกษตรกร" , "ตรวจสอบแล้ว"])
+        clientMo.unLoadingPage()
+
+        if(LoadType.split(":")[1] === "pop") chkPath()
+    } , [LoadType, chkPath, eleBody, eleImageCover, setTextStatus])
+
+    useEffect(()=>{
+        return(()=>{
+            clearTimeout(getTimeOut)
+        })
+    } , [getTimeOut])
 
     const changeMenu = (e) => {
         // const typeClick = statusPage.status === "ap" ? "wt" : "ap"
@@ -114,6 +113,28 @@ const List = ({ session , socket , status , textSearch}) => {
     const [getVerifyStart , setVerifyStart] = useState(false)
 
     const [LoadingList , setLoadList ] = useState(true)
+
+    const FetchList = useCallback(async (limit , textSearch = "") => {
+        try {
+            const list = await clientMo.post('/api/doctor/farmer/list' , {
+                approve:(status.status === "wt") ? 0 : (status.status === "ap") ? 1 : 2 , 
+                limit : limit , 
+                textSearch : textSearch
+            })
+            const data = JSON.parse(list)
+            setData(data)
+            setLoadList(false)
+            return data
+        } catch(e) {
+            session()
+        }
+    } , [session, status.status])
+
+    const StartList = useCallback(async (status) => {
+        await FetchList(10)
+        setVerifyStart(true)
+        if(status.open === 1) window.history.pushState({} , "" , `/doctor/farmer/${status.status}`)
+    } , [FetchList])
     
     useEffect(()=>{
         setBody(<></>)
@@ -124,11 +145,7 @@ const List = ({ session , socket , status , textSearch}) => {
         // return(()=>{
         //     socket.removeListener("reload-farmer-list")
         // })
-    } , [status])
-
-    useEffect(()=>{
-        if(getVerifyStart) FetchList(Count , textSearch)
-    } , [textSearch])
+    } , [StartList, status])
     // useEffect(()=>{
     //     socket.removeListener("reload-farmer-list")
     //     socket.on("reload-farmer-list" , ()=>{
@@ -137,25 +154,12 @@ const List = ({ session , socket , status , textSearch}) => {
     //     })
     // } , [Count , status])
 
-    const FetchList = async (limit , textSearch = "") => {
-        try {
-            const list = await clientMo.post('/api/doctor/farmer/list' , {approve:(status.status == "wt") ? 0 : (status.status == "ap") ? 1 : 2 , limit : limit , textSearch : textSearch})
-            const data = JSON.parse(list)
-            setData(data)
-            setLoadList(false)
-            return data
-        } catch(e) {
-            session()
-        }
-    }
+    useEffect(()=>{
+        if(getVerifyStart) FetchList(Count , textSearch)
+    } , [Count, FetchList, getVerifyStart, textSearch])
 
-    const StartList = async (status) => {
-        await FetchList(10)
-        setVerifyStart(true)
-        if(status.open === 1) window.history.pushState({} , "" , `/doctor/farmer/${status.status}`)
-    }
-
-    return (LoadingList ?
+    return (
+            LoadingList ?
                 <div style={{
                     display: "flex",
                     justifyContent: "center",
@@ -166,7 +170,7 @@ const List = ({ session , socket , status , textSearch}) => {
                 </div> 
                 :
                 <ManageList Data={Data} status={status} session={session} fetch={FetchList} count={Count} setCount={setCount} socket={socket}/>
-                )
+            )
 }
 
 const ManageList = ({Data , status , session , fetch , count , setCount , socket}) => {

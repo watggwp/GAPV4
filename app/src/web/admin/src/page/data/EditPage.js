@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import "../../assets/style/page/PopupManage.scss"
 import { GetLinkUrlOfSearch, Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
-import { Grid2, TextField } from "@mui/material";
+import { Box, Grid, TextField } from "@mui/material";
 const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , ReloadData}) => {
     const [LoadingStatus , setLoading] = useState(true)
 
@@ -89,10 +89,10 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
             setOpen(1)
             const result = await clientMo.post("/api/admin/data/edit" , Validate)
             if(result === "133") {
-                setText(`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" :  type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}สำเร็จ`)
+                setText(`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์" :  type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}สำเร็จ`)
                 setStatus(1)
             } else if(result === "over") {
-                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}ใช้งานอยู่`)
+                setText(`มี${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์" : type === "chemical" ? "สารเคมี" :  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}ใช้งานอยู่`)
                 setStatus(3)
             } else if(result === "because") {
                 setText("เกิดปัญหาทางเซิร์ฟเวอร์")
@@ -196,20 +196,102 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                         color="#1CFFF1" action={AfterConfirm}/>
         <div className="manage-page">
             <div className="head-page">
-                {`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" :""}`}
+                {`แก้ไข${type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" :""}`}
             </div>
             <div className="detail-content">
                 {LoadingStatus ? 
                     <div className="Loading">
                         <Loading size={4/100 * ScreenW >= 41 ? 4/100 * ScreenW : 41} border={0.5/100 * ScreenW >= 5 ? 0.5/100 * ScreenW : 5} color="#1CFFF1" animetion={LoadingStatus}/>
-                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์ส่งเสริม" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}</span>
+                        <span>กำลังโหลดข้อมูล{type === "plant" ? "ชนิดพืช" : type === "station" ? "ศูนย์" : type === "chemical" ? "สารเคมี" : type === "pest" ? "โรคพืช / ศัตรูพืช" : ""}</span>
                     </div>
                     : <></>
                 }
                 <div className="detail-data-report">
-                    <div className="data-popup" maxsize="" flex={type}>
-                        <div className="name column">
+                    <Grid
+                        container spacing={1}
+                        padding={1}
+                    >
                         {
+                            Data.status === "finish" && (
+                                <>
+                                    <Grid
+                                        size={12}
+                                    >
+                                        <TextField
+                                            label={type === "plant" ? "ชื่อพืช" : "ชื่อศูนย์"}
+                                            defaultValue={Data.name}
+                                            slotProps={{
+                                                htmlInput: {
+                                                    ref: NameRef
+                                                }
+                                            }}
+                                            onChange={validateValue}
+                                            placeholder={type === "plant" ? "ชื่อพืช" : "ชื่อศูนย์ในโครงการ"}
+                                            size="small"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    {type === "station" && (
+                                        <Grid
+                                            size={12}
+                                        >
+                                            <TextField
+                                                label="รหัสศูนย์"
+                                                defaultValue={Data.id_station}
+                                                slotProps={{
+                                                    htmlInput: {
+                                                        ref: StationIdRef
+                                                    }
+                                                }}
+                                                onChange={validateValue}
+                                                placeholder="รหัสศูนย์"
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Grid>
+                                    )}
+                                </>
+                            )
+                        }
+                        <Grid
+                            size={12}
+                        >
+                            {
+                                type === "plant" ? <span>ชนิดพืช</span> : <></>
+                            }
+                            {
+                                type === "plant" ? <div>{Data.dataOther}</div> :
+                                Data.dataOther ? 
+                                    <Grid container width={"100%"} spacing={1}>
+                                        <Grid size={{ xs : 12 }}>
+                                            <TextField
+                                                label={"ตำแหน่งที่ตั้ง"}
+                                                onChange={ async (e) => {
+                                                    clearTimeout(getTimeOutChange)
+                                                    await GenerateMap(e)
+                                                    setTimeOutChange(setTimeout(()=>{
+                                                        validateValue()
+                                                    } , 1))
+                                                }}
+                                                fullWidth
+                                                size="small"
+                                                // className="input-value" 
+                                                placeholder="ลิ้งค์ใน Google map"
+                                            />
+                                            <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
+                                        </Grid>
+                                        <Grid size={{ xs : 12 }}>
+                                            <MapsJSX lat={getLag} lng={getLng} w={"100%"} h={"80vw"}/>
+                                        </Grid>
+                                    </Grid>
+                                    : 
+                                    <></>
+                            }
+                        </Grid>
+                    </Grid>
+                    {/* <div className="data-popup" maxsize="" flex={type}>
+                        <Box className="name column">
+                            {
                                 Data.status === "finish" && (
                                     <>
                                         <TextField
@@ -243,9 +325,15 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                     </>
                                 )
                             }
-                            
-                        </div>
-                        <div className={type === "plant" ? "type_plant" :"plant" ? "variety_name": "location column"}>
+                        </Box>
+                        <div 
+                            className={
+                                type === "plant" ? 
+                                    "type_plant" : 
+                                type === "station" ?
+                                    "location column" : ""
+                            }
+                        >
                             {
                                 type === "plant" ? <span>ชนิดพืช</span> : <></>
                             }
@@ -253,30 +341,34 @@ const EditPage = ({RefOnPage , id_table , type , setBecause , TabOn , session , 
                                 type === "plant" ? <div>{Data.dataOther}</div> :
                                 Data.dataOther ? 
                                     <>
-                                    <Grid2 container width={"100%"}>
-                                        <Grid2 size={{ xs : 12 }}>
-                                            <div className="flied-location-edit" w={type}>
-                                                <span className="head-flied">ตำแหน่งที่ตั้ง</span>
-                                                <input onChange={ async (e)=>{
+                                    <Grid container width={"100%"}>
+                                        <Grid size={{ xs : 12 }}>
+                                            <TextField
+                                                label={"ตำแหน่งที่ตั้ง"}
+                                                onChange={ async (e) => {
                                                     clearTimeout(getTimeOutChange)
                                                     await GenerateMap(e)
                                                     setTimeOutChange(setTimeout(()=>{
                                                         validateValue()
                                                     } , 1))
-                                                }} className="input-value" placeholder="ลิ้งค์ใน Google map"></input>
-                                                <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
-                                            </div>
-                                        </Grid2>
-                                        <Grid2 size={{ xs : 12 }}>
+                                                }}
+                                                fullWidth
+                                                size="small"
+                                                // className="input-value" 
+                                                placeholder="ลิ้งค์ใน Google map"
+                                            />
+                                            <input ref={OtherRef} hidden value={`${getLag}:${getLng}`} readOnly></input>
+                                        </Grid>
+                                        <Grid size={{ xs : 12 }}>
                                             <MapsJSX lat={getLag} lng={getLng} w={"300vw"} h={"80vw"}/>
-                                        </Grid2>
-                                    </Grid2>
+                                        </Grid>
+                                    </Grid>
                                     </>
                                     : 
                                     <></>
                             }
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
             <div className="form-manage">

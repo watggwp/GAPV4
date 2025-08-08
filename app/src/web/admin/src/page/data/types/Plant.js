@@ -1,4 +1,4 @@
-import { Grid2, TextField } from "@mui/material";
+import { Grid, TextField } from "@mui/material";
 import React, { useContext } from "react";
 import { PopupManagePageContext } from "../ManagePage";
 
@@ -7,8 +7,8 @@ export default function Plant() {
     const { Data } = useContext(PopupManagePageContext)
     return(
         <React.Fragment>
-            <Grid2 container spacing={{ xl : 1 }}>
-                <Grid2 size={{ sm : 12 , md : 6 }}>
+            <Grid container spacing={{ xl : 1 }}>
+                <Grid size={{ sm : 12 , md : 6 }}>
                     <TextField
                         label="ชื่อพืช"
                         variant="outlined"
@@ -22,8 +22,8 @@ export default function Plant() {
                             }
                         }}
                     />
-                </Grid2>
-                <Grid2 size={{ sm : 12 , md : 6 }}>
+                </Grid>
+                <Grid size={{ sm : 12 , md : 6 }}>
                     <TextField
                         label="ชนิดพืช"
                         variant="outlined"
@@ -37,10 +37,10 @@ export default function Plant() {
                             }
                         }}
                     />
-                </Grid2>
-            </Grid2>
-            <Grid2 container spacing={{ xs : 1 }}>
-                <Grid2 size={{ xs : 12 }}>
+                </Grid>
+            </Grid>
+            <Grid container spacing={{ xs : 1 }}>
+                <Grid size={{ xs : 12 }}>
                     <TextField
                         label="สายพันธ์ุพืช"
                         variant="outlined"
@@ -55,8 +55,8 @@ export default function Plant() {
                         }}
                         fullWidth
                     />
-                </Grid2>
-            </Grid2>
+                </Grid>
+            </Grid>
         </React.Fragment>
     )
 }

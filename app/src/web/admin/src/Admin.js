@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { HrefData, TabLoad } from "../../../assets/js/module";
 import { clientMo } from "../../../assets/js/moduleClient";
 import "./assets/style/adminMain.scss";
@@ -9,7 +9,8 @@ import PageTemplate from "./page/PageTemplate";
 import SessionOut from "./sesionOut";
 
 export const AdminContext = React.createContext({
-    TabOn : undefined
+    TabOn : undefined,
+    titlePageNested : (heigthBody, heightCover, ArrtextPage = []) => {}
 })
 
 const Admin = ({ setBodyFileMain, socket, username, password }) => {
@@ -240,6 +241,18 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     ); 
+                } else if (query.indexOf("user-access-logs") === 0) {
+                    Href.set(`report?user-access-logs${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    ); 
                 }
             } else if (query.indexOf("group") === 0) {
                 Href.set(`group?default${type}`);
@@ -285,11 +298,11 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         }
     };
 
-    const modifyMainPage = (heigthBody, heightCover, ArrtextPage = []) => {
+    const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
         setTextPage(ArrtextPage.filter(val => val !== ""));
         ImageCover.current.style.height = `${heightCover}%`;
         BodyRef.current.style.height = `${heigthBody}%`;
-    };
+    } , [])
 
     const Resize = () => {
         setResponsive(window.innerWidth);
@@ -303,7 +316,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     return (
         <AdminContext.Provider
             value={{
-                TabOn : TabOn
+                TabOn : TabOn,
+                titlePageNested: modifyMainPage,
             }}
         >
             <div
@@ -363,5 +377,9 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         </AdminContext.Provider>
     );
 };
+
+export function useAdminContext() {
+    return useContext(AdminContext)
+}
 
 export default Admin;

@@ -1,5 +1,5 @@
 import liff from "@line/liff";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import "../style/camera.scss";
 import { clientMo } from "./moduleClient";
@@ -7,6 +7,7 @@ import { clientMo } from "./moduleClient";
 import "../style/moduleStyle.scss";
 
 import { ThaiDatePicker } from "thaidatepicker-react";
+import { Box } from "@mui/material";
 
 const MapsJSX = ({lat , lng , w , h}) => {
     const [latitude , setLag] = useState(0)
@@ -753,7 +754,17 @@ Ref = {
     )
 }
 
-const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , onInputIn = null , className = "" , classNameMain = ""}) => {
+const DatePickerThai = ({
+    defaultDate = "" , 
+    offsetQtyDate = undefined , 
+    refIn = undefined , 
+    onInputIn = (e , offset) => {} , 
+    onChange = (_christDate, _thaiDate) => {},
+    className = "" , 
+    classNameMain = ""
+}) => {
+    const refDataInput = useRef()
+    
     const RefDatePicker = useRef()
     const [selectedDate, setSelectedDate] = useState(defaultDate ? new Date(defaultDate).toString() != 'Invalid Date' ? defaultDate : new Date().toISOString() : new Date().toISOString());
     const [getOffset , setOffset] = useState(offsetQtyDate)
@@ -774,9 +785,10 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
     } , [defaultDate])
 
     const handleDatePickerChange = (christDate, buddhistDate) => {
-        refIn.current.value = buddhistDate ? buddhistDate.split("-").reverse().join("-") : "";
-        refIn.current.click();
+        (refIn || refDataInput).current.value = buddhistDate ? buddhistDate.split("-").reverse().join("-") : "";
+        (refIn || refDataInput).current.click();
         setSelectedDate(christDate);
+        onChange?.(christDate , buddhistDate)
     };
 
     return(
@@ -786,9 +798,9 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
                     e.preventDefault()
                     const picker = RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0]
                     picker.click()
-                    if(onInputIn) onInputIn(e , getOffset)
+                    onInputIn?.(e , getOffset)
                 }} readOnly defaultValue={defaultDate ? defaultDate.split("-").map((val , index)=>index == 0 ? parseInt(val) + 543 : val).reverse().join("-") : ""} 
-                ref={refIn} type="text" placeholder="วัน/เดือน/ปี"
+                ref={refIn || refDataInput} type="text" placeholder="วัน/เดือน/ปี"
             ></input>
             <div ref={RefDatePicker}>
                 <ThaiDatePicker
@@ -800,10 +812,77 @@ const DatePickerThai = ({defaultDate = "" , offsetQtyDate = undefined , refIn , 
     )
 }
 
+export function DatePickerThaiApp({
+    className,
+    value,
+    onChange = (christDate , buddhistDate) => {},
+    format = "DD/MM/YYYY"
+}) {
+    const refBox = useRef()
+
+    const InputValue = useMemo(() => {
+        if(!value) return ""
+
+        try {
+            const datetime = new Date(value)
+            const day = datetime.getDate().toString().padStart(2 , 0)
+            const mount = (datetime.getMonth() + 1).toString().padStart(2 , 0)
+            const year = (datetime.getFullYear() + 543).toString().padStart(2 , 0)
+
+            return format
+                .replaceAll("DD" , day)
+                .replaceAll("MM" , mount)
+                .replaceAll("YYYY" , year)
+        } catch(err) {
+            return ""
+        }
+    } , [format, value])
+
+    return(
+        <Box
+            ref={refBox}
+            position={"relative"}
+            className={className}
+            sx={{
+                "& .react-datepicker-wrapper" : {
+                    display : "none"
+                }
+            }}
+        >
+            <input
+                type="text"
+                value={InputValue}
+                onClick={() => refBox.current.querySelector(".react-datepicker__input-container input").click()}
+            />
+            <ThaiDatePicker
+                value={value}
+                onChange={onChange}
+            />
+        </Box>
+        // <div className={className}>
+        //     <input
+        //         onClick={(e)=>{
+        //             e.preventDefault()
+        //             const picker = RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0]
+        //             picker.click()
+        //             onInputIn?.(e , getOffset)
+        //         }} readOnly defaultValue={defaultDate ? defaultDate.split("-").map((val , index)=>index == 0 ? parseInt(val) + 543 : val).reverse().join("-") : ""} 
+        //         ref={refIn || refDataInput} type="text" placeholder="วัน/เดือน/ปี"
+        //     ></input>
+        //     <div ref={RefDatePicker}>
+        //         <ThaiDatePicker
+        //             value={selectedDate}
+        //             onChange={handleDatePickerChange}
+        //         />
+        //     </div>
+        // </div>
+    )
+}
+
 const ConvertDate = (date) => {
     return({
-        buddhistDate : date ? date.split("-").map((val , key)=> key == 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
-        christDate : date ? date.split("-").reverse().map((val , key)=> key == 0 ? parseInt(val) - 543 : val).join("-") : ""
+        buddhistDate : date ? date.split("-").map((val , key)=> key === 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
+        christDate : date ? date.split("-").reverse().map((val , key)=> key === 0 ? parseInt(val) - 543 : val).join("-") : ""
     })
 }
 

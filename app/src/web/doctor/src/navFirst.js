@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 
 import "./assets/style/Navfirst.scss"
 import PageFormPlant from "./page/form/PageFormPlant"
@@ -7,14 +7,17 @@ import PageFarmer from "./page/farmer/PageFarmer"
 import { clientMo } from "../../../assets/js/moduleClient"
 import { ButtonMenu } from "./page/modules"
 import PageData from "./page/data/PageData"
-import { DoctorContext } from "./Doctor"
-
-
+import { useDoctor } from "./Doctor"
+import WeatherStation from "./page/station"
+import SchedulePlant from "./page/schedule/schedules"
+import { useNavigate } from "react-router"
 
 const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
+    const navigator = useNavigate()
+
     const [ Responsive , setResponsive ] = useState(window.innerWidth)
 
-    const { profile } = useContext(DoctorContext) //role
+    const { profile } = useDoctor()
     
     useEffect(()=>{
         if(type === 1) window.history.pushState({} , "" , "/doctor")
@@ -77,6 +80,13 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
         else setSession()
     }
 
+    const schedules = useCallback(async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context) navigator("/doctor/schedules")
+            // setdoctor(<SchedulePlant/>)
+        else setSession()
+    } , [navigator, setSession])
+
     const report = async () => {
         const context = await clientMo.post('/api/doctor/check')
         if(context)
@@ -85,6 +95,13 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                         eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
+
+    const station = useCallback(async () => {
+        const context = await clientMo.post('/api/doctor/check')
+        if(context)
+            setdoctor(<WeatherStation/>)
+        else setSession()
+    } , [setSession, setdoctor])
 
     return (
         <section className="nav-first" onLoad={clientMo.unLoadingPage}>
@@ -109,6 +126,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                         <>
                             <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
                             <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
+                            <ButtonMenu type={"plan"} textRow1={"แผน"} textRow2={"การปลูก"} action={schedules}/>
                         </>
                 }      
                 {
@@ -117,9 +135,12 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                             <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
                         </>
                 }        
-
-
-         
+                {
+                    Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
+                        <>
+                            <ButtonMenu type={"sensor"} textRow1={"ข้อมูล"} textRow2={"สภาพแวดล้อม"} action={station}/>
+                        </>
+                }
             </div>
         </section>
     )

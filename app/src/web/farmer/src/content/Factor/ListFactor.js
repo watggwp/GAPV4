@@ -1,17 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
  
-import { DayJSX } from "../../../../../assets/js/module";
 import PopupInsertFactor from "./InsertFactor";
 import Template from "../TemplateList";
 import { CloseAccount } from "../../method";
-import MenuPlant from "../PlantList/MenuPlant";
 import EditFactorPopup from "./EditFactor";
 import DetailEdit from "../DetailEdit";
 import DetailFactor from "./DetailFactor";
+import { useNavigate, useParams } from "react-router";
+import { useGreenhouse } from "..";
+import Fertilizer from "./card/fertilizer";
+import Chemical from "./card/chemical";
+import InsertFactorData from "./Insert";
+import EditFactorData from "./edit";
  
-const ListFactor = ({setBody , setPage , id_house , typeHraf = {id_form_plant : "" , type : ""} , isClick = 0 , liff}) => {
-    const [BodyList , setBodyList] = useState(<></>)
+const ListFactor = ({ type_path_factor }) => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const navigator = useNavigate()
+
+    const { setCurrentPage } = useGreenhouse()
+
+    const [ reloadPage , setReloadPage ] = useState(false)
     const [Loading , setLoading] = useState(false)
     const [PopupAdd , setPopupAdd] = useState(<></>)
     const [PopupHistory , setHistory] = useState(<></>)
@@ -23,173 +33,102 @@ const ListFactor = ({setBody , setPage , id_house , typeHraf = {id_form_plant : 
  
     // Load Data List
  
-    const fetchCheck = async () => {
-        const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse:id_house , id_form_plant : typeHraf.id_form_plant})
-        if(await CloseAccount(result , setPage)) {
+    const fetchCheck = useCallback(async () => {
+        const result = await clientMo.post("/api/farmer/formplant/check" , {id_farmhouse: greenhouse_id , id_form_plant : gap_id})
+        if(await CloseAccount(result , setCurrentPage)) {
             try {
                 const Check = JSON.parse(result)
                 setLoadCheckSubmit(Check[0].state_status)
             } catch(e) {}
         }
-    }
- 
-    const ListFerti = async () => {
-        const result = await clientMo.post('/api/farmer/factor/select' , {
-            id_farmhouse : id_house,
-            type : "fertilizer",
-            id_plant : typeHraf.id_form_plant,
-            order : "date"
-        })
-        if(await CloseAccount(result , setPage)) {
-            const Ob = JSON.parse(result)
-            setBodyList(Ob.map((val , key)=>
-                <section key={key} className={`list-factor-content content-${val.id}`}>
-                    { Object.entries(val.subjectResult).filter(val=>val[1] == 2).length != 0 ?
-                        <div className="dot-someting"></div> : <></>
-                    }
-                    <div className="row">
-                        <div className="name">{val.name}</div>
-                        <div className="date">
-                            <span>วันที่บันทึก</span>
-                            <DayJSX DATE={val.date} TYPE="normal"/>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="nameMain">
-                            <span>สูตร</span>
-                            {val.formula_name ? val.formula_name : "ไม่ระบุ"}
-                        </div>
-                        <div className="volume">
-                            {val.volume}
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="source">{val.source}</div>
-                        <button onClick={(e)=>OpenManage(val.id , e)}>จัดการ</button>
-                        <div className={`manage-form content-${val.id}`}>
-                            <div onClick={()=>DetailFrom(val)}>รายละเอียด</div>
-                            { val.state_status < 2 ?
-                                <div onClick={()=>PopupEditForm(val)}>แก้ไขข้อมูล</div>
-                                : <></>
-                            }
-                            <div onClick={()=>HistoryEdit(val.id)}>ประวัติแก้ไข</div>
-                        </div>
-                    </div>
-                </section>
-            ))
-            setLoading(true)
-        }
-    }
- 
-    const ListChemi = async () => {
-        const result = await clientMo.post('/api/farmer/factor/select' , {
-            id_farmhouse : id_house,
-            type : "chemical",
-            id_plant : typeHraf.id_form_plant,
-            order : "date"
-        })
-        if(await CloseAccount(result , setPage)) {
-            const Ob = JSON.parse(result)
-            setBodyList(Ob.map((val , key)=>
-                <section key={key} className={`list-factor-content content-${val.id}`}>
-                    <div className="row">
-                        <div className="name">{val.name}</div>
-                        <div className="nameMain">
-                            <span>สูตร</span>
-                            {val.formula_name}
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="insect">
-                            <span>ศัตรูพืช</span>
-                            {val.insect}
-                        </div>
-                        <div className="volume">
-                            {val.volume}
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="rate">
-                            <span>อัตรา</span>
-                            {val.rate}/น้ำ20ล.
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="date-safe">
-                            <span>วันที่ปลอดภัย</span>
-                            <DayJSX DATE={val.date_safe} TYPE="small"/>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="source">{val.source}</div>
-                        <button onClick={(e)=>OpenManage(val.id , e)}>จัดการ</button>
-                        <div className={`manage-form content-${val.id}`}>
-                            <div onClick={()=>DetailFrom(val)}>รายละเอียด</div>
-                            { val.state_status < 2 ?
-                                <div onClick={()=>PopupEditForm(val)}>แก้ไขข้อมูล</div>
-                                : <></>
-                            }
-                            <div onClick={()=>HistoryEdit(val.id)}>ประวัติแก้ไข</div>
-                        </div>
-                    </div>
-                </section>
-            ))
-            setLoading(true)
-        }
-    }
- 
-    // insert Popup
-    const popupInsertFactor = async () => {
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            const Reload = typeHraf.type === "z" ? ListFerti : ListChemi;
-            setPopupAdd(<PopupInsertFactor setPage={setPage}
-                            id_house={id_house} id_form_plant={typeHraf.id_form_plant} type_path={typeHraf.type}
-                            setPopup={setPopupAdd} RefPop={PopupRef} ReloadData={Reload}/>)
-        }
-    }
- 
-    // edit start
-    const PopupEditForm = async (DataObject) => {
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            const Reload = typeHraf.type === "z" ? ListFerti : ListChemi;
-            setPopupAdd(<EditFactorPopup setPage={setPage}
-                            id_house={id_house} id_form_plant={typeHraf.id_form_plant} type_path={typeHraf.type}
-                            setPopup={setPopupAdd} RefPop={PopupRef} ReloadData={Reload} ObjectData={DataObject}/>)
-        }
-    }
- 
-    const HistoryEdit = (id_table) => {
-        const type = (typeHraf.type === "z") ? "fertilizer" : "chemical";
-        setHistory(<DetailEdit Ref={RefPopHistory} setRef={setHistory}
-                        setPage={setPage} type={typeHraf.type}
-                        Data_on={{
-                            id_house : id_house,
-                            id_plant : typeHraf.id_form_plant,
-                            id_factor : id_table,
-                            type_form : type,
-                        }}/>)
-    }
-    // edit end
- 
-    // detail form
-    const DetailFrom = async (DataObject) => {
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            const Reload = typeHraf.type === "z" ? ListFerti : ListChemi;
-            setPopupAdd(<DetailFactor type_path={typeHraf.type} setPopup={setPopupAdd} RefPop={PopupRef}
-                            ReloadData={Reload} ObjectData={DataObject}/>)
-        }
-    }
- 
-    const OpenManage = (id_table , e) => {
+    } , [gap_id, greenhouse_id, setCurrentPage])
+
+    const reload = useCallback(() => {
+        setReloadPage(( reloadCurrent ) => !reloadCurrent)
+    } , [])
+
+    const OpenManage = useCallback((id_table , e) => {
         const managePop = document.querySelector(`.list-factor-content.content-${id_table} .manage-form.content-${id_table}`)
         managePop.toggleAttribute("show")
         e.target.toggleAttribute("show")
-    }
+    } , [])
  
-    const CloseManage = (e) => {
+    // insert Popup
+    const popupInsertFactor = useCallback(async () => {
+        const result = await clientMo.post("/api/farmer/account/check")
+        if(await CloseAccount(result , setCurrentPage)) {
+            setPopupAdd(
+                // <PopupInsertFactor 
+                //     type_path={type_path_factor}
+                //     setPopup={setPopupAdd} 
+                //     RefPop={PopupRef} 
+                //     ReloadData={reload}
+                // />
+                <InsertFactorData 
+                    type_path={type_path_factor}
+                    setPopup={setPopupAdd} 
+                    RefPop={PopupRef} 
+                    ReloadData={reload}
+                />
+            )
+        }
+    } , [reload, setCurrentPage, type_path_factor])
+ 
+    // edit start
+    const PopupEditForm = useCallback(async (DataObject) => {
+        const result = await clientMo.post("/api/farmer/account/check")
+        if(await CloseAccount(result , setCurrentPage)) {
+            setPopupAdd(
+                // <EditFactorPopup 
+                //     type_path={type_path_factor}
+                //     setPopup={setPopupAdd} 
+                //     RefPop={PopupRef} 
+                //     ReloadData={reload} 
+                //     ObjectData={DataObject}
+                // />
+                <EditFactorData
+                    type_path={type_path_factor}
+                    setPopup={setPopupAdd} 
+                    RefPop={PopupRef} 
+                    ReloadData={reload} 
+                    ObjectData={DataObject}
+                />
+            )
+        }
+    } , [reload, setCurrentPage, type_path_factor])
+ 
+    const HistoryEdit = useCallback((id_table) => {
+        const type = (type_path_factor === "z") ? "fertilizer" : "chemical";
+        setHistory(
+            <DetailEdit 
+                Ref={RefPopHistory} setRef={setHistory}
+                type={type_path_factor}
+                Data_on={{
+                    id_factor : id_table,
+                    type_form : type,
+                }}
+            />
+        )
+    } , [type_path_factor])
+    // edit end
+ 
+    // detail form
+    const DetailFrom = useCallback(async (DataObject) => {
+        const result = await clientMo.post("/api/farmer/account/check")
+        if(await CloseAccount(result , setCurrentPage)) {
+            setPopupAdd(
+                <DetailFactor 
+                    type_path={type_path_factor} 
+                    setPopup={setPopupAdd} 
+                    RefPop={PopupRef}   
+                    ReloadData={reload} 
+                    ObjectData={DataObject}
+                />
+            )
+        }
+    } , [reload, setCurrentPage, type_path_factor])
+ 
+    const CloseManage = useCallback((e) => {
         if(e.target.getAttribute("show") === null) {
             const managePop = document.querySelector(`.list-factor-content .manage-form[show=""]`)
             const Bt = document.querySelector(`.list-factor-content button[show=""]`)
@@ -198,48 +137,63 @@ const ListFactor = ({setBody , setPage , id_house , typeHraf = {id_form_plant : 
                 Bt.removeAttribute("show")
             }
         }
-       
-    }
+    } , [])
  
-    const ReturnPage = async () =>{
-        const result = await clientMo.post("/api/farmer/account/check")
-        if(await CloseAccount(result , setPage)) {
-            setBody(<MenuPlant setBody={setBody} id_house={id_house} id_plant={typeHraf.id_form_plant} setPage={setPage} liff={liff} isClick={1} />)
-        }
-    }
+    const ReturnPage = useCallback(async () =>{
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)
+    } , [gap_id, greenhouse_id, navigator])
  
-    useEffect(()=>{
-        setPage(typeHraf.type)
-        setBodyList(<></>)
-        if(isClick === 1) window.history.pushState({} , null , `/farmer/form/${id_house}/${typeHraf.type}/${typeHraf.id_form_plant}`)
- 
-        // if(document.getElementById("loading").classList[0] !== "hide")
+    useEffect(()=>{ 
         clientMo.unLoadingPage();
        
         setLoadCheckSubmit(-1);
         fetchCheck();
- 
-        (typeHraf.type === "z") && ListFerti();
-        (typeHraf.type === "c") && ListChemi();
  
         window.addEventListener("touchstart" , CloseManage)
  
         return () => {
             window.removeEventListener("touchstart" , CloseManage)
         }
-    } , [typeHraf])
+    } , [CloseManage, fetchCheck, type_path_factor])
  
     return (
         <>
-        <Template PopUp={{PopupRef : PopupRef , PopupBody : PopupAdd}}
-            List={BodyList} Loading={Loading} action={getLoadCheckSubmit != -1 ? getLoadCheckSubmit < 2 ? popupInsertFactor : null : null} Option={
-                {
-                    TextHead : typeHraf.type === "z" ? "บันทึกปุ๋ยที่ใช้" : typeHraf.type === "c" ? "บันทึกสารเคมี" : "",
-                    img : typeHraf.type === "z" ? "/fertilizer.jpg" : typeHraf.type === "c" ? "/chemical.jpg" : ""
-                }} actionReturn={ReturnPage}/>
-        <div className="popup-detail-edit-factor" ref={RefPopHistory}>
-            {PopupHistory}
-        </div>
+            <Template 
+                PopUp={{PopupRef : PopupRef , PopupBody : PopupAdd}}
+                List={
+                    type_path_factor === "z" ?
+                        <Fertilizer
+                            key={reloadPage}
+                            OpenManage={OpenManage}
+                            DetailFrom={DetailFrom}
+                            PopupEditForm={PopupEditForm}
+                            HistoryEdit={HistoryEdit}
+                            setLoading={setLoading}
+                        /> :
+                    type_path_factor === "c" ?
+                        <Chemical
+                            key={reloadPage}
+                            OpenManage={OpenManage}
+                            DetailFrom={DetailFrom}
+                            PopupEditForm={PopupEditForm}
+                            HistoryEdit={HistoryEdit}
+                            setLoading={setLoading}
+                        /> : 
+                        <></>
+                } 
+                Loading={Loading} 
+                action={getLoadCheckSubmit != -1 ? getLoadCheckSubmit < 2 ? popupInsertFactor : null : null} 
+                Option={
+                    {
+                        TextHead : type_path_factor === "z" ? "บันทึกปุ๋ยที่ใช้" : type_path_factor === "c" ? "บันทึกสารเคมี" : "",
+                        img : type_path_factor === "z" ? "/fertilizer.jpg" : type_path_factor === "c" ? "/chemical.jpg" : ""
+                    }
+                } 
+                actionReturn={ReturnPage}
+            />
+            <div className="popup-detail-edit-factor" ref={RefPopHistory}>
+                {PopupHistory}
+            </div>
         </>
     )
 }

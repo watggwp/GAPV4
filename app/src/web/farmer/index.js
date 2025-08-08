@@ -1,11 +1,13 @@
 import React from "react";
 import ReactDOM  from "react-dom/client";
 import io from "socket.io-client"
-import MainFarmer from "./src/main";
+import Router from "./router";
+import ThemeProviderApp from "../../ThemeProvider";
+import SockectIO from "../../SocketIO";
 
 
 // const socket = new WebSocket();
-const socket = io(window.location.protocol+"//"+window.location.host)
+// const socket = io(window.location.protocol+"//"+window.location.host)
 
 // socket.on('connect' , ()=>{
 //     let Path = window.location.pathname.split("/").reverse()[0]
@@ -17,11 +19,11 @@ const socket = io(window.location.protocol+"//"+window.location.host)
 //     ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)
 // })
 
-let Path = window.location.pathname.split("/")[2]
-const id = {
-    "signup" : process.env.REACT_APP_LINE_SIGNUP ,
-    "house" : process.env.REACT_APP_LINE_HOUSE ,
-    "form" : process.env.REACT_APP_LINE_FORM ,
-    "houses" : process.env.REACT_APP_LINE_HOUSELIST
-}
-ReactDOM.createRoot(document.getElementById('farmer')).render(<MainFarmer socket={socket} Path={Path} idLiff={id[Path]}/>)
+ReactDOM.createRoot(document.getElementById('farmer')).render(
+    <ThemeProviderApp>
+        <SockectIO>
+            <Router/>
+        </SockectIO>
+    </ThemeProviderApp>
+)
+

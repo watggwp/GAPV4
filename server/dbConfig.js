@@ -1,12 +1,12 @@
 require('dotenv').config().parsed
 
 const DB = {
-    listConfig : (username, password) => {
+    listConfig : (username, password , mode) => {
         return {
             host: process.env.HOST,
             user: username,
             password : password,
-            database : process.argv[2] == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
+            database : mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
             port : process.env.PORT || 3306,
         }
     },

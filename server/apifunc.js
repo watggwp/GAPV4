@@ -78,8 +78,8 @@ const apifunc = {
   },
 
   authCsurf : (authType , request , response) => {
-    const username = (authType === "admin") ? request.session.user_admin : (authType === "doctor") ? request.session.user_doctor : "";
-    const password = (authType === "admin") ? request.session.pass_admin : (authType === "doctor") ? request.session.pass_doctor : "";
+    const username = (authType === "admin") ? request.session.user_username : (authType === "doctor") ? request.session.user_doctor : "";
+    const password = (authType === "admin") ? request.session.user_password : (authType === "doctor") ? request.session.pass_doctor : "";
     const token = request.session.tokenSession
 
     if((username || password) && token !== apifunc.getTokenCsurf(request)) return false

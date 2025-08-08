@@ -5,6 +5,8 @@ import "../../assets/style/TemplantList.scss"
 import { DayJSX , LoadOtherDom, Loading, PopupDom } from "../../../../../assets/js/module";
 import ManagePopup from "./ManagePopup";
 import { ExportExcel, ExportPDF } from "../../../../../assets/js/Export";
+import { useCallback } from "react";
+import RequestAPI from "../../../../../assets/js/requestAPI";
 
 const PageFormPlant = ({setMain , session , socket , type = false , eleImageCover , LoadType , eleBody , setTextStatus}) => {
     // const [Body , setBody] = useState(<></>)
@@ -54,23 +56,22 @@ const PageFormPlant = ({setMain , session , socket , type = false , eleImageCove
         eleBody.current.style.height = "70%"
         setTextStatus(["หน้าหลัก" , "แบบบันทึกการปลูก" , "รายการแบบบันทึก"])
         clientMo.unLoadingPage()
-        // FetchPlantList()
+        // fetchPlantList()
         GetDate()
 
         // if(LoadType.split(":")[1] === "pop") chkPath()
 
     } , [LoadType])
 
-    // const FetchPlantList = async () => {
-    //     const result = await clientMo.post("/api/doctor/plant/list")
-    //     try {
-    //         const Data = JSON.parse(result)
-    //         setDataPlantList(Data)
-    //         console.log(Data)
-    //     } catch(e) {
-    //         session()
-    //     }
-    // }
+    const fetchPlantList = useCallback(async () => {
+        const { data , status } = await RequestAPI.get("/api/doctor/plant/list")
+        try {
+            if(typeof data === "string") throw new Error("data error")
+            setDataPlantList(data.plants)
+        } catch(e) {
+            session()
+        }
+    } , [session])
 
     // const chkPath = () => {
     //     if(LoadType.split(":")[0] === "ap") 
@@ -135,10 +136,10 @@ const PageFormPlant = ({setMain , session , socket , type = false , eleImageCove
             }
         }
 
-        if(e.target != TypePlant.current) {
-            TypePlant.current.value = ""
-            setData.delete("typePlant")
-        }
+        // if(e.target !== TypePlant.current) {
+        //     TypePlant.current.value = ""
+        //     setData.delete("typePlant")
+        // }
 
         setDataProcess(new Map([...setData ,["statusClick" , true]]))
     }
@@ -256,6 +257,10 @@ const PageFormPlant = ({setMain , session , socket , type = false , eleImageCove
             else if (type === "excel") ExportExcel(DataExport)
         } else session()
     }
+
+    useEffect(() => {
+        fetchPlantList()
+    } , [fetchPlantList])
 
     return(
         <section className="data-list-content-page form-page">
@@ -410,7 +415,7 @@ const PageFormPlant = ({setMain , session , socket , type = false , eleImageCove
     )
 }
 
-const List = ({ session , socket , DataFillter , setDataPlant , setDataId}) => {
+const List = ({ session , socket , DataFillter , setDataId}) => {
     const [Data , setData] = useState([])
     const [Count , setCount] = useState(10)
     const [timeOut , setTimeOut] = useState()
@@ -457,7 +462,6 @@ const List = ({ session , socket , DataFillter , setDataPlant , setDataId}) => {
             MapPlant.forEach((val , key)=>{
                 PlantList.push({name : key , count : val})
             })
-            setDataPlant(PlantList)
 
             setDataId(data.map(val=>val.id))
             setData(data)

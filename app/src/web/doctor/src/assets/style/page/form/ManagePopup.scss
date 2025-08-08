@@ -81,7 +81,7 @@ $colorBoderBottonData : #3bc69c;
 
         .menu-content[show=""] {
             background-color: white;
-            height: 320px;
+            height: 365px;
             a:nth-child(2) {
                 transform: translateY(45px);
             }
@@ -99,6 +99,9 @@ $colorBoderBottonData : #3bc69c;
             }
             a:nth-child(7) {
                 transform: translateY(270px);
+            }
+            a:nth-child(8) {
+                transform: translateY(315px);
             }
         }
 
@@ -569,7 +572,7 @@ $colorBoderBottonData : #3bc69c;
                                     display: flex;
                                     flex-direction: column;
             
-                                    .row {
+                                    .row-content {
                                         width: 100%;
 
                                         .head-text {

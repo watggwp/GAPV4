@@ -1,4 +1,4 @@
-const ngrok = require('ngrok')
+const ngrok = require("@ngrok/ngrok")
 require('dotenv').config().parsed
 const fs = require('fs')
 

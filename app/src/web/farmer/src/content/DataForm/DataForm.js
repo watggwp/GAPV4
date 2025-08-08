@@ -1,12 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import "./DataForm.scss";
 import { ConvertDate, DatePickerThai, DateSelect, DayJSX, Loading } from "../../../../../assets/js/module";
-import MenuPlant from "../PlantList/MenuPlant";
 import DetailEdit from "../DetailEdit";
+import { useNavigate, useParams } from "react-router";
+import { useGreenhouse } from "..";
+import { useFarmer } from "../../main";
 
-const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => {
+const DataForm = () => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const navigator = useNavigate()
+
+    const { setCurrentPage } = useGreenhouse()
+
     const [Data, setData] = useState([]);
     const [Load, setLoad] = useState(false);
     const [StatusEdit, setStatusEdit] = useState(false);
@@ -66,23 +74,6 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     //         FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
     //     }
     // }, [selectedPlantId]);
-    
-    
-    
-
-    useEffect(() => {
-        setPage("DataForm");
-        if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${id_house}/d/${id_plant}`);
-        window.addEventListener("touchstart", CloseManageMenu);
-        FetchData();
-
-        return () => {
-            window.removeEventListener("touchstart", CloseManageMenu);
-        };
-    }, [id_plant]);
-
- 
-
     useEffect(() => {
         if (Data.insect) {
             setSelectedInsect(Data.insect); // ตั้งค่าเริ่มต้นเป็นค่าที่เคยเลือก
@@ -97,21 +88,21 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     }, [Data.insect, previousInsects]);
 
 
-        useEffect(() => {
-            setPreviousInsects((prev) => {
-                if (!prev.includes("เลือก")) {
-                    return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
-                }
-                return prev;
-            });
-        }, [previousInsects]);
+    useEffect(() => {
+        setPreviousInsects((prev) => {
+            if (!prev.includes("เลือก")) {
+                return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
+            }
+            return prev;
+        });
+    }, [previousInsects]);
 
-    const FetchData = async () => {
+    const FetchData = useCallback(async () => {
         setLoad(false);
         setData({});
-        const result = await clientMo.post("/api/farmer/formplant/select", { id_formplant: id_plant, id_farmhouse: id_house });
-        console.log("API Response:", result);
-        if (await CloseAccount(result, setPage)) {
+        const result = await clientMo.post("/api/farmer/formplant/select", { id_formplant: gap_id, id_farmhouse: greenhouse_id });
+
+        if (await CloseAccount(result, setCurrentPage)) {
             const DataIn = JSON.parse(result);
             if (DataIn && DataIn[0]) {
                 setData(DataIn[0]);
@@ -133,7 +124,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
             setLoad(true);
             setWait(false);
         }
-    };
+    } , [gap_id, greenhouse_id, setCurrentPage])
     
     
     
@@ -152,7 +143,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     const FetchPlant = async () => {
         setDataPlant([]);
         const DataFetch = await clientMo.post("/api/farmer/plant/list");
-        if (await CloseAccount(DataFetch, setPage)) {
+        if (await CloseAccount(DataFetch, setCurrentPage)) {
             const LIST = JSON.parse(DataFetch);
             const SelectPlant = LIST.filter(val => val.name == Data.name_plant);
             setDataPlant(LIST);
@@ -204,27 +195,22 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
             }
         }
     };
-    
 
-
-    const ReturnPage = async () => {
-        const result = await clientMo.post("/api/farmer/account/check");
-        if (await CloseAccount(result, setPage)) {
-            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />);
-        }
-    };
+    const ReturnPage = useCallback(async () => {
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)
+    } , [gap_id, greenhouse_id, navigator])
 
     const ShowMenuManageForm = () => {
         ManageMenu.current.toggleAttribute("show");
-    };
+    }
 
-    const CloseManageMenu = (e) => {
+    const CloseManageMenu = useCallback((e) => {
         if (ManageMenu.current) {
             if (e.target !== BtManageMenu.Frame.current && e.target !== BtManageMenu.Svg.current && e.target !== BtManageMenu.Path.current) {
                 ManageMenu.current.removeAttribute("show");
             }
         }
-    };
+    } , [BtManageMenu.Frame, BtManageMenu.Path, BtManageMenu.Svg])
 
     const EditForm = async () => {
         const plants = await FetchPlant();
@@ -383,8 +369,8 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
 
                 const foundChange = CheckChange.map((val, index) => (val) ? [Key[index], Value[index]] : "").filter(val => val !== "");
                 const data = {
-                    id_farmhouse: id_house,
-                    id_plant: id_plant,
+                    id_farmhouse: greenhouse_id,
+                    id_plant: gap_id,
                     because: because.value,
                     dataChange: Object.fromEntries(new Map([...foundChange])),
                     num: foundChange.length
@@ -392,7 +378,7 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
 
                 setWait(true);
                 const result = await clientMo.post("/api/farmer/formplant/edit", data);
-                if (await CloseAccount(result, setPage)) {
+                if (await CloseAccount(result, setCurrentPage)) {
                     if (result === "133") {
                         CancelEdit(false);
                         FetchData();
@@ -470,10 +456,25 @@ const DataForm = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) =
     };
 
     const HistoryEdit = async () => {
-        setPopup(<DetailEdit Ref={PopupRef} setRef={setPopup} setPage={setPage} Data_on={{
-            id_house: id_house, id_plant: id_plant
-        }} type={"plant"} />);
+        setPopup(
+            <DetailEdit 
+                Ref={PopupRef} 
+                setRef={setPopup}
+                type={"plant"} 
+            />
+        );
     };
+
+    useEffect(() => {
+        // setCurrentPage("DataForm");
+        // if (isClick === 1) window.history.pushState({}, null, `/farmer/form/${greenhouse_id}/d/${id_plant}`);
+        window.addEventListener("touchstart", CloseManageMenu);
+        FetchData();
+
+        return () => {
+            window.removeEventListener("touchstart", CloseManageMenu);
+        };
+    }, [CloseManageMenu, FetchData]);
 
     return (
         <section className="data-form-page" id="data-form-page">

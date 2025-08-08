@@ -7,17 +7,19 @@ import {
   DatePickerThai,
   Loading
 } from "../../../../../assets/js/module";
+import { useParams } from "react-router";
+import { useGreenhouse } from "..";
 
 const PopupInsertFactor = ({
   setPopup,
   RefPop,
-  uid,
-  id_house,
-  id_form_plant,
   type_path,
   ReloadData,
-  setPage
 }) => {
+
+  const { greenhouse_id , gap_id } = useParams()
+  const { setCurrentPage } = useGreenhouse()
+
   const DateNowOnForm = `${new Date().getFullYear()}-${(
     "0" + (new Date().getMonth() + 1).toString()
   ).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`;
@@ -86,7 +88,7 @@ const PopupInsertFactor = ({
     const Data = await clientMo.post("/api/farmer/factor/get/auto", {
       type: type
     });
-    if (await CloseAccount(Data, setPage)) {
+    if (await CloseAccount(Data, setCurrentPage)) {
       const LIST = JSON.parse(Data);
       LIST.sort((a, b) => a.name.localeCompare(b.name, 'th'));
       LIST.sort((a, b) => a.name_formula.localeCompare(b.name_formula, 'th'));
@@ -98,10 +100,10 @@ const PopupInsertFactor = ({
   };
 
   // ฟังก์ชัน FetchPests ดึงข้อมูลศัตรูพืช
-  const FetchPests = async () => {
+  const FetchPests = useCallback(async () => {
     setLoadPests(false);
     const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
-    if (await CloseAccount(Data, setPage)) {
+    if (await CloseAccount(Data, setCurrentPage)) {
       let LIST = JSON.parse(Data);
       LIST = LIST.map((item) => ({
         ...item,
@@ -114,10 +116,10 @@ const PopupInsertFactor = ({
       setLoadPests(true);
       return LIST;
     }
-  };
+  } , [setCurrentPage])
 
   // ฟังก์ชันโหลดข้อมูลจาก API
-  const FetchPestChemicalData = async () => {
+  const FetchPestChemicalData = useCallback(async () => {
     setLoading(true);
     try {
       const Data = await clientMo.post("/api/farmer/pest-chemical", {
@@ -127,7 +129,7 @@ const PopupInsertFactor = ({
       console.log("Full API Response:", JSON.stringify(Data, null, 2));
 
       // ตรวจสอบว่า CloseAccount ผ่านหรือไม่
-      if (await CloseAccount(Data, setPage)) {
+      if (await CloseAccount(Data, setCurrentPage)) {
         const response = JSON.parse(Data); // แปลงข้อมูล JSON
 
         console.log("Parsed Response Data:", response);
@@ -142,33 +144,33 @@ const PopupInsertFactor = ({
             setPestChemicalData(data);
             setCurrentPlantName(plant_name);
           } else {
-            console.warn("No pest-chemical data found:", data);
-            setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
-            setShowPopup(true);
+            // console.warn("No pest-chemical data found:", data);
+            // setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
+            // setShowPopup(true);
           }
         } else {
-          console.error(
-            "Invalid response structure or missing required fields"
-          );
-          setPopupMessage("ไม่พบข้อมูลที่ตรงกันของชนิดพืช สารเคมี เเละศัตรูพืช");
-          setShowPopup(true);
+          // console.error(
+          //   "Invalid response structure or missing required fields"
+          // );
+          // setPopupMessage("ไม่พบข้อมูลที่ตรงกันของชนิดพืช สารเคมี เเละศัตรูพืช");
+          // setShowPopup(true);
         }
       } else {
-        console.error("CloseAccount validation failed");
-        setPopupMessage("เกิดข้อผิดพลาดในการตรวจสอบสารเคมีเเละศัตรูพืช");
-        setShowPopup(true);
+        // console.error("CloseAccount validation failed");
+        // setPopupMessage("เกิดข้อผิดพลาดในการตรวจสอบสารเคมีเเละศัตรูพืช");
+        // setShowPopup(true);
       }
     } catch (error) {
-      console.error(
-        "Error fetching pest-chemical data:",
-        error.message || error
-      );
-      setPopupMessage("เกิดข้อผิดพลาดในดึงข้อมูลสารเคมีเเละศัตรูพืช");
-      setShowPopup(true);
+      // console.error(
+      //   "Error fetching pest-chemical data:",
+      //   error.message || error
+      // );
+      // setPopupMessage("เกิดข้อผิดพลาดในดึงข้อมูลสารเคมีเเละศัตรูพืช");
+      // setShowPopup(true);
     } finally {
       setLoading(false);
     }
-  };
+  } , [formId, setCurrentPage])
 
 
   useEffect(() => {
@@ -176,16 +178,16 @@ const PopupInsertFactor = ({
       console.log("Fetching data for formId:", formId);
       FetchPestChemicalData();
     }
-  }, [formId]);
+  }, [FetchPestChemicalData, formId]);
 
   useEffect(() => {
-    if (id_form_plant) {
-      setFormId(id_form_plant);
+    if (gap_id) {
+      setFormId(gap_id);
     } else {
-      console.error("id_form_plant is undefined");
+      console.error("gap_id is undefined");
       FetchPestChemicalData();
     }
-  }, [id_form_plant]);
+  }, [FetchPestChemicalData, gap_id]);
 
   const SearchPests = async (e) => {
     ListSearchPests.current.removeAttribute("remove");
@@ -234,11 +236,11 @@ const PopupInsertFactor = ({
   // ใช้งาน FetchPests เมื่อโหลด component
   useEffect(() => {
     FetchPests();
-  }, []);
+  }, [FetchPests]);
 
   const FetchSource = async () => {
     const Data = await clientMo.post("/api/farmer/source/get");
-    if (await CloseAccount(Data, setPage)) {
+    if (await CloseAccount(Data, setCurrentPage)) {
       const LIST = JSON.parse(Data);
       setSource(LIST);
     }
@@ -260,8 +262,8 @@ const PopupInsertFactor = ({
       source.value
     ) {
       const DataInsert = {
-        id_farmhouse: id_house,
-        id_plant: id_form_plant,
+        id_farmhouse: greenhouse_id,
+        id_plant: gap_id,
         date: ConvertDate(dateUse.value).christDate,
         formula_name: formula_name.value,
         name: Name.value,
@@ -272,11 +274,8 @@ const PopupInsertFactor = ({
       };
 
       setWait(true);
-      const result = await clientMo.post(
-        "/api/farmer/factor/insert",
-        DataInsert
-      );
-      if (await CloseAccount(result, setPage)) {
+      const result = await clientMo.post("/api/farmer/factor/insert",DataInsert);
+      if (await CloseAccount(result, setCurrentPage)) {
         cancel();
         ReloadData();
         setWait(false);
@@ -298,16 +297,55 @@ const PopupInsertFactor = ({
     }
   };
 
+  const cancel = useCallback(() => {
+    RefPop.current.removeAttribute("show");
+    setTimeout(() => {
+      setPopup(<></>);
+    }, 500);
+  } , [RefPop, setPopup])
+
+  const validateInputs = useCallback(() => {
+    let isValid = true;
+  
+    // ตรวจสอบชื่อสารเคมี
+    if (!DataFactor.some((val) => val.name === NameFactor.current?.value.trim())) {
+      NameFactor.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameFactor.current.style.border = "2px solid transparent";
+    }
+  
+    // ตรวจสอบชื่อสามัญสารเคมี
+    if (
+      !DataFactor.some((val) => val.name_formula === NameMainFactor.current?.value.trim())
+    ) {
+      NameMainFactor.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameMainFactor.current.style.border = "2px solid transparent";
+    }
+  
+    // ตรวจสอบศัตรูพืช
+    if (!DataPests.some((val) => val.pest_name === NameInsect.current?.value.trim())) {
+      NameInsect.current.style.border = "2px solid red";
+      isValid = false;
+    } else {
+      NameInsect.current.style.border = "2px solid transparent";
+    }
+  
+    return isValid;
+  } , [DataFactor, DataPests])
+
   // ฟังก์ชัน ConfirmChemi ที่ปรับปรุง
-  const ConfirmChemi = async () => {
+  const ConfirmChemi = useCallback(async () => {
     if (!validateInputs()) {
       // หากไม่ผ่านการตรวจสอบข้อมูล ให้หยุดการทำงาน
       return;
     }
   
     const DataInsert = {
-      id_farmhouse: id_house,
-      id_plant: id_form_plant,
+      id_farmhouse: greenhouse_id,
+      id_plant: gap_id,
       date: ConvertDate(DateUse.current.value).christDate,
       formula_name: NameMainFactor.current.value,
       name: NameFactor.current.value,
@@ -322,20 +360,12 @@ const PopupInsertFactor = ({
   
     setWait(true);
     const result = await clientMo.post("/api/farmer/factor/insert", DataInsert);
-    if (await CloseAccount(result, setPage)) {
+    if (await CloseAccount(result, setCurrentPage)) {
       cancel();
       ReloadData();
       setWait(false);
     }
-  };
-  
-
-  const cancel = () => {
-    RefPop.current.removeAttribute("show");
-    setTimeout(() => {
-      setPopup(<></>);
-    }, 500);
-  };
+  } , [ReloadData, cancel, gap_id, greenhouse_id, setCurrentPage, type_path, validateInputs])
 
   const ChangeFerti = (e) => {
     const dateUse = DateUse.current;
@@ -435,7 +465,6 @@ const PopupInsertFactor = ({
  
 
   const SetTextInputName = (name) => {
-    console.log(name)
     NameFactor.current.value = name;
     NameFactor.current.style.border = "2px solid transparent"; // รีเซ็ตกรอบแดง
      // ล้างค่าชื่อสามัญสารเคมี
@@ -581,42 +610,7 @@ const PopupInsertFactor = ({
         console.log("Matched entry:", matchedEntry);
       }
     } , 0)
-  };
-
-
-  const validateInputs = () => {
-    let isValid = true;
-  
-    // ตรวจสอบชื่อสารเคมี
-    if (!DataFactor.some((val) => val.name === NameFactor.current?.value.trim())) {
-      NameFactor.current.style.border = "2px solid red";
-      isValid = false;
-    } else {
-      NameFactor.current.style.border = "2px solid transparent";
-    }
-  
-    // ตรวจสอบชื่อสามัญสารเคมี
-    if (
-      !DataFactor.some((val) => val.name_formula === NameMainFactor.current?.value.trim())
-    ) {
-      NameMainFactor.current.style.border = "2px solid red";
-      isValid = false;
-    } else {
-      NameMainFactor.current.style.border = "2px solid transparent";
-    }
-  
-    // ตรวจสอบศัตรูพืช
-    if (!DataPests.some((val) => val.pest_name === NameInsect.current?.value.trim())) {
-      NameInsect.current.style.border = "2px solid red";
-      isValid = false;
-    } else {
-      NameInsect.current.style.border = "2px solid transparent";
-    }
-  
-    return isValid;
-  };
-  
-  
+  };  
 
   const handleInputChange = (e, type) => {
     const value = e.target.value.trim();

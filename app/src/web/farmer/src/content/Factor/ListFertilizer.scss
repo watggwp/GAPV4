@@ -68,7 +68,7 @@ $FontText : 5vw;
                     display: flex;
                     justify-content: flex-start;
                     width: 100%;
-                    input {
+                    input:not(.MuiOutlinedInput-input) {
                         display: flex;
                         font-family: Sans-font;
                         border: 0;
@@ -144,8 +144,9 @@ $FontText : 5vw;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
-                    height: 90%;
+                    height: 90vh;
                     width: 100%;
+                    max-height: 700;
                     .head-form {
                         display: flex;
                         justify-content: center;
@@ -234,7 +235,7 @@ $FontText : 5vw;
                                                     }
                                                 }
 
-                                                input , select , textarea {
+                                                input:not(.MuiOutlinedInput-input) , select , textarea:not(.MuiOutlinedInput-input) {
                                                     margin-left: 2px;
                                                     font-size: $FontText;
                                                     font-family: Sans-font;
@@ -244,8 +245,19 @@ $FontText : 5vw;
                                                     width: 50%;
                                                     border: 2px solid transparent;
                                                 }
-    
+
+                                                .input-date {
+                                                    input {
+                                                        width: 100%;
+                                                    }
+                                                }
+
                                                 textarea {
+                                                    font-size: $FontText;
+                                                    width: 100% !important;
+                                                }
+    
+                                                textarea:not(.MuiOutlinedInput-input) {
                                                     text-align: center;
                                                 }
     
@@ -421,24 +433,6 @@ $FontText : 5vw;
     z-index: 1000;
 }
 
-.popup-content {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    width: 90vw; /* ให้ความกว้างเป็น 90% ของ viewport */
-    max-width: 500px; /* กำหนดขนาดสูงสุด เพื่อให้ดูดีในหน้าจอใหญ่ */
-    min-width: 300px; /* ป้องกัน popup เล็กเกินไป */
-    text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.3s ease;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* จัดให้อยู่กึ่งกลาง */
-    max-height: 90vh; /* กำหนดความสูงไม่ให้เกิน 90% ของ viewport */
-    overflow-y: auto; /* ให้เลื่อนเนื้อหาได้ถ้าสูงเกิน */
-}
-
 
 .popup-content .icon {
     font-size: 55px;
@@ -481,7 +475,7 @@ $FontText : 5vw;
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: scale(0.8);
+        transform: scale(0.2);
     }
     to {
         opacity: 1;

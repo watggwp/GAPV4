@@ -4,8 +4,11 @@ import { Loading, MapsJSX, PatternCheck, ReportAction, ResizeImg, SetMaxLength }
 import './Signup.scss'
 import {clientMo}  from "../../../../assets/js/moduleClient";
 import { CloseAccount } from "../method";
+import { useFarmer } from "../main";
 
-const SignUp = ({liff , uid}) => {
+const SignUp = () => {
+    const {liff , uid} = useFarmer()
+    
     const [step , setStep] = useState(1)
     const [stepOn , setstepOn] = useState(1)
     const [stepApprov , setApprov] = useState(1)

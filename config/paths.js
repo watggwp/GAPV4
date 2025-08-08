@@ -7,7 +7,8 @@ const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath');
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebook/create-react-app/issues/637
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveRoot = relativePath => path.resolve(appDirectory , relativePath);
+const resolveApp = relativePath => path.resolve(appDirectory , "app" , relativePath);
 
 // We use `PUBLIC_URL` environment variable or "homepage" field to infer
 // "public path" at which the app is served.
@@ -52,34 +53,36 @@ const resolveModule = (resolveFn, filePath) => {
 
 // config after eject: we're in ./config/
 module.exports = {
-  dotenv: resolveApp('.env'),
-  appPath: resolveApp('app'),
-  appBuild: resolveApp(buildPath),
+  dotenv: resolveRoot('.env'),
+  appPath: resolveApp('.'),
+  appBuild: resolveRoot(buildPath),
+  appPublic: resolveApp(`public/${process.argv[2]}`),
 
   appStatic: {
-    public : resolveApp(`app/public/${process.argv[2]}`),
-    style : resolveApp('app/src/assets/style'),
-    js : resolveApp('app/src/assets/js'),
-    img : resolveApp('app/src/assets/Img'),
-    icon : resolveApp('app/src/assets/Icon'),
-    font : resolveApp('app/src/assets/Font')
+    style : resolveApp('src/assets/style'),
+    js : resolveApp('src/assets/js'),
+    img : resolveApp('src/assets/img'),
+    icon : resolveApp('src/assets/icon'),
+    font : resolveApp('src/assets/font')
   },
-  
-  appHtml: resolveApp(`app/public/${process.argv[2]}/index.html`),
-  appIndexJs: resolveModule(resolveApp, `app/src/web/${process.argv[2]}/index`),
 
-  appPackageJson: resolveApp('app/package.json'),
-  appSrc: resolveApp('app/src'),
-  appTsConfig: resolveApp('app/tsconfig.json'),
-  appJsConfig: resolveApp('app/jsconfig.json'),
-  yarnLockFile: resolveApp('app/yarn.lock'),
-  testsSetup: resolveModule(resolveApp, 'app/src/setupTests'),
-  proxySetup: resolveApp('app/src/setupProxy.js'),
-  appNodeModules: resolveApp('app/node_modules'),
-  appWebpackCache: resolveApp('app/node_modules/.cache'),
-  appTsBuildInfoFile: resolveApp('app/node_modules/.cache/tsconfig.tsbuildinfo'),
-  swSrc: resolveModule(resolveApp, 'app/src/service-worker'),
+  appHtml: resolveApp(`public/${process.argv[2]}/index.html`),
+  appIndexJs: resolveModule(resolveApp, `src/web/${process.argv[2]}/index`),
+  
+  appPackageJson: resolveApp('package.json'),
+  appSrc: resolveApp('src'),
+  appTsConfig: resolveApp('tsconfig.json'),
+  appJsConfig: resolveApp('jsconfig.json'),
+  yarnLockFile: resolveApp('yarn.lock'),
+  testsSetup: resolveModule(resolveApp, 'src/setupTests'),
+  proxySetup: resolveApp('src/setupProxy.js'),
+  appNodeModules: resolveApp('node_modules'),
+  appWebpackCache: resolveApp('node_modules/.cache'),
+  appTsBuildInfoFile: resolveApp('node_modules/.cache/tsconfig.tsbuildinfo'),
+  swSrc: resolveModule(resolveApp, 'src/service-worker'),
   publicUrlOrPath,
 };
+
+
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

@@ -5,7 +5,7 @@ import { useLiff } from "./module";
 import * as FileSaver from "file-saver"
 import XLSX from "sheetjs-style"
 // import autoTable from 'jspdf-autotable';
-const TextBoxDot = (pdf , count , xStart , y , textOnDot) => {
+const TextBoxDot = (pdf = new jsPDF() , count , xStart , y , textOnDot) => {
     let posi = parseInt(xStart);
     for(let x = 1; x <= parseInt(count);x++) {
         let gidx = posi - 1
@@ -14,7 +14,7 @@ const TextBoxDot = (pdf , count , xStart , y , textOnDot) => {
         posi += 4
     }
     const widthText = pdf.getStringUnitWidth(textOnDot) * 18
-    pdf.text(textOnDot , xStart + ((posi - 3 - xStart) / 2) - widthText / 2 , parseInt(y) - 1)
+    pdf.text(textOnDot , (xStart + ((posi - xStart) / 2) - widthText / 2) + 2 , parseInt(y) - 1)
     return posi - 3
 }
 
@@ -215,10 +215,10 @@ const ExportPDF = async (Data) => {
         
         TextBoxHead(pdf , 30 , 100 , '๑.')
         TextBoxHead(pdf , 50 , 100 , 'ชื่อ/สกุล เกษตรกร')
-        newX = TextBoxDot(pdf , 65 , 134 , 100 , Export.farmer[0].fullname)
+        newX = TextBoxDot(pdf , 65 , 132 , 100 , Export.farmer[0].fullname)
 
         TextBoxHead(pdf , newX , 100 , 'ศูนย์ฯ')
-        TextBoxDot(pdf , 38 , newX + 28 , 100 , Export.farmer[0].station)
+        TextBoxDot(pdf , 38 , newX + 30 , 100 , Export.farmer[0].station)
 
         TextBoxHead(pdf , 30 , 130 , '๒.')
         TextBoxHead(pdf , 50 , 130 , 'ชนิดพืช')
@@ -237,17 +237,18 @@ const ExportPDF = async (Data) => {
 
 
         TextBoxHead(pdf , 50 , 160 , 'ระยะการปลูก')
-        newX = TextBoxDot(pdf , 22 , 112 , 160 , Export.dataForm.posi_w.toString()+"X"+Export.dataForm.posi_h.toString())
+        newX = TextBoxDot(pdf , 20 , 112 , 160 , Export.dataForm.posi_w.toString()+"x"+Export.dataForm.posi_h.toString())
 
         TextBoxHead(pdf , newX , 160 , 'จำนวนต้น')
-        newX = TextBoxDot(pdf , 14 , newX + 48 , 160 , Export.dataForm.qty.toString())
+        newX = TextBoxDot(pdf , 13 , newX + 44 , 160 , Export.dataForm.qty.toString())
         
         TextBoxHead(pdf , newX , 160 , 'พื้นที่')
-        newX = TextBoxDot(pdf , 17 , newX + 24 , 160 , Export.dataForm.area.toString()+" " + Export.dataForm.unit.toString())      
+        const area = `${Export.dataForm.area.toString()} ${Export.dataForm.unit.toString()}`
+        newX = TextBoxDot(pdf , 25 , newX + 24 , 160 , area)      
 
         TextBoxHead(pdf , newX , 160 , 'วันที่คาดว่าจะเก็บเกี่ยว')
         const DateOut = Export.dataForm.date_harvest.split("-")
-        newX = TextBoxDot(pdf , 20 , newX + 103 , 160 , `${DateOut[2].split(" ")[0]}/${DateOut[1]}/${parseInt(DateOut[0]) + 543}`)
+        newX = TextBoxDot(pdf , 16 , newX + 103 , 160 , `${DateOut[2].split(" ")[0]}/${DateOut[1]}/${parseInt(DateOut[0]) + 543}`)
         
 
         TextBoxHead(pdf , 30 , 190 , '๓.')

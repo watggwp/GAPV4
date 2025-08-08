@@ -1,32 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import "./Report.scss";
 import { DayJSX } from "../../../../../assets/js/module";
-import MenuPlant from "../PlantList/MenuPlant";
+import { useNavigate, useParams } from "react-router";
+import { useGreenhouse } from "..";
 
-const Report = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => {
-    const [DataPage, setDataPage] = useState({
-        id_house: id_house,
-        id_plant: id_plant,
-        type: "r",
-        isClick: isClick
-    });
+const Report = () => {
 
+    const { greenhouse_id , gap_id } = useParams()
+    const navigator = useNavigate()
+    
     //สร้าง DotSome ที่นี่
     const [DotSome, setDotSome] = useState([]);
 
     useEffect(() => {
-        setPage("Report");
         clientMo.unLoadingPage();
     }, []);
 
-    const ReturnPage = async () => {
-        const result = await clientMo.post("/api/farmer/account/check");
-        if (await CloseAccount(result, setPage)) {
-            setBody(<MenuPlant setBody={setBody} setPage={setPage} id_house={id_house} id_plant={id_plant} isClick={1} liff={liff} />);
-        }
-    };
+    const ReturnPage = useCallback(async () => {
+        navigator(`/farmer/form/${greenhouse_id}/${gap_id}/p`)
+    } , [gap_id, greenhouse_id, navigator])
 
     return (
         <>
@@ -45,7 +39,7 @@ const Report = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => 
                 <div className="content-report">
                     <div className="list-report">
                         {/*ส่ง `setDotSome` ให้ `List` */}
-                        <List liff={liff} setPage={setPage} DetailFetchList={DataPage} setDotSome={setDotSome} />
+                        <List setDotSome={setDotSome} />
                     </div>
                 </div>
             </div>
@@ -53,27 +47,21 @@ const Report = ({ setBody, id_house, id_plant, liff, setPage, isClick = 0 }) => 
     );
 };
 
-const List = ({ liff, setPage, DetailFetchList, setDotSome }) => {
+const List = ({ setDotSome }) => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const { setCurrentPage } = useGreenhouse()
+
     const [listData, setListData] = useState([]);
 
-    useEffect(() => {
-        StartFetch();
-    }, [DetailFetchList]);
-
-    const StartFetch = async () => {
-        await FetchData();
-        if (DetailFetchList.isClick === 1)
-            window.history.pushState({}, null, `/farmer/form/${DetailFetchList.id_house}/r/${DetailFetchList.id_plant}`);
-    };
-
-    const FetchData = async () => {
+    const FetchData = useCallback(async () => {
         try {
             const timestamp = new Date().getTime(); // ป้องกันแคช
             const result = await clientMo.get(
-                `/api/farmer/report/list?id_farmhouse=${DetailFetchList.id_house}&id_plant=${DetailFetchList.id_plant}&type=${DetailFetchList.type}&_=${timestamp}`
+                `/api/farmer/report/list?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}&type=r&_=${timestamp}`
             );
 
-            if (await CloseAccount(result, setPage)) {
+            if (await CloseAccount(result, setCurrentPage)) {
                 const data = JSON.parse(result);
                 data.sort((a, b) => new Date(b.date_report) - new Date(a.date_report));
                 console.log("Updated Data After Fetch:", data); // ตรวจสอบข้อมูลใหม่
@@ -82,13 +70,13 @@ const List = ({ liff, setPage, DetailFetchList, setDotSome }) => {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    };
+    } , [greenhouse_id, gap_id, setCurrentPage])
 
     const AcknowledgeData = async (id) => {
         try {
             const result = await clientMo.post("/api/farmer/report/acknowledge", { id, type: "report" });
 
-            if (await CloseAccount(result, setPage)) {
+            if (await CloseAccount(result, setCurrentPage)) {
                 console.log("Acknowledged successfully, fetching new data...");
 
                 //ดึงข้อมูลใหม่จาก API
@@ -106,6 +94,10 @@ const List = ({ liff, setPage, DetailFetchList, setDotSome }) => {
             console.error("Error acknowledging report:", error);
         }
     };
+
+    useEffect(() => {
+        FetchData();
+    }, [FetchData]);
 
     return (
         <>

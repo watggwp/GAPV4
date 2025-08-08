@@ -3,23 +3,32 @@ import "../assets/DetailEdit.scss"
 import { clientMo } from "../../../../assets/js/moduleClient";
 import { CloseAccount } from "../method";
 import { DayJSX, Loading } from "../../../../assets/js/module";
+import { useGreenhouse } from ".";
+import { useParams } from "react-router";
 
-const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
+const DetailEdit = ({Ref , setRef , type , Data_on}) => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const { setCurrentPage } = useGreenhouse()
+
     const [Data , setData] = useState(null)
     const [HeadEdit , setHead] = useState([])
     const [BodyEdit , setBody] = useState(<></>)
     const [LoadingData , setLoad] = useState(false)
     const UrlFecth = type === "plant" ? "/api/farmer/formplant/edit/select" : "/api/farmer/factor/edit/select" ;
-    const DataFetch = type === "plant" ? {
-                                            id_farmhouse : Data_on.id_house , 
-                                            id_plant : Data_on.id_plant
-                                        } 
-                                        : {
-                                            id_farmhouse : Data_on.id_house , 
-                                            id_plant : Data_on.id_plant , 
-                                            id_form_factor : Data_on.id_factor , 
-                                            type_form : Data_on.type_form
-                                        }
+    const DataFetch = (
+        type === "plant" ? 
+            {
+                id_farmhouse : greenhouse_id , 
+                id_plant : gap_id
+            } 
+            : {
+                id_farmhouse : greenhouse_id , 
+                id_plant : gap_id , 
+                id_form_factor : Data_on.id_factor , 
+                type_form : Data_on.type_form
+            }
+    )
     
     const subject = type === "plant" ? 
                     {
@@ -59,7 +68,7 @@ const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
 
     const Fetch = async () => {
         const result = await clientMo.post(UrlFecth , DataFetch)
-        if(await CloseAccount(result , setPage)) {
+        if(await CloseAccount(result , setCurrentPage)) {
             const Data = JSON.parse(result)
             console.log("Data from API:", Data); // Debug ข้อมูล
             setData(Data)
@@ -70,7 +79,7 @@ const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
     // const SelectHead = async (id_table_edit , e) => {
     //     setLoad(false)
     //     const result = await clientMo.post(UrlFecth , {...DataFetch , id_edit : id_table_edit})
-    //     if(await CloseAccount(result , setPage)) {
+    //     if(await CloseAccount(result , setCurrentPage)) {
     //         const Data = JSON.parse(result)
     //         if(e) {
     //             document.querySelector(".menu-edit .frame-menu span[select='']").removeAttribute("select")
@@ -97,7 +106,7 @@ const DetailEdit = ({Ref , setRef , setPage , type , Data_on}) => {
     
         setLoad(false);
         const result = await clientMo.post(UrlFecth, { ...DataFetch, id_edit: id_table_edit });
-        if (await CloseAccount(result, setPage)) {
+        if (await CloseAccount(result, setCurrentPage)) {
             const Data = JSON.parse(result);
             if (e) {
                 const selectedElement = document.querySelector(".menu-edit .frame-menu span[select='']");

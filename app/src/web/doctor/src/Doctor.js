@@ -1,4 +1,4 @@
-import React , {Component, createContext, useEffect, useRef, useState} from "react";
+import React , {Component, createContext, useCallback, useContext, useEffect, useRef, useState} from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
@@ -12,12 +12,21 @@ import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
+import { BrowserRouter, Route, Routes } from "react-router";
+import SchedulePlant from "./page/schedule/schedules";
+import SchedulePlants from "./page/schedule/schedulePlants";
+import ScheduleIndex from "./page/schedule";
 export const DoctorContext = createContext({
-    profile : {}
-
-
+    profile : {},
+    bannerCoverRef : { current : "" },
+    contentRef : { current : "" },
+    onSession : () => {},
+    setTextPage : () => {}
 })
 
+export function useDoctor() {
+    return useContext(DoctorContext)
+}
 
 const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const [body , setBody] = useState(<div></div>)
@@ -52,6 +61,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const FetchProfile = async () => {
         const result = await clientMo.get("/api/doctor/profile/get")
         if(result) {
+            console.log(result)
             setProfile(JSON.parse(result))
         }
         else setSession()
@@ -102,14 +112,14 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
         else sessionoff()
     }
 
-    const sessionoff = (type = false) => {
+    const sessionoff = useCallback((type = false) => {
         if(type) {
             setMain(<Login setMain={setMain} socket={socket} isClick={1}/>)
         } else {
             setSession(<SessionOut/>)
             document.getElementById('session').setAttribute('show' , '')
         }
-    } 
+    } , [setMain, socket])
 
     const Resize = () => {
         const size = window.innerWidth
@@ -124,7 +134,11 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     return (
         <DoctorContext.Provider
             value={{
-                profile : getProfile
+                profile : getProfile,
+                bannerCoverRef : ImageCover,
+                contentRef : BodyRef,
+                onSession : sessionoff,
+                setTextPage
             }}
         >
             <div className="doctor"
@@ -184,7 +198,16 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     </div> */}
                     <bot-main>
                         <bot-content>
-                            {body}
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path="/doctor/schedules" element={<ScheduleIndex/>}>
+                                        <Route index element={<SchedulePlant/>} />
+                                        <Route path=":plant_id" element={<SchedulePlants/>} />
+                                    </Route>
+                                    <Route path="*" element={body} />
+                                </Routes>
+                            </BrowserRouter>
+                            {/* {body} */}
                         </bot-content>
                     </bot-main>
                 </section>

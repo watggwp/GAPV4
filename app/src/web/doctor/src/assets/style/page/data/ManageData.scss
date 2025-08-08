@@ -113,6 +113,10 @@
     .detail {
         padding: 0px 4px;
         .body {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+
             .row {
                 display: flex;
                 justify-content: space-between;

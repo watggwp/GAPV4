@@ -1,4 +1,4 @@
-import React, { createElement, createRef, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { createElement, createRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DayJSX, DownLoadImage, Loading, MapsJSX, PopupDom, ReportAction, ResizeImg, TimeJSX } from "../../../../../assets/js/module";
 import "../../assets/style/page/farmer/ManagePopup.scss"
@@ -67,48 +67,51 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
     const RefPasswordEdit = useRef()
     const [BtStateEdit , setBtStateEdit] = useState(false)
 
-    useEffect(()=>{
-        RefPop.current.style.opacity = "1"
-        RefPop.current.style.visibility = "visible"
-
-        FetchCountList(resultPage.link_user , resultPage.id_table)
-
-        return(()=>{
-            socket.emit("disconnect msg" , DetailFarmer.uid_line)
-            socket.removeListener("new_msg")
-        })
-    } , [])
-
-    const [newMessage , SetNewMessage] = useState(true)
-    const [messageCount , setmessageCount] = useState(0)
-    useEffect(()=>{
-        socket.removeListener("new_msg")
-        socket.on("new_msg" , async (type)=>{
-            if(type !== "read") SetNewMessage((prevent)=>!prevent)
-            const Count = await clientMo.post("/api/doctor/farmer/msg/count" , {id_table : DetailFarmer.id_table})
-            try {
-                const count = JSON.parse(Count)[0]
-                setmessageCount(count.count_msg)
-            } catch(e) {session()}
-        })
-    } , [messageCount , DetailFarmer])
-
-    const StartSocketMsg = async (uid_line) => {
-        const uid_lineIn = DetailFarmer.uid_line ? DetailFarmer.uid_line : uid_line;
-        socket.emit("disconnect msg" , uid_lineIn)
-        socket.emit("connect msg" , uid_line)
-    }
-
-    const close = () => {
+    const close = useCallback(() => {
         RefPop.current.style.opacity = "0"
         RefPop.current.style.visibility = "hidden"
 
         setTimeout(()=>{
             setPopup(<></>)
         } , 500)
-    }
+    } , [RefPop, setPopup])
 
-    const FetchCountList = async (link_user , id_table) => {
+    const StartSocketMsg = useCallback(async (uid_line) => {
+        const uid_lineIn = DetailFarmer.uid_line ? DetailFarmer.uid_line : uid_line;
+        socket.emit("disconnect msg" , uid_lineIn)
+        socket.emit("connect msg" , uid_line)
+    } , [DetailFarmer.uid_line, socket])
+
+    const FetchData = useCallback(async (result) => {
+        if(result) {
+            setLoad(true)
+            setStateEdit(false)
+            const resultData = await clientMo.post("/api/doctor/farmer/get/detail" , {id_table : result.id_table , link_user : result.link_user})
+            const Count = await clientMo.post("/api/doctor/farmer/msg/count" , {id_table : result.id_table})
+            try {
+                const data = JSON.parse(resultData)
+                const count = JSON.parse(Count)[0]
+                if(data.length === 1) {
+                    const Detail = data[0]
+                    setDetailFarmer(Detail)
+                    setImageBase64(Detail.img != 0 ? Detail.img : "/doctor-svgrepo-com.svg")
+                    setmessageCount(count.count_msg)
+                    StartSocketMsg(Detail.uid_line)
+                } 
+                // else {
+                //     FetchCountList(resultPage.link_user , resultPage.id_table)
+                // }
+            } catch(e) {
+                console.log(e)
+                session()
+            }
+            setDetailDoctor([])
+            setTypeDetail("farmer")
+            setLoad(false)
+        } else close()
+    } , [StartSocketMsg, close, session])
+
+    const FetchCountList = useCallback(async (link_user , id_table) => {
         const Data = (status === "ap") ?
                             await clientMo.post("/api/doctor/farmer/get/count" , {link_user : link_user , auth : 1})
                             : await clientMo.post("/api/doctor/farmer/get/count" , {id_table : id_table , auth : (status === "wt") ? 0 : 2})
@@ -127,38 +130,33 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
         } else {
             close()
         }
-    }
+    } , [FetchData, close, status])
 
-    const FetchData = async (result) => {
-        if(result) {
-            setLoad(true)
-            setStateEdit(false)
-            const resultData = await clientMo.post("/api/doctor/farmer/get/detail" , {id_table : result.id_table , link_user : result.link_user})
-            const Count = await clientMo.post("/api/doctor/farmer/msg/count" , {id_table : result.id_table})
+    useEffect(()=>{
+        RefPop.current.style.opacity = "1"
+        RefPop.current.style.visibility = "visible"
+
+        FetchCountList(resultPage.link_user , resultPage.id_table)
+
+        return(()=>{
+            socket.emit("disconnect msg" , DetailFarmer.uid_line)
+            socket.removeListener("new_msg")
+        })
+    } , [DetailFarmer.uid_line, FetchCountList, RefPop, resultPage.id_table, resultPage.link_user, socket])
+
+    const [newMessage , SetNewMessage] = useState(true)
+    const [messageCount , setmessageCount] = useState(0)
+    useEffect(()=>{
+        socket.removeListener("new_msg")
+        socket.on("new_msg" , async (type)=>{
+            if(type !== "read") SetNewMessage((prevent)=>!prevent)
+            const Count = await clientMo.post("/api/doctor/farmer/msg/count" , {id_table : DetailFarmer.id_table})
             try {
-                const data = JSON.parse(resultData)
                 const count = JSON.parse(Count)[0]
-                if(data.length === 1) {
-                    const Detail = data[0]
-                    setDetailFarmer(Detail)
-                    setImageBase64(Detail.img != 0 ? Detail.img : "/doctor-svgrepo-com.svg")
-                    setmessageCount(count.count_msg)
-                    StartSocketMsg(Detail.uid_line)
-                } else {
-                    FetchCountList(resultPage.link_user , resultPage.id_table)
-                    // <div className="detail">
-                    //         {status === "ap" ? "บัญชีผ่านการตรวจสอบแล้ว" : "ไม่พบบัญชี"}
-                    //     </div>
-                }
-            } catch(e) {
-                console.log(e)
-                session()
-            }
-            setDetailDoctor([])
-            setTypeDetail("farmer")
-            setLoad(false)
-        } else close()
-    }
+                setmessageCount(count.count_msg)
+            } catch(e) {session()}
+        })
+    } , [messageCount, DetailFarmer, socket, session])
 
     // convert
     const OpenListConvert = async (id_table) => {
@@ -585,7 +583,7 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
                                         <div className="text-detail btm">
                                             <span>ตำแหน่งที่อยู่</span>
                                             <div>
-                                                <MapsJSX lat={DetailFarmer.location.x} lng={DetailFarmer.location.y} w={"100%"} h={"10%"}/>
+                                                <MapsJSX lat={DetailFarmer.location?.x} lng={DetailFarmer.location?.y} w={"100%"} h={"10%"}/>
                                             </div>
                                         </div>
                                         </>

@@ -1,68 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {clientMo}  from "../../../assets/js/moduleClient";
 import {useLiff} from "../../../assets/js/module";
-import MenuMain from "../src/content/mainFarmHouse";
-import House from "../src/houseFile/House";
-import Signup from "../src/singupFile/Signup"
 import { CloseAccount } from "./method";
-import HouseList from "./HouseList/HouseList";
+import liff from "@line/liff";
+import { Outlet, useLocation } from "react-router";
 
+const FarmerContext = createContext({
+    liff : liff,
+    uid : ""
+})
 
-const MainFarmer = ({socket , idLiff , Path}) => {
-    const [body , setBody] = useState(<></>)
-    const [init , liff] = useLiff(idLiff)
+const liff_id_mapping = {
+    "signup" : process.env.REACT_APP_LINE_SIGNUP ,
+    "house" : process.env.REACT_APP_LINE_HOUSE ,
+    "form" : process.env.REACT_APP_LINE_FORM ,
+    "houses" : process.env.REACT_APP_LINE_HOUSELIST,
+    "weather-station" : process.env.REACT_APP_WEATHER_STATION,
+}
+
+const MainFarmer = () => {
+    const location = useLocation();
+    const page = location.pathname.split("/")[2];
+
+    const [ init , Liff ] = useLiff(liff_id_mapping[page])
+    const [ uid , setUid ] = useState("")
+    const [ verified , setVerified ] = useState(false)
+
+    const RouterPage = useCallback(async (uid) => {
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: page });
+        setUid(uid)
+
+        switch(result) {
+            case "error auth" :
+                CloseAccount("not line", null, "พบปัญหาจากระบบ")
+                break
+            default :
+                switch(page) {
+                    case "signup" :
+                        switch(result) {
+                            case "search" :
+                                CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว")
+                                break;
+                            default :
+                                setVerified(true)
+                                break;
+                        }
+                        break;
+                    case "form" :
+                    case "weather-station" :
+                    case "house" :
+                    case "houses" :
+                        switch(result) {
+                            case "search" :
+                                setVerified(true)
+                                break;
+                            default :
+                                CloseAccount("not line", null, "ไม่พบบัญชี")
+                                break;
+                        }
+                        break;
+                    default :
+                        CloseAccount("not line", null, "URL ไม่ถูกต้อง")
+                        break;
+                }
+                break;
+        }
+    } , [page])
+
+    const LineInit = useCallback( async () => {
+        try {
+            await init
+
+            if(!Liff.isInClient()) {
+                if(process.env.NODE_ENV !== "development") {
+                    CloseAccount("not line" , null , "โปรดเข้าระบบด้วยไลน์")
+                    return
+                }
+                let UID = "U915317b45fea27966b03ff8e47960321"
+                RouterPage(UID , Liff)
+                return
+            }
+
+            if(!Liff.isLoggedIn()) {
+                Liff.login()
+                return
+            }
+
+            const profile = await Liff.getProfile()
+            profile.userId && RouterPage(profile.userId , Liff)
+        } catch(err) {
+            CloseAccount("not line" , null , "พบปัญหาจากระบบ")
+        }
+    } , [Liff, RouterPage, init])
 
     useEffect(()=>{
-        init.then(()=>{
-            if(liff.isInClient()) {
-                if(liff.isLoggedIn()) {
-                    liff.getProfile().then((profile)=>{
-                        // สมัครเข้าต้องค้นหาบัญชีโดยไม่ตรง status ยกเลิกบัญชี
-                        if(profile.userId) {
-                            LoadPage(profile.userId , liff)
-                        }
-                    })
-                } else {
-                    liff.login()
-                }
-            } else {
-                let UID = "Uec52e5da629da4c89c55674831d126a8"
-                LoadPage(UID , liff)
-                // CloseAccount("not line" , null , "กรุณาเข้าผ่านไลน์แอปพลิเคชั่น")
-            }
-        }).catch(err=>{
-            CloseAccount("not line" , null , "พบปัญหาจากระบบ")
-        })
-
-    } , [])
-
-    const LoadPage = async (uid, liff) => {
-        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: Path });
-        if (Path === "signup" && result !== "error auth") {
-            if (result === "close" || result === "no account") setBody(<Signup liff={liff} uid={uid} />);
-            else if (result === "search") CloseAccount("not line", null, "บัญชีลงทะเบียนแล้ว");
-
-        } else if (Path === "houses" && result !== "error auth") {
-            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<HouseList liff={liff} uid={uid} />);
-
-        } else if (Path === "house" && result !== "error auth") {
-            if (result === "close" || result === "no account") CloseAccount("not line", null, "ไม่พบบัญชี");
-            else if (result === "search") setBody(<House liff={liff} uid={uid} />);
-
-        } else if (Path === "form" && result !== "error auth") {
-            const auth = window.location.pathname.split("/")[3];
-            if (auth && result !== "close") {
-                setBody(<MenuMain liff={liff} uid={uid} />);
-            } else CloseAccount("not line", null, "ไม่พบบัญชี");
-        } else {
-            CloseAccount("not line", null, "พบปัญหาจากระบบ");
-        }
-    };
+        LineInit()
+    } , [LineInit])
 
     return(
-        <>
-            {body}
+        <FarmerContext.Provider
+            value={{
+                liff : Liff,
+                uid
+            }}
+        >
+            {
+                verified && <Outlet/>
+            }
             <section style={{
                 display : "flex",
                 position : "fixed",
@@ -97,7 +141,7 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                         // fontSize : "20px",
                         marginBottom : "11px"
                     }}></div>
-                    <button onClick={()=>liff.closeWindow()} style={{
+                    <button onClick={()=>Liff.closeWindow()} style={{
                         fontFamily : "Sans-font",
                         fontSize : "20px",
                         borderRadius : "18px",
@@ -110,8 +154,12 @@ const MainFarmer = ({socket , idLiff , Path}) => {
                     }}>ตกลง</button>
                 </div>
             </section>
-        </>
+        </FarmerContext.Provider>
     )
+}
+
+export function useFarmer() {
+    return useContext(FarmerContext)
 }
 
 export default MainFarmer

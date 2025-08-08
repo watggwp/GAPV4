@@ -3,9 +3,21 @@ import "./ListFertilizer.scss"
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import { ConvertDate, DatePickerThai, Loading } from "../../../../../assets/js/module";
+import { useGreenhouse } from "..";
+import { useParams } from "react-router";
 
-const EditFactorPopup = ({setPopup , setPage , RefPop , id_house , id_form_plant , type_path , ReloadData , 
-ObjectData}) => {
+const EditFactorPopup = ({
+    setPopup , 
+    RefPop , 
+    type_path , 
+    ReloadData , 
+    ObjectData
+}) => {
+
+    const { greenhouse_id , gap_id } = useParams()
+    const { setCurrentPage } = useGreenhouse()
+
+
     const Because = useRef()
 
     //use with date picker
@@ -95,7 +107,7 @@ const handleNameMainFactorChange = (e) => {
         setLoadName(false);
         setLoadNameMain(false);
         const Data = await clientMo.post("/api/farmer/factor/get/auto" , {type : type})
-        if(await CloseAccount(Data , setPage)) {
+        if(await CloseAccount(Data , setCurrentPage)) {
             const LIST = JSON.parse(Data)
             setDataFactor(LIST)
             setLoadName(true);
@@ -108,7 +120,7 @@ const handleNameMainFactorChange = (e) => {
     const FetchPests = async () => {
        setLoadPests(false);
        const Data = await clientMo.post("/api/farmer/pests"); // เรียก API
-       if (await CloseAccount(Data, setPage)) {
+       if (await CloseAccount(Data, setCurrentPage)) {
            const LIST = JSON.parse(Data);
            setDataPests(LIST);
            setLoadPests(true);
@@ -128,26 +140,26 @@ useEffect(() => {
   }, [formId]);
 
   useEffect(() => {
-    if (id_form_plant) {
-      setFormId(id_form_plant);
+    if (gap_id) {
+      setFormId(gap_id);
     } else {
-      console.error("id_form_plant is undefined");
+      console.error("gap_id is undefined");
       FetchPestChemicalData();
     }
-  }, [id_form_plant]);
+  }, [gap_id]);
 
 // ฟังก์ชันโหลดข้อมูลจาก API
   const FetchPestChemicalData = async () => {
     setLoading(true);
     try {
       const Data = await clientMo.post("/api/farmer/pest-chemical", {
-        id_form_plant: formId
+        id_form_plant: gap_id
       }); // เรียก API
 
       console.log("Full API Response:", JSON.stringify(Data, null, 2));
 
       // ตรวจสอบว่า CloseAccount ผ่านหรือไม่
-      if (await CloseAccount(Data, setPage)) {
+      if (await CloseAccount(Data, setCurrentPage)) {
         const response = JSON.parse(Data); // แปลงข้อมูล JSON
 
         console.log("Parsed Response Data:", response);
@@ -162,29 +174,29 @@ useEffect(() => {
             setPestChemicalData(data);
             setCurrentPlantName(plant_name);
           } else {
-            console.warn("No pest-chemical data found:", data);
-            setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
-            setShowPopup(true);
+            // console.warn("No pest-chemical data found:", data);
+            // setPopupMessage("ไม่พบข้อมูลความสัมพันธ์จากระบบ");
+            // setShowPopup(true);
           }
         } else {
-          console.error(
-            "Invalid response structure or missing required fields"
-          );
-          setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
-          setShowPopup(true);
+        //   console.error(
+        //     "Invalid response structure or missing required fields"
+        //   );
+        //   setPopupMessage("ไม่พบข้อมูลที่ตอบกลับจากระบบ");
+        //   setShowPopup(true);
         }
       } else {
-        console.error("CloseAccount validation failed");
-        setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
-        setShowPopup(true);
+        // console.error("CloseAccount validation failed");
+        // setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+        // setShowPopup(true);
       }
     } catch (error) {
-      console.error(
-        "Error fetching pest-chemical data:",
-        error.message || error
-      );
-      setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
-      setShowPopup(true);
+    //   console.error(
+    //     "Error fetching pest-chemical data:",
+    //     error.message || error
+    //   );
+    //   setPopupMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
+    //   setShowPopup(true);
     } finally {
       setLoading(false);
     }
@@ -296,9 +308,6 @@ useEffect(() => {
     }
   };
 
-
-
-
   const containsHidePopup = useCallback((element , target) => {
     setTimeout(() => {
         !element.contains(target) && element.setAttribute("remove","")
@@ -308,7 +317,7 @@ useEffect(() => {
 
     const FetchSource = async () => {
         const Data = await clientMo.post("/api/farmer/source/get")
-        if(await CloseAccount(Data , setPage)) {
+        if(await CloseAccount(Data , setCurrentPage)) {
             const LIST = JSON.parse(Data)
             setSource(LIST)
         }
@@ -379,8 +388,8 @@ useEffect(() => {
 
                     const foundChange = CheckValue.map((val , index) => (val) ? [ Key[index] , Value[index] ] : "").filter(val => val !== "")
                     const DataEdit = {
-                        id_farmhouse : id_house,
-                        id_plant : id_form_plant ,
+                        id_farmhouse : greenhouse_id,
+                        id_plant : gap_id ,
                         id_form : ObjectData.id,
                         type_form : "fertilizer",
                         because : because.value,
@@ -390,7 +399,7 @@ useEffect(() => {
 
                     setWait(true)
                     const result = await clientMo.post("/api/farmer/factor/edit" , DataEdit)
-                    if(await CloseAccount(result , setPage)) {
+                    if(await CloseAccount(result , setCurrentPage)) {
                         if(result === "133") {
                             cancel()
                             ReloadData()
@@ -507,8 +516,8 @@ useEffect(() => {
 
                     const foundChange = CheckValue.map((val , index) => (val) ? [ Key[index] , Value[index] ] : "").filter(val => val !== "")
                     const DataEdit = {
-                        id_farmhouse : id_house,
-                        id_plant : id_form_plant ,
+                        id_farmhouse : greenhouse_id,
+                        id_plant : gap_id ,
                         id_form : ObjectData.id,
                         type_form : "chemical",
                         because : because.value,
@@ -518,7 +527,7 @@ useEffect(() => {
 
                     setWait(true)
                     const result = await clientMo.post("/api/farmer/factor/edit" , DataEdit)
-                    if(await CloseAccount(result , setPage)) {
+                    if(await CloseAccount(result , setCurrentPage)) {
                         if(result === "133") {
                             cancel()
                             ReloadData()

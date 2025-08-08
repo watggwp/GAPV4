@@ -7,8 +7,9 @@ const db  = require('mysql')
 const appRun = require("./appRun")
 require('dotenv').config().parsed
 
-let username = (process.argv[2] == process.env.BUILD) ? process.argv[3] ?? "" : process.env.USER_DBDEV ?? ""
-let password = (process.argv[2] == process.env.BUILD) ? process.argv[4] ?? "" : process.env.PASSWORD_DBDEV ?? ""
+const mode = process.argv[2]
+let username = (mode == process.env.BUILD) ? process.argv[3] ?? "" : process.env.USER_DBDEV ?? ""
+let password = (mode == process.env.BUILD) ? process.argv[4] ?? "" : process.env.PASSWORD_DBDEV ?? ""
 let state = 0
 
 console.log("Read Database...")
@@ -30,7 +31,7 @@ if(!username && !password) {
                 host: process.env.HOST,
                 user: username,
                 password : password,
-                database : process.argv[2] == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV 
+                database : mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV 
             })
             
             con.connect((err)=>{

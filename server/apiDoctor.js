@@ -1,3 +1,5 @@
+'use strict';
+
 require('dotenv').config().parsed
 const wordcut = require('thai-wordcut')
 const axios = require('axios').default;
@@ -5,12 +7,22 @@ const fs = require("fs")
 wordcut.init()
 
 const {Server} = require('socket.io')
-const LINE = require('./configLine');
+const ConnentPool = require('./connectPool');
+const RoyalGapEnv = require('./core/env');
+const RoyalGapLine = require('./configLine');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
 const RichHouse = process.env.RICH_HOUSE
-module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listDB , UrlApi , socket = io , Line = LINE) {
+
+function generateMessageTitle(greenhouse_name , plant_name) {
+    return [
+        `โรงเรือน: ${greenhouse_name}`,
+        `แปลงปลูก: ${plant_name}`
+    ]
+}
+
+module.exports = function apiDoctor (app , Database , pool = new ConnentPool() , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
     app.post('/api/doctor/check' , (req , res)=>{
         if(apifunc.authCsurf("doctor" , req , res)) res.redirect('/api/doctor/auth')
@@ -96,12 +108,13 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
         apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
             const { data : { id_table_doctor } } = result
+            const { id_plant } = req.body
             con.query(`
                 SELECT formplant.*
                 FROM formplant
                 WHERE formplant.id = ?
                 LIMIT 1
-            `, [ req.body.id_plant ],
+            `, [ id_plant ],
             (err, dataCurrent) => {
                 if (err) {
                     con.end();
@@ -121,7 +134,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
                         VALUES 
                             (?, ?, ?, ?, ?, ?, "plant")
-                    `, [data.id_plant, "", id_table_doctor, data.because || "", "", 1],
+                    `, [id_plant, "", id_table_doctor, data.because || "", "", 1],
                     async (err, resultEdit) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
@@ -138,12 +151,22 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             const insertDetailsEdit = []
                             const insertDetailsEditParams = []
 
+                            const edits_content = []
                             for (const subject in data.dataChange) {
                                 updateDatasWhere.push(`${subject.replace(" " , "")} = ?`)
                                 updateDatasParams.push(data.dataChange[subject])
 
+                                const prev = dataCurrent[0][subject]
+                                const current = data.dataChange[subject]
+
                                 insertDetailsEdit.push("(? , ? , ? , ?)")
-                                insertDetailsEditParams.push([idEdit, subject, dataCurrent[0][subject], data.dataChange[subject]])
+                                insertDetailsEditParams.push([idEdit, subject, prev, data.dataChange[subject]])
+
+                                edits_content.push({
+                                    name : RoyalGapEnv.fields[subject],
+                                    prev : prev,
+                                    current : current
+                                })
                             }
 
                             const result = await new Promise((resolve) => {
@@ -178,15 +201,37 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     UPDATE formplant 
                                     SET ${where}
                                     WHERE id = ?
-                                `, [...updateDatasParams , data.id_plant],
-                                (err) => {
+                                `, [...updateDatasParams , id_plant],
+                                async (err) => {
                                     if (err) {
                                         dbpacket.dbErrorReturn(con, err, res);
                                         return;
                                     }
                                     
                                     try {
-                                        SendToFarmerHouse(con, data.id_plant, `เจ้าหน้าที่ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`);
+                                        
+                                        const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                            id_plant,
+                                            pool,
+                                            (gapData) => {
+                                                const { greenhouse_name , plant_name } = gapData || {}
+                                                return [
+                                                    ...generateMessageTitle(greenhouse_name , plant_name),
+                                                    "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
+                                                    "",
+                                                    `แก้ไขรายการ:`,
+                                                    edits_content.map(({ name , prev , current }) => 
+                                                        `${name}: จาก ${prev} เป็น ${current}`
+                                                    )
+                                                ]
+                                            },
+                                            {
+                                                url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
+                                            }
+                                        )
+                                        // SendToFarmerHouse(con, id_plant, 
+                                        //     `เจ้าหน้าที่ทำการแก้ไขแบบบันทึกข้อมูล GAP ที่ ${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/p`
+                                        // );
                                     } catch (e) {
                                         con.end();
                                         console.error(e);
@@ -325,6 +370,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
               INNER JOIN chemical_list AS c ON pc.chemical_id = c.id
               INNER JOIN plant_list AS pl ON pc.plant_id = pl.id
               WHERE p.pest_name LIKE ? OR c.name LIKE ? OR pl.name LIKE ? OR pc.safe_days LIKE ?
+              ORDER BY pc.status DESC
               `, [ `%${search}%` , `%${search}%` , `%${search}%` , `%${search}%` ] ,
               (err, results) => {
                 if (err) {
@@ -924,9 +970,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     con.end()
                     res.send('account')
                 }
-                else if(result['data']['fullname_doctor'] 
-                        && result['data']['station_doctor']) {
-                      
+                else if(result['data']['fullname_doctor'] && result['data']['station_doctor']) {
+                    req.session.user_id = result['data']["id_table_doctor"]
+                    req.session.account_type = RoyalGapEnv.access_type.doctor
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
                     req.session.pass_doctor = password
@@ -941,7 +987,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             ` , [ req.body.uid_line , result.data.id_table_doctor , req.body.uid_line ] ,
                             (err , uid) => {
                                 con.end()
-                                if(!err) if(uid.changedRows != 0) Line.pushMessage(req.body.uid_line , {type : "text" , text : "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ"}).catch((e)=>{})
+                                !err && uid.changedRows != 0 && RoyalGapLine.pushMessage(
+                                    req.body.uid_line , {type : "text" , text : "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ"}
+                                ).catch((e)=>{})
                             }
                         )
                     } else {
@@ -988,7 +1036,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         })
     })
 
-    app.post('/api/doctor/plant/list' , (req , res)=>{
+    app.get('/api/doctor/plant/list' , (req , res)=>{
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
     
@@ -999,40 +1047,50 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     
         let con = Database.createConnection(listDB)
     
-        apifunc.auth(con , username , password , res , "acc_doctor").then((result)=>{
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
             if(result['result'] === "pass") {
-                con.query(
-                    `
-                    SELECT name , 
-                    (
-                        SELECT COUNT(name_plant)
-                        FROM formplant , 
-                            (
-                                SELECT id_farm_house 
-                                FROM housefarm , 
-                                    (
-                                        SELECT uid_line , link_user
-                                        FROM acc_farmer
-                                        WHERE (register_auth = 0 OR register_auth = 1) and station = ?
-                                    ) as farmer
-                                WHERE housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
-                            ) as house
-                        WHERE formplant.name_plant = plant_list.name and house.id_farm_house = formplant.id_farm_house
-                    ) as countPlant
-                    FROM plant_list
-                    WHERE is_use = 1
-                    ORDER BY name
-                    ` , [result.data.station_doctor]
-                    , (err , result)=>{
-                    if (err) {
-                        dbpacket.dbErrorReturn(con, err, res);
-                        console.log("query");
-                        return 0
-                    }
+
+                const { is_variety_name } = req.query
+
+                try {
+                    const plants = await pool.executeQuery(
+                        `
+                        SELECT name , 
+                        (
+                            SELECT COUNT(name_plant)
+                            FROM formplant , 
+                                (
+                                    SELECT id_farm_house 
+                                    FROM housefarm , 
+                                        (
+                                            SELECT uid_line , link_user
+                                            FROM acc_farmer
+                                            WHERE (register_auth = 0 OR register_auth = 1) and station = ?
+                                        ) as farmer
+                                    WHERE housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                                ) as house
+                            WHERE formplant.name_plant = plant_list.name and house.id_farm_house = formplant.id_farm_house
+                        ) as count
+                        ${
+                            is_variety_name ? `
+                                , GROUP_CONCAT(variety_name) as variety_names
+                            ` : ""
+                        }
+                        FROM plant_list
+                        WHERE is_use = 1
+                        GROUP BY name
+                        ORDER BY name
+                        ` , [result.data.station_doctor]
+                    )
+
                     con.end()
-                    res.send(result)
-                    
-                })
+                    res.send({
+                        plants : plants
+                    })
+                } catch(err) {
+                    console.log(err)
+                    res.redirect('/api/logout')
+                }
             }
         }).catch((err)=>{
             con.end()
@@ -1187,11 +1245,11 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     `${req.body.newPassword ? `\nรหัสผ่าน : ${req.body.newPassword}` : ""}`+
                                                     `${req.body.img ? `\nรูปภาพ :` : ""}`
                                         }
-                                        await Line.pushMessage(resultSelect[0].uid_line , dataSend).catch(e=>{})
+                                        await RoyalGapLine.pushMessage(resultSelect[0].uid_line , dataSend).catch(e=>{})
 
                                         if(req.body.img) {
                                             await new Promise( async (resole , reject) => {
-                                                await Line.pushMessage(resultSelect[0].uid_line , {
+                                                await RoyalGapLine.pushMessage(resultSelect[0].uid_line , {
                                                     "type": "image",
                                                     "originalContentUrl": `${UrlApi}/image/farmer/${req.body.id_table}`,
                                                     "previewImageUrl": `${UrlApi}/image/farmer/${req.body.id_table}`
@@ -1202,7 +1260,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
 
                                         if(req.body.lag && req.body.lng) {
                                             await new Promise( async (resole , reject)=>{
-                                                await Line.pushMessage(resultSelect[0].uid_line , {
+                                                await RoyalGapLine.pushMessage(resultSelect[0].uid_line , {
                                                     type : "location",
                                                     title : "ตำแหน่งที่ตั้งที่แก้ไข",
                                                     address : "คลิกตรวจสอบ",
@@ -1312,7 +1370,8 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
             if (result['result'] === "pass") {
                 console.log("✅ Authentication Successful:", result['data']);
     
-                const Limit = isNaN(parseInt(req.body.limit)) ? 10 : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
+                const { body : { textSearch = "" , station_id = "" } } = req
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
                 console.log("🔹 Query Limit:", Limit);
     
                 let queryType;
@@ -1348,9 +1407,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                           AND filterFarmer.CheckOver != 1
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, filterFarmer.date_register ASC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
                     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 } else if (req.body.approve === 1) {
                     queryType = `
                     SELECT acc_farmer.id_table, acc_farmer.img, acc_farmer.fullname, acc_farmer.link_user, acc_farmer.date_register,
@@ -1384,9 +1443,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                           AND acc_farmer.date_register = farmer_main.DateLast
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, date_register DESC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 } else {
                     queryType = `
                     SELECT filterFarmer.*, 
@@ -1416,9 +1475,9 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                           AND filterFarmer.CheckOver != 1
                           AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
                     ORDER BY is_msg DESC, filterFarmer.date_register ASC
-                    LIMIT ${Limit};`;
+                    ${Limit ? `LIMIT ${Limit}` : ""};`;
     
-                    queryParams = [result['data']['id_table_doctor'], result['data']['station_doctor'], req.body.textSearch, req.body.textSearch];
+                    queryParams = [result['data']['id_table_doctor'], station_id || result['data']['station_doctor'], textSearch, textSearch];
                 }
     
                 console.log("🔹 SQL Query:", queryType);
@@ -1532,7 +1591,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                                     return 0
                                                 };
                                                 try {
-                                                    Line.pushMessage(convert[0].uid_line , {
+                                                    RoyalGapLine.pushMessage(convert[0].uid_line , {
                                                         type : "text",
                                                         text : `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
                                                     }).catch(e=>{})
@@ -1571,32 +1630,32 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                         async (err, result ) => {
                                             con.end()
                                             try {
-                                                Line.pushMessage(req.body.uid_line , {
+                                                RoyalGapLine.pushMessage(req.body.uid_line , {
                                                     type : "text",
                                                     text : `บัญชีผ่านการตรวจสอบแล้วนะคะ \nและมีการเชื่อมบัญชีกับคุณ ${convert[0].fullname}\u2764`
                                                 }).catch(e=>{})
                                             } catch(e) {}
                                             try {
-                                                await Line.unlinkRichMenuFromUser(req.body.uid_line)
+                                                await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
                                             } catch(e) {}
                                             try {
-                                                Line.linkRichMenuToUser(req.body.uid_line , RichHouse)
+                                                RoyalGapLine.linkRichMenuToUser(req.body.uid_line , RichHouse)
                                             } catch(e) {}
                                         }
                                     )
                                 } else {
                                     con.end()
                                     try {
-                                        Line.pushMessage(req.body.uid_line , {
+                                        RoyalGapLine.pushMessage(req.body.uid_line , {
                                             type : "text",
                                             text : "บัญชีผ่านการตรวจสอบแล้วนะคะ \u2764"
                                         }).catch(e=>{})
                                     } catch (e) {}
                                     try {
-                                        await Line.unlinkRichMenuFromUser(req.body.uid_line)
+                                        await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
                                     } catch(e) {}
                                     try {
-                                        Line.linkRichMenuToUser(req.body.uid_line , RichHouse)
+                                        RoyalGapLine.linkRichMenuToUser(req.body.uid_line , RichHouse)
                                     } catch(e) {}
                                 }
                                 res.send("113")
@@ -1658,16 +1717,16 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 con.end()
                                 if(!err , check[0]) {
                                     try {
-                                        Line.pushMessage(check[0].uid_line , {
+                                        RoyalGapLine.pushMessage(check[0].uid_line , {
                                             type : "text",
                                             text : "บัญชีไม่ผ่านการตรวจสอบ กรุณาส่งข้อความเพื่อพูดคุยกับเจ้าหน้าที่ หรือสมัครบัญชีอีกครั้งนะคะ \u2764"
                                         }).catch(e=>{})
                                     } catch (e) {}
                                     try {
-                                        await Line.unlinkRichMenuFromUser(check[0].uid_line)
+                                        await RoyalGapLine.unlinkRichMenuFromUser(check[0].uid_line)
                                     } catch (e) {}
                                     try {
-                                        Line.linkRichMenuToUser(check[0].uid_line , RichSign)
+                                        RoyalGapLine.linkRichMenuToUser(check[0].uid_line , RichSign)
                                     } catch(e) {}
                                 }
                             }
@@ -1752,7 +1811,12 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 ` , [req.body.id_table] ,
                 async (err, search ) => {
                     if (!err){
-                        await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
+                        await RoyalGapLine.pushMessageToFarmerAccessedForm(
+                            search[0].link_user,
+                            pool,
+                            "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย"
+                        )
+                        // await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
                         con.query(
                             `
                             UPDATE acc_farmer
@@ -1819,7 +1883,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         ` , [ req.body.id_table_convert , result['data']['station_doctor'] ]
                         , (err , result)=>{
                         try {
-                            Line.pushMessage(convert[0].uid_line , {
+                            RoyalGapLine.pushMessage(convert[0].uid_line , {
                                 type : "text",
                                 text : `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
                             }).catch(e=>{})
@@ -1881,7 +1945,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                     (err, result ) => {
                                         if (!err){
                                             try {
-                                                Line.pushMessage(req.body.uid_line , {
+                                                RoyalGapLine.pushMessage(req.body.uid_line , {
                                                     type : "text",
                                                     text : `เชื่อมบัญชีกับคุณ ${convert[0].fullname} \u2764`
                                                 }).catch(e=>{})
@@ -2013,13 +2077,17 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             if(err) con.end()
                             else {
                                 try {
-                                    await Line.pushMessage(req.body.uid_line , {
-                                        type : "text" , text : `ส่งจากหมอ ${result["data"].fullname_doctor} : \n${TextSend}`
-                                    })
+                                    await RoyalGapLine.pushMessage(
+                                        req.body.uid_line , 
+                                        {
+                                            type : "text" , text : `ส่งจากหมอ ${result["data"].fullname_doctor} : \n${TextSend}`
+                                        }
+                                    )
                                     socket.to(req.body.uid_line).emit("new_msg")
                                     res.send("113")
                                     con.end()
                                 } catch(e){
+                                    console.log(e)
                                     con.query(
                                         `
                                         DELETE FROM message_user
@@ -2149,7 +2217,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                     //     for (let Msg of ListMsg) {
                     //         const MsgOfLine = (
                     //                 (Msg.type_message == "text" || Msg.type_message == "location") ? Msg.message :
-                    //                 await Line.getMessageContent(Msg.message.toString())
+                    //                 await RoyalGapLine.getMessageContent(Msg.message.toString())
                     //             );
                             
                     //         const MsgSend = (
@@ -2718,7 +2786,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
     
                             // ✅ ส่งข้อความแจ้งเตือนผ่าน LINE
                             try {
-                                await Line.multicast(uidSend, { type: "text", text: textSend });
+                                await RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
                                 console.log("✅ Message sent successfully!");
                                 res.status(200).json({ success: true, message: "Notification sent successfully" });
                             } catch (e) {
@@ -3010,12 +3078,13 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
+                const { id_plant , note , id_edit } = req.body
                 con.query(
                     `
                         UPDATE editform
                         SET status = ? , note = ? , id_doctor = ?
                         WHERE id_edit = ?
-                    ` , [ req.body.status , req.body.note , result['data']['id_table_doctor'] , req.body.id_edit ] ,
+                    ` , [ req.body.status , note , result['data']['id_table_doctor'] , id_edit ] ,
                     async (err, result ) => {
                         if (!err) {
                             if(req.body.status == 2) {
@@ -3042,13 +3111,46 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 //             const nameHouse = [...(new Set(listFarmer.filter(val=>val.name_house)))]
                                 //             if(uid.length != 0 && nameHouse.length != 0) {
                                 //                 try {
-                                //                     Line.multicast([...(new Set(uid))] , {type : "text" , text : `ผลการตรวจสอบการแก้ไขแบบบันทึก\nผลการตรวจสอบ ไม่ผ่าน\nในโรงเรือน ${nameHouse[0]}`})
+                                //                     RoyalGapLine.multicast([...(new Set(uid))] , {type : "text" , text : `ผลการตรวจสอบการแก้ไขแบบบันทึก\nผลการตรวจสอบ ไม่ผ่าน\nในโรงเรือน ${nameHouse[0]}`})
                                 //                 } catch(e) {}
                                 //             }
                                 //         }
                                 //     }
                                 // )
-                                await SendToFarmerHouse(con , req.body.id_plant , "ผลการตรวจสอบการแก้ไขแบบบันทึก\nผลการตรวจสอบ ไม่ผ่าน")
+
+                                const editDatas = await pool.executeQuery(
+                                    `
+                                        SELECT subject_form , old_content , new_content 
+                                        FROM detailedit 
+                                        WHERE id_edit = ?
+                                    ` ,
+                                    [ id_edit ]
+                                )
+
+                                await RoyalGapLine.pushMessageToFarmerByFormID(
+                                    id_plant,
+                                    pool,
+                                    (gapData) => {
+                                        const { greenhouse_name , plant_name } = gapData || {}
+                                        const messages = [
+                                            ...generateMessageTitle(greenhouse_name , plant_name),
+                                            `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
+                                            "",
+                                            "รายการ:",
+                                            editDatas.map(({ subject_form , old_content , new_content }) => 
+                                                `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
+                                            )
+                                        ]
+
+                                        if(note) messages.push(`หมายเหตุ: ${note}`)
+                                        return messages
+                                    },
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
+                                    }
+                                )
+                                
+                                // await SendToFarmerHouse(con , req.body.id_plant , "ผลการตรวจสอบการแก้ไขแบบบันทึก\nผลการตรวจสอบ ไม่ผ่าน")
                                 con.end()
                             } else con.end()
                             res.send("133")
@@ -3288,6 +3390,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
+                const { id_plant } = req.body
                 const CheckInsert = req.body.type == 1 ? await new Promise((resole , reject)=>{
                     con.query(
                         `
@@ -3400,7 +3503,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             //                 const nameHouse = [...(new Set(listFarmer.filter(val=>val.name_house)))]
                             //                 if(uid.length != 0 && nameHouse.length != 0) {
                             //                     try {
-                            //                         Line.multicast([...(new Set(uid))] , {type : "text" , text : `หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่างในโรงเรือน ${nameHouse[0]}`})
+                            //                         RoyalGapLine.multicast([...(new Set(uid))] , {type : "text" , text : `หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่างในโรงเรือน ${nameHouse[0]}`})
                             //                     } catch(e) {}
                             //                 }
                             //             }
@@ -3408,7 +3511,23 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                             //         }
                             //     )
                             // })
-                            await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่าง")
+                            await RoyalGapLine.pushMessageToFarmerByFormID(
+                                id_plant,
+                                pool,
+                                (gapData) => {
+                                    const { greenhouse_name , plant_name } = gapData || {}
+                                    return [
+                                        ...generateMessageTitle(greenhouse_name , plant_name),
+                                        `หมอพืชสั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
+                                        `รหัสการเก็บเกี่ยว: ${Random}`
+                                    ]
+                                },
+                                {
+                                    url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
+                                }
+                            )
+                            
+                            // await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชมีการสั่งเก็บเกี่ยวผลผลิตตัวอย่าง")
     
                             if(req.body.type == 0) {
                                 con.query(
@@ -3464,6 +3583,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
+                const { id_plant } = req.body
                 try {
                     const name = req.body.img_report ? 
                         await new Promise((resole , reject)=>{
@@ -3487,11 +3607,34 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         ` , [ req.body.id_plant , req.body.report_text , result.data.id_table_doctor , name ] ,
                         async (err , result) =>{
                             if (!err) {
-                                const arrUID = await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชให้คำแนะนำกับการปลูก" , `\nคำแนะนำ : ${req.body.report_text}`)
+                                const { lineIds : arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                    id_plant,
+                                    pool,
+                                    (gapData) => {
+                                        const { greenhouse_name , plant_name } = gapData || {}
+                                        return [
+                                            ...generateMessageTitle(greenhouse_name , plant_name),
+                                            `มีคำแนะนำการปลูกจากหมอพืช`,
+                                            '',
+                                            req.body.report_text
+                                        ]
+                                    },
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                    }
+                                )
+                                // const arrUID = await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชให้คำแนะนำกับการปลูก" , `\nคำแนะนำ : ${req.body.report_text}`)
                                 if(name) {
                                     const imageURL = `${UrlApi}/doctor/report/${name}`;
                                     try{
-                                        Line.multicast(arrUID , {type : "image" , originalContentUrl : imageURL , previewImageUrl : imageURL})
+                                        RoyalGapLine.multicast(
+                                            arrUID , 
+                                            {
+                                                type : "image" , 
+                                                originalContentUrl : imageURL , 
+                                                previewImageUrl : imageURL
+                                            }
+                                        )
                                     } catch(e) {}
                                 }
 
@@ -3646,7 +3789,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
-
+                const { id_plant } = req.body
                 const Check = await new Promise((resolve , reject)=>{
                     con.query(
                         `
@@ -3657,7 +3800,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                                 WHERE type_success = ? and id_plant = ?
                             )
                         ) as check_success
-                        ` , [ req.body.stateCheck , req.body.id_plant ] , 
+                        ` , [ req.body.stateCheck , id_plant ] , 
                         (err , result) => {
                             resolve(result[0].check_success)
                         }
@@ -3665,23 +3808,44 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                 })
 
                 if(parseInt(Check)) {
+                    const { statusCheck , stateCheck , report_text } = req.body
                     con.query(
                         `
                             INSERT check_plant_detail
                             (id_plant , status_check , state_check , note_text , id_table_doctor)
                             VALUES
                             (? , ? , ? , ? , ?)
-                        ` , [ req.body.id_plant , req.body.statusCheck , req.body.stateCheck , req.body.report_text , result.data.id_table_doctor ] ,
+                        ` , [ id_plant , statusCheck , stateCheck , report_text , result.data.id_table_doctor ] ,
                         async (err , result) =>{
                             if (!err) {
-                                await SendToFarmerHouse(con , req.body.id_plant , "มีผลการตรวจสอบผลผลิต")
+                                const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                    id_plant,
+                                    pool,
+                                    (gapData) => {
+                                        const { greenhouse_name , plant_name } = gapData || {}
+                                        const messages = [
+                                            ...generateMessageTitle(greenhouse_name , plant_name),
+                                            `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
+                                            `คะแนนการประเมิน: ${statusCheck}`
+                                        ]
+
+                                        if(report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
+                                        return messages
+                                    },
+                                    {
+                                        url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
+                                    }
+                                )
+
+                                console.log(error)
+                                // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบผลผลิต")
                                 if(req.body.stateCheck == 1) {
                                     con.query(
                                         `
                                         UPDATE formplant 
                                         SET state_status = 2 , date_success = ?
                                         WHERE id = ? and state_status = 1
-                                        ` , [new Date() , req.body.id_plant ] , 
+                                        ` , [new Date() , id_plant ] , 
                                         (err , update)=>{
                                             con.end()
                                             res.send("113")
@@ -3720,6 +3884,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         try {
             const result= await apifunc.auth(con , username , password , res , "acc_doctor")
             if(result['result'] === "pass") {
+                const { id_plant } = req.body
                 con.query(
                     `
                     SELECT EXISTS (
@@ -3727,7 +3892,7 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         FROM check_form_detail
                         WHERE id_plant = ?
                     ) as CheckResult
-                    ` , [ req.body.id_plant ] , 
+                    ` , [ id_plant ] , 
                     (err , check) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
@@ -3736,16 +3901,39 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         }
 
                         if(!parseInt(check[0].CheckResult)) {
+                            const { statusCheck , report_text } = req.body
                             con.query(
                                 `
                                     INSERT check_form_detail
                                     (id_plant , status_check , note_text , id_table_doctor)
                                     VALUES
                                     (? , ? , ? , ?)
-                                ` , [ req.body.id_plant , req.body.statusCheck , req.body.report_text , result.data.id_table_doctor ] ,
+                                ` , [ id_plant , statusCheck , report_text , result.data.id_table_doctor ] ,
                                 async (err , result) =>{
                                     if (!err) {
-                                        await SendToFarmerHouse(con , req.body.id_plant , "มีผลการตรวจสอบแบบบันทึก")
+                                        const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                            id_plant,
+                                            pool,
+                                            (gapData) => {
+                                                const { greenhouse_name , plant_name } = gapData || {}
+                                                const messages = [
+                                                    ...generateMessageTitle(greenhouse_name , plant_name),
+                                                    `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
+                                                ]
+
+                                                if(report_text) messages.push(
+                                                    `ข้อความจากเจ้าหน้าที่: ${report_text}`
+                                                )
+
+                                                return messages
+                                            },
+                                            {
+                                                url : `${RoyalGapEnv.url_line.get_greenhouse}/${ await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
+                                            }
+                                        )
+
+                                        console.log(error)
+                                        // await SendToFarmerHouse(con , id_plant , "มีผลการตรวจสอบแบบบันทึก")
                                         con.end()
                                         res.send("113")
                                     } else {
@@ -4421,32 +4609,43 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
                         type_request == "pest" ? "pest_id" : "id"
                     )
                     try {
-                        const checkDataOpenDuplicate = state ? await new Promise((resole , reject)=>{
-                            const Where = (
-                                type_request == "plant" || type_request == "source" ? "fromMain.name = fromSub.name" : 
-                                type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
-                                type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
-                                ""
-                            )
 
-                            con.query(
-                                `
-                                    SELECT (
-                                        SELECT EXISTS (
-                                            SELECT ${columnID}
-                                            FROM ${From} as fromSub
-                                            WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                        const checkDataOpenDuplicate = (
+                            state ? 
+                                await (( async () => {
+                                    const Where = (
+                                        type_request == "plant" ? "fromMain.name = fromSub.name AND fromMain.variety_name = fromSub.variety_name" :
+                                        type_request == "source" ? "fromMain.name = fromSub.name" : 
+                                        type_request == "fertilizer" || type_request == "chemical" ? "fromMain.name = fromSub.name AND fromMain.name_formula = fromSub.name_formula" :
+                                        type_request == "pest" ? "fromMain.pest_name = fromSub.pest_name" : 
+                                        ""
+                                    )
+        
+                                    try {
+                                        const resultOverlap = await pool.executeQuery(
+                                            `
+                                                SELECT (
+                                                    SELECT EXISTS (
+                                                        SELECT ${columnID}
+                                                        FROM ${From} as fromSub
+                                                        WHERE ${Where} and ${columnID} <> ? and is_use = 1
+                                                    )
+                                                ) as verify
+                                                FROM ${From} as fromMain
+                                                WHERE ${columnID} = ?
+                                            ` , [
+                                                req.body.id_list , req.body.id_list
+                                            ]
                                         )
-                                    ) as verify
-                                    FROM ${From} as fromMain
-                                    WHERE ${columnID} = ?
-                                ` , [ req.body.id_list , req.body.id_list ] , 
-                                (err , result) => {
-                                    if(err) reject(err)
-                                    else resole(!result[0].verify)
-                                }
-                            )
-                        }) : true
+
+                                        return !resultOverlap[0]?.verify
+                                    } catch(err) {
+                                        con.end()
+                                        res.send("error")
+                                    }
+                                }))() : 
+                                true
+                        )
                         if(checkDataOpenDuplicate) {
                             con.query(
                                 `
@@ -4641,73 +4840,6 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     })
 
-    const ProfileConvertImg = (profile , column_img) => {
-        const listFarmer = profile.map((val)=>{
-            val[column_img] = val[column_img].toString()
-            return val
-        })
-        return listFarmer
-    }
-
-    const SendToFarmerHouse = async (con , id_plant , textSend , otherText = "") => {
-        return await new Promise((resole , reject)=>{
-            con.query(
-                `
-                SELECT uid_line , house.name_house as name_house
-                FROM acc_farmer ,
-                (
-                    SELECT link_user , name_house
-                    FROM housefarm ,
-                    (
-                        SELECT id_farm_house
-                        FROM formplant
-                        WHERE id = ?
-                    ) as formPlant
-                    WHERE housefarm.id_farm_house = formPlant.id_farm_house
-                ) as house
-                WHERE house.link_user = acc_farmer.link_user and acc_farmer.register_auth != 2
-                ` , [ id_plant ] ,
-                async (err , listFarmer) => {
-                    if(!err) {
-                        const uid = listFarmer.map(val=>val.uid_line).filter(val=>val)
-                        const nameHouse = [...(new Set(listFarmer.map(val=>val.name_house).filter(val=>val)))]
-                        if(uid.length != 0 && nameHouse.length != 0) {
-                            try {
-                                await Line.multicast([...(new Set(uid))] , {type : "text" , text : `${textSend}\nในโรงเรือน : ${nameHouse[0]}${otherText}`})
-                                resole([...(new Set(uid))])
-                            } catch(e) {
-                                resole("")
-                            }
-                        } else resole("")
-                    } else resole("")
-                }
-            )
-        })
-    }
-
-    const SendToFarmerLink = async (con , link_user , textSend) => {
-        return await new Promise((resole , reject)=>{
-            con.query(
-                `
-                SELECT uid_line
-                FROM acc_farmer
-                WHERE acc_farmer.link_user = ? and acc_farmer.register_auth != 2
-                ` , [ link_user ] ,
-                (err , listFarmer) => {
-                    if(!err) {
-                        const uid = listFarmer.map(val=>val.uid_line).filter(val=>val)
-                        if(uid.length) {
-                            try {
-                                Line.multicast([...(new Set(uid))] , {type : "text" , text : `${textSend}`})
-                            } catch(e) {}
-                        }
-                    }
-                    resole("")
-                }
-            )
-        })
-    }
-
     app.post('/api/doctor/data/statistic/get', async (req, res) => {
         let username = req.session.user_doctor;
         let password = req.session.pass_doctor;
@@ -4859,6 +4991,216 @@ module.exports = function apiDoctor (app , Database , apifunc , dbpacket , listD
         }
     });
 
+    // gapv3
+    app.get('/api/doctor/station/:station_id/greenhouse' , (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
     
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
+            const { params : { station_id } } = req
+            try {
+                const station = await pool.executeQuery(
+                    `
+                        SELECT h.*
+                        FROM acc_farmer ac_f
+                        LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+                        WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+                        GROUP BY h.id_farm_house;
+                    ` , 
+                    [station_id]
+                )
+    
+                con.end()
+                res.send({
+                    houses:station
+                })
+            } catch(err) {
+                con.end()
+                res.redirect('/api/logout')
+            }
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    })
 
+    app.get('/api/doctor/station/:station_id/ecph/' , (req , res)=>{
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+    
+        if(username === '' || password === '' || !apifunc.authCsurf("doctor" , req , res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+    
+        let con = Database.createConnection(listDB)
+    
+        apifunc.auth(con , username , password , res , "acc_doctor").then( async (result)=>{
+            con.end()
+            const station_id = req.params.station_id 
+            try {
+                const data = await pool.executeQuery(
+                    `
+                        SELECT ecph.* 
+                        FROM ecph
+                        INNER JOIN (
+                            SELECT (
+                                SELECT id
+                                FROM ecph
+                                WHERE ecph.id_formplant = fp.id
+                                ORDER BY timestamp DESC
+                                LIMIT 1
+                            ) as ecph_id
+                            FROM (
+                                SELECT (
+                                    SELECT fp.id as id 
+                                    FROM formplant fp
+                                    WHERE hf.id_farm_house = fp.id_farm_house
+                                    ORDER BY date_plant DESC
+                                    LIMIT 1
+                                ) as id , hf.uid_line as uid_line
+                                FROM housefarm hf
+                            ) fp
+                            LEFT JOIN acc_farmer ac_f ON fp.uid_line = ac_f.uid_line
+                            WHERE ac_f.station = ?
+                        ) mapping_ecph ON ecph.id = mapping_ecph.ecph_id
+                        GROUP BY ecph.id_formplant
+                    `,
+                    [station_id]
+                )
+                res.send({
+                    ecph: data
+                })
+            } catch(err) {
+                res
+                    .status(500)
+                    .send({
+                        ecph: []
+                    })
+            }
+            // con.query(
+            //     `
+            //     SELECT h.*
+            //     FROM acc_farmer ac_f
+            //     LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+            //     WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+            //     GROUP BY h.id_farm_house;
+            //     ` , [station_id] , 
+            //     (err , station) => {
+            //         con.end()
+                   
+            //         res.send({
+            //             houses:station
+            //         })
+            //     }
+            // )
+        }).catch((err)=>{
+            if(err == "not pass") {
+                con.end()
+                res.redirect('/api/logout')
+            } else if( err == "connect" ) {
+                res.redirect('/api/logout')
+            }
+        })
+    })  
+    
+    // method
+    const ProfileConvertImg = (profile , column_img) => {
+        const listFarmer = profile.map((val)=>{
+            val[column_img] = val[column_img].toString()
+            return val
+        })
+        return listFarmer
+    }
+
+    const getGreenhouseIdByFromGapID = async ( formGapId ) => {
+        const greenhouse = await pool.executeQuery(
+            `
+                SELECT fp.id_farm_house
+                FROM housefarm hf 
+                LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
+                WHERE fp.id = ?
+                LIMIT 1
+            ` ,
+            [ formGapId ]
+        )
+
+        return greenhouse[0].id_farm_house
+    }
+
+    // const SendToFarmerHouse = async (con , id_plant , textSend , otherText = "") => {
+    //     return await new Promise((resole , reject)=>{
+    //         con.query(
+    //             `
+    //             SELECT uid_line , house.name_house as name_house
+    //             FROM acc_farmer ,
+    //             (
+    //                 SELECT link_user , name_house
+    //                 FROM housefarm ,
+    //                 (
+    //                     SELECT id_farm_house
+    //                     FROM formplant
+    //                     WHERE id = ?
+    //                 ) as formPlant
+    //                 WHERE housefarm.id_farm_house = formPlant.id_farm_house
+    //             ) as house
+    //             WHERE house.link_user = acc_farmer.link_user and acc_farmer.register_auth != 2
+    //             ` , [ id_plant ] ,
+    //             async (err , listFarmer) => {
+    //                 if(!err) {
+    //                     const uid = listFarmer.map(val=>val.uid_line).filter(val=>val)
+    //                     const nameHouse = [...(new Set(listFarmer.map(val=>val.name_house).filter(val=>val)))]
+    //                     if(uid.length != 0 && nameHouse.length != 0) {
+    //                         try {
+    //                             await RoyalGapLine.multicast(
+    //                                 [...(new Set(uid))] , 
+    //                                 {
+    //                                     type : "text" , 
+    //                                     text : `${textSend}\nในโรงเรือน : ${nameHouse[0]}${otherText}`
+    //                                 }
+    //                             )
+    //                             resole([...(new Set(uid))])
+    //                         } catch(e) {
+    //                             resole("")
+    //                         }
+    //                     } else resole("")
+    //                 } else resole("")
+    //             }
+    //         )
+    //     })
+    // }
+
+    // const SendToFarmerLink = async (con , link_user , textSend) => {
+    //     return await new Promise((resole , reject)=>{
+    //         con.query(
+    //             `
+    //             SELECT uid_line
+    //             FROM acc_farmer
+    //             WHERE acc_farmer.link_user = ? and acc_farmer.register_auth != 2
+    //             ` , [ link_user ] ,
+    //             (err , listFarmer) => {
+    //                 if(!err) {
+    //                     const uid = listFarmer.map(val=>val.uid_line).filter(val=>val)
+    //                     if(uid.length) {
+    //                         try {
+    //                             RoyalGapLine.multicast([...(new Set(uid))] , {type : "text" , text : `${textSend}`})
+    //                         } catch(e) {}
+    //                     }
+    //                 }
+    //                 resole("")
+    //             }
+    //         )
+    //     })
+    // }
 }

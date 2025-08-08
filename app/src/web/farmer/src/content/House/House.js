@@ -4,10 +4,13 @@ import { Loading , MapsJSX, ReportAction, ResizeImg } from "../../../../../asset
 
 import "./House.scss"
 import { CloseAccount } from "../../method";
+import { useParams } from "react-router";
+import { useGreenhouse } from "..";
 
-const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
-
-    const [getOldData , setOldData] = useState([])
+const House = ({Ref , setPopup}) => {
+    const { greenhouse_id } = useParams()
+    const { setCurrentPage } = useGreenhouse()
+    const [ getOldData , setOldData ] = useState([])
 
     const ImageCurrent = useRef()
     const [PreviewImage , setPreview] = useState("")
@@ -57,8 +60,8 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
     } , [])
 
     const FetchData = async () => {
-        const result = await clientMo.get(`/api/farmer/farmhouse/get/detail?id_farmhouse=${id_farmhouse}`)
-        if(await CloseAccount(result , setPage)) {
+        const result = await clientMo.get(`/api/farmer/farmhouse/get/detail?id_farmhouse=${greenhouse_id}`)
+        if(await CloseAccount(result , setCurrentPage)) {
             const Data = JSON.parse(result)
             setOldData(Data[0])
             setLag(Data[0].location ? Data[0].location.x : 0)
@@ -263,9 +266,9 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
                 delete data.lng;
             }
 
-            data.id_farmhouse = id_farmhouse
+            data.id_farmhouse = greenhouse_id
             clientMo.postForm("/api/farmer/farmhouse/edit" , data).then( async (result)=>{
-                if(await CloseAccount(result , setPage)) {
+                if(await CloseAccount(result , setCurrentPage)) {
                     setText("แก้ไขโรงเรือนสำเร็จ")
                     setResult(1)
                 }
@@ -444,7 +447,7 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
     )
 }
 
-// const HouseEdit = ({Ref , setPopup , id_farmhouse , setPage}) => {
+// const HouseEdit = ({Ref , setPopup , id_farmhouse , setCurrentPage}) => {
 //     useEffect(()=>{
 //         Ref.current.style.opacity = "1"
 //         Ref.current.style.visibility = "visible"
@@ -452,7 +455,7 @@ const House = ({Ref , setPopup , id_farmhouse , setPage}) => {
 
 //     const FetchData =async () => {
 //         const result = await clientMo.get(`/api/farmer/farmhouse/get/detail?id_farmhouse=${id_farmhouse}`)
-//         if(await CloseAccount(result , setPage)) {
+//         if(await CloseAccount(result , setCurrentPage)) {
             
 //         }
 //     }
