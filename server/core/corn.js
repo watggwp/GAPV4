@@ -5,7 +5,7 @@ const RoyalGapLine = require("../configLine");
 module.exports = function Schedules(connectionPool = new ConnectPool()) {
 
     console.log("Start Schedules")
-    cron.schedule("* 8 * * *" , async (now) => {
+    cron.schedule("0 8 * * *" , async (now) => {
         const schedule_plan = await connectionPool.executeQuery(`
             SELECT sdl.* , gh.uid_line
             FROM formplant fp
