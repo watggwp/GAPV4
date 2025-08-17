@@ -258,12 +258,12 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
     
                 return res.status(200).send("success");
             } catch(err) {
-                console.error("❌ DB Error:", err);
+                console.error(`DB Error: ${new Date()}`, err);
                 return res.status(500).send("Failed to insert sensor data");
             }
             
         } catch(err) {
-            console.error("❌ Error parsing TTN data:", err);
+            console.error(`Error parsing TTN data: ${new Date()}`, err);
             return res.status(400).send("Invalid data format");
         }
     })

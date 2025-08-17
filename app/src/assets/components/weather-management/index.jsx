@@ -175,6 +175,11 @@ export default function WeatherManagement({
                             height={"100%"}
                             paddingTop={1}
                             paddingBottom={1}
+                            sx={{
+                                ".MuiTablePagination-displayedRows" : {
+                                    marginBottom : 0
+                                }
+                            }}
                         >
                             <DataGrid
                                 columns={[
@@ -203,7 +208,8 @@ export default function WeatherManagement({
                                         </Stack>
                                     )
                                 }}
-                                hideFooter
+                                // hideFooter
+                                pageSizeOptions={[300]}
                                 disableColumnSorting
                                 disableColumnMenu
                                 rowHeight={36}

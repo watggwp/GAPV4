@@ -18,6 +18,8 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+const ScheduleCorn = require("./core/corn")
+
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
 
@@ -43,12 +45,15 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
                 ...process.env,
                 PYTHONIOENCODING: 'utf-8'
             },
-            stdio: ['ignore', 'ignore'],
+            // stdio: ["pipe" , "pipe" , "pipe"],
         }
     );
 
+    python.stdout.setEncoding('utf8')
+    python.stdout.on('data', data => console.log(`stdout: ${data}`));
+
     python.stderr.setEncoding('utf8')
-    python.stderr.on('data', data => console.log(`stdout: ${data}`));
+    python.stderr.on('data', data => console.log(`stderr: ${data}`));
 
     const mode = process.argv[2]
     const app = express();
@@ -162,6 +167,8 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('build/doctor'))
     app.use(express.static('build/farmer'))
  
+    ScheduleCorn(Pool)
+
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)
     apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
