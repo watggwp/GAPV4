@@ -34,26 +34,27 @@ const apiEcph = require('./apiEcph');
 const apiSchedules = require('./endpoints/schedules');
 const apiFertilizers = require('./endpoints/fertilizer');
 const apiPests = require('./endpoints/pest');
+const callServices = require('./callServices');
 
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
-    const python = spawn(
-        'python', ['./server/mqtt/mqtt_to_api.py'] , {
-            env : {
-                ...process.env,
-                PYTHONIOENCODING: 'utf-8'
-            },
-            // stdio: ["pipe" , "pipe" , "pipe"],
-        }
-    );
+    // const python = spawn(
+    //     'python', ['./server/mqtt/mqtt_to_api.py'] , {
+    //         env : {
+    //             ...process.env,
+    //             PYTHONIOENCODING: 'utf-8'
+    //         },
+    //         // stdio: ["pipe" , "pipe" , "pipe"],
+    //     }
+    // );
 
-    python.stdout.setEncoding('utf8')
-    python.stdout.on('data', data => console.log(`stdout: ${data}`));
+    // python.stdout.setEncoding('utf8')
+    // python.stdout.on('data', data => console.log(`stdout: ${data}`));
 
-    python.stderr.setEncoding('utf8')
-    python.stderr.on('data', data => console.log(`stderr: ${data}`));
+    // python.stderr.setEncoding('utf8')
+    // python.stderr.on('data', data => console.log(`stderr: ${data}`));
 
     const mode = process.argv[2]
     const app = express();
@@ -82,7 +83,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // const HOST_CHECK = (mode == process.env.BUILD) ? process.env.REACT_APP_API_PUBLIC : process.env.REACT_APP_API_LOCAL;
     // config server and Hot Refresh
     // if(mode != process.env.BUILD) reactServ(app)
- 
+
+    ScheduleCorn(Pool)
+    callServices(app , Pool)
+
     // set session
     console.log(mode)
     const sessionMiddleware = sessions({
@@ -148,7 +152,9 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
 
     // middleware custom
     app.use(logging(Pool))
+    app.use("/api/schedules" , authorizer(Pool))
     app.use("/api/schedules/*" , authorizer(Pool))
+    app.use("/api/pests" , authorizer(Pool))
     app.use("/api/pests/*" , authorizer(Pool))
     
     // config environment
@@ -166,8 +172,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('build/admin'))
     app.use(express.static('build/doctor'))
     app.use(express.static('build/farmer'))
- 
-    ScheduleCorn(Pool)
 
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)

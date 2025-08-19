@@ -81,16 +81,45 @@ export default function WeatherManagement({
         switch(status) {
             case 200 :
                 const { details } = data
-                const newDatas = details?.map((item , index) => {
-                    return {
+                const newChartDatas = []
+                const newHistoryDatas = []
+
+                details?.forEach((item , index) => {
+                    const timestamp_raw = item[columnTimestamp]
+                    const newDateTime = new DateGAP(timestamp_raw)
+                    const dateTimeFormat = newDateTime.format2Str("DD/MM/YYYY HH:II")
+
+                    newChartDatas.push({
                         ...item,
                         id : index,
-                        timestamp : new DateGAP(item[columnTimestamp]).format2Str("DD/MM/YYYY HH:II"),
-                    }
-                }) || []
+                        timestamp : dateTimeFormat,
+                        _timestamp_raw : timestamp_raw
+                    })
 
-                setChartDatas(Array.isArray(newDatas) ? newDatas.sort((a , b) => b.id - a.id) : [])
-                setHistoryDatas(newDatas)
+                    const lastTimeHistory = newHistoryDatas[newHistoryDatas.length - 1]?._timestamp_raw
+                    if(!lastTimeHistory) {
+                        newHistoryDatas.push({
+                            ...item,
+                            id : index,
+                            timestamp : dateTimeFormat,
+                            _timestamp_raw : timestamp_raw
+                        })
+                    } else {
+                        const diffDatetime = new Date(lastTimeHistory).getTime() - newDateTime.getTime()
+                        // เฉลี่ยวันละ 20 ครั้ง
+                        if(diffDatetime >= 4320 * 1000) {
+                            newHistoryDatas.push({
+                                ...item,
+                                id : index,
+                                timestamp : dateTimeFormat,
+                                _timestamp_raw : timestamp_raw
+                            })
+                        }
+                    }
+                })
+
+                setChartDatas(Array.isArray(newChartDatas) ? newChartDatas.sort((a , b) => b.id - a.id) : [])
+                setHistoryDatas(newHistoryDatas)
                 break;
             default :
                 break;

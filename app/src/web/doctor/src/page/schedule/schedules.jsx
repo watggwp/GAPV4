@@ -45,7 +45,7 @@ export default function SchedulePlant() {
                     },
                     {
                         field : "total_schedule",
-                        headerName : "จำนวนแผนการปลูก",
+                        headerName : "จำนวนขั้นตอน",
                         flex : 1.5,
                         minWidth : 150,
                         align : "center",
@@ -82,7 +82,7 @@ function ButtonOpenSchedule({ row : { id } }) {
             variant="contained"
             onClick={onClick}
         >
-            จัดการแผนการปลุก
+            จัดการแผนการปลูก
         </Button>
     )
 }

@@ -70,7 +70,7 @@ export default function DialogSchedule({
                 setTitle(_title)
                 setDetails(JSON.parse(_details)?.[0] || {})
                 setAge(_age_plant)
-                setRepeat(_repeat)
+                setRepeat(Boolean(_repeat))
                 break;
             default :
                 break;
@@ -241,7 +241,7 @@ export default function DialogSchedule({
                                             }}
                                         >
                                             <Checkbox
-                                                value={repeat}
+                                                checked={repeat}
                                                 onChange={onChangeRepeat}
                                             />
                                             ทำซ้ำ

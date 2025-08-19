@@ -3,20 +3,27 @@
 require('dotenv').config();
 const Pool = require("../connectPool")
 const AuthorizeUser = require('../core/authorize');
-const uuid = require("uuid")
+const uuid = require("uuid");
+const RoyalGapEnv = require('../core/env');
 
 module.exports = function Schedules(app, pool = new Pool()) {
     app.get('/api/schedules', async (req, res) => {
+        const { account_type , profile : { station_doctor : station_id } = {} } = req.session
         try {
             const schedule_plants = await pool.executeQuery(
                 `
-                    SELECT pl.id , pl.name , COUNT(sp.id) as total_schedule
+                    SELECT pl.id , pl.name , (
+                        SELECT COUNT(s.id)
+                        FROM schedules s
+                        WHERE s.plant_id = pl.id
+                        ${RoyalGapEnv.access_type.doctor === account_type ? "AND s.station_id = ?" : ""}
+                    ) as total_schedule
                     FROM plant_list as pl
-                    LEFT JOIN schedules sp ON sp.plant_id = pl.id
                     WHERE pl.is_use = 1
                     GROUP BY pl.id , pl.name
                     ORDER BY pl.name
-                `
+                ` , 
+                RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : []
             )
 
             return res.json(schedule_plants)
@@ -41,6 +48,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
 
             const search = `%${s}%`
 
+            const { account_type , profile : { station_doctor : station_id } = {} } = req.session
             const schedule_plants = await pool.executeQuery(
                 `
                     SELECT 
@@ -63,7 +71,12 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         ) AS details
                     FROM schedules s
                     LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
-                    WHERE s.plant_id = ? ${
+                    WHERE s.plant_id = ? 
+                    ${
+                        RoyalGapEnv.access_type.doctor === account_type ? 
+                            "AND s.station_id = ?" : ""
+                    }
+                    ${
                         s &&
                             `
                                 AND (
@@ -77,6 +90,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ORDER BY s.age_plant ASC , s.repeat ASC
                 ` , [
                     plant_id ,
+                    RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : [],
                     search , search , search
                 ]
             )
@@ -139,11 +153,12 @@ module.exports = function Schedules(app, pool = new Pool()) {
     
     app.post('/api/schedules', async (req, res) => {
         try {
+            const { profile : { station_doctor : station_id } = {} } = req.session
             const { plant_id , category , title , details , age_plant , repeat } = req.body
             const schedule_uid = uuid.v4()
             const insert_schedule = await pool.executeQuery(
-                "INSERT INTO schedules ( uid , plant_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? )" , 
-                [ schedule_uid , plant_id , category , title , age_plant , repeat ? 1 : 0 ]
+                "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
+                [ schedule_uid , plant_id , station_id , category , title , age_plant , repeat ? 1 : 0 ]
             )
 
             const { insertId , affectedRows } = insert_schedule
