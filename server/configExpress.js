@@ -40,21 +40,21 @@ const callServices = require('./callServices');
 module.exports = function appConfig(username , password , UrlNgrok ) {
     require('dotenv').config().parsed
  
-    const python = spawn(
-        'python', ['./server/mqtt/mqtt_to_api.py'] , {
-            env : {
-                ...process.env,
-                PYTHONIOENCODING: 'utf-8'
-            },
-            // stdio: ["pipe" , "pipe" , "pipe"],
-        }
-    );
+    // const python = spawn(
+    //     'python', ['./server/mqtt/mqtt_to_api.py'] , {
+    //         env : {
+    //             ...process.env,
+    //             PYTHONIOENCODING: 'utf-8'
+    //         },
+    //         // stdio: ["pipe" , "pipe" , "pipe"],
+    //     }
+    // );
 
-    python.stdout.setEncoding('utf8')
-    python.stdout.on('data', data => console.log(`stdout: ${data}`));
+    // python.stdout.setEncoding('utf8')
+    // python.stdout.on('data', data => console.log(`stdout: ${data}`));
 
-    python.stderr.setEncoding('utf8')
-    python.stderr.on('data', data => console.log(`stderr: ${data}`));
+    // python.stderr.setEncoding('utf8')
+    // python.stderr.on('data', data => console.log(`stderr: ${data}`));
 
     const mode = process.argv[2]
     const app = express();
@@ -111,17 +111,12 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     })
 
     // set proxy
-    app.use('/gap-log-dashboard', createProxyMiddleware({
+    app.use('/gap-device-dashboard', createProxyMiddleware({
         target: 'http://localhost:8000',
         changeOrigin: true,
         ws: true,
         pathRewrite: (path, req) => {
-            if (path === '/') {
-                return '/gap-log-dashboard';
-            } else if (path === '/gap-log-dashboard/ws') {
-                return '/gap-log-dashboard-ws';
-            }
-            return '/gap-log-dashboard' + path;
+            return path
         }
     }))
    

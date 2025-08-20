@@ -5,6 +5,9 @@ assets/img/doctor/report/*.jpg
 build
 .env
 /app/src/assets/img/doctor/report/*.jpg
+
+services/*
+!services/note.txt
 # /package.json
 # package.json
 # Admin/.env

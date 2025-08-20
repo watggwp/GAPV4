@@ -4,7 +4,7 @@ const Pool = require("./connectPool");
 
 module.exports = function callServices(app, connectionDB = new Pool()) {
     app.post("/api/line/notify/device-offline", async (req, res) => {
-        const { device_id } = req.body;
+        const { device_id } = req?.body || {}
 
         if (!device_id) {
             return res.status(400).json({ message: "Missing device_id" });
@@ -62,7 +62,7 @@ module.exports = function callServices(app, connectionDB = new Pool()) {
     });
 
     app.post("/api/line/notify/device-online", async (req, res) => {
-        const { device_id } = req.body;
+        const { device_id } = req?.body || {}
 
         if (!device_id) {
             return res.status(400).json({ message: "Missing device_id" });
