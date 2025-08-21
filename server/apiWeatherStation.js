@@ -224,6 +224,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
 
         const { device_id, timestamp, temperature, humidity, light, rainfall , pressure } = req.body
 
+        console.log(req.body)
         try {
             await pool.executeQuery(
                 `
