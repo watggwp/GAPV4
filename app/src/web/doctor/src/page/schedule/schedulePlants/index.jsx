@@ -152,7 +152,7 @@ export default function SchedulePlants() {
                         flex : 3,
                         minWidth : 300,
                         renderCell : ({ row , value : details }) => {
-                            const value = JSON.parse(details)?.[0] || {}
+                            const value = JSON.parse(details) || {}
                             return (
                                 <Stack direction={"row"} spacing={1} width={"100%"} height={"100%"} alignItems={"center"}>
                                     {
@@ -181,6 +181,21 @@ export default function SchedulePlants() {
                                             </React.Fragment> :
                                         row.category === 2 ?
                                             <React.Fragment>
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`โรคพืช: ${value.pest}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`สารเคมี: ${value.chemical}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`ปริมาณ: ${value.volume} ${value.unit_volume}`}
+                                                />
                                             </React.Fragment> :
                                             <></>
                                     }

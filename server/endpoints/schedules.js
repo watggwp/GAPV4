@@ -53,24 +53,29 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 `
                     SELECT 
                         s.* ,
-                        CONCAT(
-                            '[',
-                                GROUP_CONCAT(
-                                    CONCAT(
-                                        '{',
-                                            '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
-                                            '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
-                                            '"volume":"', IFNULL(sdf.volume, ''), '",',
-                                            '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
-                                            '"how_use":"', IFNULL(sdf.how_use, ''), '"'
-                                        ,'}'
-                                    )
-                                    SEPARATOR ','
-                                ),
-                            ']'
+                        IF(
+                            s.category = 1,
+                        	CONCAT(
+                                '{',
+                                    '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
+                                    '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
+                                    '"volume":"', IFNULL(sdf.volume, ''), '",',
+                                    '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
+                                    '"how_use":"', IFNULL(sdf.how_use, ''), '"'
+                                ,'}'
+                            ),
+                            CONCAT(
+                                '{',
+                                    '"pest":"', IFNULL(sdd.pest, ''), '",',
+                                    '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"volume":"', IFNULL(sdd.volume, ''), '",',
+                                    '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
+                                ,'}'
+                            )
                         ) AS details
                     FROM schedules s
                     LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
+                    LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
                     WHERE s.plant_id = ? 
                     ${
                         RoyalGapEnv.access_type.doctor === account_type ? 
@@ -116,24 +121,29 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 `
                     SELECT 
                         s.* ,
-                        CONCAT(
-                            '[',
-                                GROUP_CONCAT(
-                                    CONCAT(
-                                        '{',
-                                            '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
-                                            '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
-                                            '"volume":"', IFNULL(sdf.volume, ''), '",',
-                                            '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
-                                            '"how_use":"', IFNULL(sdf.how_use, ''), '"'
-                                        ,'}'
-                                    )
-                                    SEPARATOR ','
-                                ),
-                            ']'
+                        IF(
+                            s.category = 1,
+                        	CONCAT(
+                                '{',
+                                    '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
+                                    '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
+                                    '"volume":"', IFNULL(sdf.volume, ''), '",',
+                                    '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
+                                    '"how_use":"', IFNULL(sdf.how_use, ''), '"'
+                                ,'}'
+                            ),
+                            CONCAT(
+                                '{',
+                                    '"pest":"', IFNULL(sdd.pest, ''), '",',
+                                    '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"volume":"', IFNULL(sdd.volume, ''), '",',
+                                    '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
+                                ,'}'
+                            )
                         ) AS details
                     FROM schedules s
                     LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
+                    LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
                     WHERE s.plant_id = ? AND s.uid = ?
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC
@@ -181,6 +191,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ]
                     break;
                 case 2 :
+                    insert_detail_data["table"] = "schedules_detail_disease"
+                    insert_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    insert_detail_data["params"] = [
+                        details.pest ,
+                        details.chemical ,
+                        details.volume ,
+                        details.unit_volume
+                    ]
                     break;
             }
 
@@ -261,6 +279,12 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 columns : [],
                 params : []
             }
+
+            const schedule_tables = new Set([
+                "schedules_detail_fertilizer",
+                "schedules_detail_disease"
+            ])
+
             switch(category) {
                 case 1 :
                     update_detail_data["table"] = "schedules_detail_fertilizer"
@@ -272,8 +296,18 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         details.unit_volume ,
                         details.how_use
                     ]
+                    schedule_tables.delete("schedules_detail_fertilizer")
                     break;
                 case 2 :
+                    update_detail_data["table"] = "schedules_detail_disease"
+                    update_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    update_detail_data["params"] = [
+                        details.pest ,
+                        details.chemical ,
+                        details.volume ,
+                        details.unit_volume
+                    ]
+                    schedule_tables.delete("schedules_detail_disease")
                     break;
             }
 
@@ -294,6 +328,16 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 ` ,
                 [ schedule_id , ...params ]
             )
+
+            for (const schedule_table_name of [...schedule_tables]) {
+                await pool.executeQuery(
+                    `
+                        DELETE FROM ${schedule_table_name}
+                        WHERE schedule_id = ?
+                    ` ,
+                    [ schedule_id ]
+                )
+            }
 
             return res.json({
                 update_schedule_plant : true

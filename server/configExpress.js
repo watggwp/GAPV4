@@ -33,6 +33,7 @@ const apiWeatherGreenhouse = require('./apiWeatherGreenhouse');
 const apiEcph = require('./apiEcph');
 const apiSchedules = require('./endpoints/schedules');
 const apiFertilizers = require('./endpoints/fertilizer');
+const apiChemicals = require('./endpoints/chemical');
 const apiPests = require('./endpoints/pest');
 const callServices = require('./callServices');
 
@@ -181,6 +182,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     
     apiSchedules(app , Pool)
     apiFertilizers(app , Pool)
+    apiChemicals(app , Pool)
     apiPests(app , Pool)
     
     // page error 404
