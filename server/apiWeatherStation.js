@@ -94,7 +94,6 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
                 `, [ station_signature , new Date(Number(st)) , new Date(Number(et)) ]
             );
 
-            console.log("data" , data[0])
             return res.status(200).send({
                 details : data
             }); // ส่งข้อมูลพร้อม status code 200
