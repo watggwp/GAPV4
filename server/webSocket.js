@@ -5,8 +5,6 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
     // let Push = new Map()
     
     const {Server} = require('socket.io')
-
-    console.log(origins)
     const io = new Server(server , {
         cors: {
             origin: origins,
