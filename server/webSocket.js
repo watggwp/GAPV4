@@ -7,7 +7,7 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
     const {Server} = require('socket.io')
     const io = new Server(server , {
         cors: {
-            origin: origins,
+            origin: "*",
             methods: ['GET', 'POST'],
             credentials: true,
         }
