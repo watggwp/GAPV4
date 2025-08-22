@@ -134,7 +134,8 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
         ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
-        `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`
+        `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`,
+        "https://gapv2.ngrok.app"
     ]
     
     // protocal websocket
