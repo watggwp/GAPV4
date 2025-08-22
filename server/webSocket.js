@@ -15,8 +15,6 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
     io.engine.use(sessionMiddleware);
     
     io.on("connection" , (socket_client)=>{
-
-        console.log("New connection from " + socket_client.id)
         //admin
         socket_client.on("connect-doctor-list" , ()=>{
             socket_client.join("admin:doctor:list")
