@@ -1,3 +1,6 @@
+const MessageLineTemplate = require('../messageLineTemplate');
+const RoyalGapEnv = require('../env');
+
 const schedulePlan = {
     queryPlan : async (connectionPool) => {
         return await connectionPool.executeQuery(`
@@ -44,14 +47,14 @@ const schedulePlan = {
     generateMessage : (title, name , category , greenhouse_id , form_id, details) => {
         switch(category) {
             case 1 : {
-                const { fertilizer , formula_fertilizer , volume , unit_volume , how_use } = details
+                const { name_fertilizer , formula_fertilizer , volume , unit_volume , how_use } = details
 
                 return MessageLineTemplate.bubbleTemplateUrl(
                     title,
                     [
                         title,
                         `ชนิดพืช: ${name}`,
-                        `ปุ๋ย: ${fertilizer}`,
+                        `ปุ๋ย: ${name_fertilizer}`,
                         `สูตร: ${formula_fertilizer}`,
                         `ปริมาณ: ${volume} ${unit_volume}`,
                         `วิธีใช้: ${how_use}`
