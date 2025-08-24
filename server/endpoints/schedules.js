@@ -16,7 +16,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         SELECT COUNT(s.id)
                         FROM schedules s
                         WHERE s.plant_id = pl.id
-                        ${RoyalGapEnv.access_type.doctor === account_type ? "AND s.station_id = ?" : ""}
+                        ${RoyalGapEnv.access_type.doctor === account_type ? "AND s.id_station = ?" : ""}
                     ) as total_schedule
                     FROM plant_list as pl
                     WHERE pl.is_use = 1
@@ -79,7 +79,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     WHERE s.plant_id = ? 
                     ${
                         RoyalGapEnv.access_type.doctor === account_type ? 
-                            "AND s.station_id = ?" : ""
+                            "AND s.id_station = ?" : ""
                     }
                     ${
                         s &&
@@ -167,7 +167,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
             const { plant_id , category , title , details , age_plant , repeat } = req.body
             const schedule_uid = uuid.v4()
             const insert_schedule = await pool.executeQuery(
-                "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
+                "INSERT INTO schedules ( uid , plant_id , id_station , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
                 [ schedule_uid , plant_id , station_id , category , title , age_plant , repeat ? 1 : 0 ]
             )
 
