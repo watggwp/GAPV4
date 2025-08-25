@@ -68,15 +68,9 @@ export default function DialogSchedule({
                 const { schedule_plant : { category : _category , title : _title , details : _details , age_plant : _age_plant , repeat : _repeat } } = data
                 setCategory(_category)
                 setTitle(_title)
-<<<<<<< HEAD
-                setDetails(JSON.parse(_details)?.[0] || {})
-                setAge(_age_plant)
-                setRepeat(_repeat)
-=======
                 setDetails(JSON.parse(_details) || {})
                 setAge(_age_plant)
                 setRepeat(Boolean(_repeat))
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                 break;
             default :
                 break;
@@ -247,11 +241,7 @@ export default function DialogSchedule({
                                             }}
                                         >
                                             <Checkbox
-<<<<<<< HEAD
-                                                value={repeat}
-=======
                                                 checked={repeat}
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                                                 onChange={onChangeRepeat}
                                             />
                                             ทำซ้ำ

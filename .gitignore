@@ -5,12 +5,9 @@ assets/img/doctor/report/*.jpg
 build
 .env
 /app/src/assets/img/doctor/report/*.jpg
-<<<<<<< HEAD
-=======
 
 services/*
 !services/note.txt
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 # /package.json
 # package.json
 # Admin/.env

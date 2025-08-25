@@ -3,22 +3,6 @@
 require('dotenv').config();
 const Pool = require("../connectPool")
 const AuthorizeUser = require('../core/authorize');
-<<<<<<< HEAD
-const uuid = require("uuid")
-
-module.exports = function Schedules(app, pool = new Pool()) {
-    app.get('/api/schedules', async (req, res) => {
-        try {
-            const schedule_plants = await pool.executeQuery(
-                `
-                    SELECT pl.id , pl.name , COUNT(sp.id) as total_schedule
-                    FROM plant_list as pl
-                    LEFT JOIN schedules sp ON sp.plant_id = pl.id
-                    WHERE pl.is_use = 1
-                    GROUP BY pl.id , pl.name
-                    ORDER BY pl.name
-                `
-=======
 const uuid = require("uuid");
 const RoyalGapEnv = require('../core/env');
 
@@ -40,7 +24,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ORDER BY pl.name
                 ` , 
                 RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : []
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             )
 
             return res.json(schedule_plants)
@@ -65,35 +48,11 @@ module.exports = function Schedules(app, pool = new Pool()) {
 
             const search = `%${s}%`
 
-<<<<<<< HEAD
-=======
             const { account_type , profile : { station_doctor : station_id } = {} } = req.session
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             const schedule_plants = await pool.executeQuery(
                 `
                     SELECT 
                         s.* ,
-<<<<<<< HEAD
-                        CONCAT(
-                            '[',
-                                GROUP_CONCAT(
-                                    CONCAT(
-                                        '{',
-                                            '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
-                                            '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
-                                            '"volume":"', IFNULL(sdf.volume, ''), '",',
-                                            '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
-                                            '"how_use":"', IFNULL(sdf.how_use, ''), '"'
-                                        ,'}'
-                                    )
-                                    SEPARATOR ','
-                                ),
-                            ']'
-                        ) AS details
-                    FROM schedules s
-                    LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
-                    WHERE s.plant_id = ? ${
-=======
                         IF(
                             s.category = 1,
                         	CONCAT(
@@ -123,7 +82,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                             "AND s.station_id = ?" : ""
                     }
                     ${
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                         s &&
                             `
                                 AND (
@@ -137,10 +95,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ORDER BY s.age_plant ASC , s.repeat ASC
                 ` , [
                     plant_id ,
-<<<<<<< HEAD
-=======
                     RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : [],
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     search , search , search
                 ]
             )
@@ -166,26 +121,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 `
                     SELECT 
                         s.* ,
-<<<<<<< HEAD
-                        CONCAT(
-                            '[',
-                                GROUP_CONCAT(
-                                    CONCAT(
-                                        '{',
-                                            '"name_fertilizer":"', IFNULL(sdf.fertilizer, ''), '",',
-                                            '"formula_fertilizer":"', IFNULL(sdf.formula_fertilizer, ''), '",',
-                                            '"volume":"', IFNULL(sdf.volume, ''), '",',
-                                            '"unit_volume":"', IFNULL(sdf.unit_volume, ''), '",',
-                                            '"how_use":"', IFNULL(sdf.how_use, ''), '"'
-                                        ,'}'
-                                    )
-                                    SEPARATOR ','
-                                ),
-                            ']'
-                        ) AS details
-                    FROM schedules s
-                    LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
-=======
                         IF(
                             s.category = 1,
                         	CONCAT(
@@ -209,7 +144,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     FROM schedules s
                     LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
                     LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     WHERE s.plant_id = ? AND s.uid = ?
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC
@@ -229,20 +163,12 @@ module.exports = function Schedules(app, pool = new Pool()) {
     
     app.post('/api/schedules', async (req, res) => {
         try {
-<<<<<<< HEAD
-            const { plant_id , category , title , details , age_plant , repeat } = req.body
-            const schedule_uid = uuid.v4()
-            const insert_schedule = await pool.executeQuery(
-                "INSERT INTO schedules ( uid , plant_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? )" , 
-                [ schedule_uid , plant_id , category , title , age_plant , repeat ? 1 : 0 ]
-=======
             const { profile : { station_doctor : station_id } = {} } = req.session
             const { plant_id , category , title , details , age_plant , repeat } = req.body
             const schedule_uid = uuid.v4()
             const insert_schedule = await pool.executeQuery(
                 "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
                 [ schedule_uid , plant_id , station_id , category , title , age_plant , repeat ? 1 : 0 ]
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             )
 
             const { insertId , affectedRows } = insert_schedule
@@ -265,8 +191,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ]
                     break;
                 case 2 :
-<<<<<<< HEAD
-=======
                     insert_detail_data["table"] = "schedules_detail_disease"
                     insert_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
                     insert_detail_data["params"] = [
@@ -275,7 +199,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         details.volume ,
                         details.unit_volume
                     ]
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     break;
             }
 
@@ -356,15 +279,12 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 columns : [],
                 params : []
             }
-<<<<<<< HEAD
-=======
 
             const schedule_tables = new Set([
                 "schedules_detail_fertilizer",
                 "schedules_detail_disease"
             ])
 
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             switch(category) {
                 case 1 :
                     update_detail_data["table"] = "schedules_detail_fertilizer"
@@ -376,10 +296,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         details.unit_volume ,
                         details.how_use
                     ]
-<<<<<<< HEAD
-                    break;
-                case 2 :
-=======
                     schedule_tables.delete("schedules_detail_fertilizer")
                     break;
                 case 2 :
@@ -392,7 +308,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         details.unit_volume
                     ]
                     schedule_tables.delete("schedules_detail_disease")
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     break;
             }
 
@@ -414,8 +329,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 [ schedule_id , ...params ]
             )
 
-<<<<<<< HEAD
-=======
             for (const schedule_table_name of [...schedule_tables]) {
                 await pool.executeQuery(
                     `
@@ -426,7 +339,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 )
             }
 
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             return res.json({
                 update_schedule_plant : true
             })

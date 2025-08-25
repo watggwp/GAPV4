@@ -7,25 +7,17 @@ export default function Pests({
     details , onChangeDetails
 }) {
 
-<<<<<<< HEAD
-    const [ pestName , setPestName ] = useState(details.pest_name || "")
-    const [ chemicalName , setChemicalName ] = useState(details.chemical_name || "")
-=======
     const [ pestName , setPestName ] = useState(details.pest || "")
     const [ chemicalName , setChemicalName ] = useState(details.chemical || "")
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
     const [ volume , setVolume ] = useState(details.volume)
     const [ unitVolume , setUnitVolume ] = useState(details.unit_volume || "")
 
     const [ loadingPests , setLoadingPests ] = useState(true)
     const [ pests , setPests ] = useState([])
-<<<<<<< HEAD
-=======
 
     const [ loadingChemicals , setLoadingChemicals ] = useState(true)
     const [ chemicals , setChemicals ] = useState([])
 
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
     const PestSelects = useMemo(() => {
         const PestNames = new Set(pests.map(({ pest_name }) => pest_name))
         return {
@@ -39,19 +31,6 @@ export default function Pests({
         }
     } , [pests])
 
-<<<<<<< HEAD
-    const onChangePest = useCallback((e , value) => {
-        setPestName(value)
-    } , [])
-
-    const onChangeVolume = useCallback(({ target : { value } }) => {
-        setVolume(value)
-    } , [])
-
-    const onChangeUnitVolume = useCallback(({ target : { value } }) => {
-        setUnitVolume(value)
-    } , [])
-=======
     const ChemicalPrimarySelects = useMemo(() => {
         const ChemicalNames = new Set(chemicals.map(({ name }) => name))
         return {
@@ -84,21 +63,17 @@ export default function Pests({
         setUnitVolume(value)
         onChangeDetails("unit_volume" , value)
     } , [onChangeDetails])
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 
     const filterOptionPest = useCallback((options, { inputValue }) => {
         if (!inputValue) return options;
         return PestSelects.match.search(inputValue).map(r => r.item);
     } , [PestSelects.match])
 
-<<<<<<< HEAD
-=======
     const filterOptionChemical = useCallback((options, { inputValue }) => {
         if (!inputValue) return options;
         return ChemicalPrimarySelects.match.search(inputValue).map(r => r.item);
     } , [ChemicalPrimarySelects.match])
 
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
     const onRequestPests = useCallback( async () => {
         setLoadingPests(true)
         const { status , data } = await RequestAPI.get("/api/pests")
@@ -114,11 +89,6 @@ export default function Pests({
         }
     } , [])
 
-<<<<<<< HEAD
-    useEffect(() => {
-        onRequestPests()
-    } , [onRequestPests])
-=======
     const onRequestChemical = useCallback( async () => {
         setLoadingChemicals(true)
         const { status , data } = await RequestAPI.get("/api/chemicals")
@@ -138,7 +108,6 @@ export default function Pests({
         onRequestPests()
         onRequestChemical()
     } , [onRequestPests , onRequestChemical])
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 
     return(
         <Stack width={"100%"} spacing={2}>
@@ -172,23 +141,6 @@ export default function Pests({
                         padding : "7.5px 4px 7.5px 14px !important"
                     }
                 }}
-<<<<<<< HEAD
-                // filterOptions={(options, { inputValue }) => {
-                //     if (!inputValue) return options;
-                //     return PrimarySearch.match.search(inputValue).map(r => r.item);
-                // }}
-                // value={nameFertilizer}
-                options={[]}
-                renderInput={(params) => 
-                    <TextField {...params} placeholder={"เลือกสารเคมีที่ใช้กำจัดโรคพืช"} />
-                }
-                // readOnly={loadingNameFertilizer}
-                // onChange={(e , value) => {
-                //     setNameFertilizer(value)
-                //     setFormulaFertilizer("")
-                // }}
-                // noOptionsText="ไม่พบปัจจัยการผลิต"
-=======
                 filterOptions={filterOptionChemical}
                 value={chemicalName}
                 options={ChemicalPrimarySelects.ChemicalNames}
@@ -198,7 +150,6 @@ export default function Pests({
                 readOnly={loadingChemicals}
                 onChange={onChangeChemical}
                 noOptionsText="ไม่พบสารเคมี"
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             />
             <Grid container width={"100%"} spacing={1}>
                 <Grid size={{ xs : 12 , sm : 8 }}>

@@ -1,8 +1,4 @@
 import ReactDOM  from "react-dom/client";
-<<<<<<< HEAD
-import io from "socket.io-client"
-=======
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 import Router from "./router";
 import ThemeProviderApp from "../../ThemeProvider";
 import SockectIO from "../../SocketIO";

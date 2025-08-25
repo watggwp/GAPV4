@@ -83,24 +83,17 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
         try {
             const data = await pool.executeQuery(
                 `
-<<<<<<< HEAD
-                    SELECT ws.id , timestamp , temperature , humidity ,light , rainfall , pressure
-=======
                     SELECT ws.id , CONCAT(
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s'),
                         '.000Z'
                     ) as timestamp , temperature , humidity ,light , rainfall , pressure
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     FROM weather_station ws
                     LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
                     WHERE sws.station_signature = ? AND ws.timestamp BETWEEN ? AND ?
                     ORDER BY ws.timestamp DESC
                 `, [ station_signature , new Date(Number(st)) , new Date(Number(et)) ]
             );
-<<<<<<< HEAD
-=======
 
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             return res.status(200).send({
                 details : data
             }); // ส่งข้อมูลพร้อม status code 200
@@ -256,11 +249,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
 
             return res.status(200).send("success");
         } catch(err) {
-<<<<<<< HEAD
-            console.error("DB Error:", err);
-=======
             console.error(`DB Error: ${new Date()}`, err);
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             return res.status(500).send("Failed to insert sensor data");
         }
     })

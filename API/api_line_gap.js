@@ -94,11 +94,7 @@ const RichMenu = {
 
 }
 // RichMenu.DeleteRichMenu.someone("richmenu-307696451cdf4d64368a8476e28e7841")
-<<<<<<< HEAD
-// RichMenu.GetRichMenu()
-=======
 RichMenu.GetRichMenu()
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 // RichMenu.createRichLogin()
 // const jsonHouse = 
 //     {

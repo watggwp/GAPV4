@@ -152,11 +152,7 @@ export default function SchedulePlants() {
                         flex : 3,
                         minWidth : 300,
                         renderCell : ({ row , value : details }) => {
-<<<<<<< HEAD
-                            const value = JSON.parse(details)?.[0] || {}
-=======
                             const value = JSON.parse(details) || {}
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                             return (
                                 <Stack direction={"row"} spacing={1} width={"100%"} height={"100%"} alignItems={"center"}>
                                     {
@@ -185,8 +181,6 @@ export default function SchedulePlants() {
                                             </React.Fragment> :
                                         row.category === 2 ?
                                             <React.Fragment>
-<<<<<<< HEAD
-=======
                                                 <Chip
                                                     color="primary"
                                                     variant="outlined"
@@ -202,7 +196,6 @@ export default function SchedulePlants() {
                                                     variant="outlined"
                                                     label={`ปริมาณ: ${value.volume} ${value.unit_volume}`}
                                                 />
->>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                                             </React.Fragment> :
                                             <></>
                                     }
