@@ -26,6 +26,10 @@ module.exports = function Authorizer(connectionPool = new ConnectPool()) {
             return res.redirect('/api/logout')
         }
         
+<<<<<<< HEAD
+=======
+        req.session.profile = profile
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
         next()
     }
 }

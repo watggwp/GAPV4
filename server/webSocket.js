@@ -13,8 +13,8 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
         }
     })
     io.engine.use(sessionMiddleware);
+    
     io.on("connection" , (socket_client)=>{
-
         //admin
         socket_client.on("connect-doctor-list" , ()=>{
             socket_client.join("admin:doctor:list")

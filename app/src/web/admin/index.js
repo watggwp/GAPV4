@@ -6,13 +6,18 @@ import MainAdmin from "./src/main";
 import ThemeProviderApp from "../../ThemeProvider";
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
-// const socket = new WebSocket();
-const socket = io(window.location.protocol+"//"+window.location.host)
+const socket = io(
+    process.env.NODE_ENV !== "development" ?
+    process.env.REACT_APP_API_PUBLIC : `${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`
+)
 
+<<<<<<< HEAD
 // socket.on('connect' , ()=>{
     
 // })
 
+=======
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
 root.render(
     <ThemeProviderApp>
         <MainAdmin socket={socket}/>

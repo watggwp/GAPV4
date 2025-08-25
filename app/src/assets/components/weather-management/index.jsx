@@ -81,6 +81,7 @@ export default function WeatherManagement({
         switch(status) {
             case 200 :
                 const { details } = data
+<<<<<<< HEAD
                 const newDatas = details?.map((item , index) => {
                     return {
                         ...item,
@@ -91,6 +92,47 @@ export default function WeatherManagement({
 
                 setChartDatas(Array.isArray(newDatas) ? newDatas.sort((a , b) => b.id - a.id) : [])
                 setHistoryDatas(newDatas)
+=======
+                const newChartDatas = []
+                const newHistoryDatas = []
+
+                details?.forEach((item , index) => {
+                    const timestamp_raw = item[columnTimestamp]
+                    const newDateTime = new DateGAP(timestamp_raw)
+                    const dateTimeFormat = newDateTime.format2Str("DD/MM/YYYY HH:II")
+
+                    newChartDatas.push({
+                        ...item,
+                        id : index,
+                        timestamp : dateTimeFormat,
+                        _timestamp_raw : timestamp_raw
+                    })
+
+                    const lastTimeHistory = newHistoryDatas[newHistoryDatas.length - 1]?._timestamp_raw
+                    if(!lastTimeHistory) {
+                        newHistoryDatas.push({
+                            ...item,
+                            id : index,
+                            timestamp : dateTimeFormat,
+                            _timestamp_raw : timestamp_raw
+                        })
+                    } else {
+                        const diffDatetime = new Date(lastTimeHistory).getTime() - newDateTime.getTime()
+                        // เฉลี่ยวันละ 20 ครั้ง
+                        if(diffDatetime >= 4320 * 1000) {
+                            newHistoryDatas.push({
+                                ...item,
+                                id : index,
+                                timestamp : dateTimeFormat,
+                                _timestamp_raw : timestamp_raw
+                            })
+                        }
+                    }
+                })
+
+                setChartDatas(Array.isArray(newChartDatas) ? newChartDatas.sort((a , b) => b.id - a.id) : [])
+                setHistoryDatas(newHistoryDatas)
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                 break;
             default :
                 break;
@@ -175,6 +217,14 @@ export default function WeatherManagement({
                             height={"100%"}
                             paddingTop={1}
                             paddingBottom={1}
+<<<<<<< HEAD
+=======
+                            sx={{
+                                ".MuiTablePagination-displayedRows" : {
+                                    marginBottom : 0
+                                }
+                            }}
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                         >
                             <DataGrid
                                 columns={[
@@ -203,7 +253,12 @@ export default function WeatherManagement({
                                         </Stack>
                                     )
                                 }}
+<<<<<<< HEAD
                                 hideFooter
+=======
+                                // hideFooter
+                                pageSizeOptions={[300]}
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                                 disableColumnSorting
                                 disableColumnMenu
                                 rowHeight={36}

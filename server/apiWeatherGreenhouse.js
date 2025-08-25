@@ -82,7 +82,14 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         try {
             const data = await pool.executeQuery(
                 `
+<<<<<<< HEAD
                     SELECT * 
+=======
+                    SELECT * , CONCAT(
+                        DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s'),
+                        '.000Z'
+                    ) as timestamp
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
@@ -258,12 +265,20 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
     
                 return res.status(200).send("success");
             } catch(err) {
+<<<<<<< HEAD
                 console.error("❌ DB Error:", err);
+=======
+                console.error(`DB Error: ${new Date()}`, err);
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
                 return res.status(500).send("Failed to insert sensor data");
             }
             
         } catch(err) {
+<<<<<<< HEAD
             console.error("❌ Error parsing TTN data:", err);
+=======
+            console.error(`Error parsing TTN data: ${new Date()}`, err);
+>>>>>>> b28deb0cc31480068be68f7e5053b16216c0f1b7
             return res.status(400).send("Invalid data format");
         }
     })
