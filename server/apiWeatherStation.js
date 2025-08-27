@@ -226,15 +226,15 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
     // insert sensor
     app.post("/api/sensor/weather-station", async (req, res) => {
 
-        const { device_id, timestamp, temperature, humidity, light, rainfall, pressure } = req.body
+        const { device_id, timestamp, temperature, humidity, light, rainfall, pressure, batt } = req.body
 
         try {
             await pool.executeQuery(
                 `
                     INSERT INTO weather_station
-                        (device_id, timestamp, temperature, humidity, light, rainfall , pressure) 
+                        (device_id, timestamp, temperature, humidity, light, rainfall , pressure, batt) 
                     VALUES
-                        (?, ?, ?, ?, ?, ? , ?)
+                        (?, ?, ?, ?, ?, ?, ?, ?)
                 `,
                 [
                     device_id,
@@ -243,7 +243,8 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
                     humidity,
                     light,
                     rainfall,
-                    pressure
+                    pressure,
+                    batt
                 ]
             )
 
