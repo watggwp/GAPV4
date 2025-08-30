@@ -4,7 +4,12 @@ const RoyalGapEnv = require('../env');
 const schedulePlan = {
     queryPlan : async (connectionPool) => {
         return await connectionPool.executeQuery(`
-            SELECT fp.id as form_id , gh.id_farm_house as greenhouse_id , sdl.* , gh.uid_line
+            SELECT 
+                fp.id as form_id , 
+                gh.id_farm_house as greenhouse_id , 
+                gh.name_house as greenhouse_name , 
+                sdl.* , 
+                gh.uid_line
             FROM formplant fp
             INNER JOIN (
                 SELECT name , sd.*
@@ -44,37 +49,56 @@ const schedulePlan = {
             INNER JOIN housefarm gh ON gh.id_farm_house = fp.id_farm_house
         `)
     },
-    generateMessage : (title, name , category , greenhouse_id , form_id, details) => {
+    generateMessage : (schedule) => {
+        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details } = schedule
+        const details = JSON.parse(schedule_details)
+        const date = new Date()
+        const dateString = `${date.getDate()} เดือน ${date.getMonth()+1} ปี ${date.getFullYear()+543}`
+
+        const generalMessage = [
+            `วันที่ ${dateString}`,
+            `กิจกรรม: ${title}`,
+            `โรงเรือน: ${greenhouse_name}`,
+            `ชนิดพืช: ${name}`,
+            "",
+        ]
+
         switch(category) {
             case 1 : {
                 const { name_fertilizer , formula_fertilizer , volume , unit_volume , how_use } = details
-
+                
                 return MessageLineTemplate.bubbleTemplateUrl(
                     title,
                     [
-                        title,
-                        `ชนิดพืช: ${name}`,
+                        ...generalMessage,
                         `ปุ๋ย: ${name_fertilizer}`,
                         `สูตร: ${formula_fertilizer}`,
                         `ปริมาณ: ${volume} ${unit_volume}`,
                         `วิธีใช้: ${how_use}`
                     ],
-                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/p`
+                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/f`,
+                    {
+                        buttonLabel : "ใส่ปุ๋ยแล้ว กรอกที่นี่"
+                    }
                 )
             }
             case 2 : {
-                const { pest , chemical , volume , unit_volume } = details
+                const { pest , chemical , rate , volume , unit_volume , how_use } = details
 
                 return MessageLineTemplate.bubbleTemplateUrl(
                     title,
                     [
-                        title,
-                        `ชนิดพืช: ${name}`,
+                        ...generalMessage,
                         `โรคพืช: ${pest}`,
                         `สารเคมี: ${chemical}`,
+                        `อัตราส่วนผสม: ${rate}`,
                         `ปริมาณ: ${volume} ${unit_volume}`,
+                        `วิธีใช้: ${how_use} (ควบคู่การดูประกอบบนฉลาก)`,
                     ],
-                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/p`
+                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c`,
+                    {
+                        buttonLabel : "ใส่สารเคมีแล้ว กรอกที่นี่"
+                    }
                 )
             }
         }

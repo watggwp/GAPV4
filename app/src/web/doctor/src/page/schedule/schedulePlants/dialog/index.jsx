@@ -186,6 +186,8 @@ export default function DialogSchedule({
                                     <Stack
                                         direction={"row"}
                                         spacing={2}
+                                        width={"100%"}
+                                        overflow={"auto"}
                                     >
                                         {
                                             category === 1 ?

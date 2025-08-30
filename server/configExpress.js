@@ -36,6 +36,7 @@ const apiFertilizers = require('./endpoints/fertilizer');
 const apiChemicals = require('./endpoints/chemical');
 const apiPests = require('./endpoints/pest');
 const callServices = require('./callServices');
+const apiAddDevice = require('./apiAddDevice');
 
 
 module.exports = function appConfig(username , password , UrlNgrok ) {
@@ -186,6 +187,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     apiChemicals(app , Pool)
     apiPests(app , Pool)
     
+    apiAddDevice(app , Pool)
     // page error 404
     app.get("*" , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/index404.html'));

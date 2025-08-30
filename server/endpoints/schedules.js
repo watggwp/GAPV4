@@ -68,6 +68,8 @@ module.exports = function Schedules(app, pool = new Pool()) {
                                 '{',
                                     '"pest":"', IFNULL(sdd.pest, ''), '",',
                                     '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"rate":"', IFNULL(sdd.rate, ''), '",',
+                                    '"how_use":"', IFNULL(sdd.how_use, ''), '",',
                                     '"volume":"', IFNULL(sdd.volume, ''), '",',
                                     '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
                                 ,'}'
@@ -136,6 +138,8 @@ module.exports = function Schedules(app, pool = new Pool()) {
                                 '{',
                                     '"pest":"', IFNULL(sdd.pest, ''), '",',
                                     '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"rate":"', IFNULL(sdd.rate, ''), '",',
+                                    '"how_use":"', IFNULL(sdd.how_use, ''), '",',
                                     '"volume":"', IFNULL(sdd.volume, ''), '",',
                                     '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
                                 ,'}'
@@ -192,12 +196,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     break;
                 case 2 :
                     insert_detail_data["table"] = "schedules_detail_disease"
-                    insert_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    insert_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
                     insert_detail_data["params"] = [
                         details.pest ,
                         details.chemical ,
+                        details.rate ,
                         details.volume ,
-                        details.unit_volume
+                        details.unit_volume,
+                        details.how_use
                     ]
                     break;
             }
@@ -300,12 +306,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     break;
                 case 2 :
                     update_detail_data["table"] = "schedules_detail_disease"
-                    update_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    update_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
                     update_detail_data["params"] = [
                         details.pest ,
                         details.chemical ,
+                        details.rate ,
                         details.volume ,
-                        details.unit_volume
+                        details.unit_volume,
+                        details.how_use
                     ]
                     schedule_tables.delete("schedules_detail_disease")
                     break;

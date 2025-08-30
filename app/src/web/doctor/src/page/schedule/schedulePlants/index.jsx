@@ -85,7 +85,8 @@ export default function SchedulePlants() {
                 slotProps={{
                     paper : {
                         sx : {
-                            width : "98%",
+                            margin : 0,
+                            width : "calc(100% - 16px)" ,
                             maxWidth : "600px"
                         }
                     }
@@ -194,7 +195,17 @@ export default function SchedulePlants() {
                                                 <Chip
                                                     color="primary"
                                                     variant="outlined"
+                                                    label={`อัตราส่วน: ${value.rate}/น้ำ20ลิตร`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
                                                     label={`ปริมาณ: ${value.volume} ${value.unit_volume}`}
+                                                />
+                                                <Chip
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    label={`วิธีการใช้: ${value.how_use}`}
                                                 />
                                             </React.Fragment> :
                                             <></>
