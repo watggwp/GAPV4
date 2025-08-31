@@ -76,11 +76,11 @@ const schedulePlan = {
                         `ปุ๋ย: ${name_fertilizer}`,
                         `สูตร: ${formula_fertilizer}`,
                         `ปริมาณ: ${volume} ${unit_volume}`,
-                        `วิธีใช้: ${how_use}`
+                        `วิธีใช้: ${how_use} (หากไม่แน่ใจ ให้ดูบนฉลาก)`
                     ],
-                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/f`,
+                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/f?open-insert=true`,
                     {
-                        buttonLabel : "ใส่ปุ๋ยแล้ว กรอกที่นี่"
+                        buttonLabel : "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
                     }
                 )
             }
@@ -95,11 +95,11 @@ const schedulePlan = {
                         `สารเคมี: ${chemical}`,
                         `อัตราส่วนผสม: ${rate}`,
                         `ปริมาณ: ${volume} ${unit_volume}`,
-                        `วิธีใช้: ${how_use} (ควบคู่การดูประกอบบนฉลาก)`,
+                        `วิธีใช้: ${how_use} (หากไม่แน่ใจ ให้ดูบนฉลาก)`,
                     ],
-                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c`,
+                    `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true`,
                     {
-                        buttonLabel : "ใส่สารเคมีแล้ว กรอกที่นี่"
+                        buttonLabel : "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
                     }
                 )
             }

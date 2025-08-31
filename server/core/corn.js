@@ -8,7 +8,7 @@ const RoyalGapLine = require("../configLine");
 const schedulePlan = require('./corns/schedulePlan');
 
 module.exports = function Schedules(connectionPool = new ConnectPool()) {
-    cron.schedule("0 0 5 * * *" , async (now) => {
+    cron.schedule("5 * * * * *" , async (now) => {
         console.log("Start Schedules GAP")
         const schedule_plan = await schedulePlan.queryPlan(connectionPool)
 
