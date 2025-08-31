@@ -236,16 +236,17 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 light,
                 temperature,
                 soil_temperature,
-                pressure 
+                pressure,
+                batt
             } = req.body
 
             try {
                 await pool.executeQuery(
                     `
                         INSERT INTO weather_greenhouse
-                            (device_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity , pressure)
+                            (device_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity , pressure , batt)
                         VALUES
-                            (?, ?, ?, ?, ?, ?, ? , ?)
+                            (?, ?, ?, ?, ?, ?, ? , ? , ?)
                     `,
                     [
                         device_id,
@@ -255,7 +256,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                         light,
                         soil_temperature,
                         soil_humidity,
-                        pressure
+                        pressure,
+                        batt
                     ]
                 )
     
