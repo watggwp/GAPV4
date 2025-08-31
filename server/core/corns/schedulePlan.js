@@ -32,6 +32,8 @@ const schedulePlan = {
                                 '{',
                                     '"pest":"', IFNULL(sdd.pest, ''), '",',
                                     '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"rate":"', IFNULL(sdd.rate, ''), '",',
+                                    '"how_use":"', IFNULL(sdd.how_use, ''), '",',
                                     '"volume":"', IFNULL(sdd.volume, ''), '",',
                                     '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
                                 ,'}'
