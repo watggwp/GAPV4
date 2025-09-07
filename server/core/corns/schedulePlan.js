@@ -48,7 +48,13 @@ const schedulePlan = {
                 DATEDIFF(NOW(), STR_TO_DATE(fp.date_plant, '%Y-%m-%d %H:%i:%s.%f')) % sdl.age_plant = 0,
                 DATEDIFF(NOW(), STR_TO_DATE(fp.date_plant, '%Y-%m-%d %H:%i:%s.%f')) = sdl.age_plant
             )
-            INNER JOIN housefarm gh ON gh.id_farm_house = fp.id_farm_house
+            INNER JOIN (
+                SELECT gh.id_farm_house , gh.name_house , gh.uid_line , af.station as station_id
+                FROM housefarm gh
+                INNER JOIN acc_farmer af ON af.uid_line = gh.uid_line OR af.uid_line = gh.link_user
+                WHERE status = 1
+                GROUP BY gh.id_farm_house
+            ) gh ON gh.id_farm_house = fp.id_farm_house AND gh.station_id = sdl.station_id
         `)
     },
     generateMessage : (schedule) => {
