@@ -153,6 +153,8 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use("/api/schedules" , authorizer(Pool))
     app.use("/api/schedules/*" , authorizer(Pool))
     app.use("/api/pests" , authorizer(Pool))
+    app.use("/api/chemicals" , authorizer(Pool))
+    app.use("/api/fertilizers" , authorizer(Pool))
     app.use("/api/pests/*" , authorizer(Pool))
     
     // config environment

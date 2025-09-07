@@ -1,7 +1,7 @@
 import { Autocomplete, autocompleteClasses, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoyalGapFrontendUtil from "../../../../../../../../assets/core/RoyalGapUtil";
-import RequestAPI from "../../../../../../../../assets/js/requestAPI";
+import RoyalGapFrontendUtil from "../../../../../core/RoyalGapUtil";
+import RequestAPI from "../../../../../js/requestAPI";
 
 export default function Fertilizer({
     details , onChangeDetails

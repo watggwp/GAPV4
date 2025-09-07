@@ -2093,6 +2093,7 @@ app.post('/api/admin/data/change', async (req, res) => {
             }
 
             // บัญชีปกติ สามารถเข้าสู่ระบบได้
+            req.session.role_primary = "admin";
             req.session.user_username = username;
             req.session.user_password = password;
             req.session.tokenSession = apifunc.getTokenCsurf(req);

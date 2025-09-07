@@ -7,6 +7,10 @@ import NavFirst from "./navFirst";
 import DesktopNev from "./navTop/desktop";
 import PageTemplate from "./page/PageTemplate";
 import SessionOut from "./sesionOut";
+import { BrowserRouter, Route, Routes } from "react-router";
+import ScheduleIndex from "./page/schedule";
+import SchedulesPlan from "./page/schedule/schedules";
+import SchedulePlants from "./page/schedule/schedulePlants";
 
 export const AdminContext = React.createContext({
     TabOn : undefined,
@@ -31,41 +35,9 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const { current : TabOn } = useRef(new TabLoad(Tabbar));
     const Href = new HrefData("HOME");
 
-    useEffect(() => {
-        FetchProfile();
-        ChkPath(null , "web")
-        setTabMenu(
-            <DesktopNev
-                setSession={sessionoff}
-                setBodyFileMain={setBodyFileMain}
-                setBodyFileAdmin={setBody}
-                socket={socket}
-                auth={Auth}
-                modify={modifyMainPage}
-                eleImageCover={ImageCover} 
-                eleBody={BodyRef} setTextStatus={setTextPage} 
-                TabOn={TabOn}
-                HrefData={Href}
-                getProfile={getProfile} 
-                FetchProfile={FetchProfile}
-            />
-        );
-
-        window.addEventListener("popstate", ChkPath);
-        window.addEventListener("resize", Resize);
-        socket.emit("connect-account", username, password);
-
-        return () => {
-            socket.emit("disconnect-account", username, password);
-            window.removeEventListener("popstate", ChkPath);
-            window.removeEventListener("resize", Resize);
-        };
-    }, []);
-
-    const FetchProfile = async () => {
+    const FetchProfile = useCallback(async () => {
         try {
             const result = await clientMo.get("/api/admin/profile/get");
-            console.log(result)
     
             if (result) {
                 setProfile(JSON.parse(result));
@@ -77,14 +49,30 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             // Log ข้อผิดพลาดถ้ามี
             console.error("Error fetching profile:", error);
         }
-    };
+    } , [])
     
+    const sessionoff = useCallback((type = false) => {
+        if (type) {
+            setBodyFileMain(<Login setBodyFileMain={setBodyFileMain} socket={socket} />);
+        } else {
+            setSession(<SessionOut setBodyFileMain={setBodyFileMain} sessionEle={sessionRef} />);
+        }
+    } , [setBodyFileMain, socket])
 
-    const ChkPath = async (e) => {
-        if (await Auth(true)) method(e);
-    };
+    const Auth = useCallback(async (tebLoadOn = false) => {
+        if (tebLoadOn) TabOn.start();
+        const result = await clientMo.post('/api/admin/check');
+        if (result) return true;
+        else sessionoff();
+    } , [TabOn, sessionoff])
 
-    const method = (e) => {
+    const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
+        setTextPage(ArrtextPage.filter(val => val !== ""));
+        ImageCover.current.style.height = `${heightCover}%`;
+        BodyRef.current.style.height = `${heigthBody}%`;
+    } , [])
+
+    const method = useCallback((e) => {
         let path = window.location.href.replace(window.location.origin, "").split("/").filter(val => val);
         const type = e ? "=pop" : '';
         if (path.length === 1 && path[0] === "admin") {
@@ -102,6 +90,12 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         } else if (path.length >= 2 && path[0] === "admin") {
             let seconPath = path[1].split("?");
             let query = seconPath[1];
+
+            // temp
+            if(seconPath[0] === "schedules") {
+                TabOn.addTimeOut(TabOn.end());
+                return
+            }
 
             if (seconPath[0] === "list") {
                 if (query === "default") {
@@ -281,37 +275,50 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 />
             );
         }
-    };
+    } , [Auth, Href, TabOn, modifyMainPage, sessionoff, socket])
 
-    const Auth = async (tebLoadOn = false) => {
-        if (tebLoadOn) TabOn.start();
-        const result = await clientMo.post('/api/admin/check');
-        if (result) return true;
-        else sessionoff();
-    };
+    const ChkPath = useCallback(async (e) => {
+        if (await Auth(true)) method(e);
+    } , [Auth, method])
 
-    const sessionoff = (type = false) => {
-        if (type) {
-            setBodyFileMain(<Login setBodyFileMain={setBodyFileMain} socket={socket} />);
-        } else {
-            setSession(<SessionOut setBodyFileMain={setBodyFileMain} sessionEle={sessionRef} />);
-        }
-    };
-
-    const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
-        setTextPage(ArrtextPage.filter(val => val !== ""));
-        ImageCover.current.style.height = `${heightCover}%`;
-        BodyRef.current.style.height = `${heigthBody}%`;
-    } , [])
-
-    const Resize = () => {
+    const Resize = useCallback(() => {
         setResponsive(window.innerWidth);
 
         const LoadImg = () => {
             setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
         }
-    
-    };
+    } , [])
+
+    useEffect(() => {
+        FetchProfile();
+        ChkPath(null , "web")
+        setTabMenu(
+            <DesktopNev
+                setSession={sessionoff}
+                setBodyFileMain={setBodyFileMain}
+                setBodyFileAdmin={setBody}
+                socket={socket}
+                auth={Auth}
+                modify={modifyMainPage}
+                eleImageCover={ImageCover} 
+                eleBody={BodyRef} setTextStatus={setTextPage} 
+                TabOn={TabOn}
+                HrefData={Href}
+                getProfile={getProfile} 
+                FetchProfile={FetchProfile}
+            />
+        );
+
+        window.addEventListener("popstate", ChkPath);
+        window.addEventListener("resize", Resize);
+        socket.emit("connect-account", username, password);
+
+        return () => {
+            socket.emit("disconnect-account", username, password);
+            window.removeEventListener("popstate", ChkPath);
+            window.removeEventListener("resize", Resize);
+        };
+    }, []);
 
     return (
         <AdminContext.Provider
@@ -366,7 +373,17 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 <section ref={BodyRef} className="container-body-admin">
                     <bot-main>
                         <bot-content>
-                            {body}
+                            {/* {body} */}
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path="/admin/schedules" element={<ScheduleIndex/>}>
+                                        <Route index element={<SchedulesPlan/>} />
+                                        <Route path=":station_id" element={<SchedulesPlan/>} />
+                                        <Route path=":station_id/:plant_id" element={<SchedulePlants/>} />
+                                    </Route>
+                                    <Route path="*" element={body} />
+                                </Routes>
+                            </BrowserRouter>
                         </bot-content>
                     </bot-main>
                 </section>

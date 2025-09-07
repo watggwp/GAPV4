@@ -8,6 +8,31 @@ class AuthorizeUser {
         this.Pool = pool
     }
 
+    async admin(username , password , options = { select : "*" }) {
+        const { select } = options
+        try {
+            const [ profile ] = await this.Pool.executeQuery(
+                `
+                SELECT ${select}
+                FROM admin
+                WHERE BINARY username = ? AND password = SHA2( ? , 256)
+                LIMIT 1
+                `,
+                [ username , password ]
+            )
+
+            return {
+                profile : profile,
+                verified : Boolean(profile)
+            }
+        } catch(err) {
+            return {
+                profile : {},
+                verified : false
+            }
+        }
+    }
+
     async doctor(username , password , role , options = { select : "*" }) {
         const { select } = options
         try {

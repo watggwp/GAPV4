@@ -2,9 +2,9 @@ import { Button, Checkbox, Chip, DialogActions, DialogContent, DialogTitle, Menu
 import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import Fertilizer from "./types/fertilizer";
 import Pests from "./types/pest";
-import RequestAPI from "../../../../../../../assets/js/requestAPI";
-import { useParams } from "react-router";
-import ApproveDialogApp from "../../../../../../../assets/components/ApproveDialogApp";
+import { useSchedulePlants } from "..";
+import RequestAPI from "../../../../js/requestAPI";
+import ApproveDialogApp from "../../../ApproveDialogApp";
 
 const Categorys = [
     {
@@ -20,8 +20,7 @@ const Categorys = [
 export default function DialogSchedule({
     schedule_id , type , onClose , requestSchedulePlants
 }) {
-
-    const { plant_id } = useParams()
+    const { plant_id , station_id } = useSchedulePlants()
 
     const [ category , setCategory ] = useState("")
     const [ title , setTitle ] = useState("")
@@ -90,7 +89,11 @@ export default function DialogSchedule({
         setLoadingSubmit(true)
         const { status } = await (
             type === "insert" ?
-                RequestAPI.post("/api/schedules" , insertData) :
+                RequestAPI.post("/api/schedules" , insertData , {
+                    params : {
+                        station_id
+                    }
+                }) :
                 RequestAPI.put(`/api/schedules/${plant_id}/${schedule_id}` , insertData)
         )
         setLoadingSubmit(false)
@@ -263,6 +266,7 @@ export default function DialogSchedule({
                             type === "edit" && 
                                 <DeleteSchedule
                                     schedule_id={schedule_id}
+                                    plant_id={plant_id}
                                     requestSchedulePlants={requestSchedulePlants}
                                     onClose={onClose}
                                 />
@@ -308,11 +312,10 @@ const LabelHelpInput = ({
 
 const DeleteSchedule = ({
     schedule_id ,
+    plant_id ,
     requestSchedulePlants,
     onClose
 }) => {
-    const { plant_id } = useParams()
-
     const [ open , setOpen ] = useState(false)
     const [ loadingConfirm , setLoadingConfirm ] = useState(false)
     const [ password , setPassword ] = useState("")

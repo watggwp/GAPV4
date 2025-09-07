@@ -13,9 +13,10 @@ import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
 import PageData from "./page/data/PageData";
 import { BrowserRouter, Route, Routes } from "react-router";
-import SchedulePlant from "./page/schedule/schedules";
-import SchedulePlants from "./page/schedule/schedulePlants";
 import ScheduleIndex from "./page/schedule";
+import SchedulesPlan from "./page/schedule/schedules";
+import SchedulePlants from "./page/schedule/schedulePlants";
+
 export const DoctorContext = createContext({
     profile : {},
     bannerCoverRef : { current : "" },
@@ -201,7 +202,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                             <BrowserRouter>
                                 <Routes>
                                     <Route path="/doctor/schedules" element={<ScheduleIndex/>}>
-                                        <Route index element={<SchedulePlant/>} />
+                                        <Route index element={<SchedulesPlan/>} />
                                         <Route path=":plant_id" element={<SchedulePlants/>} />
                                     </Route>
                                     <Route path="*" element={body} />
