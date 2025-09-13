@@ -12,7 +12,7 @@ export default function SchedulesPlanStation() {
     const [ stations , setStations ] = useState([])
     const [ loadingStations , setLoadingStations ] = useState(true)
 
-    const [ stationID , setStationID ] = useState(station_id)
+    const [ stationID , setStationID ] = useState(station_id || "")
 
     const requestStations = useCallback( async () => {
         setLoadingStations(true)
@@ -23,6 +23,10 @@ export default function SchedulesPlanStation() {
             case 200 :
                 try {
                     setStations(data)
+                    const { id } = data[0] || {}
+                    
+                    setStationID(id)
+                    navigator(`/admin/schedules/${id}` , { replace : true })
                 } catch(err) {}
                 break;
             default :
