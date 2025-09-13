@@ -80,7 +80,7 @@ const schedulePlan = {
                     `ปริมาณ: ${volume} ${unit_volume}`,
                     `วิธีใช้: ${how_use} (หากไม่แน่ใจ ให้ดูบนฉลาก)`
                 ]
-                
+
                 return [
                     MessageLineTemplate.bubbleTemplateUrl(
                         title,
@@ -121,6 +121,8 @@ const schedulePlan = {
                     details_message
                 ]
             }
+            default :
+                return []
         }
     }
 }

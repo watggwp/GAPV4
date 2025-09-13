@@ -15,7 +15,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
         const schedule_history_params = []
         const schedule_history_values = []
         schedule_plan.forEach( async ({ uid_line , ...schedule }) => {
-            const { greenhouse_id } = schedule
+            const { id : schedule_id , greenhouse_id } = schedule
             const [messages , details_message] = schedulePlan.generateMessage(schedule)
 
             try {
@@ -24,8 +24,8 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
                     messages
                 )
 
-                schedule_history_params.push("( ? , ? )")
-                schedule_history_values.push(greenhouse_id , details_message)
+                schedule_history_params.push("( ? , ? , ? )")
+                schedule_history_values.push(schedule_id , greenhouse_id , details_message)
             } catch(err) {
                 console.log("uid:" , uid_line)
                 console.log("message:" , messages)
@@ -34,7 +34,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
 
         await connectionPool.executeQuery(
             `
-                INSERT INTO schedules_history (greenhouse_id , details_message)
+                INSERT INTO schedules_history (schedule_id , greenhouse_id , details_message)
                     VALUES ${schedule_history_params.join(",")}
             `,
             schedule_history_values
