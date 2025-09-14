@@ -41,7 +41,13 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
                 schedule_history_values
             )
         } catch(error) {
-            console.log(`Save schedule history: ${error}`)
+            console.error(`Save schedule history: ${error}`)
+            console.error(`
+                    INSERT INTO schedules_history (schedule_id , greenhouse_id , details_message)
+                        VALUES ${schedule_history_params.join(",")}
+                `)
+            console.error(schedule_history_params)
+            console.error(schedule_history_values)
         }
     })
 }
