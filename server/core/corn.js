@@ -32,12 +32,16 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
             }
         })
 
-        await connectionPool.executeQuery(
-            `
-                INSERT INTO schedules_history (schedule_id , greenhouse_id , details_message)
-                    VALUES ${schedule_history_params.join(",")}
-            `,
-            schedule_history_values
-        )
+        try {
+            await connectionPool.executeQuery(
+                `
+                    INSERT INTO schedules_history (schedule_id , greenhouse_id , details_message)
+                        VALUES ${schedule_history_params.join(",")}
+                `,
+                schedule_history_values
+            )
+        } catch(error) {
+            console.log(`Save schedule history: ${error}`)
+        }
     })
 }
