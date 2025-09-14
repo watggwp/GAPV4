@@ -19,10 +19,10 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
             const [messages , details_message] = schedulePlan.generateMessage(schedule)
 
             try {
-                await RoyalGapLine.pushMessage(
-                    uid_line,
-                    messages
-                )
+                // await RoyalGapLine.pushMessage(
+                //     uid_line,
+                //     messages
+                // )
 
                 schedule_history_params.push("( ? , ? , ? )")
                 schedule_history_values.push(schedule_id , greenhouse_id , details_message)
