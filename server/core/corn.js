@@ -25,7 +25,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool()) {
                 // )
 
                 schedule_history_params.push("( ? , ? , ? )")
-                schedule_history_values.push(schedule_id , greenhouse_id , details_message)
+                schedule_history_values.push(schedule_id , greenhouse_id , details_message.join("\n"))
             } catch(err) {
                 console.log("uid:" , uid_line)
                 console.log("message:" , messages)
