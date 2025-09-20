@@ -190,6 +190,7 @@ export default function WeatherManagement({
                             <LoadWeather
                                 startTime={startTime}
                                 endTime={endTime}
+                                setLoadingHistory={setLoadingHistory}
                                 ProcessRequestDateRange={ProcessRequestDateRange}
                             />
                     }
@@ -217,11 +218,13 @@ export default function WeatherManagement({
 }
 
 function LoadWeather({
+    setLoadingHistory,
     ProcessRequestDateRange , 
     startTime ,
     endTime
 }) {
     useEffect(() => {
+        setLoadingHistory(true)
         ProcessRequestDateRange( startTime , endTime , true )
-    } , [ProcessRequestDateRange, endTime, startTime])
+    } , [ProcessRequestDateRange, endTime, setLoadingHistory, startTime])
 }
