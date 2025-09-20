@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Grid, Pagination, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DataGrid } from "@mui/x-data-grid"
@@ -178,7 +178,7 @@ export default function WeatherManagement({
                         }
                     </Stack>
                     {
-                        Boolean(!startTime && !endTime) && (
+                        Boolean(!startTime && !endTime) ?
                             <DateRange
                                 startTime={startTime}
                                 endTime={endTime}
@@ -186,8 +186,12 @@ export default function WeatherManagement({
                                 onChangeRangeStepPreprocess={PreprocessDateRange}
                                 onChangeRangeStepProcess={ProcessRequestDateRange}
                                 onChangeRangeStepPostprocess={PostProcessDateRange}
+                            /> : 
+                            <LoadWeather
+                                startTime={startTime}
+                                endTime={endTime}
+                                ProcessRequestDateRange={ProcessRequestDateRange}
                             />
-                        )
                     }
                 </Grid>
                 <Grid
@@ -210,4 +214,14 @@ export default function WeatherManagement({
             </Grid>
         </Stack>
     )
+}
+
+function LoadWeather({
+    ProcessRequestDateRange , 
+    startTime ,
+    endTime
+}) {
+    useEffect(() => {
+        ProcessRequestDateRange( startTime , endTime , true )
+    } , [ProcessRequestDateRange, endTime, startTime])
 }
