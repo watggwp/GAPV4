@@ -88,8 +88,8 @@ export default function SchedulesPlanStation() {
                             size="small"
                             onChange={onChangeSelectTypeSchedule}
                         >
-                            <MenuItem value={true}>กำหนดขั้นตอนแล้ว</MenuItem>
-                            <MenuItem value={false}>ยังไม่กำหนดขั้นตอนแล้ว</MenuItem>
+                            <MenuItem value={true}>กำหนดแผนการปลูกแล้ว</MenuItem>
+                            <MenuItem value={false}>ยังไม่กำหนดแผนการปลูกแล้ว</MenuItem>
                         </Select>
                     </Stack>
                 </Grid>
