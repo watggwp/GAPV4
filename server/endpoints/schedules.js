@@ -9,23 +9,25 @@ const RoyalGapEnv = require('../core/env');
 module.exports = function Schedules(app, pool = new Pool()) {
     app.get('/api/schedules', async (req, res) => {
         const { profile : { station_doctor : station_id } = {} } = req.session
-        const { station_id : station_id_payload = station_id } = req.query
+        const { station_id : station_id_payload = station_id , has_total_schedule } = req.query
 
         try {
             const schedule_plants = await pool.executeQuery(
                 `
-                    SELECT pl.id , pl.name , (
-                        SELECT COUNT(s.id)
-                        FROM schedules s
-                        WHERE s.plant_id = pl.id
-                        ${
-                            station_id_payload !== undefined ? 
-                                "AND s.station_id = ?" : 
-                                ""
-                        }
-                    ) as total_schedule
+                    SELECT pl.id , pl.name , COUNT(s.id) as total_schedule
                     FROM plant_list as pl
-                    WHERE pl.is_use = 1
+                    LEFT JOIN 
+                        schedules s ON 
+                            s.plant_id = pl.id
+                            ${
+                                station_id_payload !== undefined ? 
+                                    "AND s.station_id = ?" : 
+                                    ""
+                            }
+                    WHERE pl.is_use = 1 ${ 
+                        has_total_schedule !== undefined ? ( 
+                            Number(has_total_schedule) ? "AND s.id IS NOT NULL" : "AND s.id IS NULL"
+                        ) : "" }
                     GROUP BY pl.id , pl.name
                     ORDER BY pl.name
                 ` , 

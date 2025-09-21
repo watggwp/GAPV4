@@ -14,6 +14,8 @@ export default function SchedulesPlanStation() {
 
     const [ stationID , setStationID ] = useState(station_id || "")
 
+    const [ hasTotalSchedule , setHasTotalSchedule ] = useState(true)
+
     const requestStations = useCallback( async () => {
         setLoadingStations(true)
         const { data , status } = await RequestAPI.post("/api/admin/station/list")
@@ -25,14 +27,16 @@ export default function SchedulesPlanStation() {
                     setStations(data)
                     const { id } = data[0] || {}
                     
-                    setStationID(id)
-                    navigator(`/admin/schedules/${id}` , { replace : true })
+                    if(!stationID) {
+                        setStationID(id)
+                        navigator(`/admin/schedules/${id}` , { replace : true })
+                    }
                 } catch(err) {}
                 break;
             default :
                 break;
         }
-    } , [])
+    } , [navigator])
 
     const onSelectedStation = useCallback((event) => {
         setStationID(event.target.value)
@@ -43,6 +47,10 @@ export default function SchedulesPlanStation() {
         navigator(`/admin/schedules/${stationID}/${plant_id}`)
     } , [navigator, stationID])
 
+    const onChangeSelectTypeSchedule = useCallback(({ target : { value } }) => {
+        setHasTotalSchedule(value)
+    } , [])
+
     useEffect(() => {
         requestStations()
     } , [requestStations])
@@ -51,29 +59,39 @@ export default function SchedulesPlanStation() {
         <Stack height={"100%"} width={"100%"} spacing={2} padding={2}>
             <Grid container size={{ xs : 12 }}>
                 <Grid size={{ sm : 12 , md : 6 }}>
-                    <Select
-                        displayEmpty
-                        value={stationID}
-                        size="small"
-                        disabled={loadingStations}
-                        onChange={onSelectedStation}
-                        fullWidth
-                    >
-                        {
-                            loadingStations ?
-                                <MenuItem value="" disabled>
-                                    กำลังโหลดศูนย์
-                                </MenuItem> :
-                                <MenuItem value="" disabled>
-                                    เลือกศูนย์
-                                </MenuItem>
-                        }
-                        {
-                            stations.map(({ id , name }) => 
-                                <MenuItem key={id} value={id}>{name}</MenuItem>
-                            )
-                        }
-                    </Select>
+                    <Stack spacing={1}>
+                        <Select
+                            displayEmpty
+                            value={stationID}
+                            size="small"
+                            disabled={loadingStations}
+                            onChange={onSelectedStation}
+                            fullWidth
+                        >
+                            {
+                                loadingStations ?
+                                    <MenuItem value="" disabled>
+                                        กำลังโหลดศูนย์
+                                    </MenuItem> :
+                                    <MenuItem value="" disabled>
+                                        เลือกศูนย์
+                                    </MenuItem>
+                            }
+                            {
+                                stations.map(({ id , name }) => 
+                                    <MenuItem key={id} value={id}>{name}</MenuItem>
+                                )
+                            }
+                        </Select>
+                        <Select
+                            value={hasTotalSchedule}
+                            size="small"
+                            onChange={onChangeSelectTypeSchedule}
+                        >
+                            <MenuItem value={true}>กำหนดขั้นตอนแล้ว</MenuItem>
+                            <MenuItem value={false}>ยังไม่กำหนดขั้นตอนแล้ว</MenuItem>
+                        </Select>
+                    </Stack>
                 </Grid>
                 <Grid size={{ sm : 12 , md : 6 }} textAlign={"end"}>
                     <TextField
@@ -87,6 +105,7 @@ export default function SchedulesPlanStation() {
                     <SchedulesPlanManagement
                         station_id={stationID}
                         onClickOpenSchedule={onClickSelectedPlan}
+                        hasTotalSchedule={hasTotalSchedule}
                     />
             }
         </Stack>

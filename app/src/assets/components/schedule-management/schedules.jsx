@@ -1,20 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Button, Stack, TextField } from "@mui/material";
+import { Button } from "@mui/material";
 import RequestAPI from "../../js/requestAPI";
 
 const SchedulesPlanContext = createContext({
     onClickOpenSchedule : () => {}
 })
 
-export default function SchedulesPlanManagement({ station_id , onClickOpenSchedule }) {
+export default function SchedulesPlanManagement({ station_id , onClickOpenSchedule , hasTotalSchedule}) {
     const [ plants , setPlants ] = useState([])
     const [ loadingPlants , setLoadingPlants ] = useState(false)
 
     const requestPlantSchedules = useCallback( async () => {
+        setPlants([])
         setLoadingPlants(true)
         const { status , data } = await RequestAPI.get("/api/schedules" , {
-            station_id
+            station_id,
+            has_total_schedule : hasTotalSchedule ? 1 : 0
         })
         setLoadingPlants(false)
 
@@ -25,7 +27,7 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
             default :
                 break;
         }
-    } , [station_id])
+    } , [hasTotalSchedule, station_id])
 
     useEffect(() => {
         requestPlantSchedules()
