@@ -269,4 +269,44 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
             return res.status(400).send("Invalid data format");
         }
     })
+
+    app.get("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id/status", async (req, res) => {
+        const { greenhouse_id, device_id } = req.params;
+        const { r: role } = req.query;
+
+        switch (role) {
+            case "doctor":
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+                if (!username || !password) return res.status(403).json({ error: "unauthorized" });
+                break;
+            case "farmer":
+                const uid = req.session.uidFarmer;
+                // if (!uid) return res.status(403).json({ error: "unauthorized" });
+                break;
+            default:
+                return res.status(403).json({ error: "unauthorized" });
+        }
+
+        try {
+            const rows = await pool.executeQuery(`
+            SELECT timestamp FROM weather_greenhouse 
+            WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1
+        `, [device_id]);
+
+            if (rows.length === 0) return res.json({ status: "offline" });
+
+            const latest = new Date(rows[0].timestamp);
+            const now = new Date();
+            const diffMinutes = (now - latest) / 1000 / 60;
+
+            return res.json({
+                status: diffMinutes <= 10 ? "online" : "offline"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ error: "internal error" });
+        }
+    });
 }
