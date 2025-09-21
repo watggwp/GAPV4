@@ -86,9 +86,6 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // config server and Hot Refresh
     // if(mode != process.env.BUILD) reactServ(app)
 
-    ScheduleCorn(Pool)
-    callServices(app , Pool)
-
     // set session
     console.log(mode)
     const sessionMiddleware = sessions({
@@ -172,6 +169,10 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     app.use(express.static('build/admin'))
     app.use(express.static('build/doctor'))
     app.use(express.static('build/farmer'))
+
+    // services
+    ScheduleCorn(Pool)
+    callServices(app , Pool)
 
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)
