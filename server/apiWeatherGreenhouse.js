@@ -296,7 +296,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
             if (rows.length === 0) return res.json({ status: "offline" });
 
-            const latest = new Date(rows[0].timestamp);
+            const latest = new Date(rows[0].timestamp + "Z");
             const now = new Date();
             const diffMinutes = (now - latest) / 1000 / 60;
 
