@@ -1,17 +1,16 @@
 import { Stack, Box } from "@mui/material";
 import WeatherManagement from "../../../../../assets/components/weather-management";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import axios from "axios";
+import RequestAPI from "../../../../../assets/js/requestAPI";
+
+const statusColors = {
+    online : "green",
+    offline : "red"
+}
+
 const getStatusColor = (status) => {
-    switch ((status || "").toLowerCase()) {
-        case "online":
-            return "green";
-        case "offline":
-            return "red";
-        default:
-            return "gray";
-    }
+    return statusColors[(status || "").toLowerCase()] || "gray"
 };
 
 export default function SensorGreenhouse() {
@@ -21,25 +20,32 @@ export default function SensorGreenhouse() {
     
     const [deviceStatus, setDeviceStatus] = useState("loading");
 
+    const StatusColor = useMemo(() => 
+        getStatusColor(deviceStatus)
+    , [deviceStatus])
+
     const onReturn = useCallback(() =>
         navigator(`/farmer/form/${greenhouse_id}/${gap_id}/sensor`)
     , [gap_id, greenhouse_id, navigator])
 
-    useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                const res = await axios.get(`/api/sensor/weather-greenhouse/${greenhouse_id}/${device_id}/status?r=farmer`);
-                setDeviceStatus(res.data.status || "offline");
-            } catch (err) {
-                console.error("Failed to fetch device status:", err);
-                setDeviceStatus("offline");
-            }
-        };
+    const CheckStatus = useCallback(async () => {
+        try {
+            const { data } = await RequestAPI.get(`/api/sensor/weather-greenhouse/${greenhouse_id}/${device_id}/status` , {
+                r : "farmer"
+            });
 
-        checkStatus();
-        const interval = setInterval(checkStatus, 60000);
-        return () => clearInterval(interval);
-    }, [greenhouse_id, device_id]);
+            setDeviceStatus(data.status || "offline");
+        } catch (err) {
+            console.error("Failed to fetch device status:", err);
+            setDeviceStatus("offline");
+        }
+    } , [device_id, greenhouse_id])
+
+    useEffect(() => {
+        CheckStatus();
+        const interval = setInterval(CheckStatus, 60000);
+        return (() => clearInterval(interval));
+    }, [greenhouse_id, device_id, CheckStatus]);
 
     return (
         <section id="weather-sensor-farmer">
@@ -61,7 +67,7 @@ export default function SensorGreenhouse() {
                         width: 10,
                         height: 10,
                         borderRadius: "50%",
-                        bgcolor: getStatusColor(deviceStatus),
+                        bgcolor: StatusColor,
                     }}
                 />
             </div>
