@@ -112,7 +112,7 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
         resave : false
     })
 
-    // set proxy
+    // set proxy sub services
     app.use('/gap-device-dashboard', createProxyMiddleware({
         target: 'http://localhost:8000',
         changeOrigin: true,
