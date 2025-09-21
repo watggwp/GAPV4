@@ -14,7 +14,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
         try {
             const schedule_plants = await pool.executeQuery(
                 `
-                    SELECT pl.id , pl.name , COUNT(s.id) as total_schedule
+                    SELECT pl.id , pl.name , pl.variety_name , COUNT(s.id) as total_schedule
                     FROM plant_list as pl
                     LEFT JOIN 
                         schedules s ON 
@@ -28,7 +28,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         has_total_schedule !== undefined ? ( 
                             Number(has_total_schedule) ? "AND s.id IS NOT NULL" : "AND s.id IS NULL"
                         ) : "" }
-                    GROUP BY pl.id , pl.name
+                    GROUP BY pl.id , pl.name , pl.variety_name
                     ORDER BY pl.name
                 ` , 
                 station_id_payload !== undefined ? [ station_id_payload ] : []

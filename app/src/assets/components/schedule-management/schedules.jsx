@@ -45,7 +45,8 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
                         field : "name",
                         headerName : "ชนิดพืช",
                         flex : 2,
-                        minWidth : 200
+                        minWidth : 200,
+                        renderCell : ({ value , row : { variety_name } }) => `${value} ${variety_name ? `(${variety_name})` : ""}`
                     },
                     {
                         field : "total_schedule",
