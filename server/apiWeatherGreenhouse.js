@@ -82,7 +82,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         try {
             const data = await pool.executeQuery(
                 `
-                    SELECT * , DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') as timestamp
+                    SELECT * , CONCAT(DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') , ".000Z") as timestamp
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
