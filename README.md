@@ -85,21 +85,28 @@
 ### Deployment
    - build web application
      - uat
-      ```
-      sh scripts/build-client/uat.sh
+      ```powershell
+      deploy/build-client/uat.bat
       ```
 
      - production
-      ```
-      sh scripts/build-client/production.sh
+      ```powershell
+      deploy/build-client/production.bat
       ```
 
    - Start services server
       - setup env
-      ```
-      export USER_DB=""
-      export PASS_DB=""
-      ```
+         - linux
+         ```sh
+         export USER_DB=""
+         export PASS_DB=""
+         ```
+         
+         - windows
+         ```bat
+         set USER_DB=""
+         set PASS_DB=""
+         ```
 
       - uat
       ```

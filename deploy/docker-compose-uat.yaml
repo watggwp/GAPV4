@@ -3,6 +3,8 @@ services:
     build:
       context: ../
       dockerfile: ./deploy/Dockerfile
+      args:
+        - STAGE=uat
     restart: always
     networks:
       - royal-gap-network
@@ -23,8 +25,6 @@ services:
       MYSQL_ROOT_PASSWORD: ${PASS_DB}
     volumes:
       - royal-gap-uat-volume-db:/var/lib/mysql
-    ports:
-      - 3306:3306
 
   royal-gap-uat-phpmyadmin:
     image: phpmyadmin:latest

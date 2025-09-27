@@ -4,6 +4,8 @@ services:
     build:
       context: ../
       dockerfile: ./deploy/Dockerfile
+      args:
+        - STAGE=prod
     restart: always
     networks:
       - royal-gap-network

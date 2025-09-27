@@ -1,10 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useDeferredValue, useState } from "react";
 import { useNavigate } from "react-router";
 import SchedulesPlanManagement from "../../../../../assets/components/schedule-management/schedules";
 import { MenuItem, Select, Stack, TextField } from "@mui/material";
 
 export default function SchedulesPlan() {
     const navigator = useNavigate()
+
+    const [ search , setSearch ] = useState()
+    const defferredSearch = useDeferredValue(search)
 
     const [ hasTotalSchedule , setHasTotalSchedule ] = useState(true)
 
@@ -30,11 +33,13 @@ export default function SchedulesPlan() {
                 <TextField
                     placeholder="ค้นหา"
                     size="small"
+                    onChange={({ target : { value } }) => setSearch(value)}
                 />
             </Stack>
             <SchedulesPlanManagement
                 onClickOpenSchedule={onClickSelectedPlan}
                 hasTotalSchedule={hasTotalSchedule}
+                searchText={defferredSearch}
             />
         </Stack>
     )

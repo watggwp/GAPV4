@@ -45,10 +45,11 @@ class ClientRequestAPI {
             ...options,
         })
     }
-    async get(url , query) {
+    async get(url , query , options = {}) {
         return await axios.get(`${HOST_API}${url}` , {
             params : query,
-            ...this.options
+            ...this.options,
+            ...options
         })
     }
 

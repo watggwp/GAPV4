@@ -18,7 +18,7 @@ const theme = createTheme({
     typography: {
         fontFamily: "Sans-font",
     },
-})
+});
 
 (function(history) {
   const originalPushState = history.pushState;

@@ -2,13 +2,21 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "@mui/material";
 import RequestAPI from "../../js/requestAPI";
+import RoyalGapFrontendUtil from "../../core/RoyalGapUtil";
 
 const SchedulesPlanContext = createContext({
     onClickOpenSchedule : () => {}
 })
 
-export default function SchedulesPlanManagement({ station_id , onClickOpenSchedule , hasTotalSchedule}) {
+const option = {
+    keys : ["name"],
+    threshold : 0.7
+}
+
+export default function SchedulesPlanManagement({ station_id , onClickOpenSchedule , hasTotalSchedule , searchText }) {
     const [ plants , setPlants ] = useState([])
+    const [ plantFuse , setPlantFuse ] = useState(undefined)
+
     const [ loadingPlants , setLoadingPlants ] = useState(false)
 
     const requestPlantSchedules = useCallback( async () => {
@@ -23,6 +31,12 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
         switch(status) {
             case 200 :
                 setPlants(data)
+                setPlantFuse(
+                    RoyalGapFrontendUtil.GetMatchSearch(
+                        data,
+                        option
+                    )
+                )
                 break;
             default :
                 break;
@@ -64,7 +78,11 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
                         renderCell: ButtonOpenSchedule
                     }
                 ]}
-                rows={plants}
+                rows={
+                    searchText ?
+                        plantFuse?.search(searchText)?.map(({ item }) => item) :
+                        plants
+                }
                 loading={loadingPlants}
                 hideFooterPagination
                 hideFooter
