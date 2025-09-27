@@ -1,0 +1,45 @@
+services:
+  royal-gap-uat:
+    build:
+      context: ../
+      dockerfile: ./deploy/Dockerfile
+    restart: always
+    networks:
+      - royal-gap-network
+    environment:
+      - HOST_DB_CONTAINER=royal-gap-uat-db
+      - URL_SERVER_CONTAINER=https://gapv2.ngrok.app/uat
+    command: ["${USER_DB}", "${PASS_DB}"]
+    depends_on:
+      - royal-gap-uat-db
+
+  royal-gap-uat-db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: gapv3
+      MYSQL_USER: ${USER_DB}
+      MYSQL_PASSWORD: ${PASS_DB}
+      MYSQL_ROOT_PASSWORD: ${PASS_DB}
+    volumes:
+      - royal-gap-uat-volume-db:/var/lib/mysql
+    ports:
+      - 3306:3306
+
+  royal-gap-uat-phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: royal-gap-uat-db
+      PMA_USER: ${USER_DB}
+      PMA_PASSWORD: ${PASS_DB}
+    ports:
+      - 8336:80
+    depends_on:
+      - royal-gap-uat-db
+
+networks:
+  royal-gap-network:
+
+volumes:
+  royal-gap-uat-volume-db:

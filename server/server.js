@@ -28,7 +28,7 @@ if(!username && !password) {
 
         if(username && password && state == 1) {
             let con = db.createConnection({
-                host: process.env.HOST,
+                host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
                 user: username,
                 password : password,
                 database : mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV 

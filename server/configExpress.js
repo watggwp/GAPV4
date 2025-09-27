@@ -39,7 +39,7 @@ const callServices = require('./callServices');
 const apiAddDevice = require('./apiAddDevice');
 
 
-module.exports = function appConfig(username , password , UrlNgrok ) {
+module.exports = function appConfig(username , password , hostServer ) {
     require('dotenv').config().parsed
  
     // const python = spawn(
@@ -110,14 +110,14 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     })
 
     // set proxy sub services
-    app.use('/gap-device-dashboard', createProxyMiddleware({
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        ws: true,
-        pathRewrite: (path, req) => {
-            return path
-        }
-    }))
+    // app.use('/gap-device-dashboard', createProxyMiddleware({
+    //     target: 'http://localhost:8000',
+    //     changeOrigin: true,
+    //     ws: true,
+    //     pathRewrite: (path, req) => {
+    //         return path
+    //     }
+    // }))
    
     // app.use(express.json())
     app.use(cookieParser())
@@ -177,13 +177,13 @@ module.exports = function appConfig(username , password , UrlNgrok ) {
     // router api url
     if(mode === process.env.BUILD || mode === "router") router(app)
     apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
-    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , UrlNgrok , io)
+    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
     apiFarmer(app , db , Pool , dbpackage , listDB , io)
     apiEcph(app , Pool)
     apiWeatherStation(app , Pool)
     apiWeatherGreenhouse(app , Pool)
     apiPump(app , Pool)
-    apiMessage(app , db , apifunc , dbpackage , listDB , UrlNgrok , io)
+    apiMessage(app , db , apifunc , dbpackage , listDB , hostServer , io)
     
     apiSchedules(app , Pool)
     apiFertilizers(app , Pool)

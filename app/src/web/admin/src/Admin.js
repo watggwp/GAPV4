@@ -73,7 +73,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     } , [])
 
     const method = useCallback((e) => {
-        let path = window.location.href.replace(window.location.origin, "").split("/").filter(val => val);
+        const path = window.location.pathname.replace("/uat", "").split("/").filter(val => val);
         const type = e ? "=pop" : '';
         if (path.length === 1 && path[0] === "admin") {
             setBody(
@@ -374,7 +374,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     <bot-main>
                         <bot-content>
                             {/* {body} */}
-                            <BrowserRouter>
+                            <BrowserRouter >
                                 <Routes>
                                     <Route path="/admin/schedules" element={<ScheduleIndex/>}>
                                         <Route index element={<SchedulesPlan/>} />

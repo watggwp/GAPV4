@@ -24,7 +24,7 @@ import HouseSetup from "./src/HouseList/setup";
 
 export default function Router() {
     return(
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
             <Routes>
                 <Route path="/farmer" element={<MainFarmer/>}>
                     <Route path="signup" element={<SignUp/>} />

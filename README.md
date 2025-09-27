@@ -82,8 +82,39 @@
       npm run server-node 'username-db' 'password-db'
       ```
 
-### Revise
-   - Search "revise code"
+### Deployment
+   - build web application
+     - uat
+      ```
+      sh scripts/build-client/uat.sh
+      ```
+
+     - production
+      ```
+      sh scripts/build-client/production.sh
+      ```
+
+   - Start services server
+      - setup env
+      ```
+      export USER_DB=""
+      export PASS_DB=""
+      ```
+
+      - uat
+      ```
+      docker compose -f deploy/docker-compose-uat.yaml up -d
+      ```
+
+      - production
+      ```
+      docker compose -f deploy/docker-compose-production.yaml up -d
+      ```
+
+      - reverse proxy
+      ```
+      docker compose -f deploy/docker-compose-reverse-proxy.yaml up -d
+      ```
 
 ### Tool and Technical
    - Fontend

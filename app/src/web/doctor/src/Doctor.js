@@ -71,7 +71,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const ChkPath = async (e , type="pop") => {
         const context = await clientMo.post('/api/doctor/check')
         if(context) {
-            let path = window.location.pathname.split("/").filter(val=>val)
+            let path = window.location.pathname.replace("/uat").split("/").filter(val=>val)
             if(path.length === 1 && path[0] === "doctor") setBody(<NavFirst setMain={setMain} setdoctor={setBody} setSession={sessionoff} socket={socket} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
             else if(path.length >= 2 && path[0] === "doctor") {
                 if(path[1] === "form"){

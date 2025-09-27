@@ -1,8 +1,9 @@
 import axios from "axios";
+import env from "../../env"
 
-const HOST_API = process.env.NODE_ENV === "development" ? 
-    "http://" + process.env.REACT_APP_API_LOCAL + ":" + process.env.REACT_APP_API_PORT :
-    ""
+const { domain , subpath_server } = env
+
+const HOST_API = `${domain}${subpath_server}`
 
 class ClientRequestAPI {
 
