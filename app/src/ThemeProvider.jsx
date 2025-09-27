@@ -22,7 +22,6 @@ const theme = createTheme({
 
 (function(history) {
   const originalPushState = history.pushState;
-
   history.pushState = function(state, title, url) {
     // ถ้า url เป็น relative path
     if (typeof url === "string" && !url.startsWith(subpath_server)) {
@@ -30,6 +29,15 @@ const theme = createTheme({
       url = subpath_server + url;
     }
     return originalPushState.apply(this, [state, title, url]);
+  };
+
+  const originalReplaceState = history.replaceState;
+  history.replaceState = function(state, title, url) {
+    // ถ้า url เป็น relative path และยังไม่เริ่มด้วย subpath_server
+    if (typeof url === "string" && !url.startsWith(subpath_server)) {
+      url = subpath_server + url;
+    }
+    return originalReplaceState.apply(this, [state, title, url]);
   };
 })(window.history);
 

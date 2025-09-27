@@ -42,7 +42,7 @@ const env = {
             process.env.REACT_APP_API_DEV :
             process.env.REACT_APP_API_PROD
     ),
-    subpath_server: process.env.PUBLIC_URL || ""
+    subpath_server: process.env.REACT_APP_PUBLIC_URL || ""
 }
 
 export default env

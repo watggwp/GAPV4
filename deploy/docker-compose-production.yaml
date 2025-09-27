@@ -24,6 +24,8 @@ services:
       MYSQL_USER: ${USER_DB}
       MYSQL_PASSWORD: ${PASS_DB}
       MYSQL_ROOT_PASSWORD: ${PASS_DB}
+    networks:
+      - royal-gap-network
     volumes:
       - royal-gap-production-volume-db:/var/lib/mysql
     ports:
@@ -36,6 +38,8 @@ services:
       PMA_HOST: royal-gap-production-db
       PMA_USER: ${USER_DB}
       PMA_PASSWORD: ${PASS_DB}
+    networks:
+      - royal-gap-network
     ports:
       - 8336:80
     depends_on:

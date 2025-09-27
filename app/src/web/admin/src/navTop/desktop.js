@@ -6,6 +6,7 @@ import { PopupDom } from "../../../../assets/js/module";
 import "../assets/style/NevTop/Desktop.scss";
 import NavFirst from "../navFirst";
 import ProfilePage from "../page/profile/Profile";
+import env from "../../../../env";
 
 const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , setBodyFileAdmin , modify , TabOn , HrefData ,getProfile, FetchProfile , eleImageCover , eleBody , setTextStatus}) => {
     let selectPage = true
@@ -109,7 +110,7 @@ const DesktopNev = ({setBodyFileMain , setMain , setSession , socket , auth , se
                 <>
                 <span className="pg-action">
                     <a onClick={(e)=>clickMenu(e , "HOME")} className="Logo" href="/admin" title="หมอพืช">
-                        <img src="/logo2.png"></img>
+                        <img src={`${env.subpath_server}/logo2.png`}></img>
                         <span>Admin</span>
                     </a>
                 </span>
@@ -184,7 +185,7 @@ const MenuMobile = ({RefMenu , setBodyMenu , Click = {
             <div className="content">
                 <div className="frame-pg">
                     <div className="img">
-                        <img src={"/logo2.png"}></img>
+                        <img src={`${env.subpath_server}/logo2.png`}></img>
                     </div>
                     <div className="fullname">
                         <div style={{

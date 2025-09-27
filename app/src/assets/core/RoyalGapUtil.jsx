@@ -1,4 +1,5 @@
 import Fuse from "fuse.js"
+import env from "../../env";
 
 export default class RoyalGapFrontendUtil {
     static mergePathParam(path , params) {
@@ -14,5 +15,9 @@ export default class RoyalGapFrontendUtil {
             keys: keys,
             threshold: threshold,
         })
+    }
+
+    static withSubpath(src) {
+        return env.subpath_server + src;
     }
 }

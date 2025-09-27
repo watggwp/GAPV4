@@ -16,6 +16,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import ScheduleIndex from "./page/schedule";
 import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
+import env from "../../../env";
 
 export const DoctorContext = createContext({
     profile : {},
@@ -71,7 +72,8 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     const ChkPath = async (e , type="pop") => {
         const context = await clientMo.post('/api/doctor/check')
         if(context) {
-            let path = window.location.pathname.replace("/uat").split("/").filter(val=>val)
+            const path = window.location.pathname.replace("/uat" , "").split("/").filter(val=>val)
+            console.log(path)
             if(path.length === 1 && path[0] === "doctor") setBody(<NavFirst setMain={setMain} setdoctor={setBody} setSession={sessionoff} socket={socket} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
             else if(path.length >= 2 && path[0] === "doctor") {
                 if(path[1] === "form"){
@@ -153,7 +155,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                         <div className="text-cover">
                             <div className="icon">
                                 <span>ยินดีต้อนรับ</span>
-                                <img src="/Logo-white.png"></img>
+                                <img src={`${env.subpath_server}/Logo-white.png`}></img>
                             </div>
                             <div className="status">
                                 {TextPage.map((val , index)=>(
@@ -165,7 +167,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                             </div>
                         </div>
                         <div className="frame">
-                            <img src="/cover-2-3.png"></img>
+                            <img src={`${env.subpath_server}/cover-2-3.png`}></img>
                         </div>
                         </> :
                         <>
@@ -187,7 +189,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                             </div>
                         </div>
                         <div className="frame-image-cover">
-                            <img src="/cover-2-3.png"></img>
+                            <img src={`${env.subpath_server}/cover-2-3.png`}></img>
                         </div>
                         
                         </>

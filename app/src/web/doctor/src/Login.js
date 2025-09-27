@@ -154,7 +154,7 @@ list.forEach((item) =>
             <div style={{backgroundImage : `url(${env.Background})`}} onLoad={()=>clientMo.unLoadingPage()} ref={Body} className="login-doctor">
                 <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
                     <div className="Logo-App">
-                        <img src="/logo2.png"></img>
+                        <img src={`${env.subpath_server}/logo2.png`}></img>
                         <span>หมอพืช</span>
                     </div>
                     <div class="navigation" id="tab">

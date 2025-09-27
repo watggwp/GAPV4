@@ -5,6 +5,7 @@ import { PopupDom } from "../../../../assets/js/module";
 import House from "./House/House";
 import { Stack } from "@mui/material";
 import { Outlet, useNavigate, useParams } from "react-router";
+import env from "../../../../env";
 
 export default function GreenhouseOutlet() {
     const { greenhouse_id } = useParams()
@@ -43,7 +44,7 @@ export default function GreenhouseOutlet() {
             <div className="farm-body">
                 <div className="head-nav" ref={HeadNav}>
                     <div onLoad={Load} className="logo" onClick={HomeClick}>
-                        <img src="/logo2.png"></img>
+                        <img src={`${env.subpath_server}/logo2.png`}></img>
                         <span>GAP</span>
                     </div>
                     <div className="menu-icon">

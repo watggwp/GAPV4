@@ -8,6 +8,7 @@ import "../style/moduleStyle.scss";
 
 import { ThaiDatePicker } from "thaidatepicker-react";
 import { Box } from "@mui/material";
+import RoyalGapFrontendUtil from "../core/RoyalGapUtil";
 
 const MapsJSX = ({lat , lng , w , h}) => {
     const [latitude , setLag] = useState(0)
@@ -341,7 +342,7 @@ const Loading = ({size , MaxSize = 0 , border , color="green" , animetion = fals
 const ButtonMenu = ({type , textRow1 , textRow2 , action}) => {
     return(
         <div onClick={action} className={`bt-menu-frame ${type}`}>
-            <img src={`/iconBt/icon-bt-${type}.png`}></img>
+            <img src={RoyalGapFrontendUtil.withSubpath(`/iconBt/icon-bt-${type}.png`)}></img>
             <div className="text-one">{textRow1}</div>
             <div className="text-two">{textRow2}</div>
             <div className="action">

@@ -1002,6 +1002,7 @@ module.exports = function apiDoctor (app , Database , pool = new ConnentPool() ,
                 }
             }
         }).catch((err)=>{
+            console.log(err)
             con.end()
             if(err == "not pass") {
                 res.redirect('/api/logout')

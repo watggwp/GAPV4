@@ -1,5 +1,6 @@
 set BUILD_PATH=deploy/builds/uat
 set PUBLIC_URL=/uat
+set REACT_APP_PUBLIC_URL=/uat
 
 echo Build UAT
 

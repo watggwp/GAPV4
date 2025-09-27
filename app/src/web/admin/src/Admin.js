@@ -11,6 +11,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import ScheduleIndex from "./page/schedule";
 import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
+import env from "../../../env";
 
 export const AdminContext = React.createContext({
     TabOn : undefined,
@@ -341,7 +342,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             <div className="text-cover">
                                 <div className="icon">
                                     <span>ยินดีต้อนรับ</span>
-                                    <img src="/Logo-white.png" alt="Logo" />
+                                    <img src={`${env.subpath_server}/Logo-white.png`} alt="Logo" />
                                 </div>
                                 <div className="status">
                                     {TextPage.map((val, index) => (

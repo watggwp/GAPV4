@@ -2,9 +2,9 @@ services:
   reverse-proxy-gap:
     image: nginx
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/conf.d/royal-gap.conf:ro
     ports:
-      - 3001:80
+      - 3001:443
     networks:
       - royal-gap-network
 

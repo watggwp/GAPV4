@@ -22,7 +22,7 @@ const publicUrlOrPath = getPublicUrlOrPath(
   process.env.PUBLIC_URL
 );
 
-const buildPath = process.env.BUILD_PATH || 'build' + "/" + process.argv[2];
+const buildPath = (process.env.BUILD_PATH || 'build') + "/" + process.argv[2];
 
 const moduleFileExtensions = [
   'web.mjs',

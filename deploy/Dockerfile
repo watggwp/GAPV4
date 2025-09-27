@@ -13,7 +13,9 @@ ENV REACT_APP_API_PORT=8080
 COPY package.json package-lock.json ./
 RUN npm install --production
 
-COPY ./server ./.env /app/
+COPY ./server /app/server
+COPY ./.env /app/.env
 COPY ./deploy/builds/${STAGE} /app/build
+COPY ./app/src/assets /app/app/src/assets
 
-ENTRYPOINT [ "npm", "run" , "server" ]
+ENTRYPOINT [ "npm", "run" , "server-docker" ]

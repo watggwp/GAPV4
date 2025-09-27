@@ -100,14 +100,32 @@ module.exports = function appConfig(username , password , hostServer ) {
         // },
         // resave : false
         cookie: {
-            httpOnly: true,
-            secure : mode == process.env.BUILD,
+            // ตั้งให้เปิด mode https ได้
+            // httpOnly: true,
+            // secure : mode == process.env.BUILD,
             maxAge: null,
             sameSite: 'strict'
             // secure: mode != process.env.BUILD ? false : true
         },
         resave : false
     })
+
+    const subpathPrefix = process.env.PREFIX_PATH || ""; // ทุก redirect จะเพิ่ม prefix นี้
+    // Middleware override res.redirect
+    app.use((req, res, next) => {
+        const originalRedirect = res.redirect.bind(res);
+
+        res.redirect = (url) => {
+            // ถ้า url ไม่ใช่ full URL (http/https) ให้เพิ่ม subpath
+            if (!url.startsWith('http')) {
+                url = subpathPrefix + url;
+            }
+
+            return originalRedirect(url);
+        };
+
+        next();
+    });
 
     // set proxy sub services
     // app.use('/gap-device-dashboard', createProxyMiddleware({
@@ -125,13 +143,13 @@ module.exports = function appConfig(username , password , hostServer ) {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
     
-    const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
+    // const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     const origins = [
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`, 
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`, 
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
-        ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
+        // ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
         `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`,
         "https://gapv2.ngrok.app"
     ]
