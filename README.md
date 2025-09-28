@@ -83,7 +83,7 @@
       ```
 
 ### Deployment
-   - build frontend
+   - Build frontend
      - setup env
       ```
       // Public url server API
