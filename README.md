@@ -105,12 +105,14 @@
          ```sh
          export USER_DB=""
          export PASS_DB=""
+         export PORT_REVERSE_PROXY=""
          ```
          
          - windows
          ```bat
          set USER_DB=""
          set PASS_DB=""
+         set PORT_REVERSE_PROXY=""
          ```
 
       - uat

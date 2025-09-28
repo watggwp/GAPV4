@@ -4,7 +4,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/royal-gap.conf:ro
     ports:
-      - 3010:443
+      - ${PORT_REVERSE_PROXY:-3010}:443
     networks:
       - royal-gap-network
 
