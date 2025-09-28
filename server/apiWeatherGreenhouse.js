@@ -82,10 +82,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         try {
             const data = await pool.executeQuery(
                 `
-                    SELECT * , CONCAT(
-                        DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s'),
-                        '.000Z'
-                    ) as timestamp
+                    SELECT * , CONCAT(DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') , ".000Z") as timestamp
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
@@ -236,16 +233,17 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 light,
                 temperature,
                 soil_temperature,
-                pressure 
+                pressure,
+                batt
             } = req.body
 
             try {
                 await pool.executeQuery(
                     `
                         INSERT INTO weather_greenhouse
-                            (device_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity , pressure)
+                            (device_id, timestamp, air_temperature, air_humidity, light, soil_temperature, soil_humidity , pressure , batt)
                         VALUES
-                            (?, ?, ?, ?, ?, ?, ? , ?)
+                            (?, ?, ?, ?, ?, ?, ? , ? , ?)
                     `,
                     [
                         device_id,
@@ -255,7 +253,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                         light,
                         soil_temperature,
                         soil_humidity,
-                        pressure
+                        pressure,
+                        batt
                     ]
                 )
     
@@ -270,4 +269,44 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
             return res.status(400).send("Invalid data format");
         }
     })
+
+    app.get("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id/status", async (req, res) => {
+        const { greenhouse_id, device_id } = req.params;
+        const { r: role } = req.query;
+
+        switch (role) {
+            case "doctor":
+                const username = req.session.user_doctor;
+                const password = req.session.pass_doctor;
+                if (!username || !password) return res.status(403).json({ error: "unauthorized" });
+                break;
+            case "farmer":
+                const uid = req.session.uidFarmer;
+                // if (!uid) return res.status(403).json({ error: "unauthorized" });
+                break;
+            default:
+                return res.status(403).json({ error: "unauthorized" });
+        }
+
+        try {
+            const rows = await pool.executeQuery(`
+            SELECT timestamp FROM weather_greenhouse 
+            WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1
+        `, [device_id]);
+
+            if (rows.length === 0) return res.json({ status: "offline" });
+
+            const latest = new Date(rows[0].timestamp + "Z");
+            const now = new Date();
+            const diffMinutes = (now - latest) / 1000 / 60;
+
+            return res.json({
+                status: diffMinutes <= 10 ? "online" : "offline"
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ error: "internal error" });
+        }
+    });
 }
