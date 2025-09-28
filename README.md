@@ -84,6 +84,11 @@
 
 ### Deployment
    - build web application
+     - setup env
+      ```
+      // Public url server API
+      set REACT_APP_API_PROD=""
+      ```
      - uat
       ```powershell
       deploy/build-client/uat.bat
@@ -121,6 +126,11 @@
       - reverse proxy
       ```
       docker compose -f deploy/docker-compose-reverse-proxy.yaml up -d
+      ```
+
+      - service start on Port
+      ```
+      http:localhost:3010
       ```
 
 ### Tool and Technical
