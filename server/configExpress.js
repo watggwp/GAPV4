@@ -128,14 +128,14 @@ module.exports = function appConfig(username , password , hostServer ) {
     });
 
     // set proxy sub services
-    // app.use('/gap-device-dashboard', createProxyMiddleware({
-    //     target: 'http://localhost:8000',
-    //     changeOrigin: true,
-    //     ws: true,
-    //     pathRewrite: (path, req) => {
-    //         return path
-    //     }
-    // }))
+    app.use('/gap-device-dashboard', createProxyMiddleware({
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+        pathRewrite: (path, req) => {
+            return path
+        }
+    }))
    
     // app.use(express.json())
     app.use(cookieParser())
