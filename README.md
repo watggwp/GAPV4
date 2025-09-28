@@ -100,29 +100,25 @@
          ```
 
    - Start services server
-      - setup env
-         - linux
-         ```sh
-         export USER_DB=""
-         export PASS_DB=""
-         export PORT_REVERSE_PROXY=""
+      - setup env create file docker.env
          ```
-         
-         - windows
-         ```bat
-         set USER_DB=""
-         set PASS_DB=""
-         set PORT_REVERSE_PROXY=""
+         USER_DB_DEV=""
+         PASS_DB_DEV=""
+
+         USER_DB_PROD=""
+         PASS_DB_PROD=""
+
+         PORT_REVERSE_PROXY=""
          ```
 
       - uat
          ```
-         docker compose -f deploy/docker-compose-uat.yaml up -d
+         docker compose --env-file ./docker.env -f deploy/docker-compose-uat.yaml up -d
          ```
 
       - production
          ```
-         docker compose -f deploy/docker-compose-production.yaml up -d
+         docker compose --env-file ./docker.env -f deploy/docker-compose-production.yaml up -d
          ```
 
       - reverse proxy
