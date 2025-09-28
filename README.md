@@ -132,7 +132,7 @@
 
       - service start
          ```
-         http:localhost:3010 or "REACT_APP_API_PROD"
+         http://localhost:3010 or "REACT_APP_API_PROD"
          ```
          - path uat
             ```
