@@ -144,8 +144,10 @@
             ```
 
    - Update UAT
-      ```
+      ```powershell
          deploy/build-client/uat.bat
+      ```
+      ```
          docker restart <--container name uat-->
       ```
 
