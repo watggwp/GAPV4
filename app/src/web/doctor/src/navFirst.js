@@ -26,6 +26,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
         Resize()
 
         window.addEventListener("resize" , Resize)
+        clientMo.unLoadingPage()
 
         return(()=>{
             window.removeEventListener("resize" , Resize)
@@ -104,7 +105,7 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
     } , [setSession, setdoctor])
 
     return (
-        <section className="nav-first" onLoad={clientMo.unLoadingPage}>
+        <section className="nav-first">
             <div className="head">
                 <span>Menu</span>
             </div>

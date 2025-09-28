@@ -10,6 +10,9 @@ import { ThaiDatePicker } from "thaidatepicker-react";
 import { Box } from "@mui/material";
 import RoyalGapFrontendUtil from "../core/RoyalGapUtil";
 
+import CorrectIconGreen from "../icon/correct-icon-green.svg"
+import CorrectIconError from "../icon/error-cross-svgrepo-com.svg"
+
 const MapsJSX = ({lat , lng , w , h}) => {
     const [latitude , setLag] = useState(0)
     const [longtitude , setLng] = useState(0)
@@ -451,7 +454,7 @@ function StatusReport({
                 backgroundColor : "transparent",
                 backdropFilter : "blur(8px)",
                 borderRadius : "50%"
-            }} src="/correct-icon-green.svg"></img> 
+            }} src={CorrectIconGreen}></img> 
             :
             <img style={{
                 position : "absolute",
@@ -459,7 +462,7 @@ function StatusReport({
                 opacity : open ? 1 : "0",
                 visibility : open ? "visible" : "hidden",
                 transition : "0.5s opacity , 0.5s visibility"
-            }} src="/error-cross-svgrepo-com.svg"></img>
+            }} src={CorrectIconError} ></img>
     )
 } 
 

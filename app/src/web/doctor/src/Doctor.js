@@ -201,7 +201,7 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
                     </div> */}
                     <bot-main>
                         <bot-content>
-                            <BrowserRouter>
+                            <BrowserRouter basename={env.subpath_server}>
                                 <Routes>
                                     <Route path="/doctor/schedules" element={<ScheduleIndex/>}>
                                         <Route index element={<SchedulesPlan/>} />

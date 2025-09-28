@@ -21,10 +21,11 @@ import SensorGreenhouse from "./src/content/Sensor/sensor";
 import PumpControlPage from "./src/content/Pump";
 import Houses from "./src/HouseList/houses";
 import HouseSetup from "./src/HouseList/setup";
+import env from "../../env";
 
 export default function Router() {
     return(
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <BrowserRouter basename={env.subpath_server}>
             <Routes>
                 <Route path="/farmer" element={<MainFarmer/>}>
                     <Route path="signup" element={<SignUp/>} />

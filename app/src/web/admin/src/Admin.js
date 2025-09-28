@@ -375,7 +375,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     <bot-main>
                         <bot-content>
                             {/* {body} */}
-                            <BrowserRouter >
+                            <BrowserRouter basename={env.subpath_server}>
                                 <Routes>
                                     <Route path="/admin/schedules" element={<ScheduleIndex/>}>
                                         <Route index element={<SchedulesPlan/>} />
