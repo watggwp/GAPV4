@@ -1,7 +1,7 @@
-import { Autocomplete, autocompleteClasses, Grid, MenuItem, Select, Stack, TextField } from "@mui/material";
+import { Autocomplete, autocompleteClasses, Grid, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoyalGapFrontendUtil from "../../../../../../../../assets/core/RoyalGapUtil";
-import RequestAPI from "../../../../../../../../assets/js/requestAPI";
+import RoyalGapFrontendUtil from "../../../../../core/RoyalGapUtil";
+import RequestAPI from "../../../../../js/requestAPI";
 
 export default function Pests({
     details , onChangeDetails
@@ -9,8 +9,10 @@ export default function Pests({
 
     const [ pestName , setPestName ] = useState(details.pest || "")
     const [ chemicalName , setChemicalName ] = useState(details.chemical || "")
+    const [ rate , setRate ] = useState(details.rate || "")
     const [ volume , setVolume ] = useState(details.volume)
     const [ unitVolume , setUnitVolume ] = useState(details.unit_volume || "")
+    const [ howUse , setHowUse ] = useState(details.how_use || "")
 
     const [ loadingPests , setLoadingPests ] = useState(true)
     const [ pests , setPests ] = useState([])
@@ -44,6 +46,16 @@ export default function Pests({
         }
     } , [chemicals])
 
+    const onChangeIsUse = useCallback(({ target : { value } }) => {
+        setHowUse(value)
+        onChangeDetails("how_use" , value)
+    } , [onChangeDetails])
+
+    const onChangeRate = useCallback(({ target : { value } }) => {
+        setRate(value)
+        onChangeDetails("rate" , value)
+    } , [onChangeDetails])
+
     const onChangePest = useCallback((e , value) => {
         setPestName(value)
         onChangeDetails("pest" , value)
@@ -52,7 +64,19 @@ export default function Pests({
     const onChangeChemical = useCallback((e , value) => {
         setChemicalName(value)
         onChangeDetails("chemical" , value)
-    } , [onChangeDetails])
+
+        if(!howUse) {
+            const howUseFilter = chemicals.find(({ name }) => {
+                if(name === value) {
+                    return true
+                }
+
+                return false
+            }).how_use
+
+            onChangeIsUse({ target : { value : howUseFilter } })
+        }
+    } , [chemicals, howUse, onChangeDetails, onChangeIsUse])
 
     const onChangeVolume = useCallback(({ target : { value } }) => {
         setVolume(value)
@@ -151,6 +175,19 @@ export default function Pests({
                 onChange={onChangeChemical}
                 noOptionsText="ไม่พบสารเคมี"
             />
+            <Stack direction={"row"} alignItems={"center"} spacing={1} width={"100%"}>
+                <TextField
+                    placeholder="อัตราส่วนผสม"
+                    size="small"
+                    value={rate}
+                    onChange={onChangeRate}
+                    type="number"
+                    sx={{
+                        width : "calc(100% - 95px)"
+                    }}
+                />
+                <Typography>CC/น้ำ20ลิตร</Typography>
+            </Stack>
             <Grid container width={"100%"} spacing={1}>
                 <Grid size={{ xs : 12 , sm : 8 }}>
                     <TextField
@@ -173,11 +210,21 @@ export default function Pests({
                         <MenuItem value="" disabled>
                             หน่วยปริมาณ
                         </MenuItem>
-                        <MenuItem value={"ลิตร"}>{"กรัม"}</MenuItem>
-                        <MenuItem value={"กก."}>{"มิลลิลิตร"}</MenuItem>
+                        <MenuItem value={"กรัม"}>{"กรัม"}</MenuItem>
+                        <MenuItem value={"มิลลิลิตร"}>{"มิลลิลิตร"}</MenuItem>
                     </Select>
                 </Grid>
             </Grid>
+            <TextField
+                placeholder="วิธีการใช้"
+                size="small"
+                value={howUse}
+                onChange={onChangeIsUse}
+                type="number"
+                rows={3}
+                multiline
+                fullWidth
+            />
         </Stack>
     )
 }

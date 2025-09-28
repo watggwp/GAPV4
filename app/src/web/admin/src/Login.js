@@ -95,7 +95,7 @@ const Login = ({ setBodyFileMain, state = false, socket }) => {
         <div style={{ backgroundImage: `url(${env.Background})` }} onLoad={() => clientMo.unLoadingPage()} ref={Body} className="login-admin">
             <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
                 <div className="Logo-App">
-                    <img src="/logo2.png" alt="Logo"></img>
+                    <img src={`${env.subpath_server}/logo2.png`} alt="Logo"></img>
                     <span>Admin</span>
                 </div>
                 <label>

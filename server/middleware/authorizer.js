@@ -4,10 +4,10 @@ const AuthorizeUser = require("../core/authorize");
 module.exports = function Authorizer(connectionPool = new ConnectPool()) {
     return async (req , res , next) =>  {
 
-        const { role_doctor , role_admin , uid_line } = req.session
+        const { role_primary , role_doctor , uid_line } = req.session
 
-        const username = req.session.user_doctor;
-        const password = req.session.pass_doctor;
+        const username = req.session.user_doctor || req.session.user_username;
+        const password = req.session.pass_doctor || req.session.user_password;
 
         if(username === '' || password === '') {
             return res.redirect('/api/logout')
@@ -17,8 +17,8 @@ module.exports = function Authorizer(connectionPool = new ConnectPool()) {
         const { profile , verified } = await (
             role_doctor ? 
                 Authen.doctor(username , password , role_doctor) :
-            role_admin ?
-                new Promise((resolve) => resolve({ profile : {} , verified : true })) :
+            role_primary === "admin" ?
+                Authen.admin(username , password) :
                 Authen.farmer(uid_line)
         )
 

@@ -9,6 +9,7 @@ import NavFirst from "../navFirst";
 import { DayJSX, Loading, PopupDom, TimeDiff } from "../../../../assets/js/module";
 import ProfilePage from "../page/profile/Profile";
 import { DoctorContext } from "../Doctor";
+import env from "../../../../env";
 
 const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCover , eleBody , setTextStatus , FetchProfile}) => {
     const RefPopup = useRef()
@@ -131,7 +132,7 @@ const DesktopNev = ({setMain , socket = io() , setSession , setBody , eleImageCo
                 <>
                 <span className="pg-action">
                     <a onClick={Home} className="Logo" href="/doctor" title="หมอพืช">
-                        <img src="/logo2.png"></img>
+                        <img src={`${env.subpath_server}/logo2.png`}></img>
                         {
                         Boolean(profile?.doctor_role === 1 &&
                                 profile?.analyst_role === profile?.analyst_role &&

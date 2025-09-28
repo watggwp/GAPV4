@@ -1,5 +1,7 @@
 class MessageLineTemplate {
-    static bubbleTemplateUrl(alt , message, url) {
+    static bubbleTemplateUrl(alt , message, url , option = { buttonLabel : "ดูข้อมูล" }) {
+
+        const { buttonLabel } = option;
 
         if (!alt || !message || !url) {
             throw new Error("Both alt , message and url are required");
@@ -25,7 +27,7 @@ class MessageLineTemplate {
                             "style": "primary",
                             "action": {
                                 "type": "uri",
-                                "label": "ดูข้อมูล",
+                                "label": buttonLabel,
                                 "uri": url
                             }
                         }

@@ -1,11 +1,12 @@
-import { useCallback, useMemo, useState } from "react"
-import { Grid, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { Grid, Pagination, Stack, styled, Tab, Tabs, Typography, useMediaQuery } from "@mui/material"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { DataGrid } from "@mui/x-data-grid"
 import RequestAPI from "../../js/requestAPI"
 import DateGAP from "../../core/DateGAP"
 import { clientMo } from "../../js/moduleClient"
 import DateRange from "../DateRange"
+import DataTable from "./table"
 
 const TabsGAP = styled((props) => (
     <Tabs
@@ -177,7 +178,7 @@ export default function WeatherManagement({
                         }
                     </Stack>
                     {
-                        Boolean(!startTime && !endTime) && (
+                        Boolean(!startTime && !endTime) ?
                             <DateRange
                                 startTime={startTime}
                                 endTime={endTime}
@@ -185,8 +186,13 @@ export default function WeatherManagement({
                                 onChangeRangeStepPreprocess={PreprocessDateRange}
                                 onChangeRangeStepProcess={ProcessRequestDateRange}
                                 onChangeRangeStepPostprocess={PostProcessDateRange}
+                            /> : 
+                            <LoadWeather
+                                startTime={startTime}
+                                endTime={endTime}
+                                setLoadingHistory={setLoadingHistory}
+                                ProcessRequestDateRange={ProcessRequestDateRange}
                             />
-                        )
                     }
                 </Grid>
                 <Grid
@@ -199,56 +205,26 @@ export default function WeatherManagement({
                         height={"100%"}
                         alignItems={"center"}
                     >
-                        <Stack 
-                            width={"calc(100% - 8px)"}
-                            height={"100%"}
-                            paddingTop={1}
-                            paddingBottom={1}
-                            sx={{
-                                ".MuiTablePagination-displayedRows" : {
-                                    marginBottom : 0
-                                }
-                            }}
-                        >
-                            <DataGrid
-                                columns={[
-                                    { field: 'timestamp', headerName: 'วันที่/เวลา', minWidth: 150 , flex: 1 , align : "center" , headerAlign : "center" },
-                                    ...columns.map((item) => {
-                                        return {
-                                            field : item.field,
-                                            headerName : item.name,
-                                            minWidth : 80,
-                                            flex : 1,
-                                            align : "center",
-                                            headerAlign : "center",
-                                        }
-                                    }) ,
-                                ]}
-                                rows={historyDatas}
-                                slots={{
-                                    noRowsOverlay : () => (
-                                        <Stack
-                                            justifyContent={"center"}
-                                            alignItems={"center"}
-                                            width={"100%"}
-                                            height={"100%"}
-                                        >
-                                            <Typography fontSize={"14px"}>ไม่พบข้อมูลจากสภาพอากาศ</Typography>
-                                        </Stack>
-                                    )
-                                }}
-                                // hideFooter
-                                pageSizeOptions={[300]}
-                                disableColumnSorting
-                                disableColumnMenu
-                                rowHeight={36}
-                                columnHeaderHeight={42}
-                                loading={loadingHistory}
-                            />
-                        </Stack>
+                        <DataTable
+                            columns={columns}
+                            historyDatas={historyDatas}
+                            loadingHistory={loadingHistory}
+                        />
                     </Stack>
                 </Grid>
             </Grid>
         </Stack>
     )
+}
+
+function LoadWeather({
+    setLoadingHistory,
+    ProcessRequestDateRange , 
+    startTime ,
+    endTime
+}) {
+    useEffect(() => {
+        setLoadingHistory(true)
+        ProcessRequestDateRange( startTime , endTime , true )
+    } , [ProcessRequestDateRange, endTime, setLoadingHistory, startTime])
 }

@@ -3,6 +3,7 @@ package-lock.json
 testSetting
 assets/img/doctor/report/*.jpg
 build
+deploy/builds/*
 .env
 /app/src/assets/img/doctor/report/*.jpg
 

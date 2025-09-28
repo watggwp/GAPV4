@@ -19,39 +19,60 @@ export default function Houses() {
     const [ selectedFarmer , setSelectedFarmer ] = useState("")
     const [ openHouse , setOpenHouse ] = useState({})
 
+    const abortRequestFarmer = useRef(new AbortController())
     const requestFarmers = useCallback( async () => {
+        setSelectedFarmer("")
         setLoadingFarmers(true)
         const { data , status } = await RequestAPI.post('/api/doctor/farmer/list' , {
-            approve: 1,
-            station_id : selectedStationData.id
-        })
+                approve: 1,
+                station_id : selectedStationData.id
+            },
+            {
+                signal : abortRequestFarmer.current.signal
+            }
+        )
         setLoadingFarmers(false)
 
-        try {
-            setFarmers(data.map(({ uid_line , fullname }) => ({
-                id : uid_line,
-                label : fullname
-            })))
-        } catch(err) {
-            onSession()
+        switch(status) {
+            case 200 :
+                try {
+                    setFarmers(data.map(({ uid_line , fullname }) => ({
+                        id : uid_line,
+                        label : fullname
+                    })))
+                } catch(err) {
+                    onSession()
+                }
+                break;
+            default:
+                break;
         }
     } , [onSession, selectedStationData.id])
 
+    const abortRequestGreenhouse = useRef(new AbortController())
     const requestGreenhouses = useCallback( async () => {
         setLoadingHouse(true)
-        const { data , status } = await RequestAPI.get(`/api/doctor/station/${selectedStationData.id}/greenhouse`)
+        const { data , status } = await RequestAPI.get(`/api/doctor/station/${selectedStationData.id}/greenhouse` , {} , {
+            signal : abortRequestGreenhouse.current.signal
+        })
         setLoadingHouse(false)
 
-        try {
-            const { houses } = data
-            tempHouses.current = houses.map(({ id_farm_house , name_house , ...houseData }) => ({
-                id : id_farm_house,
-                label : name_house,
-                ...houseData
-            }))
-            setHouses(tempHouses.current)
-        } catch(err) {
-            onSession()
+        switch(status) {
+            case 200 :
+                try {
+                    const { houses } = data
+                    tempHouses.current = houses.map(({ id_farm_house , name_house , ...houseData }) => ({
+                        id : id_farm_house,
+                        label : name_house,
+                        ...houseData
+                    }))
+                    setHouses(tempHouses.current)
+                } catch(err) {
+                    onSession()
+                }
+                break;
+            default:
+                break;
         }
     } , [onSession, selectedStationData.id])
 
@@ -59,7 +80,7 @@ export default function Houses() {
         const { id : uid_line_selected } = value || {}
 
         setSelectedFarmer(value || null)
-        setHouses(uid_line_selected ? tempHouses.current.filter(({ uid_line }) => uid_line === uid_line_selected) : tempHouses.current)
+        setHouses(uid_line_selected ? tempHouses.current.filter(({ uid_line , link_user }) => ({[uid_line] : true , [link_user] : true}[uid_line_selected])) : tempHouses.current)
     }, []) 
 
     const onSelectedHouse = useCallback((e , value) => {
@@ -67,10 +88,14 @@ export default function Houses() {
     }, []) 
 
     useEffect(() => {
+        abortRequestFarmer.current.abort()
+        abortRequestFarmer.current = new AbortController()
         requestFarmers()
     } , [requestFarmers])
 
     useEffect(() => {
+        abortRequestGreenhouse.current.abort()
+        abortRequestGreenhouse.current = new AbortController()
         requestGreenhouses()
     } , [requestGreenhouses])
 
@@ -133,10 +158,3 @@ export default function Houses() {
         // </Grid>
     )
 }
-
-{/* <Select value={""} size="small" displayEmpty>
-                <MenuItem disabled value={""}>เลือกชนิดพืช</MenuItem>
-            </Select> */}
-            {/* <Select value={""} size="small" displayEmpty>
-                <MenuItem disabled value={""}>เลือกเกษตรกร</MenuItem>
-            </Select> */}

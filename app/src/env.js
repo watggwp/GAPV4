@@ -36,7 +36,13 @@ const env = {
     mapping_user_type : {
         doctor : 1,
         farmer : 2
-    }
+    },
+    domain : (
+        process.env.NODE_ENV === "development" ? 
+            process.env.REACT_APP_API_DEV :
+            process.env.REACT_APP_API_PROD
+    ),
+    subpath_server: process.env.PUBLIC_URL || ""
 }
 
 export default env

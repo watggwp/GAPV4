@@ -45,6 +45,9 @@ module.exports = function router(app) {
     app.get('/doctor/farmer/wt/:id_farmer' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });
+    app.get('/doctor/schedules' , (req, res) => {
+        res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
+    });
     app.get('/doctor/schedules/:schedule_id' , (req, res) => {
         res.sendFile(__dirname.replace('\server' , '/build/doctor/index.html'));
     });

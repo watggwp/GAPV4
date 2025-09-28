@@ -18,6 +18,16 @@ const TextBoxDot = (pdf = new jsPDF() , count , xStart , y , textOnDot) => {
     return posi - 3
 }
 
+    const asSet = (v) => {
+    if (!v) return new Set();
+    if (Array.isArray(v)) return new Set(v.map(s => s.toString().trim().toLowerCase()));
+    return new Set(
+        v.toString()
+        .split(/[|,/\s]+/)
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean)
+    );
+    };
 const TableBox = (pdf = new jsPDF() , posiStartX = 0 , posiStartY = 0 , headers = {} , body = {} , heightHeader = 0 , heightBody = 0 , FontSize = 0) => {
 
     pdf.setFontSize(FontSize)
@@ -172,6 +182,22 @@ const TextBoxHead = (pdf = new jsPDF() , x , y , text , style = {}) => {
     pdf.text(text , x , y , style)
     pdf.setFont('THSarabunNew' , "normal");
 }
+const DrawCheckBox = (pdf, x, y, text, checked = false) => {
+  // กล่องสี่เหลี่ยม 6x6 ที่ระดับ baseline ของข้อความ y
+  pdf.rect(x, y - 8, 6, 6);
+
+  // ถ้าเลือก → ใส่ ✓
+  if (checked) {
+    const sizeNow = pdf.getFontSize();
+    pdf.setFontSize(10);
+    pdf.text("✓", x + 1, y - 2);
+    pdf.setFontSize(sizeNow); // คืนขนาดฟอนต์เดิม
+  }
+
+  // ข้อความด้านขวาของกล่อง
+  pdf.text(text, x + 10, y);
+}
+
  
 const ExportPDF = async (Data) => {
     const pdf = new jsPDF("portrait", "pt", "a4" , {
@@ -183,8 +209,12 @@ const ExportPDF = async (Data) => {
     pdf.addFont('/THSarabunNewBold.ttf', 'THSarabunNew-bold', 'bold');
     pdf.setFont('THSarabunNew'); // set font
 
+    let PresentRow = 0;
+
     var width = pdf.internal.pageSize.getWidth();
+    const LEFT_COL_RIGHT = (width / 2) - 12;
     var height = pdf.internal.pageSize.getHeight();
+    const RIGHT_COL_LEFT = (width / 2) - 28;
 
     for(let index in Data){
 
@@ -198,10 +228,11 @@ const ExportPDF = async (Data) => {
         pdf.setFontSize(16)
         TextBoxHead(pdf , width/2/3 + 30 , 70 , Export.dataForm.type_main || "ไม่พบพืชนี้ในระบบ")
         TextBoxHead(pdf , width/2 - 70 , 70 , "รหัสเกษตรกร")
-
+        
         let startId = width/2
         let newX = 0
         let positionDot = 0
+        let y7Header = 0; 
         for(let x = 0; x < 10 ; x++) {
             pdf.rect(startId , 57 , 20 , 20 , "S");
             (Export.farmer[0].id_farmer[x]) && pdf.text(Export.farmer[0].id_farmer[x] , startId + 7 , 70 );
@@ -251,129 +282,441 @@ const ExportPDF = async (Data) => {
         newX = TextBoxDot(pdf , 16 , newX + 103 , 160 , `${DateOut[2].split(" ")[0]}/${DateOut[1]}/${parseInt(DateOut[0]) + 543}`)
         
 
-        TextBoxHead(pdf , 30 , 190 , '๓.')
-        TextBoxHead(pdf , 50 , 190 , 'รูปแบบการปลูก')
-        TextBoxDot(pdf , 114 , 114 , 190 , Export.dataForm.system_glow)
+        // ===== ๓. ระบบการปลูก (ตัวเลือกแรกอยู่บรรทัดเดียวกับหัวข้อ) =====
+        const y3 = 190;                 // baseline ของหัวข้อ
+        TextBoxHead(pdf, 30, y3, '๓.');
+        TextBoxHead(pdf, 50, y3, 'ระบบการปลูก');
 
+        // ช่วยแปลงค่าที่รับมาให้เช็คง่าย
+        const sysSet = asSet(Export.dataForm.system_glow);
 
-        TextBoxHead(pdf , 30 , 220 , '๔.')
-        TextBoxHead(pdf , 50 , 220 , 'แหล่งน้ำ')
-        TextBoxDot(pdf , 120 , 90 , 220 , Export.dataForm.water)
+        // คำนวณ X ของตัวเลือกแรกให้วาง "ต่อท้าย" ข้อความหัวข้อ
+        const sysTitleText = 'ระบบการปลูก';
+        const sysTitleW = pdf.getStringUnitWidth(sysTitleText) * pdf.getFontSize();
+        const SYS_L = 50 + sysTitleW + 20;   // คอลัมน์ซ้าย: เริ่มถัดจากหัวข้อ
+        const SYS_R = 410;                   // คอลัมน์ขวา (ปรับได้ตามต้องการ)
+        const SYS_DY = 22;                   // ระยะห่างแนวตั้งแต่ละแถว
 
+        // คอลัมน์ซ้าย (บรรทัดแรกจะอยู่แถวเดียวกับหัวข้อ)
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกตามไหล่เขา', sysSet.has('ขึ้นแปลงปลูกตามไหล่เขา'));
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*1, 'ปลูกแบบพื้นราบ',          sysSet.has('ปลูกแบบพื้นราบ'));
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*2, 'ปลูกในวัสดุปลูก',          sysSet.has('ปลูกในวัสดุปลูก'));
 
-        TextBoxHead(pdf , 30 , 250 , '๕.')
-        TextBoxHead(pdf , 50 , 250 , 'วิธีการให้น้ำ')
-        TextBoxDot(pdf , 116 , 105 , 250 , Export.dataForm.water_flow)
+        // คอลัมน์ขวา
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกในโรงเรือน', sysSet.has('ขึ้นแปลงปลูกในโรงเรือน'));
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*1, 'ระบบ Hydroponic',          sysSet.has('hydroponic') || sysSet.has('ระบบ hydroponic'));
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*2, 'อื่น ๆ ระบุ',               sysSet.has('อื่น') || sysSet.has('อื่นๆ') || sysSet.has('อื่น ๆ'));
 
+        // ---- เส้นจุดต่อท้าย "อื่น ๆ ระบุ" ให้ต่อจากข้อความจริงพอดี ----
+        // หมายเหตุ: ฟังก์ชัน DrawCheckBox วางข้อความที่ (x + 10) → ใช้ตรงนี้คำนวณจุดเริ่ม
+        {
+        const label = 'อื่น ๆ ระบุ';
+        const fs = pdf.getFontSize();
+        const PAD_BOX_TO_TEXT = 10; // ระยะจากกล่อง → ข้อความ ภายใน DrawCheckBox
+        const PAD_AFTER_LABEL = 6;  // เว้นก่อนเริ่มจุด
 
-        TextBoxHead(pdf , 30 , 280 , '๖.')
-        TextBoxHead(pdf , 50 , 280 , 'ประวัติการใช้พื้นที่และการเกิดโรคระบาด ชนิดพืชก่อนหน้านี้')
+        const textStart = SYS_R + PAD_BOX_TO_TEXT;            // จุดเริ่มวาง "คำว่า อื่น ๆ ระบุ"
+        const labelW    = pdf.getStringUnitWidth(label) * fs; // ความกว้างข้อความ
+        const startDot  = textStart + labelW + PAD_AFTER_LABEL;
 
+        const pageW = pdf.internal.pageSize.getWidth();
+        const rightMargin = 28;
+        const endDot = pageW - rightMargin;
 
-        TextBoxHead(pdf , 50 , 310 , 'ชนิดพืชที่ปลูก')
-        newX = TextBoxDot(pdf , 30 , 114 , 310 , Export.dataForm.history)
-
-        TextBoxHead(pdf , newX , 310 , 'โรค/แมลงที่พบ')
-        newX = TextBoxDot(pdf , 34 , newX + 69 , 310 , Export.dataForm.history)
-
-        TextBoxHead(pdf , newX , 310 , 'ปริมาณที่พบ')
-        newX = TextBoxDot(pdf , 20 , newX + 58 , 310 , Export.dataForm.qtyInsect)
-
-
-        TextBoxHead(pdf , 30 , 340 , '๗.')
-        TextBoxHead(pdf , 50 , 340 , 'ข้อแนะนำจากที่ปรึกษา')
-
-        let PresentRow = 365
-        if(Export.report.length !== 0) {
-            for(let index in Export.report.slice(0 , 2)) {
-                TextBoxHead(pdf , 50 , PresentRow , `ครั้งที่ ${parseInt(index) + 1} คำแนะนำ`)
-
-                PresentRow = TextBoxSplit(pdf , 15 , 40 , `ครั้งที่ ${parseInt(index) + 1} คำแนะนำ` , 16 , 14 , PresentRow , 50 , Export.report[index].report_text)
-                // วัดข้อความตามขอบเขตก่อน แล้วแบ่งเป็น array ตามขอบเขต โดยขอบเขตอยู่กลางคำใด จะตัดคำนั้นไปบรรทัดใหม่
-            }
-        } else {
-            pdf.text(`ไม่พบคำแนะนำ` , 165 , 340)
+        const dots = Math.max(10, Math.floor((endDot - startDot) / 4));
+        TextBoxDot(pdf, dots, startDot, y3 + SYS_DY*2, Export.dataForm.system_glow_other || '');
         }
 
+        // ใช้ nextY ไปต่อข้อ ๔
+        const nextY = y3 + SYS_DY*3 + 10;
 
-        TextBoxHead(pdf , 30 , PresentRow , '๘.')
-        TextBoxHead(pdf , 50 , PresentRow , 'ผลตรวจสอบแบบบันทึก ก่อนการเก็บเกี่ยวผลผลิต')
-        PresentRow += 20
-        TextBoxHead(pdf , 50 , PresentRow , 'จากหมอพืช')
-        PresentRow += 25
-        TextBoxHead(pdf , 50 , PresentRow , `ผลการตรวจสอบ`)
-        TextBoxDot(pdf , 27 , 126 , PresentRow , `${Export.checkForm[0] ? Export.checkForm[0].status_check ? "ผ่าน" : "ไม่ผ่าน" : "ยังไม่ตรวจสอบ"}`)
-        if(Export.checkForm.length > 0) {
-            PresentRow += 25
-            TextBoxHead(pdf , 50 , PresentRow , `การแก้ไข`)
-            PresentRow = TextBoxSplit(pdf , 27 , 40 , "การแก้ไข" , 18 , 14 , PresentRow , 45 , Export.checkForm[0].note_text)
-        } else {
-            PresentRow += 30
-        }
+
+
+
+        // ===== ๔. แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ) =====
+        const y4 = nextY;
+        TextBoxHead(pdf , 30 , y4 , '๔.')
+        TextBoxHead(pdf , 50 , y4 , 'แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ)')
+
+        const waterSet = asSet(Export.dataForm.water);
+
+        // พิกัดฐาน 4 คอลัมน์ + ออฟเซ็ตเลื่อน "ทุกช่อง"
+        const Xs4_BASE = [80, 200, 320, 420]; // x ของ 4 คอลัมน์ (ฐาน)
+        const OFFSET_X = -20;                 // ⬅️ เลื่อนทุกช่องไป "ซ้าย" 20px (ใส่ + เพื่อไปขวา)
+        const Xs4 = Xs4_BASE.map(x => x + OFFSET_X);
+
+        const gapY4 = 22;
+        let r4 = y4 + 20;
+
+        // (ถ้าต้องการจูนละเอียดเฉพาะบางช่อง ค่อยเพิ่ม offset เฉพาะจุดได้)
+        const SHIFT_TOP    = 0;  // อาศัยน้ำฝน (เพิ่ม/ลดจาก OFFSET_X)
+        const SHIFT_SECOND = 0;  // คลองชลประทาน (เพิ่ม/ลดจาก OFFSET_X)
+
+        // แถวที่ 1 (4 ช่อง)
+        DrawCheckBox(pdf, Xs4[0] + SHIFT_TOP, r4, "อาศัยน้ำฝน",              waterSet.has("อาศัยน้ำฝน"));
+        DrawCheckBox(pdf, Xs4[1],              r4, "ลำธาร/คลองธรรมชาติ",     waterSet.has("ลำธาร") || waterSet.has("คลองธรรมชาติ"));
+        DrawCheckBox(pdf, Xs4[2],              r4, "บ่อบาดาล",                 waterSet.has("บ่อบาดาล"));
+        DrawCheckBox(pdf, Xs4[3],              r4, "บ่อ/สระขุด",               waterSet.has("บ่อ/สระขุด") || waterSet.has("สระขุด"));
+
+        r4 += gapY4;
+
+        // แถวที่ 2 (3 ช่อง + อื่น ๆ ระบุ)
+        DrawCheckBox(pdf, Xs4[0] + SHIFT_SECOND, r4, "คลองชลประทาน", waterSet.has("คลองชลประทาน"));
+        DrawCheckBox(pdf, Xs4[1],                r4, "อ่างเก็บน้ำ",   waterSet.has("อ่างเก็บน้ำ"));
+        DrawCheckBox(pdf, Xs4[2],                r4, "อื่น ๆ ระบุ",    waterSet.has("อื่น") || waterSet.has("อื่นๆ") || waterSet.has("อื่น ๆ"));
+
+        // --- เส้นจุดต่อท้าย "อื่น ๆ ระบุ" ให้ต่อจากข้อความพอดี ---
+        {
+  const label     = 'อื่น ๆ ระบุ';
+  const PAD_AFTER = 6;                          // เว้นหลังข้อความ
+  const fs        = pdf.getFontSize();
+
+  const textStart = Xs4[2] + 10;                // DrawCheckBox วางข้อความที่ x+10
+  const labelW    = pdf.getStringUnitWidth(label) * fs;
+  const startDot  = textStart + labelW + PAD_AFTER;
+
+  const endRight  = pdf.internal.pageSize.getWidth() - 28; // margin ขวา
+  const rawDots   = Math.floor((endRight - startDot) / 4);
+
+  const DOT_TRIM  = 12;                         // ← ลดทอนจำนวนจุดออกไป N จุด
+  const dots      = Math.max(6, rawDots - DOT_TRIM);
+
+  TextBoxDot(pdf, dots, startDot, r4, Export.dataForm.water_other || '');
+}
+
+
+        const yAfter4 = r4 + 22;   // จุดเริ่มข้อ ๕ ถัดไป
+
+
+
+        // ===== ๕. วิธีการให้น้ำ (หัวข้อ + ตัวเลือกบรรทัดเดียวกัน และช่องว่างแคบลง) =====
+        const y5 = yAfter4;
+        TextBoxHead(pdf, 30, y5, '๕.');
+        TextBoxHead(pdf, 50, y5, 'วิธีการให้น้ำ');
+
+        const flowSet = asSet(Export.dataForm.water_flow);
+
+        // วาง checkbox ตัวแรกต่อท้ายหัวข้อ
+        const title5 = 'วิธีการให้น้ำ';
+        const title5W = pdf.getStringUnitWidth(title5) * pdf.getFontSize();
+        let x5 = 50 + title5W + 12;      // เว้นจากหัวข้อเพียงเล็กน้อย
+
+        // ระยะกล่อง→ข้อความ และช่องว่างระหว่างตัวเลือก (ยิ่งน้อยยิ่งชิด)
+        const padText5 = 6;
+        const gap5     = 10;
+        const advance5 = (x0, label) =>
+        x0 + 6 /* กล่องกว้าง 6px */ + padText5
+            + (pdf.getStringUnitWidth(label) * pdf.getFontSize())
+            + gap5;
+
+        DrawCheckBox(pdf, x5, y5, 'สปริงเกอร์', flowSet.has('สปริงเกอร์'));
+        x5 = advance5(x5, 'สปริงเกอร์');
+
+        DrawCheckBox(pdf, x5, y5, 'ระบบน้ำหยด', flowSet.has('ระบบน้ำหยด'));
+        x5 = advance5(x5, 'ระบบน้ำหยด');
+
+        DrawCheckBox(pdf, x5, y5, 'ปล่อยตามร่อง', flowSet.has('ปล่อยตามร่อง'));
+        x5 = advance5(x5, 'ปล่อยตามร่อง');
+
+        DrawCheckBox(pdf, x5, y5, 'ใช้สายยางรด', flowSet.has('ใช้สายยางรด') || flowSet.has('ใช้สายยาง'));
+        x5 = advance5(x5, 'ใช้สายยางรด');
+
+        DrawCheckBox(pdf, x5, y5, 'ตักรด', flowSet.has('ตักรด'));
+        x5 = advance5(x5, 'ตักรด');
+
+        DrawCheckBox(pdf, x5, y5, 'อื่น ๆ ระบุ', flowSet.has('อื่น') || flowSet.has('อื่นๆ') || flowSet.has('อื่น ๆ'));
+
+        // เส้นจุดต่อท้าย "อื่น ๆ ระบุ" ให้พอดีกับคอลัมน์ซ้าย
+        const otherLabelW = pdf.getStringUnitWidth('อื่น ๆ ระบุ') * pdf.getFontSize();
+        const dotStart5   = x5 + 6 + padText5 + otherLabelW + 6;
+        const dotCount5   = Math.max(10, Math.floor((LEFT_COL_RIGHT - 6 - dotStart5) / 4));
+        TextBoxDot(pdf, dotCount5, dotStart5, y5, Export.dataForm.water_flow_other || '');
+
+        // จุดเริ่ม "ข้อ ๖"
+        const yAfter5 = y5 + 22;
+
+       // ===== ๖. ประวัติการใช้พื้นที่และการเกิดโรคระบาด ชนิดพืชก่อนหน้านี้ =====
+        TextBoxHead(pdf, 30, yAfter5, '๖.')
+        TextBoxHead(pdf, 50, yAfter5, 'ประวัติการใช้พื้นที่และการเกิดโรคระบาด ชนิดพืชก่อนหน้านี้')
+
+        let y = yAfter5 + 20;
+
+        // 6a) ชนิดพืช + โรค/แมลง
+        TextBoxHead(pdf, 50, y, 'ชนิดพืชที่ปลูก');
+        let nx = TextBoxDot(pdf, 30, 114, y, (Export.dataForm.history || '').toString());
+
+        TextBoxHead(pdf, nx, y, 'โรค/แมลงที่พบ');
+        nx = TextBoxDot(pdf, 34, nx + 69, y, (Export.dataForm.insect || Export.dataForm.history || '').toString());
+
+        // ---- 6b + 6c (ย้ายกล่องเลือกลงบรรทัดถัดไป) ----
+        y += 22;
+
+        const qtyStr = (Export.dataForm.qtyInsect || '').toString();
+        const hasQty = (k) => qtyStr.includes(k);
+
+        const padText  = 10; // ระยะ "กล่อง→ข้อความ" ใน DrawCheckBox
+        const gapCheck = 14; // ระยะระหว่างตัวเลือก
+        const advance = (x0, label) =>
+        x0 + 6 /*กว้างกล่อง*/ + padText
+            + (pdf.getStringUnitWidth(label) * pdf.getFontSize())
+            + gapCheck;
+
+        // เริ่มตำแหน่ง X ของกล่องตัวแรก
+        let x = 50;
+
+        DrawCheckBox(pdf, x, y, 'มาก', hasQty('มาก'));
+        x = advance(x, 'มาก');
+
+        DrawCheckBox(pdf, x, y, 'ปานกลาง', hasQty('ปานกลาง'));
+        x = advance(x, 'ปานกลาง');
+
+        DrawCheckBox(pdf, x, y, 'น้อย', hasQty('น้อย'));
+        x = advance(x, 'น้อย');
+
+        // ต่อด้วย "การป้องกันกำจัด" + เส้นจุด ในบรรทัดเดียวกัน
+        const labelPrev  = 'การป้องกันกำจัด';
+        const labelPrevW = pdf.getStringUnitWidth(labelPrev) * pdf.getFontSize();
+        const xPrev      = x + 20; // เว้นนิดหนึ่งก่อนหัวข้อถัดไป
+        TextBoxHead(pdf, xPrev, y, labelPrev);
+
+        // ---- เส้นจุดต่อท้าย "การป้องกันกำจัด" ----
+        // ปรับค่าตามต้องการ
+        const GAP_AFTER_LABEL = 0;    // ให้จุด "ติดคำ" มากขึ้น (0–8)
+        const DOT_MARGIN_LEFT = 0;    // กันขอบขวาคอลัมน์ซ้าย (ยิ่งน้อยยิ่งยาว)
+        const EXTRA_DOTS      = 30;   // << เพิ่มจำนวนจุดพิเศษเข้าไป
+
+        const dotStart  = xPrev + labelPrevW + GAP_AFTER_LABEL;
+
+        // พื้นที่ว่างถึงขอบคอลัมน์ซ้าย (LEFT_COL_RIGHT นิยามไว้ด้านบน)
+        const available = Math.max(0, LEFT_COL_RIGHT - DOT_MARGIN_LEFT - dotStart);
+
+        // 1 จุด ~ 4px → คำนวณจำนวนจุดจากพื้นที่ + เติมจุดเพิ่ม
+        let prevDots = Math.floor(available / 4) + EXTRA_DOTS;
+
+        // อย่างน้อยให้มีสัก 6 จุด
+        prevDots = Math.max(6, prevDots);
+
+        // วาดจุด + ใส่ข้อความจากฐานข้อมูล
+        TextBoxDot(
+        pdf,
+        prevDots,
+        dotStart,
+        y,
+        (Export.dataForm.prevent || Export.dataForm.solution || '').toString()
+        );
+
+        // จุดเริ่ม "ข้อ ๗" ต่อไป
+        PresentRow = y + 30;
+
+
+
+
         
-        TextBoxDot(pdf , 25 , 120 , PresentRow , "")
-        pdf.text("(" , 92 , PresentRow + 30)
-        TextBoxDot(pdf , 35 , 98 , PresentRow + 30 , Export.checkForm[0] ? Export.checkForm[0].name_doctor : "")
-        pdf.text(")" , 235 , PresentRow + 30)
+        
+        // ===== ๗. ข้อแนะนำจากที่ปรึกษา (ส่วนนี้สำหรับเจ้าหน้าที่) =====
+        y7Header = PresentRow;
+        TextBoxHead(pdf, 30, PresentRow, '๗.');
+        TextBoxHead(pdf, 50, PresentRow, 'ข้อแนะนำจากที่ปรึกษา (ส่วนนี้สำหรับเจ้าหน้าที่)');
+        PresentRow = y7Header + 16;
 
-        TextBoxHead(pdf , 120 , PresentRow + 60 , `ลงชื่อเจ้าหน้าที่หมอพืช`)
+        const reports = Array.isArray(Export.report) ? Export.report : [];
 
-        TextBoxHead(pdf , 92 , PresentRow + 90 , "ว/ด/ป")
-        const DateCheck = Export.checkForm[0] ? Export.checkForm[0].date_check.split("T")[0].split("-") : "";
-        pdf.setFontSize(15)
-        TextBoxDot(pdf , 29 , 123 , PresentRow + 90 , DateCheck ? `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${parseInt(DateCheck[0]) + 543}` : "")
-        pdf.setFontSize(16)
+        // ----- ตั้งค่าปรับแต่ง -----
+        const LABEL_FS = 14;      // ขนาดฟอนต์ label
+        const KEEP_FS  = pdf.getFontSize();
+        const GAP_AFTER = 0;      // เว้นหลัง label ก่อนเริ่มเส้นจุด (0 = ให้จุดติดคำ)
+        const DOT_MARGIN = 8;     // กันจากขอบคอลัมน์ซ้าย
+        const DOT_TRIM_ADVICE = 1;   // ลดจำนวนจุดหลัง "คำแนะนำ"
+        const DOT_TRIM_SIGN   = 30;  // ลดจำนวนจุดหลัง "ลงชื่อ"
+        const DOT_TRIM_DATE   = 6;   // ↓ ลดจำนวนจุดหลัง "ว/ด/ป"
 
+        // helper วัดความกว้างข้อความแบบตัวหนาและขนาดที่ต้องการ
+        const measureBold = (text, fs) => {
+        pdf.setFont('THSarabunNew-bold', 'bold');
+        pdf.setFontSize(fs);
+        const w = pdf.getStringUnitWidth(text) * fs;
+        pdf.setFont('THSarabunNew', 'normal');
+        pdf.setFontSize(KEEP_FS);
+        return w;
+        };
 
+        const rowGap = 32;
 
-        TextBoxHead(pdf , width / 2 - 20 , 340 , '๙.')
-        TextBoxHead(pdf , width / 2 , 340 , 'ผลการวิเคราะห์สารตกค้างในผลผลิต ก่อน/หลังการเก็บเกี่ยว')
+        for (let i = 0; i < 2; i++) {
+        // ===== บรรทัด: "ครั้งที่ …  คำแนะนำ ...."
+        const labelAdvice = `ครั้งที่ ${i + 1}  คำแนะนำ`;
+        const labelX = 50;
+        const labelW = measureBold(labelAdvice, LABEL_FS);
 
-        let body = new Array
-        let headers = [
-            {name : "ครั้งที่", size : 30},
-            {name :"วันที่วิเคราะห์" , size : 65},
-            {name :"ผลวิเคราะห์" , size : 90, headSup : [ [{name : "ก่อน" , size : 45} ,{name : "หลัง" , size : 45}] ] } ,
-            {name :"ผู้วิเคราะห์" , size : 70} ,
-            {name : "หมายเหตุ" , size : 65}
-        ]
+        pdf.setFontSize(LABEL_FS);
+        TextBoxHead(pdf, labelX, PresentRow, labelAdvice);
+        pdf.setFontSize(KEEP_FS);
 
-        for(let index = 0; index < 15; index++) {
-            const Data = Export.checkPlant[index]
-            if(Data) {
-                const DateCheck = Data.date_check.split("T")[0].split("-");
-                body.push(
-                    [
-                        {name : (index + 1).toString() , size : 30},
-                        {name : `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${parseInt(DateCheck[0]) + 543}` , size : 65},
-                        {name : !Data.state_check ? (Data.status_check).toString() : "" , size : 45} ,
-                        {name : Data.state_check ? (Data.status_check).toString() : "" , size : 45} ,
-                        {name : Data.name_doctor.split(" ")[0], size : 70} ,
-                        {name : Data.note_text , size : 65}
-                    ]
-                )
-            } else {
-                body.push(
-                    [
-                        {name : (index + 1).toString() , size : 30},
-                        {name : "" , size : 65},
-                        {name : "" , size : 45} ,
-                        {name : "" , size : 45} ,
-                        {name : "", size : 70} ,
-                        {name : "" , size : 65}
-                    ]
-                )
+        const adviceStartX = labelX + labelW + GAP_AFTER;
+        let adviceDots = Math.floor((LEFT_COL_RIGHT - DOT_MARGIN - adviceStartX) / 4) - DOT_TRIM_ADVICE;
+        if (adviceDots < 0) adviceDots = 0;
+
+        const adviceText = reports[i]?.report_text || '';
+        TextBoxDot(pdf, adviceDots, adviceStartX, PresentRow, adviceText);
+
+        // ===== บรรทัด: "ลงชื่อ ____  /ว/ด/ป ____ (ที่ปรึกษาเกษตรกร)"
+        const y2 = PresentRow + 20;
+
+        // "ลงชื่อ"
+        const labelSign = 'ลงชื่อ';
+        const signLabelX = 50;
+        const signLabelW = measureBold(labelSign, LABEL_FS);
+
+        pdf.setFontSize(LABEL_FS);
+        TextBoxHead(pdf, signLabelX, y2, labelSign);
+        pdf.setFontSize(KEEP_FS);
+
+        const signStartX = signLabelX + signLabelW + GAP_AFTER;
+        let signDots = Math.floor((LEFT_COL_RIGHT - DOT_MARGIN - signStartX) / 4) - DOT_TRIM_SIGN;
+        if (signDots < 0) signDots = 0;
+
+        const name = (reports[i]?.advisor_name || reports[i]?.name_doctor || '');
+        const endX = TextBoxDot(pdf, signDots, signStartX, y2, name); // ปลายเส้นชื่อ
+
+        // ว/ด/ป ให้ "ติด" ปลายจุดของ "ลงชื่อ"
+        const WDP_GAP = 0;                // 0 = ชิดสุด, เพิ่มเลขเพื่อเว้นระยะ
+        const wdpX = endX + WDP_GAP;
+        const wdpW = measureBold('/ว/ด/ป', LABEL_FS);
+
+        pdf.setFontSize(LABEL_FS);
+        TextBoxHead(pdf, wdpX, y2, '/ว/ด/ป');
+        pdf.setFontSize(KEEP_FS);
+
+        // วันที่ dd/mm/yy (พ.ศ.)
+        let dateStr = '';
+        const raw = reports[i]?.date_report || reports[i]?.date || '';
+        if (raw) {
+            const p = raw.split('T')[0].split('-');
+            if (p.length === 3) {
+            const dd = String(parseInt(p[2], 10));
+            const mm = String(parseInt(p[1], 10));
+            const yy = (parseInt(p[0], 10) + 543).toString().slice(-2);
+            dateStr = `${dd}/${mm}/${yy}`;
             }
         }
 
-        TableBox(pdf , width / 2 - 28 , 350 , headers , body , 33 , 20 , 14)
+        // เส้นจุดของ "วันที่" ต่อจาก "ว/ด/ป" และ "ลดจำนวนจุด" ตาม DOT_TRIM_DATE
+        const dateStartX = wdpX + wdpW + 2; // +2 กันไม่ให้ชนตัวอักษร
+        let dateDots = Math.floor((LEFT_COL_RIGHT - DOT_MARGIN - dateStartX) / 4) - DOT_TRIM_DATE;
+        if (dateDots < 0) dateDots = 0;
 
-        //page factor
-        pdf.addPage()
-        pdf.setFontSize(16)
-        let presentFactor = 0
-        let oldDay = ""
-        body = new Array
+        // เก็บปลายเส้นจุดของวันที่
+        const endDateX = TextBoxDot(pdf, dateDots, dateStartX, y2, dateStr);
+
+        // วาง "(ที่ปรึกษาเกษตรกร)" ต่อท้ายจุด (บรรทัดเดียวกัน)
+        const ADVISOR_GAP = 0;            // ปรับระยะห่างจากปลายจุดได้
+        pdf.setFontSize(LABEL_FS);
+        TextBoxHead(pdf, endDateX + ADVISOR_GAP, y2, '(ที่ปรึกษาเกษตรกร)');
+        pdf.setFontSize(KEEP_FS);
+
+        PresentRow = y2 + rowGap;
+        }
+
+
+        /* ===== ๘. ผลตรวจสอบแบบบันทึก ก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช ===== */
+        {
+        const _fs = pdf.getFontSize();   // เก็บขนาดเดิม
+        pdf.setFontSize(14);             // << ลดขนาดหัวข้อ ๘
+
+        TextBoxHead(pdf, 30, PresentRow, '๘.');
+        TextBoxHead(pdf, 50, PresentRow, 'ผลตรวจสอบแบบบันทึกก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช');
+
+        pdf.setFontSize(_fs);            // คืนขนาดเดิมสำหรับเนื้อหาถัดไป
+        }
+        PresentRow += 14;                  // เดิม 18 ลดช่องว่างลงให้เหมาะกับหัวข้อที่เล็กลง
+
+        // แถว "ผลการตรวจสอบ: [ ] ผ่าน   [ ] ไม่ผ่าน"
+        const status = Export.checkForm?.[0]?.status_check;
+        DrawCheckBox(pdf, 160, PresentRow, 'ผ่าน',    status === true  || status === 'ผ่าน');
+        DrawCheckBox(pdf, 220, PresentRow, 'ไม่ผ่าน', status === false || status === 'ไม่ผ่าน');
+
+        PresentRow += 24;
+
+        // บรรทัดเซ็นชื่อเจ้าหน้าที่ + วันที่ (จัดหน้าแบบในรูป)
+        TextBoxHead(pdf, 50, PresentRow, 'ลงชื่อ');
+        const nameDots8 = Math.floor((LEFT_COL_RIGHT - 90) / 4);
+        let endX2 = TextBoxDot(pdf, nameDots8, 90, PresentRow, (Export.checkForm?.[0]?.name_doctor || ''));
+
+        // บรรทัดวันที่ด้านล่างซ้าย
+        const dc = Export.checkForm?.[0]?.date_check
+        ? Export.checkForm[0].date_check.split('T')[0].split('-')
+        : null;
+        const dcStr = dc ? `${parseInt(dc[2],10)}/${parseInt(dc[1],10)}/${(parseInt(dc[0],10)+543).toString().slice(-2)}` : '';
+
+        TextBoxHead(pdf, 50, PresentRow + 22, 'ว/ด/ป');
+        TextBoxDot(pdf, 28, 90, PresentRow + 22, dcStr);
+
+        // คำอธิบายใต้เส้นเซ็นชื่อ (ถ้ามีจะเหมือนในแบบฟอร์มจริง)
+        TextBoxHead(pdf, 90, PresentRow + 40, '(เจ้าหน้าที่หมอพืช)');
+
+        PresentRow = PresentRow + 50; // ใช้เป็น y เริ่มของ "ข้อ ๙" ต่อไป
+
+       // ===== ๙. ผลการวิเคราะห์สารตกค้าง (ชิดขวา + ตารางเล็กลง) =====
+        const y9 = y7Header;
+
+        // กำหนดคอลัมน์ให้เล็กลง
+        let body = [];
+        let headers = [
+        { name: "ครั้งที่",        size: 24 },
+        { name: "วันที่วิเคราะห์",  size: 52 },
+        { name: "ผลวิเคราะห์",      size: 72, headSup: [[ { name: "ก่อน", size: 36 }, { name: "หลัง", size: 36 } ]] },
+        { name: "ผู้วิเคราะห์",     size: 56 },
+        { name: "หมายเหตุ",         size: 52 }
+        ];
+
+        // เติมข้อมูล
+        for (let index = 0; index < 15; index++) {
+        const Data = Export.checkPlant[index];
+        if (Data) {
+            const DateCheck = Data.date_check.split("T")[0].split("-");
+            body.push([
+            { name: (index + 1).toString(), size: 24 },
+            { name: `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${parseInt(DateCheck[0]) + 543}`, size: 52 },
+            { name: !Data.state_check ? (Data.status_check).toString() : "", size: 36 },
+            { name:  Data.state_check ? (Data.status_check).toString() : "", size: 36 },
+            { name: (Data.name_doctor || "").split(" ")[0], size: 56 },
+            { name: Data.note_text || "", size: 52 }
+            ]);
+        } else {
+            body.push([
+            { name: (index + 1).toString(), size: 24 },
+            { name: "", size: 52 },
+            { name: "", size: 36 },
+            { name: "", size: 36 },
+            { name: "", size: 56 },
+            { name: "", size: 52 }
+            ]);
+        }
+        }
+
+        // ===== คำนวณให้ "ชิดขอบขวา" =====
+        const tableW = headers.reduce((s, h) => s + parseInt(h.size, 10), 0); // ความกว้างรวมของตาราง
+        const RIGHT_MARGIN = 12;                                              // ระยะห่างจากขอบขวา (ปรับได้)
+        const startX9 = width - RIGHT_MARGIN - tableW;                        // จุดเริ่มวาด (ชิดขวาจริง)
+
+        // หัวข้อให้เกาะซ้ายของตาราง
+        TextBoxHead(pdf, startX9 - 20, y9, '๙.');
+        TextBoxHead(pdf, startX9,      y9, 'ผลการวิเคราะห์สารตกค้างในผลผลิต ก่อน/หลังการเก็บเกี่ยว');
+
+        // ทำตารางเล็กลง (หัว 28, แถว 18, ฟอนต์ 12)
+        const HEADER_H = 28;
+        const ROW_H    = 18;
+        const FONT     = 12;
+        TableBox(pdf, startX9, y9 + 8, headers, body, HEADER_H, ROW_H, FONT);
+
+        // page factor ต่อไป…
+        pdf.addPage();
+        pdf.setFontSize(16);
+        let presentFactor = 0;
+        let oldDay = "";
+        body = [];
+
+
 
         TextBoxHead(pdf , 30 , 40 , "๑๐.")
         TextBoxHead(pdf , 50 , 40 , "แบบบันทึกการใช้สารเคมีกำจัดศัตรูพืชทางการเกษตร")

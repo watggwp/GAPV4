@@ -8,22 +8,30 @@ const RoyalGapEnv = require('../core/env');
 
 module.exports = function Schedules(app, pool = new Pool()) {
     app.get('/api/schedules', async (req, res) => {
-        const { account_type , profile : { station_doctor : station_id } = {} } = req.session
+        const { profile : { station_doctor : station_id } = {} } = req.session
+        const { station_id : station_id_payload = station_id , has_total_schedule } = req.query
+
         try {
             const schedule_plants = await pool.executeQuery(
                 `
-                    SELECT pl.id , pl.name , (
-                        SELECT COUNT(s.id)
-                        FROM schedules s
-                        WHERE s.plant_id = pl.id
-                        ${RoyalGapEnv.access_type.doctor === account_type ? "AND s.station_id = ?" : ""}
-                    ) as total_schedule
+                    SELECT pl.id , pl.name , pl.variety_name , COUNT(s.id) as total_schedule
                     FROM plant_list as pl
-                    WHERE pl.is_use = 1
-                    GROUP BY pl.id , pl.name
+                    LEFT JOIN 
+                        schedules s ON 
+                            s.plant_id = pl.id
+                            ${
+                                station_id_payload !== undefined ? 
+                                    "AND s.station_id = ?" : 
+                                    ""
+                            }
+                    WHERE pl.is_use = 1 ${ 
+                        has_total_schedule !== undefined ? ( 
+                            Number(has_total_schedule) ? "AND s.id IS NOT NULL" : "AND s.id IS NULL"
+                        ) : "" }
+                    GROUP BY pl.id , pl.name , pl.variety_name
                     ORDER BY pl.name
                 ` , 
-                RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : []
+                station_id_payload !== undefined ? [ station_id_payload ] : []
             )
 
             return res.json(schedule_plants)
@@ -34,8 +42,11 @@ module.exports = function Schedules(app, pool = new Pool()) {
     })
 
     app.get('/api/schedules/:plant_id', async (req, res) => {
+        const { profile : { station_doctor : station_id } = {} } = req.session
+
         const { plant_id } = req.params
-        const { s } = req.query
+        const { station_id : station_id_payload = station_id , s } = req.query
+
 
         try {
             const plant_profile = await pool.executeQuery(
@@ -48,7 +59,6 @@ module.exports = function Schedules(app, pool = new Pool()) {
 
             const search = `%${s}%`
 
-            const { account_type , profile : { station_doctor : station_id } = {} } = req.session
             const schedule_plants = await pool.executeQuery(
                 `
                     SELECT 
@@ -68,6 +78,8 @@ module.exports = function Schedules(app, pool = new Pool()) {
                                 '{',
                                     '"pest":"', IFNULL(sdd.pest, ''), '",',
                                     '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"rate":"', IFNULL(sdd.rate, ''), '",',
+                                    '"how_use":"', IFNULL(sdd.how_use, ''), '",',
                                     '"volume":"', IFNULL(sdd.volume, ''), '",',
                                     '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
                                 ,'}'
@@ -78,7 +90,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
                     WHERE s.plant_id = ? 
                     ${
-                        RoyalGapEnv.access_type.doctor === account_type ? 
+                        station_id_payload !== undefined ? 
                             "AND s.station_id = ?" : ""
                     }
                     ${
@@ -95,7 +107,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ORDER BY s.age_plant ASC , s.repeat ASC
                 ` , [
                     plant_id ,
-                    RoyalGapEnv.access_type.doctor === account_type ? [ station_id ] : [],
+                    station_id_payload !== undefined ? [ station_id_payload ] : [],
                     search , search , search
                 ]
             )
@@ -136,6 +148,8 @@ module.exports = function Schedules(app, pool = new Pool()) {
                                 '{',
                                     '"pest":"', IFNULL(sdd.pest, ''), '",',
                                     '"chemical":"', IFNULL(sdd.chemical, ''), '",',
+                                    '"rate":"', IFNULL(sdd.rate, ''), '",',
+                                    '"how_use":"', IFNULL(sdd.how_use, ''), '",',
                                     '"volume":"', IFNULL(sdd.volume, ''), '",',
                                     '"unit_volume":"', IFNULL(sdd.unit_volume, ''), '"'
                                 ,'}'
@@ -164,11 +178,13 @@ module.exports = function Schedules(app, pool = new Pool()) {
     app.post('/api/schedules', async (req, res) => {
         try {
             const { profile : { station_doctor : station_id } = {} } = req.session
+            
+            const { station_id : station_id_payload = station_id } = req.query
             const { plant_id , category , title , details , age_plant , repeat } = req.body
             const schedule_uid = uuid.v4()
             const insert_schedule = await pool.executeQuery(
                 "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
-                [ schedule_uid , plant_id , station_id , category , title , age_plant , repeat ? 1 : 0 ]
+                [ schedule_uid , plant_id , station_id_payload , category , title , age_plant , repeat ? 1 : 0 ]
             )
 
             const { insertId , affectedRows } = insert_schedule
@@ -192,12 +208,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     break;
                 case 2 :
                     insert_detail_data["table"] = "schedules_detail_disease"
-                    insert_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    insert_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
                     insert_detail_data["params"] = [
                         details.pest ,
                         details.chemical ,
+                        details.rate ,
                         details.volume ,
-                        details.unit_volume
+                        details.unit_volume,
+                        details.how_use
                     ]
                     break;
             }
@@ -300,12 +318,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     break;
                 case 2 :
                     update_detail_data["table"] = "schedules_detail_disease"
-                    update_detail_data["columns"] = [ "pest" , "chemical" , "volume" , "unit_volume" ]
+                    update_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
                     update_detail_data["params"] = [
                         details.pest ,
                         details.chemical ,
+                        details.rate ,
                         details.volume ,
-                        details.unit_volume
+                        details.unit_volume,
+                        details.how_use
                     ]
                     schedule_tables.delete("schedules_detail_disease")
                     break;
@@ -354,18 +374,15 @@ module.exports = function Schedules(app, pool = new Pool()) {
         try {
             const { plant_id , schedule_uid } = req.params
 
-            const { user_doctor , role_doctor , user_admin , role_admin } = req.session
+            const { role_primary , user_doctor , role_doctor , user_username } = req.session
             const { password } = req.body
 
             const authorize = new AuthorizeUser(pool)
             const { verified } = await (
                 role_doctor ?
                     authorize.doctor(user_doctor , password , role_doctor) :
-                role_admin ?
-                    new Promise((resolve) => resolve({
-                        profile : {},
-                        verified : true
-                    })) :
+                role_primary ?
+                    authorize.admin(user_username , password) :
                     new Promise((resolve) => resolve({
                         profile : {},
                         verified : false

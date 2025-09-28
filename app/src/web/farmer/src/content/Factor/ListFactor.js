@@ -7,7 +7,7 @@ import { CloseAccount } from "../../method";
 import EditFactorPopup from "./EditFactor";
 import DetailEdit from "../DetailEdit";
 import DetailFactor from "./DetailFactor";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { useGreenhouse } from "..";
 import Fertilizer from "./card/fertilizer";
 import Chemical from "./card/chemical";
@@ -18,6 +18,8 @@ const ListFactor = ({ type_path_factor }) => {
 
     const { greenhouse_id , gap_id } = useParams()
     const navigator = useNavigate()
+    const query = new URLSearchParams(useLocation().search)
+    const openInsert = query.get("open-insert");
 
     const { setCurrentPage } = useGreenhouse()
 
@@ -155,6 +157,10 @@ const ListFactor = ({ type_path_factor }) => {
             window.removeEventListener("touchstart" , CloseManage)
         }
     } , [CloseManage, fetchCheck, type_path_factor])
+
+    useEffect(() => {
+        openInsert && popupInsertFactor()
+    } , [openInsert, popupInsertFactor])
  
     return (
         <>

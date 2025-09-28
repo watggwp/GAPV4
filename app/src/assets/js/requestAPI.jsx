@@ -1,8 +1,9 @@
 import axios from "axios";
+import env from "../../env"
 
-const HOST_API = process.env.NODE_ENV === "development" ? 
-    "http://" + process.env.REACT_APP_API_LOCAL + ":" + process.env.REACT_APP_API_PORT :
-    ""
+const { domain , subpath_server } = env
+
+const HOST_API = `${domain}${subpath_server}`
 
 class ClientRequestAPI {
 
@@ -44,10 +45,11 @@ class ClientRequestAPI {
             ...options,
         })
     }
-    async get(url , query) {
+    async get(url , query , options = {}) {
         return await axios.get(`${HOST_API}${url}` , {
             params : query,
-            ...this.options
+            ...this.options,
+            ...options
         })
     }
 

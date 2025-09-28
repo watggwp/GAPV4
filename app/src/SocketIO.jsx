@@ -1,9 +1,8 @@
 import { io } from "socket.io-client"
 
-export const socket = io(
-    process.env.NODE_ENV !== "development" ?
-    process.env.REACT_APP_API_PUBLIC : `${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`
-)
+import env from "./env"
+const { domain , subpath_server } = env
+export const socket = io(domain , { path : `${subpath_server}/socket.io` })
 
 export default function SockectIO({
     children

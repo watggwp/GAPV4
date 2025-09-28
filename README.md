@@ -82,8 +82,74 @@
       npm run server-node 'username-db' 'password-db'
       ```
 
-### Revise
-   - Search "revise code"
+### Deployment
+   - Build frontend
+     - setup env
+         ```powershell
+         set REACT_APP_API_PROD="<--Public url server API-->"
+         ```
+
+     - uat
+         ```powershell
+         deploy/build-client/uat.bat
+         ```
+
+     - production
+         ```powershell
+         deploy/build-client/production.bat
+         ```
+
+   - Start services server
+      - setup env
+         - linux
+         ```sh
+         export USER_DB=""
+         export PASS_DB=""
+         export PORT_REVERSE_PROXY=""
+         ```
+         
+         - windows
+         ```bat
+         set USER_DB=""
+         set PASS_DB=""
+         set PORT_REVERSE_PROXY=""
+         ```
+
+      - uat
+         ```
+         docker compose -f deploy/docker-compose-uat.yaml up -d
+         ```
+
+      - production
+         ```
+         docker compose -f deploy/docker-compose-production.yaml up -d
+         ```
+
+      - reverse proxy
+         ```
+         docker compose -f deploy/docker-compose-reverse-proxy.yaml up -d
+         ```
+
+      - service start
+         ```
+         http:localhost:3010 or "REACT_APP_API_PROD"
+         ```
+         - path uat
+            ```
+            /uat
+            ```
+         - path production
+            ```
+            /
+            ```
+
+   - Update UAT
+      ```powershell
+         deploy/build-client/uat.bat
+      ```
+      ```
+         docker restart <--container name uat-->
+      ```
 
 ### Tool and Technical
    - Fontend

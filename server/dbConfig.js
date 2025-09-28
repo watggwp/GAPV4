@@ -3,7 +3,7 @@ require('dotenv').config().parsed
 const DB = {
     listConfig : (username, password , mode) => {
         return {
-            host: process.env.HOST,
+            host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
             user: username,
             password : password,
             database : mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
