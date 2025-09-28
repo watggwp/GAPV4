@@ -116,24 +116,32 @@
          ```
 
       - uat
-      ```
-      docker compose -f deploy/docker-compose-uat.yaml up -d
-      ```
+         ```
+         docker compose -f deploy/docker-compose-uat.yaml up -d
+         ```
 
       - production
-      ```
-      docker compose -f deploy/docker-compose-production.yaml up -d
-      ```
+         ```
+         docker compose -f deploy/docker-compose-production.yaml up -d
+         ```
 
       - reverse proxy
-      ```
-      docker compose -f deploy/docker-compose-reverse-proxy.yaml up -d
-      ```
+         ```
+         docker compose -f deploy/docker-compose-reverse-proxy.yaml up -d
+         ```
 
-      - service start on Port
-      ```
-      http:localhost:3010
-      ```
+      - service start
+         ```
+         http:localhost:3010 or "REACT_APP_API_PROD"
+         ```
+         - path uat
+            ```
+            /uat
+            ```
+         - path production
+            ```
+            /
+            ```
 
 ### Tool and Technical
    - Fontend
