@@ -86,14 +86,13 @@
    - Build frontend
      - setup env
       ```powershell
-      // Public url server API
-      set REACT_APP_API_PROD=""
+      set REACT_APP_API_PROD="<--Public url server API-->"
       ```
      - uat
       ```powershell
       deploy/build-client/uat.bat
-      // หากต้องการ update frontend uat สามารถ run คำสั่งนี้ได้เลย
       ```
+      - หากต้องการ update frontend uat สามารถ run คำสั่งนี้ได้เลย
 
      - production
       ```powershell
