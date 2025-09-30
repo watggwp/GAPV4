@@ -17,7 +17,7 @@ module.exports = function appRun(username , password){
                 authtoken_from_env : true,
                 onStatusChange: status => console.log("status", status),
                 onLogEvent: log => console.log("ngrok log:", log),
-                inspect : ":3010"
+                web_addr : "127.0.0.1:3010"
             });
             
             console.log('Ngrok URL:', listener.url())
