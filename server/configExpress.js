@@ -35,12 +35,11 @@ const apiSchedules = require('./endpoints/schedules');
 const apiFertilizers = require('./endpoints/fertilizer');
 const apiChemicals = require('./endpoints/chemical');
 const apiPests = require('./endpoints/pest');
-const apiAddDevice = require('./apiAddDevice');
 const callServices = require('./callServices');
 const apiAddDevice = require('./apiAddDevice');
 
 
-module.exports = function appConfig(username , password , hostServer ) {
+module.exports = function appConfig(username, password, hostServer) {
     require('dotenv').config().parsed
 
     // const python = spawn(
@@ -143,13 +142,13 @@ module.exports = function appConfig(username , password , hostServer ) {
     app.use(sessionMiddleware)
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
-    
+
     // const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
     const origins = [
-        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`, 
-        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`, 
-        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`, 
-        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`, 
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.REACT_APP_API_PORT}`,
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.ADMIN_PORT}`,
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.DOCTOR_PORT}`,
+        `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`,
         // ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
         `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`,
         "https://gapv2.ngrok.app",
@@ -167,13 +166,13 @@ module.exports = function appConfig(username , password , hostServer ) {
 
     // middleware custom
     app.use(logging(Pool))
-    app.use("/api/schedules" , authorizer(Pool))
-    app.use("/api/schedules/*" , authorizer(Pool))
-    app.use("/api/pests" , authorizer(Pool))
-    app.use("/api/chemicals" , authorizer(Pool))
-    app.use("/api/fertilizers" , authorizer(Pool))
-    app.use("/api/pests/*" , authorizer(Pool))
-    
+    app.use("/api/schedules", authorizer(Pool))
+    app.use("/api/schedules/*", authorizer(Pool))
+    app.use("/api/pests", authorizer(Pool))
+    app.use("/api/chemicals", authorizer(Pool))
+    app.use("/api/fertilizers", authorizer(Pool))
+    app.use("/api/pests/*", authorizer(Pool))
+
     // config environment
     app.use(upload.any())
     app.use(express.static('app/src/assets/style'))
@@ -192,25 +191,25 @@ module.exports = function appConfig(username , password , hostServer ) {
 
     // services
     ScheduleCorn(Pool)
-    callServices(app , Pool)
+    callServices(app, Pool)
 
     // router api url
-    if(mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
-    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
-    apiFarmer(app , db , Pool , dbpackage , listDB , io)
-    apiEcph(app , Pool)
-    apiWeatherStation(app , Pool)
-    apiWeatherGreenhouse(app , Pool)
-    apiPump(app , Pool)
-    apiMessage(app , db , apifunc , dbpackage , listDB , hostServer , io)
-    
-    apiSchedules(app , Pool)
-    apiFertilizers(app , Pool)
-    apiChemicals(app , Pool)
-    apiPests(app , Pool)
-    
-    apiAddDevice(app , Pool)
+    if (mode === process.env.BUILD || mode === "router") router(app)
+    apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, io)
+    apiDoctor(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
+    apiFarmer(app, db, Pool, dbpackage, listDB, io)
+    apiEcph(app, Pool)
+    apiWeatherStation(app, Pool)
+    apiWeatherGreenhouse(app, Pool)
+    apiPump(app, Pool)
+    apiMessage(app, db, apifunc, dbpackage, listDB, hostServer, io)
+
+    apiSchedules(app, Pool)
+    apiFertilizers(app, Pool)
+    apiChemicals(app, Pool)
+    apiPests(app, Pool)
+
+    apiAddDevice(app, Pool)
     // page error 404
     app.get("*", (req, res) => {
         res.sendFile(__dirname.replace('\server', '/index404.html'));
