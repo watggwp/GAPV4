@@ -18,7 +18,7 @@ services:
       - PREFIX_PATH=/uat
       - HOST_DB_CONTAINER=royal-gap-uat-db
       - URL_SERVER_CONTAINER=https://gapv2.ngrok.app/uat
-    command: ["${USER_DB}", "${PASS_DB}"]
+    command: ["${USER_DB_DEV}", "${PASS_DB_DEV}"]
     depends_on:
       - royal-gap-uat-db
 
@@ -27,9 +27,9 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: gapv3
-      MYSQL_USER: ${USER_DB}
-      MYSQL_PASSWORD: ${PASS_DB}
-      MYSQL_ROOT_PASSWORD: ${PASS_DB}
+      MYSQL_USER: ${USER_DB_DEV}
+      MYSQL_PASSWORD: ${PASS_DB_DEV}
+      MYSQL_ROOT_PASSWORD: ${PASS_DB_DEV}
     networks:
       - royal-gap-network-uat
     volumes:
@@ -40,8 +40,8 @@ services:
     restart: always
     environment:
       PMA_HOST: royal-gap-uat-db
-      PMA_USER: ${USER_DB}
-      PMA_PASSWORD: ${PASS_DB}
+      PMA_USER: ${USER_DB_DEV}
+      PMA_PASSWORD: ${PASS_DB_DEV}
     networks:
       - royal-gap-network-uat
     ports:

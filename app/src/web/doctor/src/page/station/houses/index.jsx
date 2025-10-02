@@ -21,6 +21,7 @@ export default function Houses() {
 
     const abortRequestFarmer = useRef(new AbortController())
     const requestFarmers = useCallback( async () => {
+        setFarmers([])
         setSelectedFarmer("")
         setLoadingFarmers(true)
         const { data , status } = await RequestAPI.post('/api/doctor/farmer/list' , {
@@ -51,6 +52,7 @@ export default function Houses() {
 
     const abortRequestGreenhouse = useRef(new AbortController())
     const requestGreenhouses = useCallback( async () => {
+        setHouses([])
         setLoadingHouse(true)
         const { data , status } = await RequestAPI.get(`/api/doctor/station/${selectedStationData.id}/greenhouse` , {} , {
             signal : abortRequestGreenhouse.current.signal

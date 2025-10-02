@@ -5,6 +5,7 @@ assets/img/doctor/report/*.jpg
 build
 deploy/builds/*
 .env
+docker.env
 /app/src/assets/img/doctor/report/*.jpg
 
 services/*
