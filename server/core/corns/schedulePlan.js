@@ -88,7 +88,7 @@ const schedulePlan = {
                             ...generalMessage,
                             ...details_message
                         ],
-                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/f?open-insert=true`,
+                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true`,
                         {
                             buttonLabel : "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
                         }

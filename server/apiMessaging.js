@@ -6,165 +6,209 @@ const io = new Server()
 const Report = require("./reportToAdmin")
 const RoyalGapEnv = require('./core/env')
 const RoyalGapLine = require('./configLine')
+const ConnectionPool = require('./connectPool')
 
-module.exports = function Messaging (app , Database , apifunc , dbpacket , listDB , UrlApi , socket = io) {
+module.exports = function Messaging(app , Database , PoolMysql = new ConnectionPool() , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
     app.post('/messageAPI' , async (req , res)=>{
         const { body : { events } = {} } = req
         if(events?.length > 0) {
             const [ { type , postback , message , source : { userId : uid_line_message } = {} , replyToken } ] = events
             if(type === "postback") {
-                if(postback?.data == "house_add") {
-                    const con = await ConnectDB()
-                    try {
-                        con.query(`
-                            SELECT id_farm_house , name_house , air_temperature , air_humidity
-                            FROM housefarm
-                            JOIN (
-                                SELECT uid_line , link_user 
-                                FROM acc_farmer 
-                                WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
-                                ORDER BY date_register DESC
-                                LIMIT 1
-                            ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
-                            LEFT JOIN (
-                                SELECT air_temperature , air_humidity , greenhouse_id
-                                FROM sensor_weather_greenhouse swg
-                                LEFT JOIN weather_greenhouse wgh ON wgh.device_id = swg.device_id
-                                ORDER BY timestamp DESC
-                                LIMIT 1
-                            ) as swgh ON swgh.greenhouse_id = housefarm.id_farm_house
-                            WHERE housefarm.status = '1'
-                            ORDER BY id_farm_house DESC
-                        ` , 
-                        [ uid_line_message ] ,
-                        (err , result)=>{
-                            con.end()
+                const { data } = postback
+                let msg
+                
+                const [ type , id_greenhouse ] = data.split(":")
+                switch(type) {
+                    case "house_add" :
+                        try {
+                            const result = await PoolMysql.executeQuery(
+                                `
+                                    SELECT 
+                                        housefarm.id_farm_house , name_house , air_temperature , air_humidity , 
+                                        CONCAT('[', GROUP_CONCAT(gf.id), ']') AS formgap_ids
+                                    FROM housefarm
+                                    JOIN (
+                                        SELECT uid_line , link_user 
+                                        FROM acc_farmer 
+                                        WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
+                                        ORDER BY date_register DESC
+                                        LIMIT 1
+                                    ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                                    LEFT JOIN (
+                                        SELECT formplant.id , formplant.id_farm_house
+                                        FROM formplant
+                                        WHERE state_status IN (0 , 1)
+                                    ) gf ON gf.id_farm_house = housefarm.id_farm_house
+                                    LEFT JOIN (
+                                        SELECT t.air_temperature , t.air_humidity , t.greenhouse_id
+                                        FROM (
+                                            SELECT air_temperature , air_humidity , greenhouse_id ,
+                                                ROW_NUMBER() OVER (PARTITION BY greenhouse_id ORDER BY timestamp DESC) AS rn
+                                            FROM sensor_weather_greenhouse swg
+                                            LEFT JOIN weather_greenhouse wgh ON wgh.device_id = swg.device_id
+                                        ) t
+                                        WHERE t.rn = 1
+                                    ) as swgh ON swgh.greenhouse_id = housefarm.id_farm_house
+                                    WHERE housefarm.status = '1'
+                                    GROUP BY housefarm.id_farm_house , name_house , air_temperature , air_humidity
+                                    ORDER BY housefarm.id_farm_house DESC
+                                `,
+                                [ uid_line_message ]
+                            )
 
-                            console.log(err)
-                            if (!err) {
-                                let msg
-                                if(result[0]) {
-                                    // msg =  {
-                                    //     type : "template",
-                                    //     altText : "โรงเรือน",
-                                    //     template : {
-                                    //         type : "image_carousel" ,
-                                    //         columns : Array.isArray(result) ? result.map(({ id_farm_house , name_house }) =>{
-                                    //             const key = new Date().getTime()
-                                    //             const name = name_house.toString()
-                                    //             return {
-                                    //                 imageUrl : `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
-                                    //                 action : {
-                                    //                     type : "uri",
-                                    //                     label : `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
-                                    //                     uri : `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}?date=${key}`
-                                    //                 }
-                                    //             }
-                                    //         }) : [] ,
-                                    //     }
-                                    // }
+                            if(result.length) {
+                                msg = {
+                                    "type": "flex",
+                                    "altText": "เลือกโรงเรือน",
+                                    "contents": {
+                                        "type": "carousel",
+                                        "contents": Array.isArray(result) ? result.map(({ id_farm_house , name_house , air_temperature , air_humidity , formgap_ids }) =>{
+                                            const key = new Date().getTime()
+                                            const name = name_house.toString()
+                                            const formgap_ids_array = JSON.parse(formgap_ids)
 
-                                    msg = {
-                                        "type": "flex",
-                                        "altText": "เลือกโรงเรือน",
-                                        "contents": {
-                                            "type": "carousel",
-                                            "contents": Array.isArray(result) ? result.map(({ id_farm_house , name_house , air_temperature , air_humidity }) =>{
-                                                const key = new Date().getTime()
-                                                const name = name_house.toString()
-                                                const lineLiff = `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}?date=${key}`
-                                                return {
-                                                    "type": "bubble",
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
-                                                        "size": "full",
-                                                        "aspectRatio": "20:20",
-                                                        "aspectMode": "cover",
-                                                        "action" : {
-                                                            type : "uri",
-                                                            label : "iamageA",
-                                                            uri : lineLiff
-                                                        }
-                                                    },
-                                                    "body": {
-                                                        "type": "box",
-                                                        "layout": "vertical",
-                                                        "action" : {
-                                                            type : "uri",
-                                                            label : "iamageA",
-                                                            uri : lineLiff
-                                                        },
-                                                        "contents": [
-                                                            {
-                                                                "type": "text",
-                                                                "text": `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
-                                                                "weight": "bold",
-                                                                "size": "xl",
-                                                                "align": "center"
-                                                            },
-                                                            {
-                                                                "type": "box",
-                                                                "layout": "horizontal",
-                                                                "spacing": "md",
-                                                                "margin": "md",
-                                                                "contents": (air_temperature !== null || air_humidity !== null) ? [
-                                                                    {
-                                                                        "type": "text",
-                                                                        "text": air_temperature ? `อุณหภูมิ ${air_temperature}°C` : "ไม่พบค่าอุณหภูมิ",
-                                                                        "size": "sm",
-                                                                        "color": "#888888",
-                                                                        "flex": 1,
-                                                                        "align": "center"
-                                                                    },
-                                                                    {
-                                                                        "type": "text",
-                                                                        "text": air_humidity ? `ความชื้น ${air_humidity}%` : "ไม่พบค่าความชื้น",
-                                                                        "size": "sm",
-                                                                        "color": "#888888",
-                                                                        "flex": 1,
-                                                                        "align": "center"
-                                                                    }
-                                                                ] : [
-                                                                    {
-                                                                        "type": "text",
-                                                                        "text": `ไม่พบเครื่องวัดสภาพอากาศ`,
-                                                                        "size": "sm",
-                                                                        "color": "#888888",
-                                                                        "flex": 1,
-                                                                        "align": "center"
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
+                                            const prefixGreenhouseURL = `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}`
+                                            const prefixFormGapURL = `${prefixGreenhouseURL}/${formgap_ids_array[0]}`
+
+                                            const lineLiff = `${prefixGreenhouseURL}?date=${key}`
+                                            
+                                            return {
+                                                "type": "bubble",
+                                                "hero": {
+                                                    "type": "image",
+                                                    "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
+                                                    "size": "full",
+                                                    "aspectRatio": "20:20",
+                                                    "aspectMode": "cover",
+                                                    "action" : {
+                                                        type : "uri",
+                                                        label : "image",
+                                                        uri : lineLiff
                                                     }
+                                                },
+                                                "body": {
+                                                    "type": "box",
+                                                    "layout": "vertical",
+                                                    "action" : {
+                                                        type : "uri",
+                                                        label : "image",
+                                                        uri : lineLiff
+                                                    },
+                                                    "spacing": "8px",
+                                                    "contents": [
+                                                        {
+                                                            "type": "text",
+                                                            "text": `${name.length > 12 ? `${name.slice(0 , 9)}..` : name}`,
+                                                            "weight": "bold",
+                                                            "size": "xl",
+                                                            "align": "center"
+                                                        },
+                                                        {
+                                                            "type": "box",
+                                                            "layout": "horizontal",
+                                                            "spacing": "md",
+                                                            "margin": "md",
+                                                            "contents": (air_temperature !== null || air_humidity !== null) ? [
+                                                                {
+                                                                    "type": "text",
+                                                                    "text": air_temperature ? `อุณหภูมิ ${air_temperature}°C` : "ไม่พบค่าอุณหภูมิ",
+                                                                    "size": "sm",
+                                                                    "color": "#888888",
+                                                                    "flex": 1,
+                                                                    "align": "center"
+                                                                },
+                                                                {
+                                                                    "type": "text",
+                                                                    "text": air_humidity ? `ความชื้น ${air_humidity}%` : "ไม่พบค่าความชื้น",
+                                                                    "size": "sm",
+                                                                    "color": "#888888",
+                                                                    "flex": 1,
+                                                                    "align": "center"
+                                                                }
+                                                            ] : [
+                                                                {
+                                                                    "type": "text",
+                                                                    "text": `ไม่พบเครื่องวัดสภาพอากาศ`,
+                                                                    "size": "sm",
+                                                                    "color": "#888888",
+                                                                    "flex": 1,
+                                                                    "align": "center"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "box",
+                                                            "layout": "vertical",
+                                                            "contents": [
+                                                                {
+                                                                    "type": "button",
+                                                                    "action": {
+                                                                        "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
+                                                                        "label": "บันทึกปัจจัยการผลิต",
+                                                                        "data": formgap_ids_array.length !== 1 ? `house_form_fertilizer:${id_farm_house}` : undefined,
+                                                                        "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/z?open-insert=true` : undefined
+                                                                    },
+                                                                    "style": "primary",
+                                                                    "color": "#379b7a"
+                                                                },
+                                                                {
+                                                                    "type": "button",
+                                                                    "action": {
+                                                                        "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
+                                                                        "label": "บันทึกสารเคมี",
+                                                                        "data": formgap_ids_array.length !== 1 ? `house_form_chemical:${id_farm_house}` : undefined,
+                                                                        "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/c?open-insert=true` : undefined
+                                                                    },
+                                                                    "style": "primary",
+                                                                    "color": "#379b7a"
+                                                                }
+                                                            ],
+                                                            "spacing": "8px"
+                                                        }
+                                                    ]
                                                 }
-                                            }) : []
-                                        }
+                                            }
+                                        }) : []
                                     }
                                 }
-                                else {
-                                    msg = {
-                                        type : "text",
-                                        text : "โปรดเพิ่มโรงเรือนก่อนนะครับ"
-                                    }
-                                }
-
-                                RoyalGapLine.replyMessage(replyToken , msg)
-                                res.status(200).send('OK')
                             }
-                        })
-                    } catch (e) {
-                        Report(e.toString())
-                    }
-                } else {
-                    await RoyalGapLine.replyMessage(replyToken , {
-                        type : "text",
-                        text : "พบปัญหาในการค้นหาข้อมูล\nรอสักครู่นะคะ \u2764"
-                    })
-                    res.status(200).send('OK')
+                            else {
+                                msg = {
+                                    type : "text",
+                                    text : "โปรดเพิ่มโรงเรือนก่อนนะครับ"
+                                }
+                            }
+
+                        } catch (e) {
+                            Report(e.toString())
+                        }
+                        break;
+                    case "house_form_fertilizer" :
+                        msg = await generateMessageFormGapExtension(
+                            PoolMysql,
+                            id_greenhouse,
+                            "z"
+                        )
+                        break;
+                    case "house_form_chemical" :
+                        msg = await generateMessageFormGapExtension(
+                            PoolMysql,
+                            id_greenhouse,
+                            "c"
+                        )
+                        break;
+                    default:
+                        msg = {
+                            type : "text",
+                            text : "พบปัญหาในการค้นหาข้อมูล\nรอสักครู่นะคะ \u2764"
+                        }
                 }
+
+                try {
+                    await RoyalGapLine.replyMessage(replyToken , msg)
+                } catch(err) {}
+                return res.status(200).send('OK')
             } else if (type === "message") {
                 if(message.type == "text" || message.type == "image") {
                     const con = await ConnectDB()
@@ -300,7 +344,7 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
                 }
             } 
         } else {
-            res.status(200).send('OK')
+            return res.status(200).send('OK')
         }
         
     })
@@ -360,6 +404,64 @@ module.exports = function Messaging (app , Database , apifunc , dbpacket , listD
             })
         })
     } 
+}
+
+const mappingType = {
+    "z" : "คลิกเพื่อบันทึกปัจจัยการผลิต",
+    "c" : "คลิกเพื่อบันทึกสารเคมี"
+}
+
+async function generateMessageFormGapExtension(PoolMysql , id_greenhouse  , type) {
+    const formplants = await PoolMysql.executeQuery(
+        `
+            SELECT id , name_plant , generation
+            FROM formplant
+            WHERE state_status IN (0 , 1) AND id_farm_house = ?
+        `,
+        [ id_greenhouse ]
+    )
+
+    const prefixGreenhouseURL = `${RoyalGapEnv.url_line.get_greenhouse}/${id_greenhouse}`
+
+    return {
+        "type": "flex",
+        "altText": "เลือกชนิดพืช",
+        "contents": {
+            "type": "carousel",
+            "contents": Array.isArray(formplants) ? 
+                formplants.map(({ id , name_plant , generation }) => ({
+                    "type": "bubble",
+                    "header": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": `${name_plant} รุ่น ${generation}`,
+                                "align": "center",
+                                "size": "24px"
+                            }
+                        ]
+                    },
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "button",
+                                "action": {
+                                    "type": "uri",
+                                    "label": mappingType[type],
+                                    "uri": `${prefixGreenhouseURL}/${id}/${type}?open-insert=true`
+                                },
+                                "style": "primary",
+                                "color": "#379b7a"
+                            }
+                        ]
+                    }
+                })) : []
+            }
+    }
 }
 
 // {

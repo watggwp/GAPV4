@@ -201,7 +201,7 @@ module.exports = function appConfig(username , password , hostServer ) {
     apiWeatherStation(app , Pool)
     apiWeatherGreenhouse(app , Pool)
     apiPump(app , Pool)
-    apiMessage(app , db , apifunc , dbpackage , listDB , hostServer , io)
+    apiMessage(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
     
     apiSchedules(app , Pool)
     apiFertilizers(app , Pool)
