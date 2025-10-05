@@ -25,8 +25,7 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                             const result = await PoolMysql.executeQuery(
                                 `
                                     SELECT 
-                                        housefarm.id_farm_house , name_house , air_temperature , air_humidity , 
-                                        CONCAT('[', GROUP_CONCAT(gf.id), ']') AS formgap_ids
+                                        housefarm.id_farm_house , name_house , air_temperature , air_humidity
                                     FROM housefarm
                                     JOIN (
                                         SELECT uid_line , link_user 
@@ -35,11 +34,6 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                         ORDER BY date_register DESC
                                         LIMIT 1
                                     ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
-                                    LEFT JOIN (
-                                        SELECT formplant.id , formplant.id_farm_house
-                                        FROM formplant
-                                        WHERE state_status IN (0 , 1)
-                                    ) gf ON gf.id_farm_house = housefarm.id_farm_house
                                     LEFT JOIN (
                                         SELECT t.air_temperature , t.air_humidity , t.greenhouse_id
                                         FROM (
@@ -66,10 +60,12 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                         "contents": Array.isArray(result) ? result.map(({ id_farm_house , name_house , air_temperature , air_humidity , formgap_ids }) =>{
                                             const key = new Date().getTime()
                                             const name = name_house.toString()
-                                            const formgap_ids_array = JSON.parse(formgap_ids)
-
+                                            
                                             const prefixGreenhouseURL = `${RoyalGapEnv.url_line.get_greenhouse}/${id_farm_house}`
-                                            const prefixFormGapURL = `${prefixGreenhouseURL}/${formgap_ids_array[0]}`
+                                            
+                                            // Shortcut Form
+                                            // const formgap_ids_array = JSON.parse(formgap_ids)
+                                            // const prefixFormGapURL = `${prefixGreenhouseURL}/${formgap_ids_array[0]}`
 
                                             const lineLiff = `${prefixGreenhouseURL}?date=${key}`
                                             
@@ -137,35 +133,36 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                                                 }
                                                             ]
                                                         },
-                                                        {
-                                                            "type": "box",
-                                                            "layout": "vertical",
-                                                            "contents": [
-                                                                {
-                                                                    "type": "button",
-                                                                    "action": {
-                                                                        "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
-                                                                        "label": "บันทึกปัจจัยการผลิต",
-                                                                        "data": formgap_ids_array.length !== 1 ? `house_form_fertilizer:${id_farm_house}` : undefined,
-                                                                        "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/z?open-insert=true` : undefined
-                                                                    },
-                                                                    "style": "primary",
-                                                                    "color": "#379b7a"
-                                                                },
-                                                                {
-                                                                    "type": "button",
-                                                                    "action": {
-                                                                        "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
-                                                                        "label": "บันทึกสารเคมี",
-                                                                        "data": formgap_ids_array.length !== 1 ? `house_form_chemical:${id_farm_house}` : undefined,
-                                                                        "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/c?open-insert=true` : undefined
-                                                                    },
-                                                                    "style": "primary",
-                                                                    "color": "#379b7a"
-                                                                }
-                                                            ],
-                                                            "spacing": "8px"
-                                                        }
+                                                        // Shortcut Form
+                                                        // {
+                                                        //     "type": "box",
+                                                        //     "layout": "vertical",
+                                                        //     "contents": [
+                                                        //         {
+                                                        //             "type": "button",
+                                                        //             "action": {
+                                                        //                 "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
+                                                        //                 "label": "บันทึกปัจจัยการผลิต",
+                                                        //                 "data": formgap_ids_array.length !== 1 ? `house_form_fertilizer:${id_farm_house}` : undefined,
+                                                        //                 "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/z?open-insert=true` : undefined
+                                                        //             },
+                                                        //             "style": "primary",
+                                                        //             "color": "#379b7a"
+                                                        //         },
+                                                        //         {
+                                                        //             "type": "button",
+                                                        //             "action": {
+                                                        //                 "type": formgap_ids_array.length !== 1 ? "postback" : "uri",
+                                                        //                 "label": "บันทึกสารเคมี",
+                                                        //                 "data": formgap_ids_array.length !== 1 ? `house_form_chemical:${id_farm_house}` : undefined,
+                                                        //                 "uri": formgap_ids_array.length === 1 ? `${prefixFormGapURL}/c?open-insert=true` : undefined
+                                                        //             },
+                                                        //             "style": "primary",
+                                                        //             "color": "#379b7a"
+                                                        //         }
+                                                        //     ],
+                                                        //     "spacing": "8px"
+                                                        // }
                                                     ]
                                                 }
                                             }
@@ -521,3 +518,39 @@ async function generateMessageFormGapExtension(PoolMysql , id_greenhouse  , type
 //         ]
 //     },
 // }
+
+// // Shortcut Form sql
+// const result = await PoolMysql.executeQuery(
+//     `
+//         SELECT 
+//             housefarm.id_farm_house , name_house , air_temperature , air_humidity , 
+//             CONCAT('[', GROUP_CONCAT(gf.id), ']') AS formgap_ids
+//         FROM housefarm
+//         JOIN (
+//             SELECT uid_line , link_user 
+//             FROM acc_farmer 
+//             WHERE uid_line = ? and (register_auth = 0 or register_auth = 1)
+//             ORDER BY date_register DESC
+//             LIMIT 1
+//         ) farmer ON housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+//         LEFT JOIN (
+//             SELECT formplant.id , formplant.id_farm_house
+//             FROM formplant
+//             WHERE state_status IN (0 , 1)
+//         ) gf ON gf.id_farm_house = housefarm.id_farm_house
+//         LEFT JOIN (
+//             SELECT t.air_temperature , t.air_humidity , t.greenhouse_id
+//             FROM (
+//                 SELECT air_temperature , air_humidity , greenhouse_id ,
+//                     ROW_NUMBER() OVER (PARTITION BY greenhouse_id ORDER BY timestamp DESC) AS rn
+//                 FROM sensor_weather_greenhouse swg
+//                 LEFT JOIN weather_greenhouse wgh ON wgh.device_id = swg.device_id
+//             ) t
+//             WHERE t.rn = 1
+//         ) as swgh ON swgh.greenhouse_id = housefarm.id_farm_house
+//         WHERE housefarm.status = '1'
+//         GROUP BY housefarm.id_farm_house , name_house , air_temperature , air_humidity
+//         ORDER BY housefarm.id_farm_house DESC
+//     `,
+//     [ uid_line_message ]
+// )
