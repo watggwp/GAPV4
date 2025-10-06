@@ -72,9 +72,15 @@ export default function WeatherManagement({
     } , [])
 
     const ProcessRequestDateRange = useCallback( async (starttime , endtime , isMount) => {
+        const startOfDay = new Date(starttime);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(endtime);
+        endOfDay.setHours(23, 59, 59, 999);
+
         const { data , status } = await RequestAPI.get(endpointData , {
-            "st" : starttime,
-            "et" : endtime,
+            "st" : startOfDay.getTime(),
+            "et" : endOfDay.getTime(),
             ...(Query || {})
         })
         setLoadingHistory(false)

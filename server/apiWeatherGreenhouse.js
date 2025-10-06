@@ -84,7 +84,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 `
                     SELECT * , CONCAT(
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
-                        -- , ".000Z"
+                        , ".000Z"
                     ) as timestamp
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id

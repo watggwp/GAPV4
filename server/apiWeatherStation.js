@@ -85,7 +85,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
                 `
                     SELECT ws.id , CONCAT(
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
-                        -- , ".000Z"
+                        , ".000Z"
                     ) as timestamp , 
                         temperature , humidity ,light , rainfall , pressure
                     FROM weather_station ws
