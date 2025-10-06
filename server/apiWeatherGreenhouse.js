@@ -80,6 +80,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         }
     
         try {
+            const betweenReal = (7 * 60 * 60 * 1000)
             const data = await pool.executeQuery(
                 `
                     SELECT * , CONCAT(
@@ -91,7 +92,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
                     ORDER BY wg.timestamp DESC
                 `, [
-                    greenhouse_id , device_id , new Date(Number(st)) , new Date(Number(et))
+                    greenhouse_id , device_id , new Date(Number(st) - betweenReal) , new Date(Number(et) - betweenReal)
                 ]
             );
             return res.status(200).send({
