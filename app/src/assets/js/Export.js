@@ -368,173 +368,171 @@ const ExportPDF = async (Data) => {
         
 
         // ===== ๓. ระบบการปลูก (ตัวเลือกแรกอยู่บรรทัดเดียวกับหัวข้อ) =====
-const y3 = 190;                 // baseline ของหัวข้อ
-TextBoxHead(pdf, 30, y3, '๓.');
-TextBoxHead(pdf, 50, y3, 'ระบบการปลูก');
+        const y3 = 190;                 // baseline ของหัวข้อ
+        TextBoxHead(pdf, 30, y3, '๓.');
+        TextBoxHead(pdf, 50, y3, 'ระบบการปลูก');
 
-// ดึงค่าจาก DB แล้วแม็ปเข้าช่อง
-const sysSetRaw = asSet(Export.dataForm.system_glow);
-const { hitLabels: sysHits, otherText: sysOtherAuto } =
-  resolveChecks(sysSetRaw, OPTION_SYNONYMS.system_glow);
+        // ดึงค่าจาก DB แล้วแม็ปเข้าช่อง
+        const sysSetRaw = asSet(Export.dataForm.system_glow);
+        const { hitLabels: sysHits, otherText: sysOtherAuto } =
+        resolveChecks(sysSetRaw, OPTION_SYNONYMS.system_glow);
 
-// รวมข้อความ other (manual + auto)
-const finalOther = mergeOther(sysOtherAuto, Export.dataForm.system_glow_other);
+        // รวมข้อความ other (manual + auto)
+        const finalOther = mergeOther(sysOtherAuto, Export.dataForm.system_glow_other);
 
-// คำนวณตำแหน่งวาง
-const sysTitleText = 'ระบบการปลูก';
-const sysTitleW = pdf.getStringUnitWidth(sysTitleText) * pdf.getFontSize();
-const SYS_L = 50 + sysTitleW + 20;
-const SYS_R = 410;
-const SYS_DY = 22;
+        // คำนวณตำแหน่งวาง
+        const sysTitleText = 'ระบบการปลูก';
+        const sysTitleW = pdf.getStringUnitWidth(sysTitleText) * pdf.getFontSize();
+        const SYS_L = 50 + sysTitleW + 20;
+        const SYS_R = 410;
+        const SYS_DY = 22;
 
-// ✅ ติ๊กช่องจาก DB (ใช้ isCheckedLabel เพื่อกันพลาดทุกเคส)
-DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกตามไหล่เขา',
-  isCheckedLabel('ขึ้นแปลงปลูกตามไหล่เขา', sysHits, sysSetRaw));
+        // ✅ ติ๊กช่องจาก DB (ใช้ isCheckedLabel เพื่อกันพลาดทุกเคส)
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกตามไหล่เขา',
+        isCheckedLabel('ขึ้นแปลงปลูกตามไหล่เขา', sysHits, sysSetRaw));
 
-DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*1, 'ปลูกแบบพื้นราบ',
-  isCheckedLabel('ปลูกแบบพื้นราบ', sysHits, sysSetRaw));
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*1, 'ปลูกแบบพื้นราบ',
+        isCheckedLabel('ปลูกแบบพื้นราบ', sysHits, sysSetRaw));
 
-DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*2, 'ปลูกในวัสดุปลูก',
-  isCheckedLabel('ปลูกในวัสดุปลูก', sysHits, sysSetRaw));
+        DrawCheckBox(pdf, SYS_L, y3 + SYS_DY*2, 'ปลูกในวัสดุปลูก',
+        isCheckedLabel('ปลูกในวัสดุปลูก', sysHits, sysSetRaw));
 
-DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกในโรงเรือน',
-  isCheckedLabel('ขึ้นแปลงปลูกในโรงเรือน', sysHits, sysSetRaw));
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*0, 'ขึ้นแปลงปลูกในโรงเรือน',
+        isCheckedLabel('ขึ้นแปลงปลูกในโรงเรือน', sysHits, sysSetRaw));
 
-DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*1, 'ระบบ Hydroponic',
-  isCheckedLabel('ระบบ Hydroponic', sysHits, sysSetRaw));
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*1, 'ระบบ Hydroponic',
+        isCheckedLabel('ระบบ Hydroponic', sysHits, sysSetRaw));
 
-// ช่อง “อื่น ๆ ระบุ”
-const hasOther = _norm(finalOther).length > 0;
-DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*2, 'อื่น ๆ ระบุ', hasOther, "fill");
+        // ช่อง “อื่น ๆ ระบุ”
+        const hasOther = _norm(finalOther).length > 0;
+        DrawCheckBox(pdf, SYS_R, y3 + SYS_DY*2, 'อื่น ๆ ระบุ', hasOther, "fill");
 
-// เส้นจุดต่อท้าย “อื่น ๆ ระบุ”
-{
-  const label = 'อื่น ๆ ระบุ';
-  const fs = pdf.getFontSize();
-  const PAD_BOX_TO_TEXT = 10;
-  const PAD_AFTER_LABEL = 6;
+        // เส้นจุดต่อท้าย “อื่น ๆ ระบุ”
+        {
+        const label = 'อื่น ๆ ระบุ';
+        const fs = pdf.getFontSize();
+        const PAD_BOX_TO_TEXT = 10;
+        const PAD_AFTER_LABEL = 6;
 
-  const textStart = SYS_R + PAD_BOX_TO_TEXT;
-  const labelW    = pdf.getStringUnitWidth(label) * fs;
-  const startDot  = textStart + labelW + PAD_AFTER_LABEL;
+        const textStart = SYS_R + PAD_BOX_TO_TEXT;
+        const labelW    = pdf.getStringUnitWidth(label) * fs;
+        const startDot  = textStart + labelW + PAD_AFTER_LABEL;
 
-  const pageW = pdf.internal.pageSize.getWidth();
-  const rightMargin = 28;
-  const endDot = pageW - rightMargin;
+        const pageW = pdf.internal.pageSize.getWidth();
+        const rightMargin = 28;
+        const endDot = pageW - rightMargin;
 
-  const dots = Math.max(10, Math.floor((endDot - startDot) / 4));
-  TextBoxDot(pdf, dots, startDot, y3 + SYS_DY*2, finalOther);
-}
+        const dots = Math.max(10, Math.floor((endDot - startDot) / 4));
+        TextBoxDot(pdf, dots, startDot, y3 + SYS_DY*2, finalOther);
+        }
 
-const nextY = y3 + SYS_DY*3 + 10;
-
-
+        const nextY = y3 + SYS_DY*3 + 10;
 
 
       // ===== ๔. แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ) =====
-const y4 = nextY;
-TextBoxHead(pdf , 30 , y4 , '๔.');
-TextBoxHead(pdf , 50 , y4 , 'แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ)');
+        const y4 = nextY;
+        TextBoxHead(pdf , 30 , y4 , '๔.');
+        TextBoxHead(pdf , 50 , y4 , 'แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ)');
 
-const waterSetRaw = asSet(Export.dataForm.water);
-const { hitLabels: waterHits, otherText: waterOtherAuto } =
-  resolveChecks(waterSetRaw, OPTION_SYNONYMS.water);
+        const waterSetRaw = asSet(Export.dataForm.water);
+        const { hitLabels: waterHits, otherText: waterOtherAuto } =
+        resolveChecks(waterSetRaw, OPTION_SYNONYMS.water);
 
-const finalWaterOther = mergeOther(waterOtherAuto, Export.dataForm.water_other);
+        const finalWaterOther = mergeOther(waterOtherAuto, Export.dataForm.water_other);
 
-// พิกัด 4 คอลัมน์
-const Xs4_BASE = [80, 200, 320, 420];
-const OFFSET_X = -20;
-const Xs4 = Xs4_BASE.map(x => x + OFFSET_X);
+        // พิกัด 4 คอลัมน์
+        const Xs4_BASE = [80, 200, 320, 420];
+        const OFFSET_X = -20;
+        const Xs4 = Xs4_BASE.map(x => x + OFFSET_X);
 
-const gapY4 = 22;
-let r4 = y4 + 20;
+        const gapY4 = 22;
+        let r4 = y4 + 20;
 
-// ✅ ติ๊กหลายช่องตาม DB
-DrawCheckBox(pdf, Xs4[0], r4, "อาศัยน้ำฝน",              isCheckedLabel("อาศัยน้ำฝน", waterHits, waterSetRaw));
-DrawCheckBox(pdf, Xs4[1], r4, "ลำธาร/คลองธรรมชาติ",     isCheckedLabel("ลำธาร/คลองธรรมชาติ", waterHits, waterSetRaw));
-DrawCheckBox(pdf, Xs4[2], r4, "บ่อบาดาล",                 isCheckedLabel("บ่อบาดาล", waterHits, waterSetRaw));
-DrawCheckBox(pdf, Xs4[3], r4, "บ่อ/สระขุด",               isCheckedLabel("บ่อ/สระขุด", waterHits, waterSetRaw));
-r4 += gapY4;
+        // ✅ ติ๊กหลายช่องตาม DB
+        DrawCheckBox(pdf, Xs4[0], r4, "อาศัยน้ำฝน",              isCheckedLabel("อาศัยน้ำฝน", waterHits, waterSetRaw));
+        DrawCheckBox(pdf, Xs4[1], r4, "ลำธาร/คลองธรรมชาติ",     isCheckedLabel("ลำธาร/คลองธรรมชาติ", waterHits, waterSetRaw));
+        DrawCheckBox(pdf, Xs4[2], r4, "บ่อบาดาล",                 isCheckedLabel("บ่อบาดาล", waterHits, waterSetRaw));
+        DrawCheckBox(pdf, Xs4[3], r4, "บ่อ/สระขุด",               isCheckedLabel("บ่อ/สระขุด", waterHits, waterSetRaw));
+        r4 += gapY4;
 
-DrawCheckBox(pdf, Xs4[0], r4, "คลองชลประทาน", isCheckedLabel("คลองชลประทาน", waterHits, waterSetRaw));
-DrawCheckBox(pdf, Xs4[1], r4, "อ่างเก็บน้ำ",   isCheckedLabel("อ่างเก็บน้ำ", waterHits, waterSetRaw));
+        DrawCheckBox(pdf, Xs4[0], r4, "คลองชลประทาน", isCheckedLabel("คลองชลประทาน", waterHits, waterSetRaw));
+        DrawCheckBox(pdf, Xs4[1], r4, "อ่างเก็บน้ำ",   isCheckedLabel("อ่างเก็บน้ำ", waterHits, waterSetRaw));
 
-// อื่น ๆ
-const hasWaterOther = _norm(finalWaterOther).length > 0;
-DrawCheckBox(pdf, Xs4[2], r4, "อื่น ๆ ระบุ", hasWaterOther, "fill");
+        // อื่น ๆ
+        const hasWaterOther = _norm(finalWaterOther).length > 0;
+        DrawCheckBox(pdf, Xs4[2], r4, "อื่น ๆ ระบุ", hasWaterOther, "fill");
 
-// เส้นจุด “อื่น ๆ”
-{
-  const label     = 'อื่น ๆ ระบุ';
-  const PAD_AFTER = 6;
-  const fs        = pdf.getFontSize();
+        // เส้นจุด “อื่น ๆ”
+        {
+        const label     = 'อื่น ๆ ระบุ';
+        const PAD_AFTER = 6;
+        const fs        = pdf.getFontSize();
 
-  const textStart = Xs4[2] + 10;
-  const labelW    = pdf.getStringUnitWidth(label) * fs;
-  const startDot  = textStart + labelW + PAD_AFTER;
+        const textStart = Xs4[2] + 10;
+        const labelW    = pdf.getStringUnitWidth(label) * fs;
+        const startDot  = textStart + labelW + PAD_AFTER;
 
-  const endRight  = pdf.internal.pageSize.getWidth() - 28;
-  const rawDots   = Math.floor((endRight - startDot) / 4);
-  const DOT_TRIM  = 12;
-  const dots      = Math.max(6, rawDots - DOT_TRIM);
+        const endRight  = pdf.internal.pageSize.getWidth() - 28;
+        const rawDots   = Math.floor((endRight - startDot) / 4);
+        const DOT_TRIM  = 12;
+        const dots      = Math.max(6, rawDots - DOT_TRIM);
 
-  TextBoxDot(pdf, dots, startDot, r4, finalWaterOther);
-}
+        TextBoxDot(pdf, dots, startDot, r4, finalWaterOther);
+        }
 
-const yAfter4 = r4 + 22;
-
-
+        const yAfter4 = r4 + 22;
 
 
-// ===== ๕. วิธีการให้น้ำ =====
-const y5 = yAfter4;
-TextBoxHead(pdf, 30, y5, '๕.');
-TextBoxHead(pdf, 50, y5, 'วิธีการให้น้ำ');
 
-const flowSetRaw = asSet(Export.dataForm.water_flow);
-const { hitLabels: flowHits, otherText: flowOtherAuto } =
-  resolveChecks(flowSetRaw, OPTION_SYNONYMS.water_flow);
 
-const finalFlowOther = mergeOther(flowOtherAuto, Export.dataForm.water_flow_other);
+        // ===== ๕. วิธีการให้น้ำ =====
+        const y5 = yAfter4;
+        TextBoxHead(pdf, 30, y5, '๕.');
+        TextBoxHead(pdf, 50, y5, 'วิธีการให้น้ำ');
 
-// วาง checkbox ตัวแรกต่อท้ายหัวข้อ
-const title5 = 'วิธีการให้น้ำ';
-const title5W = pdf.getStringUnitWidth(title5) * pdf.getFontSize();
-let x5 = 50 + title5W + 12;
+        const flowSetRaw = asSet(Export.dataForm.water_flow);
+        const { hitLabels: flowHits, otherText: flowOtherAuto } =
+        resolveChecks(flowSetRaw, OPTION_SYNONYMS.water_flow);
 
-const padText5 = 6;
-const gap5     = 10;
-const advance5 = (x0, label) =>
-  x0 + 6 + padText5 + (pdf.getStringUnitWidth(label) * pdf.getFontSize()) + gap5;
+        const finalFlowOther = mergeOther(flowOtherAuto, Export.dataForm.water_flow_other);
 
-// ✅ ติ๊กหลายช่องตาม DB
-DrawCheckBox(pdf, x5, y5, 'สปริงเกอร์', isCheckedLabel('สปริงเกอร์', flowHits, flowSetRaw));
-x5 = advance5(x5, 'สปริงเกอร์');
+        // วาง checkbox ตัวแรกต่อท้ายหัวข้อ
+        const title5 = 'วิธีการให้น้ำ';
+        const title5W = pdf.getStringUnitWidth(title5) * pdf.getFontSize();
+        let x5 = 50 + title5W + 12;
 
-DrawCheckBox(pdf, x5, y5, 'ระบบน้ำหยด', isCheckedLabel('ระบบน้ำหยด', flowHits, flowSetRaw));
-x5 = advance5(x5, 'ระบบน้ำหยด');
+        const padText5 = 6;
+        const gap5     = 10;
+        const advance5 = (x0, label) =>
+        x0 + 6 + padText5 + (pdf.getStringUnitWidth(label) * pdf.getFontSize()) + gap5;
 
-DrawCheckBox(pdf, x5, y5, 'ปล่อยตามร่อง', isCheckedLabel('ปล่อยตามร่อง', flowHits, flowSetRaw));
-x5 = advance5(x5, 'ปล่อยตามร่อง');
+        // ✅ ติ๊กหลายช่องตาม DB
+        DrawCheckBox(pdf, x5, y5, 'สปริงเกอร์', isCheckedLabel('สปริงเกอร์', flowHits, flowSetRaw));
+        x5 = advance5(x5, 'สปริงเกอร์');
 
-DrawCheckBox(pdf, x5, y5, 'ใช้สายยางรด', isCheckedLabel('ใช้สายยางรด', flowHits, flowSetRaw) || isCheckedLabel('ใช้สายยาง', flowHits, flowSetRaw));
-x5 = advance5(x5, 'ใช้สายยางรด');
+        DrawCheckBox(pdf, x5, y5, 'ระบบน้ำหยด', isCheckedLabel('ระบบน้ำหยด', flowHits, flowSetRaw));
+        x5 = advance5(x5, 'ระบบน้ำหยด');
 
-DrawCheckBox(pdf, x5, y5, 'ตักรด', isCheckedLabel('ตักรด', flowHits, flowSetRaw));
-x5 = advance5(x5, 'ตักรด');
+        DrawCheckBox(pdf, x5, y5, 'ปล่อยตามร่อง', isCheckedLabel('ปล่อยตามร่อง', flowHits, flowSetRaw));
+        x5 = advance5(x5, 'ปล่อยตามร่อง');
 
-// อื่น ๆ
-const hasFlowOther = _norm(finalFlowOther).length > 0;
-DrawCheckBox(pdf, x5, y5, 'อื่น ๆ ระบุ', hasFlowOther, "fill");
+        DrawCheckBox(pdf, x5, y5, 'ใช้สายยางรด', isCheckedLabel('ใช้สายยางรด', flowHits, flowSetRaw) || isCheckedLabel('ใช้สายยาง', flowHits, flowSetRaw));
+        x5 = advance5(x5, 'ใช้สายยางรด');
 
-// เส้นจุด “อื่น ๆ”
-const otherLabelW = pdf.getStringUnitWidth('อื่น ๆ ระบุ') * pdf.getFontSize();
-const dotStart5   = x5 + 6 + padText5 + otherLabelW + 6;
-const dotCount5   = Math.max(10, Math.floor((LEFT_COL_RIGHT - 6 - dotStart5) / 4));
-TextBoxDot(pdf, dotCount5, dotStart5, y5, finalFlowOther);
+        DrawCheckBox(pdf, x5, y5, 'ตักรด', isCheckedLabel('ตักรด', flowHits, flowSetRaw));
+        x5 = advance5(x5, 'ตักรด');
 
-const yAfter5 = y5 + 22;
+        // อื่น ๆ
+        const hasFlowOther = _norm(finalFlowOther).length > 0;
+        DrawCheckBox(pdf, x5, y5, 'อื่น ๆ ระบุ', hasFlowOther, "fill");
+
+        // เส้นจุด “อื่น ๆ”
+        const otherLabelW = pdf.getStringUnitWidth('อื่น ๆ ระบุ') * pdf.getFontSize();
+        const dotStart5   = x5 + 6 + padText5 + otherLabelW + 6;
+        const dotCount5   = Math.max(10, Math.floor((LEFT_COL_RIGHT - 6 - dotStart5) / 4));
+        TextBoxDot(pdf, dotCount5, dotStart5, y5, finalFlowOther);
+
+        const yAfter5 = y5 + 22;
 
 
 
@@ -611,11 +609,6 @@ const yAfter5 = y5 + 22;
         // จุดเริ่ม "ข้อ ๗" ต่อไป
         PresentRow = y + 30;
 
-
-
-
-        
-        
         // ===== ๗. ข้อแนะนำจากที่ปรึกษา (ส่วนนี้สำหรับเจ้าหน้าที่) =====
         y7Header = PresentRow;
         TextBoxHead(pdf, 30, PresentRow, '๗.');
@@ -720,76 +713,76 @@ const yAfter5 = y5 + 22;
         PresentRow = y2 + rowGap;
         }
 
+        
+// ===== ๘. ผลตรวจสอบแบบบันทึก ก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช =====
+{
+  const _fs = pdf.getFontSize();
+  pdf.setFontSize(14);
 
-        /* ===== ๘. ผลตรวจสอบแบบบันทึก ก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช ===== */
-        {
-        const _fs = pdf.getFontSize();   // เก็บขนาดเดิม
-        pdf.setFontSize(14);
+  TextBoxHead(pdf, 30, PresentRow, '๘.');
+  TextBoxHead(pdf, 50, PresentRow, 'ผลตรวจสอบแบบบันทึกก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช');
 
-        TextBoxHead(pdf, 30, PresentRow, '๘.');
-        TextBoxHead(pdf, 50, PresentRow, 'ผลตรวจสอบแบบบันทึกก่อนการเก็บเกี่ยวผลผลิต จากหมอพืช');
+  pdf.setFontSize(_fs);
+  PresentRow += 14;
 
-        pdf.setFontSize(_fs);
-        PresentRow += 14;
+  const status = Export.checkForm?.[0]?.status_check;
+  DrawCheckBox(pdf, 160, PresentRow, 'ผ่าน',    status === true  || status === 'ผ่าน');
+  DrawCheckBox(pdf, 220, PresentRow, 'ไม่ผ่าน', status === false || status === 'ไม่ผ่าน');
 
-        // [ ] ผ่าน / [ ] ไม่ผ่าน
-        const status = Export.checkForm?.[0]?.status_check;
-        DrawCheckBox(pdf, 160, PresentRow, 'ผ่าน',    status === true  || status === 'ผ่าน');
-        DrawCheckBox(pdf, 220, PresentRow, 'ไม่ผ่าน', status === false || status === 'ไม่ผ่าน');
+  const FIX_LABEL = 'การแก้ไข';
+  const fixX      = 50;
+  const fixY      = PresentRow + 16;
+  const fs        = pdf.getFontSize();
+  const PAD       = 6;
 
-        // การแก้ไข (จุดพอดีกับคอลัมน์ซ้าย)
-        const FIX_LABEL = 'การแก้ไข';
-        const fixX      = 50;
-        const fixY      = PresentRow + 16;
-        const fs        = pdf.getFontSize();
-        const PAD       = 6;
+  TextBoxHead(pdf, fixX, fixY, FIX_LABEL);
 
-        TextBoxHead(pdf, fixX, fixY, FIX_LABEL);
+  const labelW   = pdf.getStringUnitWidth(FIX_LABEL) * fs;
+  const startDot = fixX + labelW + PAD;
+  const endDot   = LEFT_COL_RIGHT - 8;
+  let dotCount   = Math.floor((endDot - startDot) / 4);
+  dotCount       = Math.max(6, dotCount - 2);
 
-        const labelW   = pdf.getStringUnitWidth(FIX_LABEL) * fs;
-        const startDot = fixX + labelW + PAD;
-        const endDot   = LEFT_COL_RIGHT - 8;                 // ขอบขวาของคอลัมน์ซ้าย
-        let dotCount   = Math.floor((endDot - startDot) / 4);
-        dotCount       = Math.max(6, dotCount - 2);          // ลดนิดหน่อยให้ไม่ชนขอบ
+  TextBoxDot(pdf, dotCount, startDot, fixY, (Export.checkForm?.[0]?.note_text || ''));
 
-        TextBoxDot(pdf, dotCount, startDot, fixY, (Export.checkForm?.[0]?.note_text || ''));
+  // ---- บรรทัดลายเซ็น ----
+  const shiftX = 40; // ✅ เพิ่มระยะขยับขวา
+  const sigY    = fixY + 30;
+  const sigX    = 148 + shiftX;
+  const sigDots = 25;
 
-        // ---- บรรทัดลายเซ็น (ตามตัวอย่างรูป) ----
-        const sigY      = fixY + 30;    // ระยะห่างลงมาจาก "การแก้ไข"
-        const sigX      = 200;          // ตำแหน่งกึ่งกลางหน้า (ปรับได้)
-        const sigDots   = 25;
+  TextBoxDot(pdf, sigDots, sigX, sigY, '');
+  TextBoxHead(pdf, sigX, sigY + 18, '(............................)');
+  TextBoxHead(pdf, sigX, sigY + 36, 'ลงชื่อเจ้าหน้าที่หมอพืช');
 
-        // เส้นจุดบนสุด (ช่องเซ็น)
-        TextBoxDot(pdf, sigDots, sigX, sigY, '');
+  const dc = Export.checkForm?.[0]?.date_check
+    ? Export.checkForm[0].date_check.split('T')[0].split('-')
+    : null;
+  const dcStr = dc
+    ? `${parseInt(dc[2],10)}/${parseInt(dc[1],10)}/${(parseInt(dc[0],10)+543).toString().slice(-2)}`
+    : '';
 
-        // วงเล็บใต้เส้น
-        TextBoxHead(pdf, sigX, sigY + 18, '(............................)');
+  const dateY     = sigY + 56;
+  const dateLabel = 'ว/ด/ป';
+  const dateX     = 140 + shiftX;
+  TextBoxHead(pdf, dateX, dateY, dateLabel);
 
-        // "ลงชื่อเจ้าหน้าที่หมอพืช"
-        TextBoxHead(pdf, sigX, sigY + 36, 'ลงชื่อเจ้าหน้าที่หมอพืช');
+  const fsLabel     = pdf.getFontSize();
+  const labelWDate  = pdf.getStringUnitWidth(dateLabel) * fsLabel;
+  const GAP_AFTER_DATE = 3;
+  const dateStart   = dateX + labelWDate + GAP_AFTER_DATE;
+  const dateDots    = 20;
 
-        // ว/ด/ป (ทำให้จุด "ติดท้ายคำ" + ยาวขึ้นเล็กน้อย)
-        const dc = Export.checkForm?.[0]?.date_check
-            ? Export.checkForm[0].date_check.split('T')[0].split('-')
-            : null;
-        const dcStr = dc
-            ? `${parseInt(dc[2],10)}/${parseInt(dc[1],10)}/${(parseInt(dc[0],10)+543).toString().slice(-2)}`
-            : '';
+  TextBoxDot(pdf, dateDots, dateStart, dateY, dcStr);
 
-        const dateY     = sigY + 56;
-        const dateLabel = 'ว/ด/ป';
-        TextBoxHead(pdf, sigX, dateY, dateLabel);
+  PresentRow = dateY + 40;
+}
 
-        const fsLabel   = pdf.getFontSize();
-        const labelWDate= pdf.getStringUnitWidth(dateLabel) * fsLabel;
-        const dateStart = sigX + labelWDate + 2;  // จุดติดท้ายคำ
-        const dateDots  = 28;                      // เดิม ~20 → ยาวขึ้นเล็กน้อย
 
-        TextBoxDot(pdf, dateDots, dateStart, dateY, dcStr);
 
-        // ไปต่อข้อ ๙
-        PresentRow = sigY + 80;
-        }
+
+
+
 
 
        // ===== ๙. ผลการวิเคราะห์สารตกค้าง (ชิดขวา + ตารางเล็กลง) =====
