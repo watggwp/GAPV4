@@ -80,16 +80,20 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
         }
 
         try {
+            const betweenReal = (7 * 60 * 60 * 1000)
             const data = await pool.executeQuery(
                 `
-                    SELECT * , CONCAT(DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') , ".000Z") as timestamp
+                    SELECT * , CONCAT(
+                        DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
+                        , ".000Z"
+                    ) as timestamp
                     FROM weather_greenhouse wg
                     LEFT JOIN sensor_weather_greenhouse swg ON swg.device_id = wg.device_id
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
                     ORDER BY wg.timestamp DESC
                 `, [
-                greenhouse_id, device_id, new Date(Number(st)), new Date(Number(et))
-            ]
+                    greenhouse_id , device_id , new Date(Number(st) - betweenReal) , new Date(Number(et) - betweenReal)
+                ]
             );
             return res.status(200).send({
                 details: data

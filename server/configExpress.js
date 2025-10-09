@@ -194,22 +194,22 @@ module.exports = function appConfig(username, password, hostServer) {
     callServices(app, Pool)
 
     // router api url
-    if (mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, io)
-    apiDoctor(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
-    apiFarmer(app, db, Pool, dbpackage, listDB, io)
-    apiEcph(app, Pool)
-    apiWeatherStation(app, Pool)
-    apiWeatherGreenhouse(app, Pool)
-    apiPump(app, Pool)
-    apiMessage(app, db, apifunc, dbpackage, listDB, hostServer, io)
-
-    apiSchedules(app, Pool)
-    apiFertilizers(app, Pool)
-    apiChemicals(app, Pool)
-    apiPests(app, Pool)
-
-    apiAddDevice(app, Pool)
+    if(mode === process.env.BUILD || mode === "router") router(app)
+    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
+    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
+    apiFarmer(app , db , Pool , dbpackage , listDB , io)
+    apiEcph(app , Pool)
+    apiWeatherStation(app , Pool)
+    apiWeatherGreenhouse(app , Pool)
+    apiPump(app , Pool)
+    apiMessage(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
+    
+    apiSchedules(app , Pool)
+    apiFertilizers(app , Pool)
+    apiChemicals(app , Pool)
+    apiPests(app , Pool)
+    
+    apiAddDevice(app , Pool)
     // page error 404
     app.get("*", (req, res) => {
         res.sendFile(__dirname.replace('\server', '/index404.html'));

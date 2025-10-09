@@ -96,55 +96,6 @@ const RichMenu = {
 // RichMenu.DeleteRichMenu.someone("richmenu-307696451cdf4d64368a8476e28e7841")
 RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
-// const jsonHouse = 
-//     {
-//       "size": {
-//         "width": 2500,
-//         "height": 1320
-//       },
-//       "selected": true,
-//       "name": "house",
-//       "chatBarText": "โรงเรือน",
-//       "areas": [
-//         {
-//           "bounds": {
-//             "x": 25,
-//             "y": 34,
-//             "width": 984,
-//             "height": 789
-//           },
-//           "action": {
-//             "type": "uri",
-//             "uri": "https://liff.line.me/2006915135-rpPe4wml"
-//           }
-//         },
-//         {
-//           "bounds": {
-//             "x": 1026,
-//             "y": 25,
-//             "width": 967,
-//             "height": 794
-//           },
-//           "action": {
-//             "type": "postback",
-//             "text": "เลือกโรงเรือน",
-//             "data": "house_add"
-//           }
-//         },
-//         {
-//           "bounds": {
-//             "x": 2019,
-//             "y": 17,
-//             "width": 456,
-//             "height": 802
-//           },
-//           "action": {
-//             "type": "uri",
-//             "uri": "https://liff.line.me/2006915135-ANO5DXR8"
-//           }
-//         }
-//       ]
-//     }
 // RichMenu.createRichAddFarm({
 //   "size": {
 //     "width": 2500,

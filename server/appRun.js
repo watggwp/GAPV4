@@ -11,6 +11,7 @@ module.exports = function appRun(username , password){
         console.log('Start on port '+Port+'!\n');
 
         if(process.env.NGROK_URL) {
+            process.env.NGROK_WEB_ADDR = "127.0.0.1:3010"
             const listener = await ngrok.forward({
                 addr: Port,
                 domain: process.env.NGROK_URL,

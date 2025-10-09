@@ -81,15 +81,19 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
         }
 
         try {
+            const betweenReal = (7 * 60 * 60 * 1000)
             const data = await pool.executeQuery(
                 `
-                    SELECT ws.id , CONCAT(DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') , ".000Z") as timestamp , 
+                    SELECT ws.id , CONCAT(
+                        DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
+                        , ".000Z"
+                    ) as timestamp , 
                         temperature , humidity ,light , rainfall , pressure
                     FROM weather_station ws
                     LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
                     WHERE sws.station_signature = ? AND ws.timestamp BETWEEN ? AND ?
                     ORDER BY ws.timestamp DESC
-                `, [station_signature, new Date(Number(st)), new Date(Number(et))]
+                `, [station_signature, new Date(Number(st) - betweenReal), new Date(Number(et) - betweenReal)]
             );
 
             return res.status(200).send({
