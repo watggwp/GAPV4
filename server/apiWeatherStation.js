@@ -88,7 +88,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
                         , ".000Z"
                     ) as timestamp , 
-                        temperature , humidity ,light , rainfall , pressure
+                        temperature , humidity ,light , rainfall , pressure, batt
                     FROM weather_station ws
                     LEFT JOIN sensor_weather_station sws ON sws.device_id = ws.device_id
                     WHERE sws.station_signature = ? AND ws.timestamp BETWEEN ? AND ?

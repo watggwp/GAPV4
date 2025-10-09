@@ -166,7 +166,8 @@ export default function House({
                                         { field: 'light', name: 'แสง', color: "orange" },
                                         { field: 'soil_temperature', name: 'อุณหภูมิดิน', color: "red" },
                                         { field: 'soil_humidity', name: 'ความชื้นดิน', color: "blue" },
-                                        { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" }
+                                        { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
+                                        { field: 'batt', name: 'แบตเตอรี่', color: "red" }
                                     ]}
                                 /> :
                                 <Stack
