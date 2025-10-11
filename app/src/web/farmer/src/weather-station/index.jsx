@@ -7,31 +7,31 @@ import { Loading } from "../../../../assets/js/module";
 
 export default function WeatherStation() {
 
-    const [ stationSignature , setStationSignature ] = useState("")
-    const [ loadingProfile , setLoadingProfile ] = useState(true)
+    const [stationSignature, setStationSignature] = useState("")
+    const [loadingProfile, setLoadingProfile] = useState(true)
 
-    const requestStationSignature = useCallback( async () => {
+    const requestStationSignature = useCallback(async () => {
         setLoadingProfile(true)
-        const { data , status } = await RequestAPI.get("/api/farmer/profile")
+        const { data, status } = await RequestAPI.get("/api/farmer/profile")
         setLoadingProfile(false)
 
         switch (status) {
-            case 200 :
-                const { profile : { id_station } } = data
+            case 200:
+                const { profile: { id_station } } = data
                 setStationSignature(id_station)
-                return 
+                return
             default:
                 return
         }
-    } , [])
+    }, [])
 
     useEffect(() => {
         requestStationSignature()
-    } , [requestStationSignature])
+    }, [requestStationSignature])
 
-    return(
+    return (
         <Stack
-            width={"100%"} 
+            width={"100%"}
             height={"100%"}
             alignItems={"center"}
         >
@@ -51,17 +51,18 @@ export default function WeatherStation() {
                             endpointData={`/api/sensor/weather-station/${stationSignature}`}
                             columnTimestamp="timestamp"
                             columns={[
-                                { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
-                                { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
-                                { field: 'light', name: 'แสง' , color : "orange" },
-                                { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
-                                { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
+                                { field: 'temperature', name: 'อุณหภูมิ', color: "green" },
+                                { field: 'humidity', name: 'ความชื้น', color: "yellow" },
+                                { field: 'light', name: 'แสง', color: "orange" },
+                                { field: 'rainfall', name: 'น้ำฝน', color: "blue" },
+                                { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
+                                { field: 'batt', name: 'แบตเตอรี่', color: "red" }
                             ]}
                             query={{
-                                r : "farmer"
+                                r: "farmer"
                             }}
                         /> :
-                        <Loading/>
+                        <Loading />
                 }
             </Stack>
         </Stack>
