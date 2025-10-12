@@ -3,7 +3,7 @@ import WeatherManagement from "../../../../../../../assets/components/weather-ma
 import RequestAPI from "../../../../../../../assets/js/requestAPI";
 import { Loading } from "../../../../../../../assets/js/module";
 import { Box, Chip, Button, IconButton, Modal, Paper, Stack, Typography } from "@mui/material";
-import { useWeatherStation } from "../..";
+// import { useWeatherStation } from "../..";
 import env from "../../../../../../../env";
 import PumpControl from "./pumpControl";
 import ManageDevices from "./manageDevices";
