@@ -28,7 +28,7 @@ export default function House({
     greenhouse_id,
     setOpenHouse
 }) {
-    const { startTime, endTime } = useWeatherStation()
+    // const { startTime, endTime } = useWeatherStation()
     const [loadingDevice, setLoadingDevice] = useState(true)
     const [selectedDeviceID, setSelectedDeviceID] = useState("")
 
@@ -157,8 +157,8 @@ export default function House({
                                     query={{
                                         r: "doctor"
                                     }}
-                                    startTime={startTime}
-                                    endTime={endTime}
+                                    // startTime={startTime}
+                                    // endTime={endTime}
                                     columnTimestamp="timestamp"
                                     columns={[
                                         { field: 'air_temperature', name: 'อุณหภูมิ', color: "green" },
