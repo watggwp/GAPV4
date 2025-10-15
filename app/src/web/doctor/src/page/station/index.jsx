@@ -13,27 +13,27 @@ const WeatherStationContext = createContext({
   startTime: 0,
   endTime: 0,
   greenhouseId: "",                 // NEW
-  setGreenhouseId: () => {},        // NEW (ให้ Houses เรียกตอนเลือกเรือน)
+  setGreenhouseId: () => { },        // NEW (ให้ Houses เรียกตอนเลือกเรือน)
 });
 
 export default function WeatherStation() {
-  const { profile, bannerCoverRef, contentRef , setTextPage } = useDoctor();
+  const { profile, bannerCoverRef, contentRef, setTextPage } = useDoctor();
 
-  const [ stations, setStations ] = useState([]);
-  const [ selectedStation, setSelectedStation ] = useState(profile.id_station);
-  const [ selectedStationData , setSelectedStationData ] = useState({});
+  const [stations, setStations] = useState([]);
+  const [selectedStation, setSelectedStation] = useState(profile.id_station);
+  const [selectedStationData, setSelectedStationData] = useState({});
 
   // NEW: state สำหรับ greenhouse ที่ถูกเลือก
-  const [ greenhouseId, setGreenhouseId ] = useState("");
+  const [greenhouseId, setGreenhouseId] = useState("");
 
-  const [ startTime , setStartTime ] = useState(0);
-  const [ endTime , setEndTime ] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
 
-  const [ openManageWeatherStation , setOpenManageWeatherStation ] = useState(false);
+  const [openManageWeatherStation, setOpenManageWeatherStation] = useState(false);
 
   const fetchStationList = useCallback(async () => {
     try {
-      const { data : stationsResponse } = await RequestAPI.post("/api/doctor/data/list", {
+      const { data: stationsResponse } = await RequestAPI.post("/api/doctor/data/list", {
         limit: 100,
         startRow: 0,
         type: "station",
@@ -47,7 +47,7 @@ export default function WeatherStation() {
     }
   }, [selectedStation]);
 
-  const onUpdateRange = useCallback((startTimestamp , endTimestamp) => {
+  const onUpdateRange = useCallback((startTimestamp, endTimestamp) => {
     setStartTime(startTimestamp);
     setEndTime(endTimestamp);
   }, []);
@@ -55,7 +55,7 @@ export default function WeatherStation() {
   useEffect(() => {
     bannerCoverRef.current.style.height = "30%";
     contentRef.current.style.height = "70%";
-    setTextPage(["หน้าหลัก" , "ข้อมูลสภาพแวดล้อม"]);
+    setTextPage(["หน้าหลัก", "ข้อมูลสภาพแวดล้อม"]);
     clientMo.unLoadingPage();
     fetchStationList();
   }, [bannerCoverRef, contentRef, fetchStationList, setTextPage]);
@@ -78,7 +78,7 @@ export default function WeatherStation() {
     <div style={{ padding: "20px", fontFamily: "sans-serif", width: "100%", height: "100%", overflow: "auto" }}>
       <Stack marginBottom={3} direction={"row"} width={"100%"}>
         <Grid container width={"100%"}>
-          <Grid size={{ xs : 8 , xl : 6 }}>
+          <Grid size={{ xs: 8, xl: 6 }}>
             <Stack direction={"row"}>
               <Select
                 value={selectedStation}
@@ -107,12 +107,12 @@ export default function WeatherStation() {
                   setGreenhouseId,    // NEW: ให้ Houses เรียกเมื่อเลือกเรือน
                 }}
               >
-                {selectedStationData?.id_station && <Houses/>}
+                {selectedStationData?.id_station && <Houses />}
               </WeatherStationContext.Provider>
             </Stack>
           </Grid>
 
-          <Grid size={{ xs : 4 , xl : 6 }}>
+          <Grid size={{ xs: 4, xl: 6 }}>
             <Stack direction={"row"} justifyContent={"end"}>
               <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}>
                 <Typography>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
@@ -126,13 +126,14 @@ export default function WeatherStation() {
         <WeatherManagement
           key={`${selectedStation}-${greenhouseId || "station"}`}   // NEW: ให้รีเฟรชเมื่อสลับโหมด/เรือน
           endpointData={endpointData}
-          query={{ r : "doctor" }}
+          query={{ r: "doctor" }}
           columns={[
-            { field: 'temperature', name: 'อุณหภูมิ' , color : "green" },
-            { field: 'humidity', name: 'ความชื้น' , color : "yellow" },
-            { field: 'light', name: 'แสง' , color : "orange" },
-            { field: 'rainfall', name: 'น้ำฝน' , color : "blue" },
-            { field: 'pressure', name: 'ความกดอากาศ' , color : "#4a4573" }
+            { field: 'temperature', name: 'อุณหภูมิ', color: "green" },
+            { field: 'humidity', name: 'ความชื้น', color: "yellow" },
+            { field: 'light', name: 'แสง', color: "orange" },
+            { field: 'rainfall', name: 'น้ำฝน', color: "blue" },
+            { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
+            { field: 'batt', name: 'แบตเตอรี่', color: "red" }
           ]}
           onChangeRange={onUpdateRange}
         />

@@ -5,8 +5,8 @@ import { useNavigate, useParams } from "react-router";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 
 const statusColors = {
-    online : "green",
-    offline : "red"
+    online: "green",
+    offline: "red"
 }
 
 const getStatusColor = (status) => {
@@ -17,21 +17,21 @@ export default function SensorGreenhouse() {
 
     const { greenhouse_id, gap_id, device_id } = useParams()
     const navigator = useNavigate()
-    
+
     const [deviceStatus, setDeviceStatus] = useState("loading");
 
-    const StatusColor = useMemo(() => 
+    const StatusColor = useMemo(() =>
         getStatusColor(deviceStatus)
-    , [deviceStatus])
+        , [deviceStatus])
 
     const onReturn = useCallback(() =>
         navigator(`/farmer/form/${greenhouse_id}/${gap_id}/sensor`)
-    , [gap_id, greenhouse_id, navigator])
+        , [gap_id, greenhouse_id, navigator])
 
     const CheckStatus = useCallback(async () => {
         try {
-            const { data } = await RequestAPI.get(`/api/sensor/weather-greenhouse/${greenhouse_id}/${device_id}/status` , {
-                r : "farmer"
+            const { data } = await RequestAPI.get(`/api/sensor/weather-greenhouse/${greenhouse_id}/${device_id}/status`, {
+                r: "farmer"
             });
 
             setDeviceStatus(data.status || "offline");
@@ -39,7 +39,7 @@ export default function SensorGreenhouse() {
             console.error("Failed to fetch device status:", err);
             setDeviceStatus("offline");
         }
-    } , [device_id, greenhouse_id])
+    }, [device_id, greenhouse_id])
 
     useEffect(() => {
         CheckStatus();
@@ -84,7 +84,8 @@ export default function SensorGreenhouse() {
                         { field: 'light', name: 'แสง', color: "orange" },
                         { field: 'soil_temperature', name: 'อุณหภูมิดิน', color: "red" },
                         { field: 'soil_humidity', name: 'ความชื้นดิน', color: "blue" },
-                        { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" }
+                        { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
+                        { field: 'batt', name: 'แบตเตอรี่', color: "red" }
                     ]}
                 />
             </Stack>
