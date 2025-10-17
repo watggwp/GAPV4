@@ -4,6 +4,9 @@ import { useLiff } from "./module";
 import * as FileSaver from "file-saver";
 import XLSX from "sheetjs-style";
 
+// เล็กน้อย: helper ง่ายๆ
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 // ✅ helper: แคป element → dataURL (PNG) + รอ layout ให้เสร็จก่อน
 const captureElementToDataURL = async (selector, opts = {}) => {
   const el = typeof selector === "string" ? document.querySelector(selector) : selector;
@@ -11,7 +14,7 @@ const captureElementToDataURL = async (selector, opts = {}) => {
 
   // ให้กราฟอยู่กลางจอ และรอให้ ResponsiveContainer คำนวณขนาดเสร็จ
   el.scrollIntoView({ block: "center", inline: "nearest" });
-  await new Promise((r) => setTimeout(r, 150)); // หน่วง ~150ms พอ
+  await sleep(350); // ขยับเป็น ~350ms ให้กราฟคำนวณทัน
 
   const canvas = await html2canvas(el, {
     backgroundColor: "#fff", // พื้นหลังขาว
@@ -348,9 +351,23 @@ const ExportPDF = async (Data) => {
       DateOut.length === 3 ? `${DateOut[2].split(" ")[0]}/${DateOut[1]}/${parseInt(DateOut[0]) + 543}` : ""
     );
 
-    // ====== จับภาพกราฟ/ตาราง (เก็บไว้ก่อน — ยังไม่แทรกหน้า) ======
+    // ====== ⬇️ จัดช่วงเวลาเริ่มปลูก → เก็บเกี่ยว/ส่งผลผลิต แล้วบอกหน้าแสดงผลให้โหลดก่อนแคปภาพ
     let chartImg = null, tableImg = null;
     try {
+      // เลือกช่วงเวลาที่จะใช้โหลดกราฟ: เริ่มปลูก → (วันส่งผลผลิต ถ้ามี) ไม่งั้นใช้ "วันที่คาดว่าจะเก็บเกี่ยว" → ถ้ายังไม่มี ใช้วันนี้
+      const plantStr   = Export?.dataForm?.date_plant || "";
+      const harvestStr = Export?.dataForm?.date_success || Export?.dataForm?.date_harvest || "";
+      const nowMs = Date.now();
+
+      const st = plantStr ? new Date(plantStr).getTime() : null;
+      const et = harvestStr ? new Date(harvestStr).getTime() : nowMs;
+
+      if (Number.isFinite(st) && Number.isFinite(et) && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("weather-export:set-range", { detail: { st, et } }));
+        // รอหน้า WeatherManagement โหลดข้อมูลและ Recharts render เสร็จ
+        await sleep(750);
+      }
+
       const chartSel = Export?.chart?.selector || "#weather-chart-export";
       const tableSel = Export?.table?.selector || "#weather-table-export";
       chartImg = await captureElementToDataURL(chartSel);
@@ -870,9 +887,14 @@ const ExportPDF = async (Data) => {
         yGraph = 40;
       }
 
-      // หัวข้อกราฟ
+      // หัวข้อกราฟ + ช่วงเวลา
+      const titleFrom = Export?.dataForm?.date_plant ? new Date(Export.dataForm.date_plant).toLocaleDateString("th-TH") : "";
+      const titleTo   = (Export?.dataForm?.date_success || Export?.dataForm?.date_harvest)
+        ? new Date(Export.dataForm.date_success || Export.dataForm.date_harvest).toLocaleDateString("th-TH")
+        : "";
+
       pdf.setFontSize(16);
-      TextBoxHead(pdf, PAGE_LEFT, yGraph - 10, "กราฟสภาพแวดล้อม");
+      TextBoxHead(pdf, PAGE_LEFT, yGraph - 10, titleFrom && titleTo ? `กราฟสภาพแวดล้อม (${titleFrom} – ${titleTo})` : "กราฟสภาพแวดล้อม");
       pdf.setFontSize(16);
 
       if (Export.__chartImg) {
@@ -976,14 +998,13 @@ const ExportExcel = async (excelData = []) => {
         const DateUse = val.ferti[indexFerti].date.split(" ")[0].split("-");
         DataExport[`วดป. ${parseInt(indexFerti) + 1}`] = `${DateUse[2]}-${Mount[parseInt(DateUse[1])]}-${(parseInt(
           DateUse[0]
-        ) + 543)
-          .toString()
-          .slice(2)}`;
+        ) + 543).toString().slice(2)}`;
         DataExport[`ปัจจัย ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].name;
-        DataExport[`สูตร ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].formula_name;
+        DataExport[`สูตร ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].formula_name; // 👈 แก้ตรงนี้
         DataExport[`วิธีใช้ ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].use_is;
         DataExport[`ปริมาณ ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].volume;
       }
+
     }
 
     return DataExport;
