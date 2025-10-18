@@ -52,7 +52,7 @@ export default function WeatherStation() {
                             columnTimestamp="timestamp"
                             columns={[
                                 { field: 'temperature', name: 'อุณหภูมิ', color: "green" },
-                                { field: 'humidity', name: 'ความชื้น', color: "yellow" },
+                                { field: 'humidity', name: 'ความชื้น', color: "#4E79A7" },
                                 { field: 'light', name: 'แสง', color: "orange" },
                                 { field: 'rainfall', name: 'น้ำฝน', color: "blue" },
                                 { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },

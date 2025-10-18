@@ -92,8 +92,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                     WHERE swg.greenhouse_id = ? AND swg.device_id = ? AND wg.timestamp BETWEEN ? AND ?
                     ORDER BY wg.timestamp DESC
                 `, [
-                    greenhouse_id , device_id , new Date(Number(st) - betweenReal) , new Date(Number(et) - betweenReal)
-                ]
+                greenhouse_id, device_id, new Date(Number(st) - betweenReal), new Date(Number(et) - betweenReal)
+            ]
             );
             return res.status(200).send({
                 details: data
@@ -279,18 +279,41 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const rows = await pool.executeQuery(`
-            SELECT timestamp FROM weather_greenhouse 
-            WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1
-        `, [device_id]);
+      SELECT timestamp
+      FROM weather_greenhouse
+      WHERE device_id = ?
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `, [device_id]);
 
-            if (rows.length === 0) return res.json({ status: "offline" });
+            if (rows.length === 0) {
+                // ไม่มีข้อมูลเลย → อัปเดตให้เป็น off แล้วตอบกลับ
+                await pool.executeQuery(`
+        UPDATE sensor_weather_greenhouse
+        SET status = 'off'
+        WHERE device_id = ? AND greenhouse_id = ?
+      `, [device_id, greenhouse_id]);
 
-            const latest = new Date(rows[0].timestamp + "Z");
+                return res.json({ status: "offline" });
+            }
+
+            const latest = new Date(rows[0].timestamp + "Z"); // คง logic เดิม
             const now = new Date();
             const diffMinutes = (now - latest) / 1000 / 60;
 
+            // แปลงเป็นสถานะสำหรับตาราง swg: 'on' | 'off'
+            const swgStatus = diffMinutes <= 10 ? 'on' : 'off';
+
+            // อัปเดตตารางสถานะ (คงใช้ UPDATE ธรรมดาตามที่ขอ)
+            await pool.executeQuery(`
+      UPDATE sensor_weather_greenhouse
+      SET status = ?
+      WHERE device_id = ? AND greenhouse_id = ?
+    `, [swgStatus, device_id, greenhouse_id]);
+
+            // ตอบ API เดิม: 'online' | 'offline'
             return res.json({
-                status: diffMinutes <= 10 ? "online" : "offline"
+                status: swgStatus === 'on' ? 'online' : 'offline'
             });
 
         } catch (err) {
