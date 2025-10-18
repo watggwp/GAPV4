@@ -2870,6 +2870,68 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
         } else res.send("error auth")
     })
+    app.get('/api/farmer/report/export', async (req, res) => {
+    if (!req.session.uidFarmer)
+        return res.send("error auth");
+
+    let con = Database.createConnection(listDB);
+
+    try {
+        const auth = await authCheck(con, req);
+
+        const { id_farmhouse, id_plant } = req.query;
+
+        // ✅ ดึงข้อมูลเกษตรกร
+        const [farmer] = await new Promise(resolve => {
+            con.query(`
+                SELECT fullname, id_farmer, station
+                FROM acc_farmer
+                WHERE uid_line = ?
+                LIMIT 1
+            `, [auth.data.uid_line], (err, result) => resolve(result || []));
+        });
+
+        // ✅ ดึงข้อมูลฟอร์มปลูก
+        const [dataForm] = await new Promise(resolve => {
+            con.query(`
+                SELECT id, name_plant, date_plant, date_harvest, qty, area, unit, generation
+                FROM formplant
+                WHERE id_farm_house = ? AND id = ?
+            `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
+        });
+
+        // ✅ ดึงข้อมูลปุ๋ย
+        const ferti = await new Promise(resolve => {
+            con.query(`
+                SELECT name, formula_name, use_is, volume, source, date
+                FROM formfertilizer
+                WHERE id_plant = ?
+            `, [id_plant], (err, result) => resolve(result || []));
+        });
+
+        // ✅ ดึงข้อมูลสารเคมี
+        const chemi = await new Promise(resolve => {
+            con.query(`
+                SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
+                FROM formchemical
+                WHERE id_plant = ?
+            `, [id_plant], (err, result) => resolve(result || []));
+        });
+
+        con.end();
+
+        res.json({
+            farmer,
+            dataForm,
+            ferti,
+            chemi
+        });
+    } catch (err) {
+        con.end();
+        console.error("Export Error:", err);
+        res.send("error auth");
+    }
+});
 
     app.get('/api/farmer/report/list', async (req, res) => {
         if (req.session.uidFarmer) {
