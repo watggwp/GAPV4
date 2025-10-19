@@ -2870,68 +2870,107 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
         } else res.send("error auth")
     })
-    app.get('/api/farmer/report/export', async (req, res) => {
-    if (!req.session.uidFarmer)
-        return res.send("error auth");
+   app.get('/api/farmer/report/export', async (req, res) => {
+  if (!req.session.uidFarmer)
+    return res.send("error auth");
 
-    let con = Database.createConnection(listDB);
+  const con = Database.createConnection(listDB);
 
-    try {
-        const auth = await authCheck(con, req);
+  try {
+    const auth = await authCheck(con, req);
+    const { id_farmhouse, id_plant } = req.query;
 
-        const { id_farmhouse, id_plant } = req.query;
+    // ✅ 1. ดึงข้อมูลเกษตรกร
+    const [farmer] = await new Promise(resolve => {
+      con.query(`
+        SELECT fullname, id_farmer, station
+        FROM acc_farmer
+        WHERE uid_line = ?
+        LIMIT 1
+      `, [auth.data.uid_line], (err, result) => resolve(result || []));
+    });
 
-        // ✅ ดึงข้อมูลเกษตรกร
-        const [farmer] = await new Promise(resolve => {
-            con.query(`
-                SELECT fullname, id_farmer, station
-                FROM acc_farmer
-                WHERE uid_line = ?
-                LIMIT 1
-            `, [auth.data.uid_line], (err, result) => resolve(result || []));
-        });
-
-        // ✅ ดึงข้อมูลฟอร์มปลูก
-        const [dataForm] = await new Promise(resolve => {
-            con.query(`
-                SELECT id, name_plant, date_plant, date_harvest, qty, area, unit, generation
-                FROM formplant
-                WHERE id_farm_house = ? AND id = ?
-            `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
-        });
-
-        // ✅ ดึงข้อมูลปุ๋ย
-        const ferti = await new Promise(resolve => {
-            con.query(`
-                SELECT name, formula_name, use_is, volume, source, date
-                FROM formfertilizer
-                WHERE id_plant = ?
-            `, [id_plant], (err, result) => resolve(result || []));
-        });
-
-        // ✅ ดึงข้อมูลสารเคมี
-        const chemi = await new Promise(resolve => {
-            con.query(`
-                SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
-                FROM formchemical
-                WHERE id_plant = ?
-            `, [id_plant], (err, result) => resolve(result || []));
-        });
-
-        con.end();
-
-        res.json({
-            farmer,
-            dataForm,
-            ferti,
-            chemi
-        });
-    } catch (err) {
-        con.end();
-        console.error("Export Error:", err);
-        res.send("error auth");
-    }
+    // ✅ 2. ดึงข้อมูลฟอร์มปลูก (ตรวจสอบให้แน่ใจว่ามีข้อมูลจริง)
+    const [dataForm] = await new Promise(resolve => {
+  con.query(`
+    SELECT 
+      id,
+      plant_name AS name_plant,
+      plant_date AS date_plant,
+      harvest_date AS date_harvest,
+      amount AS qty,
+      plant_area AS area,
+      unit_name AS unit,
+      generation
+    FROM formplant
+    WHERE id_farm_house = ? AND id = ?
+    LIMIT 1
+  `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
 });
+
+
+
+    console.log("✅ DataForm Result:", dataForm);
+
+    // ✅ 3. ดึงข้อมูลปุ๋ย
+    const ferti = await new Promise(resolve => {
+      con.query(`
+        SELECT name, formula_name, use_is, volume, source, date
+        FROM formfertilizer
+        WHERE id_plant = ?
+        ORDER BY date ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 4. ดึงข้อมูลสารเคมี
+    const chemi = await new Promise(resolve => {
+      con.query(`
+        SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
+        FROM formchemical
+        WHERE id_plant = ?
+        ORDER BY date ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 5. ดึงข้อมูลรายงานคำแนะนำ (ข้อ 7)
+    const report = await new Promise(resolve => {
+      con.query(`
+        SELECT report_text, advisor_name, date_report
+        FROM formreport
+        WHERE id_plant = ?
+        ORDER BY date_report ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 6. ดึงข้อมูลตรวจสอบ (ข้อ 8)
+    const checkForm = await new Promise(resolve => {
+      con.query(`
+        SELECT status_check, note_text, date_check
+        FROM checkform
+        WHERE id_plant = ?
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 7. ปิดการเชื่อมต่อและส่งข้อมูลกลับ
+    con.end();
+
+    res.json({
+      farmer,
+      dataform: dataForm || {},  // ✅ ใช้ key เดียวกับฝั่ง React
+      ferti: ferti || [],
+      chemi: chemi || [],
+      report: report || [],
+      checkForm: checkForm || []
+    });
+
+  } catch (err) {
+    con.end();
+    console.error("❌ Export Error:", err);
+    res.send("error auth");
+  }
+});
+
+
 
     app.get('/api/farmer/report/list', async (req, res) => {
         if (req.session.uidFarmer) {

@@ -1,23 +1,50 @@
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { useLiff } from "./module";
 import * as FileSaver from "file-saver";
 import XLSX from "sheetjs-style";
 
-// เล็กน้อย: helper ง่ายๆ
+/* ========== LIFF download helper ========== */
+const tryDownloadWithLiff = async (pdf, filename) => {
+  try {
+    const liff = typeof window !== "undefined" ? window.liff : undefined;
+    if (!liff || typeof liff.isInClient !== "function") {
+      pdf.save(filename);
+      return;
+    }
+    if (!liff.isInClient()) {
+      pdf.save(filename);
+    } else {
+      alert("กรุณาดาวโหลดผ่านเบราเซอร์");
+    }
+  } catch {
+    pdf.save(filename);
+  }
+};
+
+/* ========== misc helpers ========== */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// ✅ helper: แคป element → dataURL (PNG) + รอ layout ให้เสร็จก่อน
+/** แปลงวันที่เป็นไทย: รับรูปแบบใดๆ ที่ Date เข้าใจ/หรือสตริง "YYYY-MM-DD" */
+const fmtTH = (val, shortYear = false) => {
+  if (!val) return "";
+  const raw = typeof val === "string" ? val.split(/[ T]/)[0] : val;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear() + 543;
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  if (shortYear) return `${dd}/${m}/${String(y).slice(-2)}`;
+  return `${dd}/${m}/${y}`;
+};
+
+/** แคป element → dataURL (PNG) + รอ layout ให้เสร็จก่อน */
 const captureElementToDataURL = async (selector, opts = {}) => {
   const el = typeof selector === "string" ? document.querySelector(selector) : selector;
   if (!el) return null;
-
-  // ให้กราฟอยู่กลางจอ และรอให้ ResponsiveContainer คำนวณขนาดเสร็จ
   el.scrollIntoView({ block: "center", inline: "nearest" });
-  await sleep(350); // ขยับเป็น ~350ms ให้กราฟคำนวณทัน
-
+  await sleep(350);
   const canvas = await html2canvas(el, {
-    backgroundColor: "#fff", // พื้นหลังขาว
+    backgroundColor: "#fff",
     scale: 2,
     useCORS: true,
     ...opts,
@@ -25,22 +52,28 @@ const captureElementToDataURL = async (selector, opts = {}) => {
   return canvas.toDataURL("image/png");
 };
 
+/* ========== drawing helpers ========== */
 const TextBoxDot = (pdf = new jsPDF(), count, xStart, y, textOnDot) => {
-  let posi = parseInt(xStart);
-  for (let x = 1; x <= parseInt(count); x++) {
+  let posi = parseInt(xStart, 10) || 0;
+  const dotCount = parseInt(count, 10) || 0;
+
+  for (let x = 1; x <= dotCount; x++) {
     const gidx = posi - 1;
-    const gidy = parseInt(y) + 1;
+    const gidy = parseInt(y, 10) + 1;
     pdf.circle(gidx, gidy, 0.7, "F");
     posi += 4;
   }
-  const widthText = pdf.getStringUnitWidth(textOnDot) * 18;
-  pdf.text(textOnDot, (xStart + (posi - xStart) / 2 - widthText / 2) + 2, parseInt(y) - 1);
+  const safeText = String(textOnDot ?? "");
+  const widthText = pdf.getStringUnitWidth(safeText) * 18;
+  pdf.text(safeText, (xStart + (posi - xStart) / 2 - widthText / 2) + 2, parseInt(y, 10) - 1);
   return posi - 3;
 };
 
+const _norm = (s) => s?.toString().trim().toLowerCase().replace(/\s+/g, " ") ?? "";
+
 const asSet = (v) => {
   if (!v) return new Set();
-  if (Array.isArray(v)) return new Set(v.map((s) => s.toString().trim().toLowerCase()));
+  if (Array.isArray(v)) return new Set(v.map((s) => s?.toString?.().trim().toLowerCase()));
   return new Set(
     v
       .toString()
@@ -50,33 +83,30 @@ const asSet = (v) => {
   );
 };
 
-// ---------- helpers: mapping + normalize ----------
 const OPTION_SYNONYMS = {
   system_glow: {
     "ขึ้นแปลงปลูกตามไหล่เขา": ["ไหล่เขา", "ตามไหล่เขา"],
     "ปลูกแบบพื้นราบ": ["พื้นราบ", "ปลูกพื้นราบ"],
     "ปลูกในวัสดุปลูก": ["วัสดุปลูก", "ปลูกในวัสดุ"],
     "ขึ้นแปลงปลูกในโรงเรือน": ["โรงเรือน", "ขึ้นแปลงในโรงเรือน"],
-    "ระบบ Hydroponic": ["hydroponic", "ไฮโดรโปนิก", "ไฮโดรโพนิก"],
+    "ระบบ Hydroponic": ["hydroponic", "ไฮโดรโปนิก", "ไฮโดรโพนิก", "ไฮโดร"],
   },
   water: {
     "อาศัยน้ำฝน": ["ฝน", "น้ำฝน"],
     "ลำธาร/คลองธรรมชาติ": ["ลำธาร", "คลองธรรมชาติ", "ลำธาร/คลอง"],
     "บ่อบาดาล": ["บาดาล", "น้ำบาดาล"],
-    "บ่อ/สระขุด": ["สระขุด", "บ่อขุด", "บ่อ สระขุด"],
+    "บ่อ/สระขุด": ["สระขุด", "บ่อขุด", "บ่อ สระขุด", "สระ"],
     "คลองชลประทาน": ["ชลประทาน", "คลองชล"],
     "อ่างเก็บน้ำ": ["อ่าง", "อ่างน้ำ", "อ่างเก็บ"],
   },
   water_flow: {
-    "สปริงเกอร์": ["sprinkler", "สปริงเกอร์ต"],
+    "สปริงเกอร์": ["sprinkler", "สปริงเกอร์ต", "ปริงเก"],
     "ระบบน้ำหยด": ["น้ำหยด", "drip"],
     "ปล่อยตามร่อง": ["ตามร่อง", "ปล่อยร่อง"],
     "ใช้สายยางรด": ["สายยาง", "รดน้ำด้วยสายยาง"],
     "ตักรด": ["ตัก", "ตักรดน้ำ"],
   },
 };
-
-const _norm = (s) => s?.toString().trim().toLowerCase().replace(/\s+/g, " ") ?? "";
 
 const resolveChecks = (inputSet, optionMap) => {
   const hitLabels = new Set();
@@ -115,13 +145,13 @@ const mergeOther = (autoText, manualText) => {
   return manualText || autoText || "";
 };
 
-// ---------- Table / Text helpers ----------
+/* ========== TableBox (SAFE) ========== */
 const TableBox = (
   pdf = new jsPDF(),
   posiStartX = 0,
   posiStartY = 0,
-  headers = {},
-  body = {},
+  headers = [],
+  body = [],
   heightHeader = 0,
   heightBody = 0,
   FontSize = 0
@@ -131,22 +161,28 @@ const TableBox = (
   let startHeadY = posiStartY;
   const ObjectText = { fontSize: FontSize, fontName: "THSarabunNew" };
 
-  for (let headerData of headers) {
-    const widthText = pdf.getStringUnitWidth(headerData.name) * FontSize;
-    const lineHeight = pdf.getTextDimensions(headerData.name, ObjectText).h;
-    const endX = startHeadX + parseInt(headerData.size);
+  // Header
+  const headerArr = Array.isArray(headers) ? headers : [];
+  for (let headerData of headerArr) {
+    const hName = String(headerData?.name ?? "");
+    const hSize = parseInt(headerData?.size ?? 0, 10);
+    const endX = startHeadX + hSize;
     const endY = startHeadY + heightHeader;
 
+    const widthText = pdf.getStringUnitWidth(hName) * FontSize;
+    const lineHeight = pdf.getTextDimensions(hName, ObjectText).h;
+
     pdf.line(startHeadX, startHeadY, endX, startHeadY);
-    if (body.length === 0) pdf.line(startHeadX, endY, endX, endY);
+    if (!Array.isArray(body) || body.length === 0) pdf.line(startHeadX, endY, endX, endY);
     pdf.line(startHeadX, startHeadY, startHeadX, endY);
+
     pdf.text(
-      headerData.name,
+      hName,
       startHeadX + ((endX - startHeadX) / 2 - widthText / 2),
-      startHeadY + (endY - startHeadY) / ((headerData.headSup ? headerData.headSup.length + 1 : 1) * 2) + lineHeight / 3.5
+      startHeadY + (endY - startHeadY) / ((headerData?.headSup ? (headerData.headSup.length + 1) : 1) * 2) + lineHeight / 3.5
     );
 
-    if (headerData.headSup) {
+    if (headerData?.headSup) {
       const findCenter = startHeadY + (endY - startHeadY) / (headerData.headSup.length + 1);
       const findXCenter = startHeadX + (endX - startHeadX) / (headerData.headSup.length + 1);
       pdf.line(startHeadX, findCenter, endX, findCenter);
@@ -156,10 +192,11 @@ const TableBox = (
       let endSubX = findXCenter;
       for (let row of headerData.headSup) {
         for (let data of row) {
-          const widthTextSub = pdf.getStringUnitWidth(data.name) * FontSize;
-          const lineHeightSub = pdf.getTextDimensions(data.name, ObjectText).h;
+          const subName = String(data?.name ?? "");
+          const widthTextSub = pdf.getStringUnitWidth(subName) * FontSize;
+          const lineHeightSub = pdf.getTextDimensions(subName, ObjectText).h;
           pdf.text(
-            data.name,
+            subName,
             startSubX + ((endSubX - startSubX) / 2 - widthTextSub / 2),
             findCenter + heightHeader / (headerData.headSup.length + 1) - lineHeightSub / 3.5
           );
@@ -169,41 +206,49 @@ const TableBox = (
         }
       }
     }
-    startHeadX += parseInt(headerData.size);
+    startHeadX += hSize;
   }
   pdf.line(startHeadX, startHeadY, startHeadX, startHeadY + heightHeader);
 
+  // Body
   let startBodyY = startHeadY + heightHeader;
-  for (let Row of body) {
-    let startBodyX = posiStartX;
+  const bodyArr = Array.isArray(body) ? body : [];
 
-    let splite = Row.filter((val) => val.name.indexOf("|") >= 0);
+  for (let Row of bodyArr) {
+    let startBodyX = posiStartX;
+    const rowArr = Array.isArray(Row) ? Row : [];
+
+    const splite = rowArr.filter((val) => String(val?.name ?? "").includes("|"));
     const numLine = [];
     let countHeight = 1;
     const maxText = 3;
 
     if (splite.length !== 0) {
-      const list = splite[0].name.split("|");
+      const list = String(splite[0]?.name ?? "").split("|");
       for (let x = 0; x < list.length; x += maxText) {
         const newArray = list.slice(x, x + maxText);
         numLine.push(newArray.join(""));
       }
-      countHeight = numLine.length;
+      countHeight = numLine.length || 1;
     }
 
-    for (let Body of Row) {
-      const widthText = pdf.getStringUnitWidth(Body.name) * FontSize;
-      const lineHeight = pdf.getTextDimensions(Body.name, ObjectText).h;
-      const endX = startBodyX + parseInt(Body.size);
+    for (let Body of rowArr) {
+      const nameStr = String(Body?.name ?? "");
+      const sizeNum = parseInt(Body?.size ?? 0, 10);
+
+      const endX = startBodyX + sizeNum;
       const endY = startBodyY + heightBody * countHeight;
+
+      const widthText = pdf.getStringUnitWidth(nameStr) * FontSize;
+      const lineHeight = pdf.getTextDimensions(nameStr, ObjectText).h;
 
       pdf.line(startBodyX, startBodyY, endX, startBodyY);
       pdf.line(startBodyX, endY, endX, endY);
       pdf.line(startBodyX, startBodyY, startBodyX, endY);
 
-      if (Body.name.indexOf("|") >= 0 && countHeight > 1) {
+      if (nameStr.includes("|") && countHeight > 1) {
+        const list = nameStr.split("|");
         const newSplit = [];
-        const list = Body.name.split("|");
         for (let x = 0; x < list.length; x += maxText) {
           const newArray = list.slice(x, x + maxText);
           newSplit.push(newArray.join(""));
@@ -211,13 +256,15 @@ const TableBox = (
         const Text = newSplit.join("\n");
         pdf.text(Text, startBodyX + 5, startBodyY + 12);
       } else {
+        const noPipe = nameStr.split("|").join("");
         pdf.text(
-          Body.name.replaceAll("|", ""),
+          noPipe,
           startBodyX + ((endX - startBodyX) / 2 - widthText / 2),
           startBodyY + (endY - startBodyY) / 2 + lineHeight / 3.5
         );
       }
-      startBodyX += parseInt(Body.size);
+
+      startBodyX += sizeNum;
     }
     pdf.line(startBodyX, startBodyY, startBodyX, startBodyY + heightBody * countHeight);
     startBodyY += heightBody * countHeight;
@@ -252,11 +299,51 @@ const DrawCheckBox = (pdf, x, y, text, checked = false, style = "stroke") => {
   pdf.text(text, x + 10, y);
 };
 
-// ===========================================================
-const ExportPDF = async (Data) => {
+/* ========== Normalizers ========== */
+const normalizeExportRecord = (raw) => {
+  const farmerArr = Array.isArray(raw?.farmer)
+    ? raw.farmer
+    : raw?.farmer
+    ? [raw.farmer]
+    : [];
+
+  const dataForm =
+    (Array.isArray(raw?.dataform) && raw?.dataform?.[0]) ||
+    raw?.dataform ||
+    (Array.isArray(raw?.dataForm) && raw?.dataForm?.[0]) ||
+    raw?.dataForm ||
+    {};
+
+  return {
+    farmer: farmerArr,
+    dataForm,
+    ferti: Array.isArray(raw?.ferti) ? raw.ferti : [],
+    chemi: Array.isArray(raw?.chemi) ? raw.chemi : [],
+    report: Array.isArray(raw?.report) ? raw.report : [],
+    checkForm: Array.isArray(raw?.checkForm) ? raw.checkForm : [],
+    checkPlant: Array.isArray(raw?.checkPlant) ? raw.checkPlant : [],
+    chart: { selector: "#weather-chart-export" },
+    table: { selector: "#weather-table-export" },
+  };
+};
+
+const buildExportData = (rawFromApi) => {
+  const payload = Array.isArray(rawFromApi) ? rawFromApi : [rawFromApi];
+  return payload.map(normalizeExportRecord);
+};
+
+/* ========== ExportPDF ========== */
+const ExportPDF = async (DataInput, opts = {}) => {
+  const { mode = "download" } = opts;
+
+  const Data =
+    Array.isArray(DataInput) && (DataInput[0]?.dataForm || DataInput[0]?.farmer)
+      ? DataInput
+      : buildExportData(DataInput);
+
   const pdf = new jsPDF("portrait", "pt", "a4", { compress: false });
 
-  // โหลดฟอนต์ (ต้องมีไฟล์อยู่จริงในโปรเจกต์)
+  // ฟอนต์ (ต้องมีไฟล์ในโปรเจกต์)
   pdf.addFileToVFS("/THSarabunNew.ttf");
   pdf.addFont("/THSarabunNew.ttf", "THSarabunNew", "normal");
   pdf.addFont("/THSarabunNewBold.ttf", "THSarabunNew-bold", "bold");
@@ -279,22 +366,34 @@ const ExportPDF = async (Data) => {
     );
 
     pdf.setFontSize(16);
-    TextBoxHead(pdf, width / 2 / 3 + 30, 70, Export?.dataForm?.type_main || "ไม่พบพืชนี้ในระบบ");
+
+    // รองรับชื่อคีย์หลายแบบสำหรับชื่อพืช
+    const cropTitle =
+      Export?.dataForm?.type_main ||
+      Export?.dataForm?.type ||
+      Export?.dataForm?.name_plant ||
+      Export?.dataForm?.plant_name ||
+      "ไม่พบพืชนี้ในระบบ";
+
+    TextBoxHead(pdf, width / 2 / 3 + 30, 70, cropTitle);
     TextBoxHead(pdf, width / 2 - 70, 70, "รหัสเกษตรกร");
 
+    // รหัสเกษตรกร
     let startId = width / 2;
     let newX = 0;
-    let y7Header = 0; // ประกาศครั้งเดียว
+    let y7Header = 0;
 
     for (let x = 0; x < 10; x++) {
       pdf.rect(startId, 57, 20, 20, "S");
-      Export?.farmer?.[0]?.id_farmer?.[x] && pdf.text(Export.farmer[0].id_farmer[x], startId + 7, 70);
+      const ch = (Export?.farmer?.[0]?.id_farmer || "")[x] || "";
+      if (ch) pdf.text(String(ch), startId + 7, 70);
       if (x === 7) {
         startId += 28;
         pdf.text("_", startId - 7, 65);
       } else startId += 22;
     }
 
+    // ๑
     TextBoxHead(pdf, 30, 100, "๑.");
     TextBoxHead(pdf, 50, 100, "ชื่อ/สกุล เกษตรกร");
     newX = TextBoxDot(pdf, 65, 132, 100, Export?.farmer?.[0]?.fullname || "");
@@ -302,34 +401,19 @@ const ExportPDF = async (Data) => {
     TextBoxHead(pdf, newX, 100, "ศูนย์ฯ");
     TextBoxDot(pdf, 38, newX + 30, 100, Export?.farmer?.[0]?.station || "");
 
+    // ๒
     TextBoxHead(pdf, 30, 130, "๒.");
     TextBoxHead(pdf, 50, 130, "ชนิดพืช");
-    newX = TextBoxDot(pdf, 27, 86, 130, Export?.dataForm?.name_plant || "");
+    newX = TextBoxDot(pdf, 27, 86, 130, Export?.dataForm?.name_plant || Export?.dataForm?.plant_name || "");
 
     TextBoxHead(pdf, newX, 130, "รุ่นที่ปลูก");
     newX = TextBoxDot(pdf, 16, newX + 41, 130, (Export?.dataForm?.generation ?? "").toString());
 
     TextBoxHead(pdf, newX, 130, "วันที่เพาะกล้า");
-    const DateGlow = (Export?.dataForm?.date_glow || "").split("-");
-    newX = TextBoxDot(
-      pdf,
-      22,
-      newX + 62,
-      130,
-      DateGlow.length === 3 ? `${DateGlow[2].split(" ")[0]}/${DateGlow[1]}/${parseInt(DateGlow[0]) + 543}` : ""
-    );
+    newX = TextBoxDot(pdf, 22, newX + 62, 130, fmtTH(Export?.dataForm?.date_glow, true));
 
     TextBoxHead(pdf, newX, 130, "วันที่ปลูก");
-    const DatePlant = (Export?.dataForm?.date_plant || "").split("-");
-    TextBoxDot(
-      pdf,
-      22,
-      newX + 42,
-      130,
-      DatePlant.length === 3
-        ? `${DatePlant[2].split(" ")[0]}/${DatePlant[1]}/${parseInt(DatePlant[0]) + 543}`
-        : ""
-    );
+    TextBoxDot(pdf, 22, newX + 42, 130, fmtTH(Export?.dataForm?.date_plant, true));
 
     TextBoxHead(pdf, 50, 160, "ระยะการปลูก");
     newX = TextBoxDot(pdf, 20, 112, 160, `${Export?.dataForm?.posi_w ?? ""}x${Export?.dataForm?.posi_h ?? ""}`);
@@ -342,19 +426,11 @@ const ExportPDF = async (Data) => {
     newX = TextBoxDot(pdf, 25, newX + 24, 160, area);
 
     TextBoxHead(pdf, newX, 160, "วันที่คาดว่าจะเก็บเกี่ยว");
-    const DateOut = (Export?.dataForm?.date_harvest || "").split("-");
-    newX = TextBoxDot(
-      pdf,
-      16,
-      newX + 103,
-      160,
-      DateOut.length === 3 ? `${DateOut[2].split(" ")[0]}/${DateOut[1]}/${parseInt(DateOut[0]) + 543}` : ""
-    );
+    newX = TextBoxDot(pdf, 16, newX + 103, 160, fmtTH(Export?.dataForm?.date_harvest, true));
 
-    // ====== ⬇️ จัดช่วงเวลาเริ่มปลูก → เก็บเกี่ยว/ส่งผลผลิต แล้วบอกหน้าแสดงผลให้โหลดก่อนแคปภาพ
+    // sync ช่วงเวลาให้กราฟหน้า index render ก่อนแคป
     let chartImg = null, tableImg = null;
     try {
-      // เลือกช่วงเวลาที่จะใช้โหลดกราฟ: เริ่มปลูก → (วันส่งผลผลิต ถ้ามี) ไม่งั้นใช้ "วันที่คาดว่าจะเก็บเกี่ยว" → ถ้ายังไม่มี ใช้วันนี้
       const plantStr   = Export?.dataForm?.date_plant || "";
       const harvestStr = Export?.dataForm?.date_success || Export?.dataForm?.date_harvest || "";
       const nowMs = Date.now();
@@ -364,7 +440,6 @@ const ExportPDF = async (Data) => {
 
       if (Number.isFinite(st) && Number.isFinite(et) && typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("weather-export:set-range", { detail: { st, et } }));
-        // รอหน้า WeatherManagement โหลดข้อมูลและ Recharts render เสร็จ
         await sleep(750);
       }
 
@@ -378,7 +453,7 @@ const ExportPDF = async (Data) => {
     Export.__chartImg = chartImg || null;
     Export.__tableImg = tableImg || null;
 
-    // ===== ๓. ระบบการปลูก =====  (ล็อกตำแหน่งเริ่มคงที่เสมอ)
+    // ๓ ระบบการปลูก
     const y3 = 190;
     TextBoxHead(pdf, 30, y3, "๓.");
     TextBoxHead(pdf, 50, y3, "ระบบการปลูก");
@@ -393,27 +468,14 @@ const ExportPDF = async (Data) => {
     const SYS_R = 410;
     const SYS_DY = 22;
 
-    DrawCheckBox(
-      pdf,
-      SYS_L,
-      y3 + SYS_DY * 0,
-      "ขึ้นแปลงปลูกตามไหล่เขา",
-      isCheckedLabel("ขึ้นแปลงปลูกตามไหล่เขา", sysHits, sysSetRaw)
-    );
+    DrawCheckBox(pdf, SYS_L, y3 + SYS_DY * 0, "ขึ้นแปลงปลูกตามไหล่เขา", isCheckedLabel("ขึ้นแปลงปลูกตามไหล่เขา", sysHits, sysSetRaw));
     DrawCheckBox(pdf, SYS_L, y3 + SYS_DY * 1, "ปลูกแบบพื้นราบ", isCheckedLabel("ปลูกแบบพื้นราบ", sysHits, sysSetRaw));
     DrawCheckBox(pdf, SYS_L, y3 + SYS_DY * 2, "ปลูกในวัสดุปลูก", isCheckedLabel("ปลูกในวัสดุปลูก", sysHits, sysSetRaw));
-    DrawCheckBox(
-      pdf,
-      SYS_R,
-      y3 + SYS_DY * 0,
-      "ขึ้นแปลงปลูกในโรงเรือน",
-      isCheckedLabel("ขึ้นแปลงปลูกในโรงเรือน", sysHits, sysSetRaw)
-    );
+    DrawCheckBox(pdf, SYS_R, y3 + SYS_DY * 0, "ขึ้นแปลงปลูกในโรงเรือน", isCheckedLabel("ขึ้นแปลงปลูกในโรงเรือน", sysHits, sysSetRaw));
     DrawCheckBox(pdf, SYS_R, y3 + SYS_DY * 1, "ระบบ Hydroponic", isCheckedLabel("ระบบ Hydroponic", sysHits, sysSetRaw));
 
     const hasOther = _norm(finalOther).length > 0;
     DrawCheckBox(pdf, SYS_R, y3 + SYS_DY * 2, "อื่น ๆ ระบุ", hasOther, "fill");
-
     {
       const label = "อื่น ๆ ระบุ";
       const fs = pdf.getFontSize();
@@ -432,10 +494,8 @@ const ExportPDF = async (Data) => {
       TextBoxDot(pdf, dots, startDot, y3 + SYS_DY * 2, finalOther);
     }
 
-    const nextY = y3 + SYS_DY * 3 + 10;
-
-    // ===== ๔. แหล่งน้ำ =====
-    const y4 = nextY;
+    // ๔ แหล่งน้ำ
+    const y4 = y3 + SYS_DY * 3 + 10;
     TextBoxHead(pdf, 30, y4, "๔.");
     TextBoxHead(pdf, 50, y4, "แหล่งน้ำ (ตอบได้มากกว่า ๑ ข้อ)");
 
@@ -461,7 +521,6 @@ const ExportPDF = async (Data) => {
 
     const hasWaterOther = _norm(finalWaterOther).length > 0;
     DrawCheckBox(pdf, Xs4[2], r4, "อื่น ๆ ระบุ", hasWaterOther, "fill");
-
     {
       const label = "อื่น ๆ ระบุ";
       const PAD_AFTER = 6;
@@ -479,10 +538,8 @@ const ExportPDF = async (Data) => {
       TextBoxDot(pdf, dots, startDot, r4, finalWaterOther);
     }
 
-    const yAfter4 = r4 + 22;
-
-    // ===== ๕. วิธีการให้น้ำ =====
-    const y5 = yAfter4;
+    // ๕ วิธีการให้น้ำ
+    const y5 = r4 + 22;
     TextBoxHead(pdf, 30, y5, "๕.");
     TextBoxHead(pdf, 50, y5, "วิธีการให้น้ำ");
 
@@ -521,13 +578,12 @@ const ExportPDF = async (Data) => {
     const dotCount5 = Math.max(10, Math.floor((LEFT_COL_RIGHT - 6 - dotStart5) / 4));
     TextBoxDot(pdf, dotCount5, dotStart5, y5, finalFlowOther);
 
-    const yAfter5 = y5 + 22;
+    // ๖ ประวัติ/โรค/ระดับ/ป้องกัน
+    const y6 = y5 + 22;
+    TextBoxHead(pdf, 30, y6, "๖.");
+    TextBoxHead(pdf, 50, y6, "ประวัติการใช้พื้นที่และการเกิดโรคระบาด ชนิดพืชก่อนหน้านี้");
 
-    // ===== ๖. ประวัติการใช้พื้นที่ฯ =====
-    TextBoxHead(pdf, 30, yAfter5, "๖.");
-    TextBoxHead(pdf, 50, yAfter5, "ประวัติการใช้พื้นที่และการเกิดโรคระบาด ชนิดพืชก่อนหน้านี้");
-
-    let y = yAfter5 + 20;
+    let y = y6 + 20;
 
     TextBoxHead(pdf, 50, y, "ชนิดพืชที่ปลูก");
     let nx = TextBoxDot(pdf, 30, 114, y, (Export?.dataForm?.history || "").toString());
@@ -569,8 +625,8 @@ const ExportPDF = async (Data) => {
 
     PresentRow = y + 30;
 
-    // ===== ๗. ข้อแนะนำจากที่ปรึกษา =====
-    y7Header = PresentRow; // NOTE: ไม่ประกาศซ้ำด้วย let
+    // ๗ ข้อแนะนำ
+    y7Header = PresentRow;
     TextBoxHead(pdf, 30, PresentRow, "๗.");
     TextBoxHead(pdf, 50, PresentRow, "ข้อแนะนำจากที่ปรึกษา (ส่วนนี้สำหรับเจ้าหน้าที่)");
     PresentRow = y7Header + 16;
@@ -636,17 +692,8 @@ const ExportPDF = async (Data) => {
       TextBoxHead(pdf, wdpX, y2, "/ว/ด/ป");
       pdf.setFontSize(KEEP_FS);
 
-      let dateStr = "";
-      const raw = reports[i]?.date_report || reports[i]?.date || "";
-      if (raw) {
-        const p = raw.split("T")[0].split("-");
-        if (p.length === 3) {
-          const dd = String(parseInt(p[2], 10));
-          const mm = String(parseInt(p[1], 10));
-          const yy = (parseInt(p[0], 10) + 543).toString().slice(-2);
-          dateStr = `${dd}/${mm}/${yy}`;
-        }
-      }
+      const rawDate = reports[i]?.date_report || reports[i]?.date || "";
+      const dateStr = fmtTH(rawDate, true);
 
       const dateStartX = wdpX + wdpW + 2;
       let dateDots = Math.floor((LEFT_COL_RIGHT - DOT_MARGIN - dateStartX) / 4) - DOT_TRIM_DATE;
@@ -661,7 +708,7 @@ const ExportPDF = async (Data) => {
       PresentRow = y2 + rowGap;
     }
 
-    // ===== ๘. ผลตรวจสอบแบบบันทึกก่อนเก็บเกี่ยว =====
+    // ๘ ตรวจสอบก่อนเก็บเกี่ยว
     {
       const _fs = pdf.getFontSize();
       pdf.setFontSize(14);
@@ -672,9 +719,12 @@ const ExportPDF = async (Data) => {
       pdf.setFontSize(_fs);
       PresentRow += 14;
 
-      const status = Export?.checkForm?.[0]?.status_check;
-      DrawCheckBox(pdf, 160, PresentRow, "ผ่าน", status === true || status === "ผ่าน");
-      DrawCheckBox(pdf, 220, PresentRow, "ไม่ผ่าน", status === false || status === "ไม่ผ่าน");
+      const rawStatus = Export?.checkForm?.[0]?.status_check;
+      const isPass = rawStatus === true || rawStatus === "ผ่าน" || rawStatus === "true" || rawStatus === 1 || rawStatus === "1";
+      const isFail = rawStatus === false || rawStatus === "ไม่ผ่าน" || rawStatus === "false" || rawStatus === 0 || rawStatus === "0";
+
+      DrawCheckBox(pdf, 160, PresentRow, "ผ่าน",   isPass);
+      DrawCheckBox(pdf, 220, PresentRow, "ไม่ผ่าน", isFail);
 
       const FIX_LABEL = "การแก้ไข";
       const fixX = 50;
@@ -700,10 +750,8 @@ const ExportPDF = async (Data) => {
       TextBoxHead(pdf, sigX, sigY + 18, "(............................)");
       TextBoxHead(pdf, sigX, sigY + 36, "ลงชื่อเจ้าหน้าที่หมอพืช");
 
-      const dc = Export?.checkForm?.[0]?.date_check ? Export.checkForm[0].date_check.split("T")[0].split("-") : null;
-      const dcStr = dc
-        ? `${parseInt(dc[2], 10)}/${parseInt(dc[1], 10)}/${(parseInt(dc[0], 10) + 543).toString().slice(-2)}`
-        : "";
+      const dcRaw = Export?.checkForm?.[0]?.date_check || "";
+      const dcStr = fmtTH(dcRaw, true);
 
       const dateY = sigY + 56;
       const dateLabel = "ว/ด/ป";
@@ -719,9 +767,8 @@ const ExportPDF = async (Data) => {
       PresentRow = dateY + 40;
     }
 
-    // ===== ๙. ผลการวิเคราะห์สารตกค้าง =====
+    // ๙ ผลวิเคราะห์สารตกค้าง
     const y9 = y7Header || 190;
-
     let body = [];
     let headers = [
       { name: "ครั้งที่", size: 24 },
@@ -734,12 +781,12 @@ const ExportPDF = async (Data) => {
     for (let i = 0; i < 15; i++) {
       const DataRow = Export?.checkPlant?.[i];
       if (DataRow) {
-        const DateCheck = DataRow.date_check.split("T")[0].split("-");
+        const dateStr = fmtTH(DataRow.date_check);
         body.push([
           { name: (i + 1).toString(), size: 24 },
-          { name: `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${parseInt(DateCheck[0]) + 543}`, size: 52 },
-          { name: !DataRow.state_check ? DataRow.status_check.toString() : "", size: 36 },
-          { name: DataRow.state_check ? DataRow.status_check.toString() : "", size: 36 },
+          { name: dateStr, size: 52 },
+          { name: !DataRow.state_check ? String(DataRow.status_check ?? "") : "", size: 36 },
+          { name:  DataRow.state_check ? String(DataRow.status_check ?? "") : "", size: 36 },
           { name: (DataRow.name_doctor || "").split(" ")[0], size: 56 },
           { name: DataRow.note_text || "", size: 52 },
         ]);
@@ -767,13 +814,14 @@ const ExportPDF = async (Data) => {
     const FONT = 12;
     TableBox(pdf, startX9, y9 + 8, headers, body, HEADER_H, ROW_H, FONT);
 
-    // ---------- หน้า 2 ----------
+    /* ---------- หน้า 2 ---------- */
     pdf.addPage();
     pdf.setFontSize(16);
     let presentFactor = 0;
     let oldDay = "";
     body = [];
 
+    // ๑๐ สารเคมี
     TextBoxHead(pdf, 30, 40, "๑๐.");
     TextBoxHead(pdf, 50, 40, "แบบบันทึกการใช้สารเคมีกำจัดศัตรูพืชทางการเกษตร");
     headers = [
@@ -791,34 +839,31 @@ const ExportPDF = async (Data) => {
     for (let i in Export?.chemi) {
       const DataRow = Export.chemi[i];
       if (DataRow) {
-        const DateCheck = DataRow.date.split(" ")[0].split("-");
-        const DateSafe = DataRow.date_safe.split(" ")[0].split("-");
+        const dUse  = (DataRow.date || "").toString().split(" ")[0];
+        const dSafe = (DataRow.date_safe || "").toString().split(" ")[0];
+        const safeUse  = dUse  ? fmtTH(dUse, true)  : "";
+        const safeSafe = dSafe ? fmtTH(dSafe, true) : "";
+        const formula = DataRow.formula_name ?? DataRow.formulaName ?? "";
+        const volStr  = (DataRow.volume ?? "").toString();
+
         body.push([
-          {
-            name:
-              oldDay === DateCheck.join("")
-                ? ""
-                : `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${(parseInt(DateCheck[0]) + 543).toString().slice(2, 4)}`,
-            size: 40,
-          },
-          { name: DataRow.name, size: 103 },
-          { name: DataRow.formula_name, size: 103 },
-          { name: DataRow.insect, size: 55 },
-          { name: DataRow.use_is, size: 55 },
-          { name: DataRow.rate, size: 45 },
-          { name: DataRow.volume.toString(), size: 60 },
-          {
-            name: `${DateSafe[2].split(" ")[0]}/${DateSafe[1]}/${(parseInt(DateSafe[0]) + 543).toString().slice(2, 4)}`,
-            size: 50,
-          },
-          { name: DataRow.source, size: 75 },
+          { name: oldDay === dUse.split("-").join("") ? "" : safeUse, size: 40 },
+          { name: DataRow.name || "", size: 103 },
+          { name: formula, size: 103 },
+          { name: DataRow.insect || "", size: 55 },
+          { name: DataRow.use_is || "", size: 55 },
+          { name: DataRow.rate || "", size: 45 },
+          { name: volStr, size: 60 },
+          { name: safeSafe, size: 50 },
+          { name: DataRow.source || "", size: 75 },
         ]);
-        oldDay = DateCheck.join("");
+        oldDay = (dUse || "").split("-").join("");
       }
     }
 
     presentFactor = TableBox(pdf, 5, 50, headers, body, 20, 20, 12) + 30;
 
+    // ๑๑ ปัจจัยการผลิต
     TextBoxHead(pdf, 30, presentFactor, "๑๑.");
     TextBoxHead(
       pdf,
@@ -840,28 +885,27 @@ const ExportPDF = async (Data) => {
     for (let i in Export?.ferti) {
       const DataRow = Export.ferti[i];
       if (DataRow) {
-        const DateCheck = DataRow.date.split(" ")[0].split("-");
+        const dUse  = (DataRow.date || "").toString().split(" ")[0];
+        const safeUse = dUse ? fmtTH(dUse, true) : "";
+        const formula = DataRow.formula_name ?? DataRow.formulaName ?? "";
+        const volStr  = (DataRow.volume ?? "").toString();
+
         body.push([
-          {
-            name:
-              oldDay === DateCheck.join("")
-                ? ""
-                : `${DateCheck[2].split(" ")[0]}/${DateCheck[1]}/${(parseInt(DateCheck[0]) + 543).toString().slice(2, 4)}`,
-            size: 40,
-          },
-          { name: DataRow.name, size: 135 },
-          { name: DataRow.formula_name, size: 135 },
-          { name: DataRow.use_is, size: 90 },
-          { name: DataRow.volume.toString(), size: 90 },
-          { name: DataRow.source, size: 95 },
+          { name: oldDay === dUse.split("-").join("") ? "" : safeUse, size: 40 },
+          { name: DataRow.name || "", size: 135 },
+          { name: formula, size: 135 },
+          { name: DataRow.use_is || "", size: 90 },
+          { name: volStr, size: 90 },
+          { name: DataRow.source || "", size: 95 },
         ]);
-        oldDay = DateCheck.join("");
+        oldDay = (dUse || "").split("-").join("");
       }
     }
     presentFactor = TableBox(pdf, 5, presentFactor + 10, headers, body, 20, 20, 12) + 30;
 
+    // ลายเซ็น
     TextBoxHead(pdf, 30, presentFactor, "ลงชื่อ");
-    const farmer_name_posi = TextBoxDot(pdf, 35, 50, presentFactor, Export.farmer ? Export.farmer[0].fullname : "");
+    const farmer_name_posi = TextBoxDot(pdf, 35, 50, presentFactor, Export.farmer ? (Export.farmer[0]?.fullname || "") : "");
     TextBoxHead(pdf, farmer_name_posi, presentFactor, "เกษตรกร");
 
     TextBoxHead(pdf, width / 2 + 55, presentFactor, "ลงชื่อ");
@@ -872,7 +916,7 @@ const ExportPDF = async (Data) => {
     const check_boss_posi = TextBoxDot(pdf, 30, width / 2 + 67, presentFactor + 30, "");
     TextBoxHead(pdf, check_boss_posi, presentFactor + 30, "หัวหน้าผู้ตรวจประเมิน");
 
-    // ===== แทรกกราฟใต้ข้อ ๑๑ =====
+    // กราฟใต้ข้อ ๑๑
     {
       const PAGE_LEFT = 30;
       const IMG_W = width - 60;
@@ -880,14 +924,12 @@ const ExportPDF = async (Data) => {
 
       let yGraph = presentFactor + 40;
 
-      // ถ้าพื้นที่หน้าไม่พอ ให้ขึ้นหน้าใหม่
       const pageH = pdf.internal.pageSize.getHeight();
       if (yGraph + CHART_H > pageH - 40) {
         pdf.addPage();
         yGraph = 40;
       }
 
-      // หัวข้อกราฟ + ช่วงเวลา
       const titleFrom = Export?.dataForm?.date_plant ? new Date(Export.dataForm.date_plant).toLocaleDateString("th-TH") : "";
       const titleTo   = (Export?.dataForm?.date_success || Export?.dataForm?.date_harvest)
         ? new Date(Export.dataForm.date_success || Export.dataForm.date_harvest).toLocaleDateString("th-TH")
@@ -900,16 +942,15 @@ const ExportPDF = async (Data) => {
       if (Export.__chartImg) {
         pdf.addImage(Export.__chartImg, "PNG", PAGE_LEFT, yGraph, IMG_W, CHART_H);
       } else {
-        // วาดกราฟเปล่า (placeholder)
         const x0 = PAGE_LEFT;
         const y0 = yGraph;
         const w  = IMG_W;
         const h  = CHART_H;
 
         pdf.setDrawColor(180);
-        pdf.rect(x0, y0, w, h);                                  // กรอบนอก
-        pdf.line(x0 + 40, y0 + h - 30, x0 + w - 10, y0 + h - 30); // แกน X
-        pdf.line(x0 + 40, y0 + 10,     x0 + 40,     y0 + h - 30); // แกน Y
+        pdf.rect(x0, y0, w, h);
+        pdf.line(x0 + 40, y0 + h - 30, x0 + w - 10, y0 + h - 30);
+        pdf.line(x0 + 40, y0 + 10,     x0 + 40,     y0 + h - 30);
 
         pdf.setFontSize(12);
         pdf.text("กราฟสภาพแวดล้อม (ไม่มีข้อมูล)", x0 + w / 2, y0 + h / 2, { align: "center" });
@@ -919,92 +960,88 @@ const ExportPDF = async (Data) => {
       presentFactor = yGraph + CHART_H;
     }
 
-    // หน้าถัดไปสำหรับ record ถัดไป
-    if (parseInt(index) + 1 !== Data.length) pdf.addPage();
+    if (parseInt(index, 10) + 1 !== Data.length) pdf.addPage();
   }
 
-  const [init, liff] = useLiff("1661049098-dorebKYg");
-  init
-    .then(async () => {
-      if (!liff.isInClient())
-        pdf.save(`${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`);
-      else alert("กรุณาดาวโหลดผ่านเบราเซอร์");
-    })
-    .catch((err) => {
-      pdf.save(`${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`);
-    });
+  // output
+  const filename = `${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`;
+
+  if (mode === "url") {
+    const blob = pdf.output("blob");
+    return URL.createObjectURL(blob);
+  }
+  if (mode === "datauri") {
+    return pdf.output("datauristring");
+  }
+
+  try {
+    await tryDownloadWithLiff(pdf, filename);
+  } catch {
+    pdf.save(filename);
+  }
 };
 
-const Mount = [
-  "",
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
+/* ========== ExportExcel ========== */
+const Mount = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 const ExportExcel = async (excelData = []) => {
   const filetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
   const fileExtension = ".xlsx";
 
-  const nameSpace = new Set(excelData.map((val) => val.dataForm.name_plant));
-  const DataWs = excelData.map((val) => {
-    const DatePlant = val.dataForm.date_plant.split(" ")[0].split("-");
+  const normalized = Array.isArray(excelData) && (excelData[0]?.dataForm || excelData[0]?.farmer)
+    ? excelData
+    : buildExportData(excelData);
+
+  const nameSpace = new Set(normalized.map((val) => val.dataForm.name_plant || val.dataForm.plant_name));
+  const DataWs = normalized.map((val) => {
+    const DatePlant = (val.dataForm.date_plant || "").split(" ")[0].split("-");
     const DateSuccess = val.dataForm.date_success ? val.dataForm.date_success.split(" ")[0].split("-") : "";
+
     const DataExport = {
-      plant: val.dataForm.name_plant,
-      "ชื่อเกษตรกร": val.farmer[0].fullname.toString().trim(),
-      "รหัสเกษตรกร": val.farmer[0].id_farmer.toString().trim(),
-      "วันที่เริ่มปลูก": `${DatePlant[2]}-${Mount[parseInt(DatePlant[1])]}-${(parseInt(DatePlant[0]) + 543)
-        .toString()
-        .slice(2)}`,
-      "วันที่ส่งผลผลิต": DateSuccess
-        ? `${DateSuccess[2]}-${Mount[parseInt(DateSuccess[1])]}-${(parseInt(DateSuccess[0]) + 543)
-            .toString()
-            .slice(2)}`
+      plant: val.dataForm.name_plant || val.dataForm.plant_name || "",
+      "ชื่อเกษตรกร": (val.farmer?.[0]?.fullname || "").toString().trim(),
+      "รหัสเกษตรกร": (val.farmer?.[0]?.id_farmer || "").toString().trim(),
+      "วันที่เริ่มปลูก": DatePlant.length === 3
+        ? `${DatePlant[2]}-${Mount[parseInt(DatePlant[1], 10)]}-${(parseInt(DatePlant[0], 10) + 543).toString().slice(2)}`
+        : "",
+      "วันที่ส่งผลผลิต": Array.isArray(DateSuccess) && DateSuccess.length === 3
+        ? `${DateSuccess[2]}-${Mount[parseInt(DateSuccess[1], 10)]}-${(parseInt(DateSuccess[0], 10) + 543).toString().slice(2)}`
         : "ยังไม่ทำการเก็บเกี่ยว",
-      "จำนวนต้น": val.dataForm.qty,
+      "จำนวนต้น": val.dataForm.qty ?? "",
     };
 
-    if (val.chemi.length !== 0) {
+    if ((val.chemi || []).length !== 0) {
       DataExport["สารเคมี"] = "|";
       for (let indexChemi in val.chemi) {
-        const DateUse = val.chemi[indexChemi].date.split(" ")[0].split("-");
-        DataExport[`วันเดือนปี ${parseInt(indexChemi) + 1}`] = `${DateUse[2]}-${Mount[parseInt(DateUse[1])]}-${(parseInt(
-          DateUse[0]
-        ) + 543)
-          .toString()
-          .slice(2)}`;
-        DataExport[`โรคที่พบ ${parseInt(indexChemi) + 1}`] = val.chemi[indexChemi].insect;
-        DataExport[`การป้องกัน ${parseInt(indexChemi) + 1}`] = `กำจัด${val.chemi[indexChemi].insect}`;
-        DataExport[`สารเคมี ${parseInt(indexChemi) + 1}`] = val.chemi[indexChemi].formula_name;
-        DataExport[`วิธีการใช้ ${parseInt(indexChemi) + 1}`] = val.chemi[indexChemi].use_is;
-        DataExport[`อัตราผสม ${parseInt(indexChemi) + 1} (cc/L)`] = val.chemi[indexChemi].rate;
-        DataExport[`ปริมาณที่ใช้ ${parseInt(indexChemi) + 1} (cc)`] = val.chemi[indexChemi].volume;
+        const row = val.chemi[indexChemi];
+        const DateUse = (row.date || "").split(" ")[0].split("-");
+        DataExport[`วันเดือนปี ${parseInt(indexChemi, 10) + 1}`] =
+          DateUse.length === 3
+            ? `${DateUse[2]}-${Mount[parseInt(DateUse[1], 10)]}-${(parseInt(DateUse[0], 10) + 543).toString().slice(2)}`
+            : "";
+        DataExport[`โรคที่พบ ${parseInt(indexChemi, 10) + 1}`] = row.insect || "";
+        DataExport[`การป้องกัน ${parseInt(indexChemi, 10) + 1}`] = `กำจัด${row.insect || ""}`;
+        DataExport[`สารเคมี ${parseInt(indexChemi, 10) + 1}`] = row.formula_name ?? row.formulaName ?? "";
+        DataExport[`วิธีการใช้ ${parseInt(indexChemi, 10) + 1}`] = row.use_is || "";
+        DataExport[`อัตราผสม ${parseInt(indexChemi, 10) + 1} (cc/L)`] = row.rate || "";
+        DataExport[`ปริมาณที่ใช้ ${parseInt(indexChemi, 10) + 1} (cc)`] = row.volume ?? "";
       }
     }
 
-    if (val.ferti.length !== 0) {
+    if ((val.ferti || []).length !== 0) {
       DataExport["ปัจจัยการผลิต"] = "|";
       for (let indexFerti in val.ferti) {
-        const DateUse = val.ferti[indexFerti].date.split(" ")[0].split("-");
-        DataExport[`วดป. ${parseInt(indexFerti) + 1}`] = `${DateUse[2]}-${Mount[parseInt(DateUse[1])]}-${(parseInt(
-          DateUse[0]
-        ) + 543).toString().slice(2)}`;
-        DataExport[`ปัจจัย ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].name;
-        DataExport[`สูตร ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].formula_name; // 👈 แก้ตรงนี้
-        DataExport[`วิธีใช้ ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].use_is;
-        DataExport[`ปริมาณ ${parseInt(indexFerti) + 1}`] = val.ferti[indexFerti].volume;
+        const row = val.ferti[indexFerti];
+        const DateUse = (row.date || "").split(" ")[0].split("-");
+        DataExport[`วดป. ${parseInt(indexFerti, 10) + 1}`] =
+          DateUse.length === 3
+            ? `${DateUse[2]}-${Mount[parseInt(DateUse[1], 10)]}-${(parseInt(DateUse[0], 10) + 543).toString().slice(2)}`
+            : "";
+        DataExport[`ปัจจัย ${parseInt(indexFerti, 10) + 1}`] = row.name || "";
+        DataExport[`สูตร ${parseInt(indexFerti, 10) + 1}`] = row.formula_name ?? row.formulaName ?? "";
+        DataExport[`วิธีใช้ ${parseInt(indexFerti, 10) + 1}`] = row.use_is || "";
+        DataExport[`ปริมาณ ${parseInt(indexFerti, 10) + 1}`] = row.volume ?? "";
       }
-
     }
 
     return DataExport;
@@ -1057,4 +1094,4 @@ const ExportExcel = async (excelData = []) => {
   FileSaver.saveAs(data, filename);
 };
 
-export { ExportPDF, ExportExcel };
+export { ExportPDF, ExportExcel, buildExportData };

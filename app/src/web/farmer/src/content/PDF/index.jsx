@@ -1,163 +1,178 @@
-import React, { useEffect, useState } from "react";
-import "./PDFPage.scss";
-import { clientMo } from "../../../../../assets/js/moduleClient";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
-import { ExportPDF } from "../../../../../assets/js/Export";
+import { clientMo } from "../../../../../assets/js/moduleClient";
+import { ExportPDF, buildExportData } from "../../../../../assets/js/Export";
 
-export default function PDFPage() {
+export default function PDFIndexMobileFriendly() {
   const { greenhouse_id, gap_id } = useParams();
-  const [data, setData] = useState(null);
+  const [pdfUrlRaw, setPdfUrlRaw] = useState("");
+  const [zoom, setZoom] = useState("page-width"); // มือถือเริ่มที่พอดีกว้าง
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  // ✅ โหลดข้อมูลจาก API
+  // ตรวจจับว่าเป็น mobile (หยาบๆ)
+  const isMobile = typeof navigator !== "undefined" &&
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // src ของ viewer (รองรับ #zoom=…)
+  const pdfSrc = useMemo(() => {
+    if (!pdfUrlRaw) return "";
+    const z = typeof zoom === "number" ? zoom : zoom; // "page-width" หรือเปอร์เซ็นต์
+    // page=1, view=FitH ยังช่วยบางเบราว์เซอร์
+    return `${pdfUrlRaw}#zoom=${z}&page=1`;
+  }, [pdfUrlRaw, zoom]);
+
   useEffect(() => {
-    const fetchData = async () => {
+    let alive = true;
+    let revoke = "";
+    (async () => {
+      setLoading(true);
+      setErr("");
       try {
         const res = await clientMo.get(
           `/api/farmer/report/export?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`
         );
-        console.log("📦 ข้อมูลจาก API (raw):", res);
-
-        // ✅ รองรับทั้ง string และ array
-        let parsed = typeof res === "string" ? JSON.parse(res) : res;
-        if (Array.isArray(parsed)) parsed = parsed[0] || {};
-
-        console.log("✅ Parsed data:", parsed);
-        setData(parsed);
-      } catch (err) {
-        console.error("❌ Error fetching PDF data:", err);
+        const parsed = typeof res === "string" ? JSON.parse(res) : res;
+        const built = buildExportData(parsed);
+        const url = await ExportPDF(built, { mode: "url" }); // ได้ Blob URL
+        revoke = url;
+        if (!alive) return;
+        setPdfUrlRaw(url);
+      } catch (e) {
+        console.error(e);
+        setErr("ไม่สามารถสร้างไฟล์ PDF ได้");
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
+    })();
+    return () => {
+      alive = false;
+      if (revoke) URL.revokeObjectURL(revoke);
     };
-
-    fetchData();
   }, [greenhouse_id, gap_id]);
 
-  // ✅ ฟังก์ชันแปลงวันที่ให้รองรับทั้ง " " และ "T"
-  const toThaiDate = (input) => {
-    if (!input) return "-";
-    try {
-      const iso = input.includes("T") ? input : input.replace(" ", "T");
-      const d = new Date(iso);
-      if (isNaN(d.getTime())) return "-";
-      return d.toLocaleDateString("th-TH", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return "-";
-    }
-  };
+  const filename = `${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`;
 
-  // ✅ ปุ่มดาวน์โหลด PDF
-  const handleDownloadPDF = () => {
-  try {
-    if (typeof data === "object" && data !== null) {
-      // ✅ ปรับให้ farmer เป็น array (ตามที่ ExportPDF ต้องการ)
-      const formatted = {
-        farmer: [data.farmer],       // <── แก้จาก data.farmer → [data.farmer]
-        dataForm: data.dataForm,
-        ferti: data.ferti || [],
-        chemi: data.chemi || [],
-      };
-      ExportPDF([formatted]);
-    } else {
-      alert("ข้อมูลไม่ถูกต้อง หรือไม่มีข้อมูลให้สร้าง PDF");
-    }
-  } catch (err) {
-    console.error("❌ Export PDF error:", err);
-    alert("เกิดข้อผิดพลาดในการสร้าง PDF");
-  }
-};
+  const zoomIn  = () => setZoom((z) => (typeof z === "number" ? Math.min(z + 25, 400) : 125));
+  const zoomOut = () => setZoom((z) => (typeof z === "number" ? Math.max(z - 25, 50)  : 100));
+  const fitWidth = () => setZoom("page-width");
+  const z100     = () => setZoom(100);
 
+  if (loading) return <div style={styles.page}>⏳ กำลังเตรียมไฟล์…</div>;
+  if (err)      return <div style={{ ...styles.page, color: "crimson" }}>{err}</div>;
+  if (!pdfSrc)  return <div style={styles.page}>❌ ไม่มีไฟล์สำหรับแสดง</div>;
 
-  // ✅ Loading / Error State
-  if (loading) return <div className="pdf-page">กำลังโหลดข้อมูล...</div>;
-  if (!data) return <div className="pdf-page">ไม่พบข้อมูลฟอร์มในระบบ</div>;
-
-  const { farmer, dataForm, ferti, chemi } = data;
-
+  // viewer ใช้ <iframe> เป็นหลัก; ถ้า mobile ฝังไม่ได้ ให้ผู้ใช้เปิดแท็บใหม่
+  const Viewer = (
+    <iframe
+      title="GAP PDF"
+      src={pdfSrc}
+      style={styles.iframe}
+      // บางมือถือจะไม่ยอมโหลดภายใน container ถ้า sandbox; ไม่ระบุ sandbox
+    />
+  );
 
   return (
-    <div className="pdf-page">
-      <div className="pdf-container">
-        <h1 className="title">ข้อมูลฟอร์มเกษตรกร (PDF Preview)</h1>
+    <div style={styles.wrap}>
+      {/* Toolbar (touch-friendly + safe-area) */}
+      <div style={styles.toolbar}>
+        <a href={pdfUrlRaw} download={filename} style={styles.primaryBtn}>
+          ดาวน์โหลด PDF
+        </a>
 
-        <div className="pdf-content">
-          <h2>ข้อมูลเกษตรกร</h2>
-          <p>ชื่อ: {farmer?.fullname || "-"}</p>
-          <p>รหัสเกษตรกร: {farmer?.id_farmer || "-"}</p>
-          <p>ศูนย์: {farmer?.station || "-"}</p>
+        <div style={styles.tools}>
+          <button onClick={zoomOut}  style={styles.toolBtn} aria-label="Zoom out">−</button>
+          <button onClick={z100}     style={styles.toolBtn}>100%</button>
+          <button onClick={fitWidth} style={styles.toolBtn}>พอดีกว้าง</button>
+          <button onClick={zoomIn}   style={styles.toolBtn} aria-label="Zoom in">＋</button>
 
-          <h2>ข้อมูลการปลูก</h2>
-          <p>ชนิดพืช: {dataForm?.name_plant || "-"}</p>
-          <p>วันที่ปลูก: {toThaiDate(dataForm?.date_plant)}</p>
-          <p>วันที่เก็บเกี่ยว: {toThaiDate(dataForm?.date_harvest)}</p>
-          <p>จำนวนต้น: {dataForm?.qty || "-"}</p>
-          <p>
-            พื้นที่: {dataForm?.area > 0 ? dataForm.area : "-"}{" "}
-            {dataForm?.unit || ""}
-          </p>
-
-          <h2>ปุ๋ยที่ใช้</h2>
-          {ferti?.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>ชื่อปุ๋ย</th>
-                  <th>สูตร</th>
-                  <th>ปริมาณ</th>
-                  <th>วันที่ใช้</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ferti.map((f, i) => (
-                  <tr key={i}>
-                    <td>{f.name}</td>
-                    <td>{f.formula_name}</td>
-                    <td>{f.volume}</td>
-                    <td>{toThaiDate(f.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>ไม่มีข้อมูลปุ๋ย</p>
-          )}
-
-          <h2>สารเคมีที่ใช้</h2>
-          {chemi?.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>ชื่อสาร</th>
-                  <th>แมลงเป้าหมาย</th>
-                  <th>อัตรา</th>
-                  <th>วันที่ใช้</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chemi.map((c, i) => (
-                  <tr key={i}>
-                    <td>{c.name}</td>
-                    <td>{c.insect}</td>
-                    <td>{c.rate}</td>
-                    <td>{toThaiDate(c.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>ไม่มีข้อมูลสารเคมี</p>
+          {/* ปุ่ม fallback เปิดเต็มจอ/แท็บใหม่ (ช่วยมือถือที่ฝัง PDF ไม่ได้) */}
+          {isMobile && (
+            <a href={pdfUrlRaw} target="_blank" rel="noreferrer" style={styles.toolBtnLink}>
+              เปิดเต็มจอ
+            </a>
           )}
         </div>
+      </div>
 
-        <button className="download-btn" onClick={handleDownloadPDF}>
-          ดาวน์โหลด PDF
-        </button>
+      {/* Viewer area */}
+      <div style={styles.viewer}>
+        {Viewer}
       </div>
     </div>
   );
 }
+
+/* ===== styles (inline เพื่อก๊อปวางง่าย) ===== */
+const styles = {
+  wrap: {
+    height: "100dvh",                 // สูงเท่าหน้าจอจริงบนมือถือ
+    display: "flex",
+    flexDirection: "column",
+    background: "#f1f5f9",
+  },
+  toolbar: {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "12px",
+    paddingTop: "calc(env(safe-area-inset-top) + 12px)", // รองรับ notch
+    background: "#e7f5ec",
+    borderBottom: "1px solid #e2e8f0",
+  },
+  primaryBtn: {
+    background: "#22c55e",
+    color: "#fff",
+    padding: "10px 14px",
+    borderRadius: 10,
+    textDecoration: "none",
+    fontWeight: 700,
+    lineHeight: "24px",
+    minHeight: 44, // touch target
+  },
+  tools: {
+    marginLeft: "auto",
+    display: "flex",
+    gap: 8,
+  },
+  toolBtn: {
+    background: "#fff",
+    border: "1px solid #cbd5e1",
+    borderRadius: 10,
+    padding: "10px 12px",
+    minWidth: 64,
+    minHeight: 44, // touch target
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  toolBtnLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#fff",
+    border: "1px solid #cbd5e1",
+    borderRadius: 10,
+    padding: "10px 12px",
+    minWidth: 84,
+    minHeight: 44,
+    fontWeight: 600,
+    textDecoration: "none",
+    color: "#0f172a",
+  },
+  viewer: {
+    flex: 1,
+    // safe area bottom เผื่อมี gesture bar
+    paddingBottom: "env(safe-area-inset-bottom)",
+    background: "#fff",
+  },
+  iframe: {
+    width: "100%",
+    height: "100%",
+    border: "none",
+    background: "#fff",
+  },
+  page: { padding: 16 },
+};
