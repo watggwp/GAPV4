@@ -23,8 +23,10 @@ const startOfDayLocalMs = (input) => {
     const d = new Date(input);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).getTime();
 };
-const endOfDayLocalMsExclusive = (input) => startOfDayLocalMs(input) + 24 * 60 * 60 * 1000;
-
+const endOfDayLocalMsInclusive = (input) => {
+    const d = new Date(input);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime();
+};
 const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => {
     const [weatherQuery, setWeatherQuery] = useState({ r: "doctor" });
     const [range, setRange] = useState(null);  // { st, et }
@@ -169,8 +171,8 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             setData(merged);
             console.log("merged data:", merged)
 
-            const S = Math.min(startOfDayLocalMs(merged.date_plant), endOfDayLocalMsExclusive(merged.date_success));
-            const E = Math.max(startOfDayLocalMs(merged.date_plant), endOfDayLocalMsExclusive(merged.date_success));
+            const S = startOfDayLocalMs(merged.date_plant);
+            const E = endOfDayLocalMsInclusive(merged.date_success);   // ← 23:59:59.999 ของวันสุดท้าย
 
             setRange({ st: S, et: E });
             setWeatherQuery({ r: "doctor", st: S, et: E });

@@ -1087,6 +1087,9 @@ const ExportPDF = async (Data, opts = {}) => {
 
 
         const charts = (chartImages || []).filter(Boolean);
+        const hasData = charts.length > 0;
+        const hasDevice = meta.hasDevice === true || !!meta.device_id || hasData;
+
         if (!hasDevice) {
           // 2) ไม่มี device_id → แจ้งข้อความแทนกราฟ
           pdf.addPage();
@@ -1100,7 +1103,7 @@ const ExportPDF = async (Data, opts = {}) => {
           pdf.setFontSize(12);
           pdf.text("ไม่สามารถแสดงกราฟได้เนื่องจากไม่พบอุปกรณ์ในโรงเรือน", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
           pdf.setFontSize(16);
-        } if (charts.length) {
+        } else if (hasData) {
           // วาดทีละ 2 กราฟต่อหน้า (ฟังก์ชันนี้จะ addPage ให้เอง)
           drawChartsAtEnd(pdf, charts, { scale: 0.8, top: 54, gap: 18, titleFrom, titleTo });
         } else {
