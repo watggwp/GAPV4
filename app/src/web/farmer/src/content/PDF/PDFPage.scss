@@ -1,0 +1,156 @@
+.pdf-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ffffff, #e8f5e9);
+  padding: 40px 20px;
+  font-family: "Prompt", sans-serif;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.pdf-container {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 850px;
+  text-align: center;
+  transition: 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.25);
+  }
+
+  h1.title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #2e7d32;
+    margin-bottom: 25px;
+    letter-spacing: 0.5px;
+  }
+
+  .pdf-info {
+    background: #f9f9f9;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: left;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.05);
+    line-height: 1.6;
+    margin-bottom: 25px;
+
+    h2 {
+      color: #33691e;
+      font-size: 22px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #333;
+
+      strong {
+        color: #1b5e20;
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+        font-size: 16px;
+      }
+
+      th {
+        background: #a5d6a7;
+        color: #2e7d32;
+        font-weight: 700;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f1f8e9;
+      }
+
+      tr:hover {
+        background-color: #e0f2f1;
+        transition: 0.2s;
+      }
+    }
+  }
+
+  .download-btn {
+    margin-top: 30px;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    color: white;
+    border: none;
+    padding: 14px 35px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      background: linear-gradient(90deg, #388e3c, #66bb6a);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 15px rgba(56, 142, 60, 0.3);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+/* 💫 เพิ่ม animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 📱 รองรับมือถือ */
+@media (max-width: 768px) {
+  .pdf-container {
+    padding: 25px 20px;
+
+    h1.title {
+      font-size: 26px;
+    }
+
+    .pdf-info {
+      padding: 20px;
+      font-size: 14px;
+
+      h2 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+
+    .download-btn {
+      font-size: 16px;
+      padding: 12px 20px;
+    }
+  }
+}
