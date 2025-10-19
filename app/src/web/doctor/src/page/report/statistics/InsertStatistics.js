@@ -2,18 +2,18 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import ButtonChangeStatistics from "./buttonChange";
 import { PageTemplateContext } from "../../../../../admin/src/page/PageTemplate";
- 
+
 export const InsertStatisticsContext = createContext({
-  minCount: 0, 
-  setMinCount: () => {},
-  selectedRows: new Map(), 
-  setSelectedRows: () => {}
+  minCount: 0,
+  setMinCount: () => { },
+  selectedRows: new Map(),
+  setSelectedRows: () => { }
 });
- 
+
 export function InsertStatisticsProvider({ children }) {
   const [minCount, setMinCount] = useState(1);
   const [selectedRows, setSelectedRows] = useState(new Map());
- 
+
   return (
     <InsertStatisticsContext.Provider
       value={{
@@ -25,23 +25,23 @@ export function InsertStatisticsProvider({ children }) {
     </InsertStatisticsContext.Provider>
   )
 }
- 
+
 const InsertStatistics = () => {
   const { textSearch } = useContext(PageTemplateContext)
-  const { minCount , selectedRows , setMinCount , setSelectedRows } = useContext(InsertStatisticsContext)
- 
-  const [ pestsMapping , setPestsMapping ] = useState(new Map())
+  const { minCount, selectedRows, setMinCount, setSelectedRows } = useContext(InsertStatisticsContext)
+
+  const [pestsMapping, setPestsMapping] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(true);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
- 
- 
+
+
   const calculateDateRange = (duration) => {
     const endDate = new Date();
     let startDate = new Date();
- 
+
     switch (duration) {
       case "1_week":
         startDate.setDate(endDate.getDate() - 7);
@@ -61,75 +61,75 @@ const InsertStatistics = () => {
       default:
         startDate = endDate;
     }
- 
+
     const formatDate = (date) => {
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear() + 543;
       return `${day}/${month}/${year}`;
     };
- 
+
     setDateRange({
       startDate: formatDate(startDate),
       endDate: formatDate(endDate),
     });
   };
- 
-  const handleCheckboxChange = (checked , id) => {
+
+  const handleCheckboxChange = (checked, id) => {
     setSelectedRows(selected => {
-      if(checked) selected.set(id , pestsMapping.get(id))
+      if (checked) selected.set(id, pestsMapping.get(id))
       else selected.delete(id)
       return new Map([...selected])
     })
   };
- 
+
   const fetchStatistics = useCallback(async (search) => {
     try {
-      const response = await clientMo.post("/api/doctor/statistic/get", { duration , search });
+      const response = await clientMo.post("/api/doctor/statistic/get", { duration, search });
       const data = JSON.parse(response);
- 
+
       if (data.length === 0) {
         console.error("No data received from API");
         return;
       }
- 
+
       const pests_mapping = new Map()
       const plantDiseases = []
       const pests = []
- 
-      data.forEach((item , index) => {
-        switch(item.type_pest) {
-          case "โรคพืช" :
+
+      data.forEach((item, index) => {
+        switch (item.type_pest) {
+          case "โรคพืช":
             plantDiseases.push({
               rank: index + 1,
-              id : item.pest_id,
+              id: item.pest_id,
               name: item.pest_name,
-              name_plants : item.name_plants,
+              name_plants: item.name_plants,
               count: item[`total_${duration}`] || 0,
             })
             break;
-          case "ศัตรูพืช" :
+          case "ศัตรูพืช":
             pests.push({
               rank: index + 1,
-              id : item.pest_id,
+              id: item.pest_id,
               insect: item.pest_name,
-              name_plants : item.name_plants,
+              name_plants: item.name_plants,
               count: item[`total_${duration}`] || 0,
             })
             break;
-          default :
+          default:
             break
         }
- 
-        pests_mapping.set(item.pest_id , {
-          id : item.pest_id,
+
+        pests_mapping.set(item.pest_id, {
+          id: item.pest_id,
           insect: item.pest_name,
-          name_plants : item.name_plants,
+          name_plants: item.name_plants,
           count: item[`total_${duration}`] || 0,
         })
       })
- 
- 
+
+
       setPestsMapping(pests_mapping)
       setPlantDiseaseStats(plantDiseases);
       setPestStats(pests);
@@ -137,21 +137,21 @@ const InsertStatistics = () => {
       console.error("Error fetching data:", error);
     }
   }, [duration]);
- 
+
   useEffect(() => {
     calculateDateRange(duration);  // คำนวณช่วงวันที่เมื่อมีการเปลี่ยนแปลงระยะเวลา
     fetchStatistics(textSearch);
-  }, [duration , textSearch , fetchStatistics]);
- 
+  }, [duration, textSearch, fetchStatistics]);
+
   // ฟังก์ชันสำหรับกรองข้อมูลตามจำนวนขั้นต่ำ
   const filterByMinCount = (stats) => {
     return stats.filter((item) => item.count >= minCount);
   };
- 
+
   return (
-    <div style={{ padding: "2rem" , width : "90%" }}>
-      <div style={{marginBottom: "1rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"}}>
-      <ButtonChangeStatistics/>
+    <div style={{ padding: "2rem", width: "90%" }}>
+      <div style={{ marginBottom: "1rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+        <ButtonChangeStatistics />
         <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
           ระยะเวลา:
           <select
@@ -175,7 +175,7 @@ const InsertStatistics = () => {
             <option value="1_year">1 ปี</option>
           </select>
         </label>
- 
+
         {/* กล่องแสดงช่วงวันที่ */}
         <div
           style={{
@@ -191,42 +191,42 @@ const InsertStatistics = () => {
         >
           {`ตั้งแต่ ${dateRange.startDate} ถึง ${dateRange.endDate}`}
         </div>
- 
+
         {/* กล่องเลือกจำนวนขั้นต่ำ */}
         {/* กล่องเลือกจำนวนขั้นต่ำ */}
-<label
-  style={{
-    display: "inline-block",
-    marginLeft: "30px",
-    fontFamily: "Sans-font",
-    fontWeight: "900",
-  }}
->
-  ความถี่ที่พบ:
-  <input
-    type="number"
-    min="1"
-    value={minCount}
-    onChange={(e) => {
-      const value = e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value) || 0);
-      setMinCount(value);
-    }}
-    style={{
-      marginLeft: "10px",
-      padding: "8px",
-      fontFamily: "Sans-font",
-      fontWeight: "900",
-      borderRadius: "8px",
-      border: "2px solid #22C7A9",
-      backgroundColor: "white",
-      outline: "none",
-      width: "80px",
-    }}
-  />
-</label>
+        <label
+          style={{
+            display: "inline-block",
+            marginLeft: "30px",
+            fontFamily: "Sans-font",
+            fontWeight: "900",
+          }}
+        >
+          ความถี่ที่พบ:
+          <input
+            type="number"
+            min="1"
+            value={minCount}
+            onChange={(e) => {
+              const value = e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value) || 0);
+              setMinCount(value);
+            }}
+            style={{
+              marginLeft: "10px",
+              padding: "8px",
+              fontFamily: "Sans-font",
+              fontWeight: "900",
+              borderRadius: "8px",
+              border: "2px solid #22C7A9",
+              backgroundColor: "white",
+              outline: "none",
+              width: "80px",
+            }}
+          />
+        </label>
 
       </div>
- 
+
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
         <button
           onClick={() => setShowPlantDiseases(true)}
@@ -260,7 +260,7 @@ const InsertStatistics = () => {
           ศัตรูพืช
         </button>
       </div>
- 
+
       {showPlantDiseases !== null && (
         <div>
           {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).length === 0 ? (
@@ -277,7 +277,7 @@ const InsertStatistics = () => {
             >
               <thead>
                 <tr>
-                <th
+                  <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "8px",
@@ -348,7 +348,7 @@ const InsertStatistics = () => {
                 {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).map((stat, index) => (
                   <tr key={index}>
                     <td
-                      style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",fontFamily: "Sans-font",fontWeight: "900",display: "flex", justifyContent: "center", alignItems: "center", }}
+                      style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center", fontFamily: "Sans-font", fontWeight: "900", display: "flex", justifyContent: "center", alignItems: "center", }}
                     >
                       <label
                         style={{
@@ -367,21 +367,21 @@ const InsertStatistics = () => {
                         <input
                           type="checkbox"
                           checked={selectedRows.has(stat.id)}
-                          onChange={(e) => handleCheckboxChange(e.target.checked , stat.id)}
+                          onChange={(e) => handleCheckboxChange(e.target.checked, stat.id)}
                           style={{
                             display: "none", // ซ่อน checkbox ดั้งเดิม
                           }}
                         />
                         {selectedRows.has(stat.id) && (
                           <span
-                            style={{ color: "white",fontSize: "16px",fontWeight: "bold",}}
+                            style={{ color: "white", fontSize: "16px", fontWeight: "bold", }}
                           >
                             ✓
                           </span>
                         )}
                       </label>
                     </td>
- 
+
                     <td
                       style={{
                         border: "1px solid #ddd",
@@ -435,5 +435,5 @@ const InsertStatistics = () => {
     </div>
   );
 };
- 
+
 export default InsertStatistics;
