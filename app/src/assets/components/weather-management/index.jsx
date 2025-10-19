@@ -75,6 +75,7 @@ export default function WeatherManagement({
     window.__weatherMeta = meta;
     try { console.log("[weather-export] set meta:", meta); } catch { }
     window.dispatchEvent(new CustomEvent("weather-export:meta", { detail: meta }));
+    window.__weatherMeta = meta;
   };
   useEffect(() => {
     emitMeta({ deviceId: Query?.r ?? null, hasDevice: Boolean(Query?.r) });
@@ -83,6 +84,7 @@ export default function WeatherManagement({
     const onGetMeta = () => {
       const meta = (typeof window !== "undefined" && window.__weatherMeta) || {};
       window.dispatchEvent(new CustomEvent("weather-export:meta", { detail: meta }));
+      window.__weatherMeta = meta;
     };
     window.addEventListener("weather-export:get-meta", onGetMeta);
     return () => window.removeEventListener("weather-export:get-meta", onGetMeta);
@@ -248,16 +250,9 @@ export default function WeatherManagement({
 
   useEffect(() => {
     try {
-      window.dispatchEvent(
-        new CustomEvent("weather-export:chart-json", {
-          detail: {
-            data: chartDatas,
-            tsKey: "timestamp",
-            rawTsKey: "_timestamp_raw",
-            columns,
-          },
-        })
-      );
+      const payload = { data: chartDatas, tsKey: "timestamp", rawTsKey: "_timestamp_raw", columns };
+      window.__weatherJSON = payload;          // ⬅️ เก็บล่าสุดไว้
+      window.dispatchEvent(new CustomEvent("weather-export:chart-json", { detail: payload }));
     } catch { }
   }, [chartDatas, columns]);
 

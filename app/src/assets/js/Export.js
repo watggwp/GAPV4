@@ -129,10 +129,12 @@ const captureWeatherChart = async (
   { field, color },
   { selector = "#weather-chart-export", timeout = 10000 } = {}
 ) => {
-  // 1) เช็ค meta.rows ก่อน (ถ้าไม่มีข้อมูล ไม่ต้องแคป)
+  // 1) ถ้า meta.rows เป็นศูนย์ "ที่รู้แน่ๆ" ค่อยคัดออก
   try {
     const m0 = (typeof window !== "undefined" && window.__weatherMeta) || {};
-    if (Number(m0.rows ?? 0) <= 0) return null;
+    const hasRows = Number(m0.rows ?? NaN);
+    if (m0 && m0.hasDevice === true && Number.isFinite(hasRows) && hasRows <= 0) return null;
+    // ถ้า rows ยัง undefined/ไม่ชัดเจน -> ไปต่อ ห้ามรีเทิร์นเร็ว
   } catch { }
 
   // 2) สั่ง component ให้สลับ metric
@@ -140,14 +142,8 @@ const captureWeatherChart = async (
     window.dispatchEvent(new CustomEvent("weather-export:set-metric", { detail: { field, color } }));
   } catch { }
 
-  // 3) รอ component แจ้งพร้อม และดึงจำนวนจุดจาก detail ถ้ามี
+  // 3) รอ component แจ้งพร้อม (อย่าพึ่งตัดสินจาก count)
   const signaled = await waitForEvent("weather-export:chart-ready", { timeout });
-  const countFromSignal = (signaled && typeof signaled === "object")
-    ? Number(signaled.count ?? signaled.points ?? signaled.rows ?? 0)
-    : 0;
-
-  // ถ้า signal บอก 0 จุด ให้ยกเลิก
-  if (countFromSignal <= 0) return null;
 
   // เผื่อบางที signal มาแล้ว แต่ DOM ยังไม่วาด svg
   const ready = await waitForRecharts(selector, { tries: 50, delay: 150 });
@@ -155,7 +151,10 @@ const captureWeatherChart = async (
 
   await sleep(120);
 
-  // 4) แคปเฉพาะกรอบกราฟ
+  // 4) ตอนนี้เพิ่งค่อยดู JSON ของ metric ปัจจุบันว่ามีค่าจริงไหม
+  const cj = await getChartJSON();
+  if (cj && !fieldHasData(cj, field)) return null;
+  
   const host = document.querySelector(selector);
   const chartOnly = host?.querySelector?.(".recharts-wrapper") || host;
   if (!chartOnly) return null;
@@ -168,7 +167,23 @@ const captureWeatherChart = async (
 
   dataURL = await cropDataURL(dataURL, TRIM);
   return dataURL;
+}; const getChartJSON = async () => {
+  let j = (typeof window !== "undefined" && window.__weatherJSON) || null;
+  if (!j) {
+    const ev = await waitForEvent("weather-export:chart-json", { timeout: 2000 });
+    j = ev?.detail || ev || null;
+  }
+  return j;
 };
+const fieldHasData = (json, field) => {
+  const rows = Array.isArray(json?.data) ? json.data : [];
+  for (const r of rows) {
+    const v = Number(r?.[field]);
+    if (Number.isFinite(v)) return true;
+  }
+  return false;
+};
+
 const captureElementToDataURL = async (selector, opts = {}) => {
   const el = typeof selector === "string" ? document.querySelector(selector) : selector;
   if (!el) return null;
@@ -573,7 +588,7 @@ const ExportPDF = async (Data, opts = {}) => {
           const METRICS = [
             { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
             { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
-            { field: "light", name: "แสง (LUX)", color: "#EDC948" },
+            { field: "light", name: "แสง (LUX)", color: "#ccad3fff" },
             { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759" },
             { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7" },
             { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
@@ -1110,7 +1125,8 @@ const ExportPDF = async (Data, opts = {}) => {
         const charts = (chartImages || []).filter(Boolean);
         const hasData = charts.length > 0;
         const hasDevice = meta.hasDevice === true || !!meta.device_id || hasData;
-        console.log(hasDevice)
+        console.log(hasData, charts.length)
+        console.log("this is meta rows", meta.rows)
         if (!hasDevice) {
           // 2) ไม่มี device_id → แจ้งข้อความแทนกราฟ
           pdf.addPage();
