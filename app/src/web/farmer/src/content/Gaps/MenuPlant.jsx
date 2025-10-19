@@ -28,13 +28,8 @@ const MenuPlant = () => {
       );
       if (await CloseAccount(result, setCurrentPage)) {
         let parsed = typeof result === "string" ? JSON.parse(result) : result;
+        if (!Array.isArray(parsed)) parsed = [parsed];
 
-        // ✅ ถ้าไม่ใช่ array ให้แปลงเป็น array
-        if (!Array.isArray(parsed)) {
-          parsed = [parsed];
-        }
-
-        // ✅ ลบค่าที่ไม่จำเป็นออก (เช่น 0 / null)
         const cleaned = parsed.map((item) => {
           const obj = {};
           Object.keys(item).forEach((key) => {
@@ -45,7 +40,6 @@ const MenuPlant = () => {
           return obj;
         });
 
-        console.log("✅ Parsed & Cleaned:", cleaned);
         setDotReport(cleaned);
       }
     } catch (err) {
@@ -84,106 +78,74 @@ const MenuPlant = () => {
 
         {/* แถว 1 */}
         <div className="row">
-          <div
-            onClick={() => selectMenu("gap_data")}
-            className="frame-menu frame-plant"
-          >
+          <div onClick={() => selectMenu("gap_data")} className="frame-menu frame-plant">
             <div className="img">
               <img src="/plant_glow.jpg" alt="plant" />
             </div>
             <span>ข้อมูลการปลูก</span>
-            {DotReport[0]?.checkEditPlant ? (
-              <div className="dot-someting"></div>
-            ) : null}
+            {DotReport[0]?.checkEditPlant ? <div className="dot-someting"></div> : null}
           </div>
 
-          <div
-            onClick={() => selectMenu("fertilizer")}
-            className="frame-menu frame-ferti"
-          >
+          <div onClick={() => selectMenu("fertilizer")} className="frame-menu frame-ferti">
             <div className="img">
               <img src="/fertilizer.jpg" alt="fertilizer" />
             </div>
             <span>บันทึกปุ๋ย</span>
-            {DotReport[0]?.checkEditFertilizer ? (
-              <div className="dot-someting"></div>
-            ) : null}
+            {DotReport[0]?.checkEditFertilizer ? <div className="dot-someting"></div> : null}
           </div>
         </div>
 
         {/* แถว 2 */}
         <div className="row">
-          <div
-            onClick={() => selectMenu("chemical")}
-            className="frame-menu frame-chemi"
-          >
+          <div onClick={() => selectMenu("chemical")} className="frame-menu frame-chemi">
             <div className="img">
               <img src="/chemical.jpg" alt="chemical" />
             </div>
             <span>สารเคมีที่ใช้</span>
-            {DotReport[0]?.checkEditChemical ? (
-              <div className="dot-someting"></div>
-            ) : null}
+            {DotReport[0]?.checkEditChemical ? <div className="dot-someting"></div> : null}
           </div>
 
-          <div
-            onClick={() => selectMenu("success")}
-            className="frame-menu frame-success"
-          >
+          <div onClick={() => selectMenu("success")} className="frame-menu frame-success">
             <div className="img">
               <img src="/เก็บ.png" alt="harvest" />
             </div>
             <span>การเก็บเกี่ยว</span>
-            {DotReport[0]?.success ||
-            DotReport[0]?.form ||
-            DotReport[0]?.plant ? (
+            {DotReport[0]?.success || DotReport[0]?.form || DotReport[0]?.plant ? (
               <div className="dot-someting"></div>
             ) : null}
           </div>
         </div>
 
-        {/* แถว 3 */}
-        <div className="row">
-          <div
-            onClick={() => selectMenu("ec/ph")}
-            className="frame-menu frame-ecph"
-          >
-            <div className="img">
-              <img src="/ecph.png" alt="ecph" />
+        {/* แถว 3 — ซ้าย: EC/pH + PDF (แนวตั้ง) / ขวา: ปั๊มน้ำ */}
+        <div className="row row-twoCols">
+          {/* คอลัมน์ซ้าย */}
+          <div className="stack">
+            <div onClick={() => selectMenu("ec/ph")} className="frame-menu frame-ecph">
+              <div className="img">
+                <img src="/ecph.png" alt="ecph" />
+              </div>
+              <span>EC/pH</span>
+              {DotReport[0]?.checkEditSoil ? <div className="dot-someting"></div> : null}
             </div>
-            <span>EC/pH</span>
-            {DotReport[0]?.checkEditSoil ? (
-              <div className="dot-someting"></div>
-            ) : null}
+
+            <div onClick={() => selectMenu("pdf")} className="frame-menu frame-pdf">
+              <div className="img">
+                <img src={pdfIcon} alt="PDF Icon" />
+              </div>
+              <span>PDF</span>
+              {DotReport[0]?.checkPdf ? <div className="dot-someting"></div> : null}
+            </div>
           </div>
 
-          <div
-            onClick={() => selectMenu("pump")}
-            className="frame-menu frame-pump"
-          >
-            <div className="img" style={{ backgroundColor: "white" }}>
-              <img src={pump} alt="pump" />
+          {/* คอลัมน์ขวา */}
+          <div>
+            <div onClick={() => selectMenu("pump")} className="frame-menu frame-pump">
+              <div className="img" style={{ backgroundColor: "white" }}>
+                <img src={pump} alt="pump" />
+              </div>
+              <span>ปั๊มน้ำ</span>
+              {DotReport[0]?.checkEditSensor ? <div className="dot-someting"></div> : null}
             </div>
-            <span>ปั๊มน้ำ</span>
-            {DotReport[0]?.checkEditSensor ? (
-              <div className="dot-someting"></div>
-            ) : null}
-          </div>
-        </div>
-
-        {/* แถว 4 - PDF */}
-        <div className="row">
-          <div
-            onClick={() => selectMenu("pdf")}
-            className="frame-menu frame-pdf"
-          >
-            <div className="img">
-              <img src={pdfIcon} alt="PDF Icon" />
-            </div>
-            <span>PDF</span>
-            {DotReport[0]?.checkPdf ? (
-              <div className="dot-someting"></div>
-            ) : null}
           </div>
         </div>
 
@@ -206,11 +168,7 @@ const MenuPlant = () => {
           <Stack>
             <Chip
               label={
-                <Typography
-                  color="primary"
-                  fontWeight={900}
-                  fontSize={"24px"}
-                >
+                <Typography color="primary" fontWeight={900} fontSize={"24px"}>
                   สภาพอากาศ
                 </Typography>
               }
@@ -218,11 +176,7 @@ const MenuPlant = () => {
             />
             <Chip
               label={
-                <Typography
-                  color="primary"
-                  fontWeight={900}
-                  fontSize={"24px"}
-                >
+                <Typography color="primary" fontWeight={900} fontSize={"24px"}>
                   ในโรงเรือน
                 </Typography>
               }
@@ -234,9 +188,7 @@ const MenuPlant = () => {
         {/* รายงาน */}
         <div className="report-farm" onClick={() => selectMenu("report")}>
           <img src="/report.png" alt="report" />
-          {DotReport[0]?.report ? (
-            <div className="dot-someting"></div>
-          ) : null}
+          {DotReport[0]?.report ? <div className="dot-someting"></div> : null}
         </div>
       </div>
     </section>
