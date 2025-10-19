@@ -86,32 +86,15 @@
         }
       }
 
-      .frame-plant {
-        background: linear-gradient(180deg, rgba(0, 255, 63, 0.35), white);
-      }
-
-      .frame-ferti {
-        background: linear-gradient(180deg, #ffe5a1, white);
-      }
-
-      .frame-chemi {
-        background: linear-gradient(180deg, #ffa2a2, white);
-      }
-
-      .frame-success {
-        background: linear-gradient(180deg, #c070ff, white);
-      }
-
-      .frame-ecph {
-        background: linear-gradient(180deg, #8cf4fe, white);
-      }
-
-      .frame-pump {
-        background: linear-gradient(180deg, #ffb770, white);
-      }
+      .frame-plant   { background: linear-gradient(180deg, rgba(0, 255, 63, 0.35), white); }
+      .frame-ferti   { background: linear-gradient(180deg, #ffe5a1, white); }
+      .frame-chemi   { background: linear-gradient(180deg, #ffa2a2, white); }
+      .frame-success { background: linear-gradient(180deg, #c070ff, white); }
+      .frame-ecph    { background: linear-gradient(180deg, #8cf4fe, white); }
+      .frame-pump    { background: linear-gradient(180deg, #ffb770, white); }
 
       .frame-pdf {
-        background: linear-gradient(180deg, #ffa2a2, white); /* ✅ ไล่เฉดแดงอ่อน → ขาว เหมือนช่องอื่น */
+        background: linear-gradient(180deg, #ffa2a2, white);
         border-radius: 15px;
         transition: 0.3s ease;
         box-shadow: 0px 4px 4px rgb(179, 179, 179);
@@ -121,35 +104,61 @@
         justify-content: center;
 
         .img {
-            width: 25vw; /* ✅ เท่าช่องอื่น */
-            height: 25vw;
-            border-radius: 50%;
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+          width: 25vw;
+          height: 25vw;
+          border-radius: 50%;
+          background-color: #ffffff;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          overflow: hidden;
 
-            img {
-            width: 70%; /* ✅ ย่อรูปพอดีวงกลม */
+          img {
+            width: 70%;
             height: 70%;
             object-fit: contain;
-            }
+          }
         }
 
         span {
-            margin-top: 10px;
-            font-family: Sans-font;
-            font-size: 4vw;
-            font-weight: 900;
-            color: #000; /* ✅ สีดำ เหมือนช่องอื่น */
+          margin-top: 10px;
+          font-family: Sans-font;
+          font-size: 4vw;
+          font-weight: 900;
+          color: #000;
         }
 
         &:hover {
-            transform: scale(1.05);
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+          transform: scale(1.05);
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
         }
-        }
+      }
+    }
+
+    /* ============================
+       แถว EC/pH + PDF (ชิดซ้าย)
+       ============================ */
+    .row-twoCols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 100vw;             /* ให้เต็มความกว้างเหมือนแถวอื่น */
+      justify-items: start;     /* การ์ดชิดซ้ายในแต่ละคอลัมน์ */
+
+      /* คอลัมน์ซ้าย: เรียงซ้อน EC/pH แล้วตามด้วย PDF */
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: flex-start; /* การ์ดชิดซ้าย */
+      }
+    }
+
+    /* มือถือ: เหลือคอลัมน์เดียว → PDF จะอยู่ใต้ EC/pH อัตโนมัติ */
+    @media (max-width: 640px) {
+      .row-twoCols {
+        grid-template-columns: 1fr;
+      }
     }
 
     .report-farm {

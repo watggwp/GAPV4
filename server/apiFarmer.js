@@ -11,7 +11,7 @@ const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const io = new Server()
 
-module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbpacket, listDB, socket = io) {
+module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), dbpacket, listDB, socket = io) {
 
     app.post('/api/farmer/sign', async (req, res) => {
         if (req.session.user_doctor != undefined || req.session.pass_doctor != undefined) {
@@ -28,7 +28,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                 req.session.user_id = auth["data"]["id_table"]
                 req.session.account_type = RoyalGapEnv.access_type.farmer
-
+                
                 res.send(auth.result)
             } catch (err) {
                 con.end()
@@ -183,7 +183,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                             con.end()
                                             if (!err) {
                                                 if (result.affectedRows > 0) {
-                                                    if (!RoyalGapLine.changeRichMenu(uidLine, RichHouse)) {
+                                                    if(!RoyalGapLine.changeRichMenu(uidLine , RichHouse)) {
                                                         fs.appendFileSync(__dirname.replace('\server', '/logs/errorfile.json'), `richMenuAddFarm : {id:${req.session.uidFarmer} , date : ${new Date().getTime}}`)
                                                     }
 
@@ -805,7 +805,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         // คำสั่ง SQL เพื่อดึงข้อมูล pest_name ทั้งหมด
         try {
             const auth = await authCheck()
-        } catch (err) {
+        } catch(err) {
 
         }
         con.query(`SELECT pest_id, pest_name, type_pest FROM pests`, (err, result) => {
@@ -831,8 +831,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
         try {
             const auth = await authCheck()
-        } catch (err) {
-
+        } catch(err) {
+            
         }
 
         const queryFormplant = `SELECT name_plant FROM formplant WHERE id = ?;`;
@@ -916,8 +916,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         console.log("Received acknowledge request:", req.body);
         try {
             const auth = await authCheck()
-        } catch (err) {
-
+        } catch(err) {
+            
         }
 
         if (!id || !type) {
@@ -2222,13 +2222,13 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             try {
                 const auth = await authCheck(con, req);
                 const FactorType = (
-                    req.body.type_request == "z" ?
-                        "fertilizer" :
-                        req.body.type_request == "c" ?
-                            "chemical" :
-                            ""
+                    req.body.type_request == "z" ? 
+                        "fertilizer" : 
+                    req.body.type_request == "c" ? 
+                        "chemical" : 
+                        ""
                 )
-
+                
                 // , 
                 // (
                 //     SELECT formplant.id, formplant.state_status
@@ -2254,12 +2254,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                             [auth.data.uid_line, auth.data.link_user, req.body.id_farmhouse, req.body.id_plant, req.body.id_form]
                         )
 
-                        const [{ state_status, ...factorData }] = factorCurrent
-
-                        if ([0, 1].includes(state_status)) {
+                        const [ { state_status , ...factorData } ] = factorCurrent
+                        
+                        if([0 , 1].includes(state_status)) {
                             // ตรวจสอบว่าผู้ใช้เป็นหมอพืช
 
-                            const { id_user, user_type, id_form, because, change } = req.body;
+                            const { id_user , user_type , id_form , because , change } = req.body;
                             const isDoctor = user_type === 'doctor'; // ตรวจสอบฟิลด์ user_type
                             const idDoctorEdit = isDoctor ? id_user : null;
 
@@ -2273,8 +2273,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                 [id_form, "", idDoctorEdit, because, "", 0, FactorType]
                             )
 
-                            const { insertId: insertIdEdit } = editForm
-                            if (insertIdEdit > 0) {
+                            const { insertId : insertIdEdit } = editForm
+                            if(insertIdEdit > 0) {
                                 const insertData = []
 
                                 const queryUpdates = []
@@ -2303,11 +2303,11 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     )
 
                                     insertIdDetail = insertId
-                                } catch (err) {
+                                } catch(err) {
                                     console.log(err)
 
                                     await pool.executeQuery(
-                                        "DELETE FROM editform WHERE id_edit = ?", [insertIdEdit]
+                                        "DELETE FROM editform WHERE id_edit = ?" , [ insertIdEdit ]
                                     )
                                     return res.send("edit")
                                 }
@@ -2322,14 +2322,14 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                         `,
                                         paramUpdates
                                     )
-                                } catch (err) {
+                                } catch(err) {
                                     console.log(err)
 
                                     await pool.executeQuery(
-                                        "DELETE FROM editform WHERE id_edit = ?", [insertIdEdit]
+                                        "DELETE FROM editform WHERE id_edit = ?" , [ insertIdEdit ]
                                     )
                                     await pool.executeQuery(
-                                        "DELETE FROM detailedit WHERE id_detail = ?", [insertIdDetail]
+                                        "DELETE FROM detailedit WHERE id_detail = ?" , [ insertIdDetail ]
                                     )
                                     return res.send("edit")
                                 }
@@ -2346,7 +2346,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                             return res.send("submit")
                         }
 
-                    } catch (err) {
+                    } catch(err) {
                         console.log(err)
                         return res.send("error auth")
                     }
@@ -2870,80 +2870,107 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
         } else res.send("error auth")
     })
-    app.get('/api/farmer/report/export', async (req, res) => {
-        if (!req.session.uidFarmer)
-            return res.send("error auth");
+   app.get('/api/farmer/report/export', async (req, res) => {
+  if (!req.session.uidFarmer)
+    return res.send("error auth");
 
-        let con = Database.createConnection(listDB);
+  const con = Database.createConnection(listDB);
 
-        try {
-            const auth = await authCheck(con, req);
+  try {
+    const auth = await authCheck(con, req);
+    const { id_farmhouse, id_plant } = req.query;
 
-            const { id_farmhouse, id_plant } = req.query;
-
-            // ✅ ดึงข้อมูลเกษตรกร
-            const [farmer] = await new Promise(resolve => {
-                con.query(`
-                SELECT fullname, id_farmer, station
-                FROM acc_farmer
-                WHERE uid_line = ?
-                LIMIT 1
-            `, [auth.data.uid_line], (err, result) => resolve(result || []));
-            });
-
-            // ✅ ดึงข้อมูลฟอร์มปลูก
-            const [dataForm] = await new Promise(resolve => {
-                con.query(`
-                SELECT id, name_plant, date_plant, date_harvest, qty, area, unit, generation
-                FROM formplant
-                WHERE id_farm_house = ? AND id = ?
-            `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
-            });
-
-            // ✅ ดึงข้อมูลปุ๋ย
-            const ferti = await new Promise(resolve => {
-                con.query(`
-                SELECT name, formula_name, use_is, volume, source, date
-                FROM formfertilizer
-                WHERE id_plant = ?
-            `, [id_plant], (err, result) => resolve(result || []));
-            });
-
-            // ✅ ดึงข้อมูลสารเคมี
-            const chemi = await new Promise(resolve => {
-                con.query(`
-                SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
-                FROM formchemical
-                WHERE id_plant = ?
-            `, [id_plant], (err, result) => resolve(result || []));
-            });
-            const [deviceRow] = await new Promise(resolve => {
-                con.query(`
-        SELECT swg.device_id
-        FROM sensor_weather_greenhouse AS swg
-        WHERE swg.id_farm_house = ?
-        ORDER BY COALESCE(swg.updated_at, swg.created_at) DESC
+    // ✅ 1. ดึงข้อมูลเกษตรกร
+    const [farmer] = await new Promise(resolve => {
+      con.query(`
+        SELECT fullname, id_farmer, station
+        FROM acc_farmer
+        WHERE uid_line = ?
         LIMIT 1
-      `, [id_farmhouse], (err, result) => resolve(result || []));
-            });
-            const device_id = deviceRow?.device_id || null;
-
-            con.end();
-
-            res.json({
-                id_farm_house: id_farmhouse,
-                device_id,
-                farmer,
-                dataForm,
-                ferti,
-                chemi
-            });
-        } catch (err) {
-            con.end();
-            console.error("Export Error:", err);
-            res.send("error auth");
-        }
+      `, [auth.data.uid_line], (err, result) => resolve(result || []));
     });
+
+    // ✅ 2. ดึงข้อมูลฟอร์มปลูก (ตรวจสอบให้แน่ใจว่ามีข้อมูลจริง)
+    const [dataForm] = await new Promise(resolve => {
+  con.query(`
+    SELECT 
+      id,
+      plant_name AS name_plant,
+      plant_date AS date_plant,
+      harvest_date AS date_harvest,
+      amount AS qty,
+      plant_area AS area,
+      unit_name AS unit,
+      generation
+    FROM formplant
+    WHERE id_farm_house = ? AND id = ?
+    LIMIT 1
+  `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
+});
+
+
+
+    console.log("✅ DataForm Result:", dataForm);
+
+    // ✅ 3. ดึงข้อมูลปุ๋ย
+    const ferti = await new Promise(resolve => {
+      con.query(`
+        SELECT name, formula_name, use_is, volume, source, date
+        FROM formfertilizer
+        WHERE id_plant = ?
+        ORDER BY date ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 4. ดึงข้อมูลสารเคมี
+    const chemi = await new Promise(resolve => {
+      con.query(`
+        SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
+        FROM formchemical
+        WHERE id_plant = ?
+        ORDER BY date ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 5. ดึงข้อมูลรายงานคำแนะนำ (ข้อ 7)
+    const report = await new Promise(resolve => {
+      con.query(`
+        SELECT report_text, advisor_name, date_report
+        FROM formreport
+        WHERE id_plant = ?
+        ORDER BY date_report ASC
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 6. ดึงข้อมูลตรวจสอบ (ข้อ 8)
+    const checkForm = await new Promise(resolve => {
+      con.query(`
+        SELECT status_check, note_text, date_check
+        FROM checkform
+        WHERE id_plant = ?
+      `, [id_plant], (err, result) => resolve(result || []));
+    });
+
+    // ✅ 7. ปิดการเชื่อมต่อและส่งข้อมูลกลับ
+    con.end();
+
+    res.json({
+      farmer,
+      dataform: dataForm || {},  // ✅ ใช้ key เดียวกับฝั่ง React
+      ferti: ferti || [],
+      chemi: chemi || [],
+      report: report || [],
+      checkForm: checkForm || []
+    });
+
+  } catch (err) {
+    con.end();
+    console.error("❌ Export Error:", err);
+    res.send("error auth");
+  }
+});
+
+
 
     app.get('/api/farmer/report/list', async (req, res) => {
         if (req.session.uidFarmer) {
@@ -3192,17 +3219,17 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
     // app.post("/api/farmer/ecph/update", async (req, res) => {
     //     if (!req.session.uidFarmer) return res.send("error auth");
-
+    
     //     const con = Database.createConnection(listDB);
     //     try {
     //         const auth = await authCheck(con, req);
     //         const { id, ec_value, ph_value } = req.body;
-
+    
     //         if (!id || !ec_value || !ph_value) {
     //             con.end();
     //             return res.send("missing");
     //         }
-
+    
     //         con.query(
     //             `UPDATE ecph SET ec_value = ?, ph_value = ? WHERE id = ?`,
     //             [ec_value, ph_value, id],
@@ -3212,11 +3239,11 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     //                     console.error("❌ UPDATE ERROR:", err2);
     //                     return res.send("update error");
     //                 }
-
+    
     //                 if (result.affectedRows === 0) {
     //                     return res.send({ success: false, message: "ไม่พบข้อมูลที่ต้องการแก้ไข" });
     //                 }
-
+    
     //                 res.send({ success: true });
     //             }
     //         );
@@ -3229,28 +3256,28 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
     // app.post("/api/farmer/ecph/delete", async (req, res) => {
     //     if (!req.session.uidFarmer) return res.send("error auth");
-
+    
     //     const con = Database.createConnection(listDB);
     //     try {
     //         const auth = await authCheck(con, req);
     //         const { id } = req.body;
-
+    
     //         if (!id) {
     //             con.end();
     //             return res.send("missing");
     //         }
-
+    
     //         con.query(`DELETE FROM ecph WHERE id = ?`, [id], (err, result) => {
     //             con.end();
     //             if (err) {
     //                 console.error("❌ DELETE ERROR:", err);
     //                 return res.send("delete error");
     //             }
-
+    
     //             if (result.affectedRows === 0) {
     //                 return res.send({ success: false, message: "ไม่พบแถวที่จะลบ" });
     //             }
-
+    
     //             return res.send({ success: true });
     //         });
     //     } catch (err) {
@@ -3260,21 +3287,21 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     //     }
     // });
 
-    app.get("/api/farmer/profile", async (req, res) => {
-        const { session: { uidFarmer } } = req
+    app.get("/api/farmer/profile" , async ( req , res ) => {
+        const { session : { uidFarmer } } = req
 
         const authen = new AuthorizeUser(pool)
         try {
-            const { profile } = await authen.farmer(uidFarmer, {
-                select: "acc_farmer.fullname , station_list.id_station , station_list.name"
+            const { profile } = await authen.farmer(uidFarmer , {
+                select : "acc_farmer.fullname , station_list.id_station , station_list.name"
             })
 
             res.json({
                 profile
             })
-        } catch (err) {
+        } catch(err) {
             res.status(404).json({
-                message: "Not found user"
+                message : "Not found user"
             })
         }
     })
@@ -3306,19 +3333,19 @@ const authCheck = (con, req) => {
                                     const ProfilePass = result.filter(profile => profile.register_auth == 0 || profile.register_auth == 1)
                                     if (ProfilePass.length != 0) {
                                         if (req.body['page'] === "signup") {
-                                            RoyalGapLine.changeRichMenu(req.session.uidFarmer, RichHouse)
+                                            RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichHouse)
                                         }
                                         resole({
                                             result: "search",
                                             data: ProfilePass[0]
                                         })
                                     } else {
-                                        RoyalGapLine.changeRichMenu(req.session.uidFarmer, RichSign)
+                                        RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichSign)
                                         reject("no")
                                     }
                                 }
                                 else {
-                                    RoyalGapLine.changeRichMenu(req.session.uidFarmer, RichSign)
+                                    RoyalGapLine.changeRichMenu(req.session.uidFarmer , RichSign)
                                     try {
                                         RoyalGapLine.unlinkRichMenuFromUser(req.session.uidFarmer)
                                         RoyalGapLine.linkRichMenuToUser(req.session.uidFarmer, RichSign)
