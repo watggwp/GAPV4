@@ -12,30 +12,30 @@ import WeatherStation from "./page/station"
 import SchedulePlant from "./page/schedule/schedules"
 import { useNavigate } from "react-router"
 
-const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleImageCover , eleBody , setTextStatus}) => {
+const NavFirst = ({ setMain, setSession, setdoctor, socket, type = 0, eleImageCover, eleBody, setTextStatus }) => {
     const navigator = useNavigate()
 
-    const [ Responsive , setResponsive ] = useState(window.innerWidth)
+    const [Responsive, setResponsive] = useState(window.innerWidth)
 
     const { profile } = useDoctor()
-    
-    useEffect(()=>{
-        if(type === 1) window.history.pushState({} , "" , "/doctor")
+
+    useEffect(() => {
+        if (type === 1) window.history.pushState({}, "", "/doctor")
 
         setTextStatus([])
         Resize()
 
-        window.addEventListener("resize" , Resize)
+        window.addEventListener("resize", Resize)
         clientMo.unLoadingPage()
 
-        return(()=>{
-            window.removeEventListener("resize" , Resize)
+        return (() => {
+            window.removeEventListener("resize", Resize)
         })
-    } , [])
+    }, [])
 
     const Resize = () => {
         const Size = window.innerWidth
-        if(Size > 800) {
+        if (Size > 800) {
             eleImageCover.current.style.height = "50%"
             eleBody.current.style.height = "50%"
         } else {
@@ -47,62 +47,62 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
 
     const farmer = async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context) 
+        if (context)
             setdoctor(<PageFarmer setMain={setMain}
-                        socket={socket} LoadType={"ap"} session={setSession} type={1} 
-                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus}/>)
+                socket={socket} LoadType={"ap"} session={setSession} type={1}
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
 
     const form = async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context)
+        if (context)
             setdoctor(<PageFormPlant setMain={setMain}
-                        socket={socket} LoadType={"ap"} session={setSession} type={true} 
-                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+                socket={socket} LoadType={"ap"} session={setSession} type={true}
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
 
     const data = async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context)
+        if (context)
             setdoctor(<PageData setMain={setMain}
-                        socket={socket} LoadType={"plant"} session={setSession} type={true} 
-                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+                socket={socket} LoadType={"plant"} session={setSession} type={true}
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
 
     const group = async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context)
+        if (context)
             setdoctor(<PageData setMain={setMain}
-                        socket={socket} LoadType={"group"} session={setSession} type={true} 
-                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+                socket={socket} LoadType={"group"} session={setSession} type={true}
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
 
     const schedules = useCallback(async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context) navigator("/doctor/schedules")
-            // setdoctor(<SchedulePlant/>)
+        if (context) navigator("/doctor/schedules")
+        // setdoctor(<SchedulePlant/>)
         else setSession()
-    } , [navigator, setSession])
+    }, [navigator, setSession])
 
     const report = async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context)
+        if (context)
             setdoctor(<PageData setMain={setMain}
-                        socket={socket} LoadType={"report"} session={setSession} type={true} 
-                        eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
+                socket={socket} LoadType={"report"} session={setSession} type={true}
+                eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />)
         else setSession()
     }
 
     const station = useCallback(async () => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context)
-            setdoctor(<WeatherStation/>)
+        if (context)
+            setdoctor(<WeatherStation />)
         else setSession()
-    } , [setSession, setdoctor])
+    }, [setSession, setdoctor])
 
     return (
         <section className="nav-first">
@@ -110,37 +110,37 @@ const NavFirst = ({setMain , setSession , setdoctor , socket , type = 0 , eleIma
                 <span>Menu</span>
             </div>
             <div className={`content-menu${Responsive > 800 ? "" : " column"}`}>
-                { Responsive > 800 ?
+                {Responsive > 800 ?
                     <>
-                    <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer}/>
-                    <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form}/>
+                        <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer} />
+                        <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form} />
                     </>
                     :
                     <div className="row">
-                        <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer}/>
-                        <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form}/>
+                        <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer} />
+                        <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form} />
                     </div>
                 }
 
-{
+                {
                     Boolean(profile?.doctor_role) &&  //role
-                        <>
-                            <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data}/>
-                            <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group}/>
-                            <ButtonMenu type={"plan"} textRow1={"แผน"} textRow2={"การปลูก"} action={schedules}/>
-                        </>
-                }      
+                    <>
+                        <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data} />
+                        <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group} />
+                        <ButtonMenu type={"plan"} textRow1={"แผน"} textRow2={"การปลูก"} action={schedules} />
+                    </>
+                }
                 {
                     Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
-                        <>
-                            <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report}/>
-                        </>
-                }        
+                    <>
+                        <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report} />
+                    </>
+                }
                 {
                     Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
-                        <>
-                            <ButtonMenu type={"sensor"} textRow1={"ข้อมูล"} textRow2={"สภาพแวดล้อม"} action={station}/>
-                        </>
+                    <>
+                        <ButtonMenu type={"sensor"} textRow1={"ข้อมูล"} textRow2={"สภาพแวดล้อม"} action={station} />
+                    </>
                 }
             </div>
         </section>

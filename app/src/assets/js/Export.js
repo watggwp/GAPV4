@@ -125,33 +125,47 @@ const waitForRecharts = async (selector, { tries = 40, delay = 150 } = {}) => {
   }
   return false;
 };
-const captureWeatherChart = async ({ field, color }, {
-  selector = "#weather-chart-export",
-  timeout = 10000
-} = {}) => {
-  window.dispatchEvent(new CustomEvent("weather-export:set-metric", {
-    detail: { field, color }
-  }));
+const captureWeatherChart = async (
+  { field, color },
+  { selector = "#weather-chart-export", timeout = 10000 } = {}
+) => {
+  // 1) เช็ค meta.rows ก่อน (ถ้าไม่มีข้อมูล ไม่ต้องแคป)
+  try {
+    const m0 = (typeof window !== "undefined" && window.__weatherMeta) || {};
+    if (Number(m0.rows ?? 0) <= 0) return null;
+  } catch { }
 
+  // 2) สั่ง component ให้สลับ metric
+  try {
+    window.dispatchEvent(new CustomEvent("weather-export:set-metric", { detail: { field, color } }));
+  } catch { }
+
+  // 3) รอ component แจ้งพร้อม และดึงจำนวนจุดจาก detail ถ้ามี
   const signaled = await waitForEvent("weather-export:chart-ready", { timeout });
-  const ready = signaled || (await waitForRecharts(selector, { tries: 50, delay: 150 }));
+  const countFromSignal = (signaled && typeof signaled === "object")
+    ? Number(signaled.count ?? signaled.points ?? signaled.rows ?? 0)
+    : 0;
+
+  // ถ้า signal บอก 0 จุด ให้ยกเลิก
+  if (countFromSignal <= 0) return null;
+
+  // เผื่อบางที signal มาแล้ว แต่ DOM ยังไม่วาด svg
+  const ready = await waitForRecharts(selector, { tries: 50, delay: 150 });
   if (!ready) return null;
 
   await sleep(120);
 
-  // จับเฉพาะกรอบกราฟ (ไม่มีแท็บ)
+  // 4) แคปเฉพาะกรอบกราฟ
   const host = document.querySelector(selector);
   const chartOnly = host?.querySelector?.(".recharts-wrapper") || host;
+  if (!chartOnly) return null;
 
-  // แคปภาพ
   let dataURL = await captureElementToDataURL(chartOnly, {
     scale: SCALE,
     backgroundColor: "#fff",
     useCORS: true,
   });
 
-  // ✅ ครอปมุมบนซ้าย (ตัดหัวที่ล้น)
-  // ปรับค่า top ตามที่เห็นหน้างาน: 30 ~ 36px
   dataURL = await cropDataURL(dataURL, TRIM);
   return dataURL;
 };
@@ -1072,10 +1086,17 @@ const ExportPDF = async (Data, opts = {}) => {
 
     /* ------------------------- กราฟสภาพแวดล้อมใต้ข้อ ๑๑ ------------------------- */
     if (!formsOnly) {
-      const meta = (typeof window !== "undefined" && window.__weatherMeta)
-        || await waitForEvent("weather-export:meta", { timeout: 3000 })
-        || {};
-      const hasDevice = meta.hasDevice === true;
+      let meta = (typeof window !== "undefined" && window.__weatherMeta) || null;
+      if (!meta) {
+        // ขอ WM ส่ง meta ปัจจุบันมาอีกครั้ง
+        try { window.dispatchEvent(new CustomEvent("weather-export:get-meta")); } catch { }
+        const m = await waitForEvent("weather-export:meta", { timeout: 3000 });
+        meta = (m && m.detail) ? m.detail : m || {};
+      }
+      // normalize
+      if (meta && meta.detail) meta = meta.detail;
+      const rows = Number(meta.rows ?? 0);
+      const hasDevice = meta.hasDevice === true || !!meta.deviceId;
       {
         // ให้กราฟเริ่มที่หน้าใหม่หลังจบตารางทั้งหมด (นี่จะกลายเป็นหน้า 3)
         const titleFrom = Export?.dataForm?.date_plant
@@ -1087,6 +1108,9 @@ const ExportPDF = async (Data, opts = {}) => {
 
 
         const charts = (chartImages || []).filter(Boolean);
+        const hasData = charts.length > 0;
+        const hasDevice = meta.hasDevice === true || !!meta.device_id || hasData;
+        console.log(hasDevice)
         if (!hasDevice) {
           // 2) ไม่มี device_id → แจ้งข้อความแทนกราฟ
           pdf.addPage();
@@ -1100,7 +1124,7 @@ const ExportPDF = async (Data, opts = {}) => {
           pdf.setFontSize(12);
           pdf.text("ไม่สามารถแสดงกราฟได้เนื่องจากไม่พบอุปกรณ์ในโรงเรือน", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
           pdf.setFontSize(16);
-        } if (charts.length) {
+        } else if (hasData) {
           // วาดทีละ 2 กราฟต่อหน้า (ฟังก์ชันนี้จะ addPage ให้เอง)
           drawChartsAtEnd(pdf, charts, { scale: 0.8, top: 54, gap: 18, titleFrom, titleTo });
         } else {

@@ -71,6 +71,7 @@ const NavFirst = ({ setBodyFileAdmin, auth, session, socket, modify, type = 0, T
         navigator("/admin/schedules")
     }, [navigator])
 
+
     return (
         <section className="nav-first">
             <div className="head">

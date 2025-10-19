@@ -65,14 +65,37 @@ export default function WeatherStation() {
     setGreenhouseId("");
   }, [selectedStation]);
 
-  // NEW: คำนวณ endpoint ตามโหมดที่เลือก (station หรือ greenhouse)
   const endpointData = useMemo(() => {
-    if (greenhouseId) {
-      // ปรับ path ให้ตรง backend ถ้าชื่อไม่ตรง
-      return `/api/sensor/weather-greenhouse/${greenhouseId}`;
-    }
+    if (greenhouseId) return `/api/sensor/weather-greenhouse/${greenhouseId}`;
     return `/api/sensor/weather-station/${selectedStation}`;
   }, [greenhouseId, selectedStation]);
+
+  // ⬇️ ทำ props ให้คงที่ ไม่สร้างใหม่ทุก render
+  const query = useMemo(() => ({ r: "doctor" }), []);
+  const columns = useMemo(
+    () => [
+      { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
+      { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
+      { field: "light", name: "แสง (LUX)", color: "#EDC948" },
+      { field: "rainfall", name: "น้ำฝน (mm)", color: "blue" },
+      { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
+      { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F" },
+    ],
+    []
+  );
+
+  // ⬇️ รีเฟรช WeatherManagement เฉพาะเมื่อ endpoint เปลี่ยนจริง ๆ
+  const widgetKey = useMemo(() => endpointData, [endpointData]);
+  const providerValue = useMemo(
+    () => ({
+      selectedStationData,
+      startTime,
+      endTime,
+      greenhouseId,
+      setGreenhouseId,
+    }),
+    [selectedStationData, startTime, endTime, greenhouseId]
+  );
 
   return (
     <div style={{ padding: "20px", fontFamily: "sans-serif", width: "100%", height: "100%", overflow: "auto" }}>
@@ -124,17 +147,10 @@ export default function WeatherStation() {
 
       <Stack height={"calc(100% - 65px)"} minHeight={"350px"}>
         <WeatherManagement
-          key={`${selectedStation}-${greenhouseId || "station"}`}   // NEW: ให้รีเฟรชเมื่อสลับโหมด/เรือน
+          key={widgetKey}
           endpointData={endpointData}
-          query={{ r: "doctor" }}
-          columns={[
-            { field: 'temperature', name: 'อุณหภูมิ', color: "green" },
-            { field: 'humidity', name: 'ความชื้น', color: "#4E79A7" },
-            { field: 'light', name: 'แสง', color: "orange" },
-            { field: 'rainfall', name: 'น้ำฝน', color: "blue" },
-            { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
-            { field: 'batt', name: 'แบตเตอรี่', color: "red" }
-          ]}
+          query={query}
+          columns={columns}
           onChangeRange={onUpdateRange}
         />
       </Stack>

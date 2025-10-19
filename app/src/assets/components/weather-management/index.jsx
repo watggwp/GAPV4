@@ -69,13 +69,24 @@ export default function WeatherManagement({
     setSelectedColor(null);
   }, []);
   const Query = useMemo(() => ({ r: query?.r }), [query?.r]);
+  const emitMeta = (part) => {
+    const prev = (typeof window !== "undefined" && window.__weatherMeta) || {};
+    const meta = { ...prev, ...part, ts: Date.now() };
+    window.__weatherMeta = meta;
+    try { console.log("[weather-export] set meta:", meta); } catch { }
+    window.dispatchEvent(new CustomEvent("weather-export:meta", { detail: meta }));
+  };
   useEffect(() => {
-    try {
-      window.dispatchEvent(new CustomEvent("weather-export:meta", {
-        detail: { deviceId: Query?.r ?? null, hasDevice: Boolean(Query?.r) }
-      }));
-    } catch { }
+    emitMeta({ deviceId: Query?.r ?? null, hasDevice: Boolean(Query?.r) });
   }, [Query?.r]);
+  useEffect(() => {
+    const onGetMeta = () => {
+      const meta = (typeof window !== "undefined" && window.__weatherMeta) || {};
+      window.dispatchEvent(new CustomEvent("weather-export:meta", { detail: meta }));
+    };
+    window.addEventListener("weather-export:get-meta", onGetMeta);
+    return () => window.removeEventListener("weather-export:get-meta", onGetMeta);
+  }, []);
   const PreprocessDateRange = useCallback(() => {
     setHistoryDatas([]);
     setChartDatas([]);
@@ -123,13 +134,13 @@ export default function WeatherManagement({
                 ? data.rows
                 : [];
         try {
-          window.dispatchEvent(new CustomEvent("weather-export:meta", {
-            detail: {
-              deviceId: Query?.r ?? null,
-              hasDevice: Boolean(Query?.r),
-              rows: Array.isArray(details) ? details.length : 0
-            }
-          }));
+          emitMeta({
+            deviceId: Query?.r ?? null,
+            hasDevice: Boolean(Query?.r),
+            rows: Array.isArray(details) ? details.length : 0,
+            field: columns[selectedTab]?.field,
+            range: { st: startOfDay.getTime(), et: endOfDay.getTime() }
+          });
         } catch { }
         const newChartDatas = [];
         const newHistoryDatas = [];
