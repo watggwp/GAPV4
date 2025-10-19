@@ -71,6 +71,10 @@ const NavFirst = ({ setBodyFileAdmin, auth, session, socket, modify, type = 0, T
         navigator("/admin/schedules")
     }, [navigator])
 
+    const weather = useCallback(() => {
+        navigator("/admin/weather-station")
+    }, [navigator])
+
 
     return (
         <section className="nav-first">
@@ -82,6 +86,7 @@ const NavFirst = ({ setBodyFileAdmin, auth, session, socket, modify, type = 0, T
                 <ButtonMenu type={"add-data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data} />
                 <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group} />
                 <ButtonMenu type={"plan"} textRow1={"แผน"} textRow2={"การปลูก"} action={plan} />
+                <ButtonMenu type={"weather"} textRow1={"สภาพ"} textRow2={"อากาศ"} action={weather} />
                 <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report} />
             </div>
         </section>

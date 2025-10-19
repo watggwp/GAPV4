@@ -90,7 +90,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             );
         } else if (path.length >= 2 && path[0] === "admin") {
             let seconPath = path[1].split("?");
-            let query = seconPath[1];
+            let query = seconPath[1] || "";
 
             // temp
             if(seconPath[0] === "schedules") {
@@ -381,6 +381,11 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                                         <Route index element={<SchedulesPlan/>} />
                                         <Route path=":station_id" element={<SchedulesPlan/>} />
                                         <Route path=":station_id/:plant_id" element={<SchedulePlants/>} />
+                                    </Route>
+                                    <Route path="/admin/weather-station" element={
+                                        <></>
+                                        // เอา component weather มาใส่ตรงนี้
+                                    }>
                                     </Route>
                                     <Route path="*" element={body} />
                                 </Routes>
