@@ -3,156 +3,41 @@ import html2canvas from "html2canvas";
 import * as FileSaver from "file-saver";
 import XLSX from "sheetjs-style";
 
-/* ------------------------- helpers: timing / dom ------------------------- */
+/* ========== LIFF download helper ========== */
+const tryDownloadWithLiff = async (pdf, filename) => {
+  try {
+    const liff = typeof window !== "undefined" ? window.liff : undefined;
+    if (!liff || typeof liff.isInClient !== "function") {
+      pdf.save(filename);
+      return;
+    }
+    if (!liff.isInClient()) {
+      pdf.save(filename);
+    } else {
+      alert("กรุณาดาวโหลดผ่านเบราเซอร์");
+    }
+  } catch {
+    pdf.save(filename);
+  }
+};
+
+/* ========== misc helpers ========== */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const SCALE = 4;
-const TRIM = {
-  top: 2 * SCALE,
-  left: 0,
-  right: 0,
-  bottom: 0
+
+/** แปลงวันที่เป็นไทย: รับรูปแบบใดๆ ที่ Date เข้าใจ/หรือสตริง "YYYY-MM-DD" */
+const fmtTH = (val, shortYear = false) => {
+  if (!val) return "";
+  const raw = typeof val === "string" ? val.split(/[ T]/)[0] : val;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear() + 543;
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  if (shortYear) return `${dd}/${m}/${String(y).slice(-2)}`;
+  return `${dd}/${m}/${y}`;
 };
-const drawChartsAtEnd = (
-  pdf,
-  chartImages,
-  {
-    scale = 0.78,
-    top = 54,
-    gap = 18,
-    titleFrom = "",
-    titleTo = "",
-    titleFS = 14,   // ขนาดตัวอักษรหัวข้อ
-    subFS = 10    // ขนาดตัวอักษรบรรทัดช่วงเวลา
-  } = {}
-) => {
-  const PAGE_LEFT = 24;
-  const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 24;
 
-  // ขนาดฐานต่อรูป (เมื่อ scale = 1)
-  const BASE_W = PAGE_RIGHT - PAGE_LEFT;
-  const BASE_H = 220;
-
-  // ขนาดจริงหลังย่อ/ขยาย
-  const IMG_W = BASE_W * scale;
-  const IMG_H = BASE_H * scale;
-
-  // ระยะสูงที่เผื่อสำหรับหัวข้อ + ช่วงเวลา
-  const HEAD_H = titleFS + subFS + 8;
-
-  // จัดให้รูปอยู่กึ่งกลางแนวนอน
-  const X = PAGE_LEFT + (BASE_W - IMG_W) / 2;
-
-  for (let i = 0; i < chartImages.length; i += 2) {
-    pdf.addPage();
-
-    for (let r = 0; r < 2; r++) {
-      const g = chartImages[i + r];
-      if (!g) break;
-
-      const yTop = top + r * (IMG_H + HEAD_H + gap);
-
-      // 1) ชื่อกราฟ
-      pdf.setFontSize(titleFS);
-      pdf.setFont("THSarabunNew-bold", "bold");
-      pdf.text(g?.name || g?.field || "กราฟ", X, yTop);
-      pdf.setFont("THSarabunNew", "normal");
-
-      // 2) ช่วงเวลา
-      if (titleFrom || titleTo) {
-        pdf.setFontSize(subFS);
-        pdf.text(`ช่วงเวลา: ${titleFrom || "-"} – ${titleTo || "-"}`, X, yTop + titleFS);
-      }
-
-      // 3) รูปกราฟ
-      const yImg = yTop + HEAD_H;
-      if (g?.img) {
-        addImageFit(pdf, g.img, X, yImg, IMG_W, IMG_H);
-      } else {
-        pdf.setDrawColor(180);
-        pdf.rect(X, yImg, IMG_W, IMG_H);
-        pdf.setFontSize(12);
-        pdf.text("ไม่มีข้อมูลสำหรับกราฟนี้", X + IMG_W / 2, yImg + IMG_H / 2, { align: "center" });
-      }
-    }
-  }
-
-  // คืน font size ให้ค่าเดิม
-  pdf.setFontSize(16);
-};
-const cropDataURL = (dataURL, { left = 0, top = 0, right = 0, bottom = 0 } = {}) =>
-  new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const w = Math.max(1, img.width - left - right);
-      const h = Math.max(1, img.height - top - bottom);
-      const c = document.createElement("canvas");
-      c.width = w;
-      c.height = h;
-      const ctx = c.getContext("2d");
-      // วาดเฉพาะส่วนที่ต้องการ
-      ctx.drawImage(img, left, top, w, h, 0, 0, w, h);
-      resolve(c.toDataURL("image/png"));
-    };
-    img.crossOrigin = "anonymous";
-    img.src = dataURL;
-  });
-const waitForEvent = (type, { timeout = 8000 } = {}) =>
-  new Promise((resolve) => {
-    let done = false;
-    const timer = setTimeout(() => {
-      if (!done) resolve(false);
-    }, timeout);
-    const handler = (e) => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      resolve(e?.detail || true);
-    };
-    window.addEventListener(type, handler, { once: true });
-  });
-const waitForRecharts = async (selector, { tries = 40, delay = 150 } = {}) => {
-  for (let i = 0; i < tries; i++) {
-    const host = typeof selector === "string" ? document.querySelector(selector) : selector;
-    const svg = host?.querySelector?.("svg");
-    if (host && svg) {
-      const r1 = host.getBoundingClientRect();
-      const r2 = svg.getBoundingClientRect();
-      if (r1.width > 0 && r1.height > 0 && r2.width > 0 && r2.height > 0) return true;
-    }
-    await sleep(delay);
-  }
-  return false;
-};
-const captureWeatherChart = async ({ field, color }, {
-  selector = "#weather-chart-export",
-  timeout = 10000
-} = {}) => {
-  window.dispatchEvent(new CustomEvent("weather-export:set-metric", {
-    detail: { field, color }
-  }));
-
-  const signaled = await waitForEvent("weather-export:chart-ready", { timeout });
-  const ready = signaled || (await waitForRecharts(selector, { tries: 50, delay: 150 }));
-  if (!ready) return null;
-
-  await sleep(120);
-
-  // จับเฉพาะกรอบกราฟ (ไม่มีแท็บ)
-  const host = document.querySelector(selector);
-  const chartOnly = host?.querySelector?.(".recharts-wrapper") || host;
-
-  // แคปภาพ
-  let dataURL = await captureElementToDataURL(chartOnly, {
-    scale: SCALE,
-    backgroundColor: "#fff",
-    useCORS: true,
-  });
-
-  // ✅ ครอปมุมบนซ้าย (ตัดหัวที่ล้น)
-  // ปรับค่า top ตามที่เห็นหน้างาน: 30 ~ 36px
-  dataURL = await cropDataURL(dataURL, TRIM);
-  return dataURL;
-};
+/** แคป element → dataURL (PNG) + รอ layout ให้เสร็จก่อน */
 const captureElementToDataURL = async (selector, opts = {}) => {
   const el = typeof selector === "string" ? document.querySelector(selector) : selector;
   if (!el) return null;
@@ -1030,59 +915,47 @@ const ExportPDF = async (DataInput, opts = {}) => {
     TextBoxHead(pdf, width / 2 + 40, presentFactor + 30, "ลงชื่อ");
     const check_boss_posi = TextBoxDot(pdf, 30, width / 2 + 67, presentFactor + 30, "");
     TextBoxHead(pdf, check_boss_posi, presentFactor + 30, "หัวหน้าผู้ตรวจประเมิน");
-    // ถ้า formsOnly และยังมีระเบียนถัดไป ให้คั่นหน้าเลยตรงนี้
-    const isLastRecord = parseInt(index, 10) + 1 === Data.length;
-    if (formsOnly && !isLastRecord) {
-      pdf.addPage();
-    }
 
-    /* ------------------------- กราฟสภาพแวดล้อมใต้ข้อ ๑๑ ------------------------- */
-    if (!formsOnly) {
-      const meta = (typeof window !== "undefined" && window.__weatherMeta)
-        || await waitForEvent("weather-export:meta", { timeout: 3000 })
-        || {};
-      const hasDevice = meta.hasDevice === true;
-      {
-        // ให้กราฟเริ่มที่หน้าใหม่หลังจบตารางทั้งหมด (นี่จะกลายเป็นหน้า 3)
-        const titleFrom = Export?.dataForm?.date_plant
-          ? new Date(Export.dataForm.date_plant).toLocaleDateString("th-TH")
-          : "";
-        const titleTo = (Export?.dataForm?.date_success || Export?.dataForm?.date_harvest)
-          ? new Date(Export.dataForm.date_success || Export.dataForm.date_harvest).toLocaleDateString("th-TH")
-          : "";
+    // กราฟใต้ข้อ ๑๑
+    {
+      const PAGE_LEFT = 30;
+      const IMG_W = width - 60;
+      const CHART_H = 180;
 
+      let yGraph = presentFactor + 40;
 
-        const charts = (chartImages || []).filter(Boolean);
-        if (!hasDevice) {
-          // 2) ไม่มี device_id → แจ้งข้อความแทนกราฟ
-          pdf.addPage();
-          const PAGE_LEFT = 24;
-          const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 30;
-          const IMG_W = PAGE_RIGHT - PAGE_LEFT;
-          const CHART_H = 220;
-          const yGraph = 40;
-          pdf.setDrawColor(180);
-          pdf.rect(PAGE_LEFT, yGraph, IMG_W, CHART_H);
-          pdf.setFontSize(12);
-          pdf.text("ไม่สามารถแสดงกราฟได้เนื่องจากไม่พบอุปกรณ์ในโรงเรือน", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
-          pdf.setFontSize(16);
-        } if (charts.length) {
-          // วาดทีละ 2 กราฟต่อหน้า (ฟังก์ชันนี้จะ addPage ให้เอง)
-          drawChartsAtEnd(pdf, charts, { scale: 0.8, top: 54, gap: 18, titleFrom, titleTo });
-        } else {
-          // fallback เมื่อไม่มีรูปกราฟใด ๆ
-          pdf.addPage();
-          const PAGE_LEFT = 24;
-          const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 30;
-          const IMG_W = PAGE_RIGHT - PAGE_LEFT;
-          const CHART_H = 220;
-          const yGraph = 40;
-          pdf.setDrawColor(180);
-          pdf.rect(PAGE_LEFT, yGraph, IMG_W, CHART_H);
-          pdf.setFontSize(12);
-          pdf.text("ไม่มีข้อมูลสำหรับกราฟนี้", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
-          pdf.setFontSize(16);
-        }
+      const pageH = pdf.internal.pageSize.getHeight();
+      if (yGraph + CHART_H > pageH - 40) {
+        pdf.addPage();
+        yGraph = 40;
+      }
+
+      const titleFrom = Export?.dataForm?.date_plant ? new Date(Export.dataForm.date_plant).toLocaleDateString("th-TH") : "";
+      const titleTo   = (Export?.dataForm?.date_success || Export?.dataForm?.date_harvest)
+        ? new Date(Export.dataForm.date_success || Export.dataForm.date_harvest).toLocaleDateString("th-TH")
+        : "";
+
+      pdf.setFontSize(16);
+      TextBoxHead(pdf, PAGE_LEFT, yGraph - 10, titleFrom && titleTo ? `กราฟสภาพแวดล้อม (${titleFrom} – ${titleTo})` : "กราฟสภาพแวดล้อม");
+      pdf.setFontSize(16);
+
+      if (Export.__chartImg) {
+        pdf.addImage(Export.__chartImg, "PNG", PAGE_LEFT, yGraph, IMG_W, CHART_H);
+      } else {
+        const x0 = PAGE_LEFT;
+        const y0 = yGraph;
+        const w  = IMG_W;
+        const h  = CHART_H;
+
+        pdf.setDrawColor(180);
+        pdf.rect(x0, y0, w, h);
+        pdf.line(x0 + 40, y0 + h - 30, x0 + w - 10, y0 + h - 30);
+        pdf.line(x0 + 40, y0 + 10,     x0 + 40,     y0 + h - 30);
+
+        pdf.setFontSize(12);
+        pdf.text("กราฟสภาพแวดล้อม (ไม่มีข้อมูล)", x0 + w / 2, y0 + h / 2, { align: "center" });
+        pdf.setFontSize(16);
+      }
 
       presentFactor = yGraph + CHART_H;
     }
@@ -1221,4 +1094,4 @@ const ExportExcel = async (excelData = []) => {
   FileSaver.saveAs(data, filename);
 };
 
-export { ExportPDF, ExportExcel };
+export { ExportPDF, ExportExcel, buildExportData };
