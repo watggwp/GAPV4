@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"; // NEW: useMemo
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { useDoctor } from "../../Doctor";
+import { useDoctor } from "../../../../doctor/src/Doctor";
 import { Button, MenuItem, Modal, Select, Stack, Typography } from "@mui/material";
 import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
