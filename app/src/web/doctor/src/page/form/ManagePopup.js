@@ -56,12 +56,13 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     // ฟังอีเวนต์ตั้งช่วงเวลา → อัปเดตทั้ง range และ weatherQuery
     useEffect(() => {
         const applyRange = (detail = {}) => {
-            const st = Number(detail.st);
-            const et = Number(detail.et);
+            console.log('[EVENT range detail]', detail);
+            const st = Number(detail.st), et = Number(detail.et);
             if (Number.isFinite(st) && Number.isFinite(et) && st <= et) {
+                console.log('[EVENT range human]', new Date(st).toLocaleString('th-TH'), '→', new Date(et).toLocaleString('th-TH'));
                 const S = Math.trunc(st), E = Math.trunc(et);
                 setRange({ st: S, et: E });
-                setWeatherQuery({ r: "doctor", st: S, et: E });
+                setWeatherQuery(prev => ({ ...prev, r: "doctor", st: S, et: E }));
             }
         };
         const onA = e => applyRange(e.detail);
@@ -124,7 +125,20 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
         console.log("ค่า editMode เปลี่ยน:", editMode);
     }, [editMode]);
 
-
+    const dbgDate = (label, v) => {
+        const t = typeof v;
+        const s = v == null ? String(v) : String(v);
+        const d = new Date(s.includes('T') ? s : s.replace(' ', 'T'));
+        const ok = !isNaN(d.getTime());
+        console.log(`[DATE] ${label}`, {
+            raw: v, typeof: t, toString: s,
+            parsed_ok: ok,
+            date_locale_th: ok ? d.toLocaleString('th-TH') : null,
+            date_iso: ok ? d.toISOString() : null,
+            ms: ok ? d.getTime() : null
+        });
+        return d;
+    };
     // กดปุ่มยกเลิก
     const handleCancel = () => {
         setEditMode(false);
@@ -152,7 +166,8 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             const Data = await clientMo.get(`/api/doctor/form/get/detail?id_form=${id_form}&type=${type_form}`);
             const JsonData = JSON.parse(Data);
             const formData = JsonData[0];
-
+            dbgDate('formData.date_plant (RECV)', formData.date_plant);
+            dbgDate('formData.date_success (RECV)', formData.date_success);
             // โหลด sensor ของโรงเรือนนี้ แล้วเอา device_id มาใช้
             let deviceId = null;
             try {
@@ -170,12 +185,15 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             const merged = { ...formData, device_id: deviceId };
             setData(merged);
             console.log("merged data:", merged)
-
+            const endSafe = merged.date_success || Date.now();
+            dbgDate('date_plant -> startOfDayLocalMs (SEND-IN)', merged.date_plant);
+            dbgDate('date_success/endSafe -> endOfDayLocalMsInclusive (SEND-IN)', endSafe);
             const S = startOfDayLocalMs(merged.date_plant);
             const E = endOfDayLocalMsInclusive(merged.date_success);   // ← 23:59:59.999 ของวันสุดท้าย
-
+            console.log('[RANGE ms]', { st: S, et: E });
+            console.log('[RANGE human th-TH]', new Date(S).toLocaleString('th-TH'), '→', new Date(E).toLocaleString('th-TH'));
             setRange({ st: S, et: E });
-            setWeatherQuery({ r: "doctor", st: S, et: E });
+            setWeatherQuery(prev => ({ ...prev, r: "doctor", st: S, et: E }));
             if (!type_form) setNameFarmer(formData.fullname);
 
             // ✅ Log ตรวจสอบ
@@ -511,6 +529,8 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     const PdfExport = async (id_table) => {
         // บังคับช่วงให้ส่วน export ใช้
         if (range?.st && range?.et) {
+            console.log('[EXPORT range ms]', range);
+            console.log('[EXPORT range human]', new Date(range.st).toLocaleString('th-TH'), '→', new Date(range.et).toLocaleString('th-TH'));
             window.dispatchEvent(new CustomEvent("weather-export:set-range", {
                 detail: { st: range.st, et: range.et }, // et เป็น end-exclusive
             }));
@@ -832,13 +852,13 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                             endTime={range.et}     // ms
                             columnTimestamp="timestamp"
                             columns={[
-                                { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
-                                { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
-                                { field: "light", name: "แสง (LUX)", color: "#ccad3fff" },
-                                { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759" },
-                                { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7" },
-                                { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
-                                { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F" },
+                                { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
+                                { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
+                                { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
+                                { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
+                                { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
+                                { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
+                                { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
                             ]}
                             showTable={false}
                         // debug

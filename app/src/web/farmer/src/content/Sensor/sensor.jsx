@@ -79,13 +79,13 @@ export default function SensorGreenhouse() {
                     }}
                     columnTimestamp="timestamp"
                     columns={[
-                        { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
-                        { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
-                        { field: "light", name: "แสง (LUX)", color: "#EDC948" },
-                        { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759" },
-                        { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7" },
-                        { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
-                        { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F" },
+                        { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
+                        { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
+                        { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
+                        { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
+                        { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
+                        { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
+                        { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
                     ]}
                 />
             </Stack>

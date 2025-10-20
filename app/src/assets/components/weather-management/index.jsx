@@ -36,10 +36,10 @@ export default function WeatherManagement({
   endTime,
   columnTimestamp = "timestamp",
   columns = [
-    { field: "temperature", name: "อุณหภูมิ", color: "green" },
-    { field: "humidity", name: "ความชื้น", color: "yellow" },
-    { field: "light", name: "แสง", color: "orange" },
-    { field: "rainfall", name: "น้ำฝน", color: "blue" },
+    { field: "temperature", name: "อุณหภูมิ ( ํC)", color: "green", yDomain: [0, 60] },
+    { field: "humidity", name: "ความชื้น (%RH)", color: "yellow", yDomain: [0, 100] },
+    { field: "light", name: "แสง (LUX)", color: "orange", yDomain: [0, 200000] },
+    { field: "rainfall", name: "น้ำฝน (mm)", color: "blue", yDomain: [0, 100] },
   ],
   onChangeRange = () => { },
   showTable = true,
@@ -215,6 +215,13 @@ export default function WeatherManagement({
   const hasAnyRow = chartDatas.length > 0;
   const showDot = chartDatas.length <= 2;
 
+  // คอลัมน์ที่กำลังแสดงอยู่ (ใช้หา yDomain/หน่วย ฯลฯ)
+  const activeCol = useMemo(() => {
+    // ถ้าคุณอยากล็อกตาม field ที่ถูก override ก็ใช้ effectiveField
+    const byField = columns.find(c => c.field === (selectedField || columns[selectedTab]?.field));
+    return byField || columns[selectedTab] || {};
+  }, [columns, selectedField, selectedTab]);
+
   const fallbackData = useMemo(() => {
     const points = 12;
     const now = Date.now();
@@ -233,8 +240,10 @@ export default function WeatherManagement({
   }, [currentField]);
 
   const chartViewData = hasAnyRow ? chartDatas : fallbackData;
-  const yDomain = hasAnyRow ? ["auto", "auto"] : [0, 100];
-
+  const yDomain = useMemo(() => {
+    if (activeCol.yDomain) return activeCol.yDomain;              // per-field override
+    return hasAnyRow ? ['dataMin', 'dataMax'] : [0, 100];         // fallback
+  }, [activeCol, hasAnyRow]);
   // 🔧 FIX: ให้ selector ตรงกับ id จริง
   useEffect(() => {
     const ready =
@@ -327,7 +336,7 @@ export default function WeatherManagement({
                 <LineChart data={chartViewData} margin={{ top: 8, left: 15, right: 10, bottom: 8 }} width={250}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
-                  <YAxis fontSize={"12px"} domain={yDomain} allowDecimals={false} />
+                  <YAxis fontSize={"12px"} domain={yDomain} allowDecimals={false} allowDataOverflow={true} />
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: "12px", fontFamily: "Sans-font", width: "100%", left: 0 }} />
                   <Line

@@ -54,6 +54,14 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
     app.get('/api/sensor/weather-greenhouse/:greenhouse_id/:device_id', async (req, res) => {
         const { params: { greenhouse_id, device_id }, query: { r: role, st, et } } = req
 
+        console.log('[API IN]', {
+            greenhouse_id, device_id, role,
+            st_raw: st, et_raw: et,
+            st_ms: Number(st), et_ms: Number(et),
+            st_human: Number(st) ? new Date(Number(st)).toISOString() : null,
+            et_human: Number(et) ? new Date(Number(et)).toISOString() : null
+        });
+
         switch (role) {
             case "doctor":
                 const username = req.session.user_doctor;
@@ -81,6 +89,10 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const betweenReal = (7 * 60 * 60 * 1000)
+            console.log('[API WHERE BETWEEN]',
+                new Date(Number(st)).toISOString(), '→', new Date(Number(et)).toISOString()
+            );
+
             const data = await pool.executeQuery(
                 `
                     SELECT * , CONCAT(
@@ -95,11 +107,17 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 greenhouse_id, device_id, new Date(Number(st) - betweenReal), new Date(Number(et) - betweenReal)
             ]
             );
+            console.log('[API OUT] count =', Array.isArray(data) ? data.length : '(not array)');
             return res.status(200).send({
                 details: data
             }); // ส่งข้อมูลพร้อม status code 200
         } catch (err) {
-            console.error('Query Error:', err);
+            console.error('Query Error:', {
+                message: err?.message,
+                code: err?.code,
+                sqlMessage: err?.sqlMessage,
+                sqlState: err?.sqlState,
+            });
             return res.status(500).send({
                 "errors": "external"
             })

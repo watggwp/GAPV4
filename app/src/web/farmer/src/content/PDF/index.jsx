@@ -126,13 +126,13 @@ export default function PDFPage() {
               endTime={range.et}       // ms ถึงวันเก็บเกี่ยว 23:59:59.999
               columnTimestamp="timestamp"
               columns={[
-                { field: 'air_temperature', name: 'อุณหภูมิ', color: 'green' },
-                { field: 'air_humidity', name: 'ความชื้น', color: 'yellow' },
-                { field: 'light', name: 'แสง', color: 'orange' },
-                { field: 'soil_temperature', name: 'อุณหภูมิดิน', color: 'red' },
-                { field: 'soil_humidity', name: 'ความชื้นดิน', color: 'blue' },
-                { field: 'pressure', name: 'ความกดอากาศ', color: '#4a4573' },
-                { field: 'batt', name: 'แบตเตอรี่', color: 'red' },
+                { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
+                { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
+                { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
+                { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
+                { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
+                { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
+                { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
               ]}
               showTable={false}
             />

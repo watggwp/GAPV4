@@ -74,12 +74,12 @@ export default function WeatherStation() {
   const query = useMemo(() => ({ r: "doctor" }), []);
   const columns = useMemo(
     () => [
-      { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
-      { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
-      { field: "light", name: "แสง (LUX)", color: "#EDC948" },
-      { field: "rainfall", name: "น้ำฝน (mm)", color: "blue" },
-      { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
-      { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F" },
+      { field: "temperature", name: "อุณหภูมิ ( ํC)", color: "green", yDomain: [0, 60] },
+      { field: "humidity", name: "ความชื้น (%RH)", color: "yellow", yDomain: [0, 100] },
+      { field: "light", name: "แสง (LUX)", color: "orange", yDomain: [0, 200000] },
+      { field: "rainfall", name: "น้ำฝน (mm)", color: "blue", yDomain: [0, 100] },
+      { field: 'pressure', name: 'ความกดอากาศ (hPa)', color: "#4a4573", yDomain: ['dataMin', 'dataMax'] },
+      { field: 'batt', name: 'แบตเตอรี่ (V)', color: "red", yDomain: [8, 15] }
     ],
     []
   );
