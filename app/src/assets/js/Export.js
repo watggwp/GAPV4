@@ -18,30 +18,37 @@ const drawChartsAtEnd = (
   pdf,
   chartImages,
   {
-    scale = 0.78,
-    top = 54,
-    gap = 18,
+    // ปรับค่าตามใจได้
+    top = 40,          // ระยะจากขอบบนของหน้า
+    bottom = 36,       // ระยะเผื่อขอบล่าง
+    gap = 12,          // ช่องว่างระหว่าง 2 กราฟ
     titleFrom = "",
     titleTo = "",
-    titleFS = 14,   // ขนาดตัวอักษรหัวข้อ
-    subFS = 10    // ขนาดตัวอักษรบรรทัดช่วงเวลา
+    titleFS = 16,      // ตัวใหญ่ขึ้นนิด
+    subFS = 11,        // ตัวอธิบายช่วงเวลา
+    baseHeight = 260,  // ความสูง “อ้างอิง” ของกราฟ (ก่อน fit)
+    scaleW = 0.95      // สเกลตามความกว้างหน้า (0.95 = เกือบเต็ม)
   } = {}
 ) => {
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
   const PAGE_LEFT = 24;
-  const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 24;
+  const PAGE_RIGHT = pageW - 24;
 
-  // ขนาดฐานต่อรูป (เมื่อ scale = 1)
+  // ขนาดฐานต่อรูป (คิดตามความกว้างหน้ากระดาษ)
   const BASE_W = PAGE_RIGHT - PAGE_LEFT;
-  const BASE_H = 220;
+  const IMG_W = BASE_W * scaleW;
 
-  // ขนาดจริงหลังย่อ/ขยาย
-  const IMG_W = BASE_W * scale;
-  const IMG_H = BASE_H * scale;
-
-  // ระยะสูงที่เผื่อสำหรับหัวข้อ + ช่วงเวลา
+  // ส่วนหัวต่อกราฟ
   const HEAD_H = titleFS + subFS + 8;
 
-  // จัดให้รูปอยู่กึ่งกลางแนวนอน
+  // ความสูงที่เหลือทั้งหมดสำหรับ “สองกราฟ + ช่องว่าง”
+  const availableH = pageH - top - bottom - (HEAD_H * 2) - gap;
+
+  // ให้ความสูงกราฟละเท่า ๆ กัน และอย่าเล็กกว่า baseHeight * 0.8
+  const perChartH = Math.max(baseHeight * 0.8, availableH / 2);
+
+  // center ตามแนวนอน
   const X = PAGE_LEFT + (BASE_W - IMG_W) / 2;
 
   for (let i = 0; i < chartImages.length; i += 2) {
@@ -51,7 +58,7 @@ const drawChartsAtEnd = (
       const g = chartImages[i + r];
       if (!g) break;
 
-      const yTop = top + r * (IMG_H + HEAD_H + gap);
+      const yTop = top + r * (perChartH + HEAD_H + gap);
 
       // 1) ชื่อกราฟ
       pdf.setFontSize(titleFS);
@@ -65,15 +72,15 @@ const drawChartsAtEnd = (
         pdf.text(`ช่วงเวลา: ${titleFrom || "-"} – ${titleTo || "-"}`, X, yTop + titleFS);
       }
 
-      // 3) รูปกราฟ
+      // 3) รูปกราฟ (fit ให้อยู่ในกรอบ IMG_W x perChartH)
       const yImg = yTop + HEAD_H;
       if (g?.img) {
-        addImageFit(pdf, g.img, X, yImg, IMG_W, IMG_H);
+        addImageFit(pdf, g.img, X, yImg, IMG_W, perChartH);
       } else {
         pdf.setDrawColor(180);
-        pdf.rect(X, yImg, IMG_W, IMG_H);
+        pdf.rect(X, yImg, IMG_W, perChartH);
         pdf.setFontSize(12);
-        pdf.text("ไม่มีข้อมูลสำหรับกราฟนี้", X + IMG_W / 2, yImg + IMG_H / 2, { align: "center" });
+        pdf.text("ไม่มีข้อมูลสำหรับกราฟนี้", X + IMG_W / 2, yImg + perChartH / 2, { align: "center" });
       }
     }
   }
@@ -81,6 +88,7 @@ const drawChartsAtEnd = (
   // คืน font size ให้ค่าเดิม
   pdf.setFontSize(16);
 };
+
 const cropDataURL = (dataURL, { left = 0, top = 0, right = 0, bottom = 0 } = {}) =>
   new Promise((resolve) => {
     const img = new Image();
@@ -154,7 +162,7 @@ const captureWeatherChart = async (
   // 4) ตอนนี้เพิ่งค่อยดู JSON ของ metric ปัจจุบันว่ามีค่าจริงไหม
   const cj = await getChartJSON();
   if (cj && !fieldHasData(cj, field)) return null;
-  
+
   const host = document.querySelector(selector);
   const chartOnly = host?.querySelector?.(".recharts-wrapper") || host;
   if (!chartOnly) return null;
@@ -586,13 +594,13 @@ const ExportPDF = async (Data, opts = {}) => {
 
         if (ready) {
           const METRICS = [
-            { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B" },
-            { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2" },
-            { field: "light", name: "แสง (LUX)", color: "#ccad3fff" },
-            { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759" },
-            { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7" },
-            { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1" },
-            { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F" },
+            { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
+            { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
+            { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
+            { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
+            { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
+            { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
+            { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
           ];
 
           chartImages = [];
@@ -1142,7 +1150,15 @@ const ExportPDF = async (Data, opts = {}) => {
           pdf.setFontSize(16);
         } else if (hasData) {
           // วาดทีละ 2 กราฟต่อหน้า (ฟังก์ชันนี้จะ addPage ให้เอง)
-          drawChartsAtEnd(pdf, charts, { scale: 0.8, top: 54, gap: 18, titleFrom, titleTo });
+          drawChartsAtEnd(pdf, charts, {
+            top: 40,
+            bottom: 36,
+            gap: 12,
+            scaleW: 0.95,     // กว้างขึ้น
+            baseHeight: 260,  // อ้างอิงความสูงต่อกราฟ
+            titleFrom,
+            titleTo
+          })
         } else {
           // fallback เมื่อไม่มีรูปกราฟใด ๆ
           pdf.addPage();
