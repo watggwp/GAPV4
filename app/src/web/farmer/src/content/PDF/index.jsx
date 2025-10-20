@@ -1,79 +1,62 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import "./PDFPage.scss";
+// app/src/web/farmer/src/content/PDF/index.jsx
+// หน้าแบบมินิมอล: ปุ่ม "ดาวน์โหลด PDF" ปุ่มเดียว ทำงานกับ ExportPDF(download:true)
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { useParams } from "react-router";
-import { ExportPDF } from "../../../../../assets/js/Export";
 import WeatherManagement from "../../../../../assets/components/weather-management";
+import { ExportPDF } from "../../../../../assets/js/Export";
 
-export default function PDFPage() {
-  const { greenhouse_id, gap_id } = useParams();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const hostRef = useRef(null);
+/* --------------------- helpers: วันที่/ช่วงเวลา --------------------- */
+const toMs = (input) => {
+  if (!input) return null;
+  if (typeof input === "number") return input < 1e12 ? input * 1000 : input;
+  const iso = String(input).includes("T") ? input : String(input).replace(" ", "T");
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d.getTime();
+};
+const endOfDayLocal2359 = (input) => {
+  const ms = toMs(input);
+  if (ms == null) return null;
+  const d = new Date(ms);
+  d.setHours(23, 59, 59, 999);
+  return d.getTime();
+};
 
-  /* ------------ helpers: date ------------ */
-  const toThaiDate = (input) => {
-    if (!input) return "-";
-    try {
-      const iso = String(input).includes("T") ? input : String(input).replace(" ", "T");
-      const d = new Date(iso);
-      if (isNaN(d.getTime())) return "-";
-      return d.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" });
-    } catch { return "-"; }
-  };
-  const toMs = (input) => {
-    if (input == null) return null;
-    if (typeof input === "number") return input < 1e12 ? input * 1000 : input; // sec→ms
-    const iso = String(input).includes("T") ? input : String(input).replace(" ", "T");
-    const d = new Date(iso);
-    return isNaN(d.getTime()) ? null : d.getTime();
-  };
-  const endOfDayLocal2359 = (input) => {
-    const ms = toMs(input);
-    if (ms == null) return null;
-    const d = new Date(ms);
-    d.setHours(23, 59, 59, 999);
-    return d.getTime();
-  };
-  const canExport = !!(data && data.farmer && data.dataForm && range?.st && range?.et);
-  /* ------------ load data ------------ */
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await clientMo.get(
-          `/api/farmer/report/export?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`
-        );
-        let parsed = (res && res.data !== undefined) ? res.data : res;
-        if (typeof parsed === "string") { try { parsed = JSON.parse(parsed); } catch { } }
-        // แนะนำให้ API ส่งมาเพิ่ม: id_farm_house, device_id (ดูบันทาย)
-        setData(parsed);
-      } catch (err) {
-        console.error("❌ Error fetching PDF data:", err);
-        setData(null);
-      } finally {
-        setLoading(false);
+/* --------- ดึง greenhouse_id/gap_id จาก URL (query หรือ path) --------- */
+function getIdsFromURL() {
+  let greenhouse_id = null;
+  let gap_id = null;
+  try {
+    const url = new URL(window.location.href);
+    const qs = new URLSearchParams(url.search);
+    greenhouse_id = qs.get("greenhouse_id");
+    gap_id = qs.get("gap_id");
+    if (!greenhouse_id || !gap_id) {
+      const parts = url.pathname.split("/").filter(Boolean);
+      const pdfIdx = parts.findIndex((p) => p.toLowerCase() === "pdf");
+      if (pdfIdx >= 0) {
+        greenhouse_id = greenhouse_id ?? parts[pdfIdx + 1] ?? null;
+        gap_id = gap_id ?? parts[pdfIdx + 2] ?? null;
       }
-    })();
-  }, [greenhouse_id, gap_id]);
+    }
+  } catch {}
+  return { greenhouse_id, gap_id };
+}
 
-  /* ------------ range: ปลูก → เก็บเกี่ยว(23:59) ------------ */
-  const range = useMemo(() => {
-    const datePlant = data?.dataForm?.date_plant;
-    const dateHarvest = data?.dataForm?.date_harvest;
-    const st = toMs(datePlant);
-    const et = endOfDayLocal2359(dateHarvest || new Date().toISOString());
-    if (st && et && et >= st) return { st, et };
-    return null;
-  }, [data]);
+export default function PDFDownloadOnly() {
+  const [{ greenhouse_id, gap_id }] = useState(getIdsFromURL());
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const hostRef = useRef(null); // host กราฟแบบซ่อน เพื่อให้ ExportPDF จับภาพ
 
-  /* ------------ แจ้ง ExportPDF เมื่อกราฟพร้อม ------------ */
+  // แจ้ง ExportPDF ว่า Recharts พร้อมแล้ว
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const obs = new MutationObserver(() => {
-      const chartBox = host.querySelector("#weather-chart-export .recharts-wrapper");
-      if (chartBox && chartBox.offsetWidth > 0 && chartBox.offsetHeight > 0) {
+      const svg = host.querySelector("#weather-chart-export .recharts-wrapper");
+      if (svg && svg.offsetWidth > 0 && svg.offsetHeight > 0) {
         window.dispatchEvent(new CustomEvent("weather-export:chart-ready"));
       }
     });
@@ -81,129 +64,157 @@ export default function PDFPage() {
     return () => obs.disconnect();
   }, []);
 
-  /* ------------ export ------------ */
-  const handleDownloadPDF = () => {
-    try {
-      if (typeof data === "object" && data !== null) {
-        const formatted = {
-          farmer: [data.farmer],
-          dataForm: data.dataForm,
-          ferti: data.ferti || [],
-          chemi: data.chemi || [],
-        };
-        ExportPDF([formatted]); // ภายในจะไปจับ #weather-chart-export เอง
-      } else {
-        alert("ข้อมูลไม่ถูกต้อง หรือไม่มีข้อมูลให้สร้าง PDF");
+  // โหลดข้อมูลไว้ล่วงหน้า
+  useEffect(() => {
+    if (!greenhouse_id || !gap_id) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await clientMo.get(
+          `/api/farmer/report/export?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`
+        );
+        let parsed = res && res.data !== undefined ? res.data : res;
+        if (typeof parsed === "string") {
+          try { parsed = JSON.parse(parsed); } catch {}
+        }
+        setData(parsed || null);
+      } catch (e) {
+        console.error(e);
+        setData(null);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("❌ Export PDF error:", err);
-      alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+    })();
+  }, [greenhouse_id, gap_id]);
+
+  // คำนวณช่วงเวลาให้กราฟ
+  const range = useMemo(() => {
+    if (!data?.dataForm) return null;
+    const st = toMs(data.dataForm.date_plant);
+    const et = endOfDayLocal2359(data.dataForm.date_harvest || new Date().toISOString());
+    return st && et && et >= st ? { st, et } : null;
+  }, [data]);
+
+  // ปุ่มดาวน์โหลด
+  const handleDownload = useCallback(async () => {
+    if (!greenhouse_id || !gap_id) {
+      alert("ขาดพารามิเตอร์ greenhouse_id / gap_id ใน URL");
+      return;
     }
-  };
+    setDownloading(true);
+    try {
+      // ถ้ารีบกดก่อนโหลด data เสร็จ ให้ดึงซ้ำ
+      let payload = data;
+      if (!payload) {
+        const res = await clientMo.get(
+          `/api/farmer/report/export?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`
+        );
+        payload = res && res.data !== undefined ? res.data : res;
+        if (typeof payload === "string") {
+          try { payload = JSON.parse(payload); } catch {}
+        }
+      }
+      if (!payload?.dataForm) {
+        alert("ไม่พบข้อมูลสำหรับสร้าง PDF");
+        return;
+      }
 
-  if (loading) return <div className="pdf-page">กำลังโหลดข้อมูล...</div>;
-  if (!data) return <div className="pdf-page">ไม่พบข้อมูลฟอร์มในระบบ</div>;
+      const formatted = {
+        farmer: [payload.farmer],
+        dataForm: payload.dataForm,
+        ferti: payload.ferti || [],
+        chemi: payload.chemi || [],
+        report: payload.report || [],
+        checkPlant: payload.checkPlant || [],
+        checkForm: payload.checkForm || [],
+        id_farm_house: payload.id_farm_house,
+        device_id: payload.device_id,
+      };
 
-  const { farmer, dataForm, ferti, chemi } = data;
+      const st = toMs(payload?.dataForm?.date_plant);
+      const et = endOfDayLocal2359(payload?.dataForm?.date_harvest || new Date().toISOString());
+      const timeRange = st && et && et >= st ? { st, et } : null;
+
+      await ExportPDF([formatted], { range: timeRange, download: true });
+    } catch (e) {
+      console.error(e);
+      alert("ดาวน์โหลดไม่สำเร็จ");
+    } finally {
+      setDownloading(false);
+    }
+  }, [greenhouse_id, gap_id, data]);
 
   return (
-    <div className="pdf-page">
-      {/* ====== โฮสต์กราฟซ่อน: ใช้ช่วง ปลูก→เก็บเกี่ยว(23:59) ====== */}
-      <div
-        ref={hostRef}
-        style={{
-          position: "fixed", left: -10000, top: 0,
-          width: 1000, height: 360, opacity: 0, pointerEvents: "none", zIndex: -1
-        }}
-        aria-hidden
-      >
+    <div style={styles.wrap}>
+      {/* โฮสต์กราฟซ่อน เพื่อให้ ExportPDF จับภาพกราฟได้ (ถ้ามี device_id) */}
+      <div ref={hostRef} style={styles.hiddenHost} aria-hidden>
         <div id="weather-chart-export" style={{ width: "100%", height: "100%" }}>
           {data?.device_id && range?.st && range?.et && (
             <WeatherManagement
               endpointData={`/api/sensor/weather-greenhouse/${data.id_farm_house || greenhouse_id}/${data.device_id}`}
               query={{ r: "farmer" }}
-              startTime={range.st}     // ms จากวันปลูก (เริ่มวัน)
-              endTime={range.et}       // ms ถึงวันเก็บเกี่ยว 23:59:59.999
+              startTime={range.st}
+              endTime={range.et}
               columnTimestamp="timestamp"
               columns={[
-                { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
-                { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
-                { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
-                { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
-                { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
-                { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
-                { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
+                { field: "air_temperature",  name: "อุณหภูมิ",       color: "green"  },
+                { field: "air_humidity",     name: "ความชื้น",        color: "yellow" },
+                { field: "light",            name: "แสง",             color: "orange" },
+                { field: "soil_temperature", name: "อุณหภูมิดิน",      color: "red"    },
+                { field: "soil_humidity",    name: "ความชื้นดิน",      color: "blue"   },
+                { field: "pressure",         name: "ความกดอากาศ",      color: "#4a4573"},
+                { field: "batt",             name: "แบตเตอรี่",        color: "red"    },
               ]}
               showTable={false}
             />
           )}
         </div>
       </div>
-      {/* ============================================ */}
 
-      <div className="pdf-container">
-        <h1 className="title">ข้อมูลฟอร์มเกษตรกร (PDF Preview)</h1>
-
-        <div className="pdf-content">
-          <h2>ข้อมูลเกษตรกร</h2>
-          <p>ชื่อ: {farmer?.fullname || "-"}</p>
-          <p>รหัสเกษตรกร: {farmer?.id_farmer || "-"}</p>
-          <p>ศูนย์: {farmer?.station || "-"}</p>
-
-          <h2>ข้อมูลการปลูก</h2>
-          <p>ชนิดพืช: {dataForm?.name_plant || "-"}</p>
-          <p>วันที่ปลูก: {toThaiDate(dataForm?.date_plant)}</p>
-          <p>วันที่เก็บเกี่ยว: {toThaiDate(dataForm?.date_harvest)}</p>
-          <p>จำนวนต้น: {dataForm?.qty || "-"}</p>
-          <p>พื้นที่: {dataForm?.area > 0 ? dataForm.area : "-"} {dataForm?.unit || ""}</p>
-
-          <h2>ปุ๋ยที่ใช้</h2>
-          {Array.isArray(ferti) && ferti.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>ชื่อปุ๋ย</th><th>สูตร</th><th>ปริมาณ</th><th>วันที่ใช้</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ferti.map((f, i) => (
-                  <tr key={i}>
-                    <td>{f?.name || "-"}</td>
-                    <td>{f?.formula_name || "-"}</td>
-                    <td>{f?.volume ?? "-"}</td>
-                    <td>{toThaiDate(f?.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : <p>ไม่มีข้อมูลปุ๋ย</p>}
-
-          <h2>สารเคมีที่ใช้</h2>
-          {Array.isArray(chemi) && chemi.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>ชื่อสาร</th><th>แมลงเป้าหมาย</th><th>อัตรา</th><th>วันที่ใช้</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chemi.map((c, i) => (
-                  <tr key={i}>
-                    <td>{c?.name || "-"}</td>
-                    <td>{c?.insect || "-"}</td>
-                    <td>{c?.rate ?? "-"}</td>
-                    <td>{toThaiDate(c?.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : <p>ไม่มีข้อมูลสารเคมี</p>}
-        </div>
-
-        <button className="download-btn" onClick={handleDownloadPDF} disabled={!canExport || loading}>
-          ดาวน์โหลด PDF
-        </button>
-      </div>
+      {/* UI มินิมอล: ปุ่มเดียว */}
+      <button
+        style={{ ...styles.btn, ...(downloading || loading ? styles.btnDisabled : {}) }}
+        disabled={downloading || loading}
+        onClick={handleDownload}
+      >
+        {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลด PDF"}
+      </button>
     </div>
   );
 }
+
+/* ------------------------ inline styles ------------------------ */
+const styles = {
+  wrap: {
+    minHeight: "100vh",
+    display: "grid",
+    placeItems: "center",
+    background: "#f7faf9",
+    padding: 16,
+  },
+  btn: {
+    height: 56,
+    minWidth: 240,
+    padding: "0 20px",
+    border: 0,
+    borderRadius: 14,
+    fontSize: 18,
+    fontWeight: 800,
+    letterSpacing: ".2px",
+    color: "#fff",
+    background: "#1db954",
+    cursor: "pointer",
+    boxShadow: "0 10px 22px rgba(0,0,0,.18)",
+  },
+  btnDisabled: { opacity: 0.6, cursor: "not-allowed" },
+  hiddenHost: {
+    position: "fixed",
+    left: -10000,
+    top: 0,
+    width: 980,
+    height: 360,
+    opacity: 0,
+    pointerEvents: "none",
+    zIndex: -1,
+  },
+};
