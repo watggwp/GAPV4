@@ -51,12 +51,12 @@ export default function WeatherStation() {
                             endpointData={`/api/sensor/weather-station/${stationSignature}`}
                             columnTimestamp="timestamp"
                             columns={[
-                                { field: 'temperature', name: 'อุณหภูมิ', color: "green" },
-                                { field: 'humidity', name: 'ความชื้น', color: "#4E79A7" },
-                                { field: 'light', name: 'แสง', color: "orange" },
-                                { field: 'rainfall', name: 'น้ำฝน', color: "blue" },
-                                { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573" },
-                                { field: 'batt', name: 'แบตเตอรี่', color: "red" }
+                                { field: "temperature", name: "อุณหภูมิ", color: "green", yDomain: [0, 60] },
+                                { field: "humidity", name: "ความชื้น", color: "yellow", yDomain: [0, 100] },
+                                { field: "light", name: "แสง", color: "orange", yDomain: [0, 200000] },
+                                { field: "rainfall", name: "น้ำฝน", color: "blue", yDomain: [0, 100] },
+                                { field: 'pressure', name: 'ความกดอากาศ', color: "#4a4573", yDomain: ['dataMin', 'dataMax'] },
+                                { field: 'batt', name: 'แบตเตอรี่', color: "red", yDomain: [8, 15] }
                             ]}
                             query={{
                                 r: "farmer"

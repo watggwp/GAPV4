@@ -12,10 +12,10 @@ import ScheduleIndex from "./page/schedule";
 import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
 import env from "../../../env";
-
+import WeatherStation from "./page/station"
 export const AdminContext = React.createContext({
-    TabOn : undefined,
-    titlePageNested : (heigthBody, heightCover, ArrtextPage = []) => {}
+    TabOn: undefined,
+    titlePageNested: (heigthBody, heightCover, ArrtextPage = []) => { }
 })
 
 const Admin = ({ setBodyFileMain, socket, username, password }) => {
@@ -25,7 +25,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const [TextPage, setTextPage] = useState([]);
     const [getProfile, setProfile] = useState([]);
     const [Responsive, setResponsive] = useState(window.innerWidth);
-    const [SizeProfileImg , setSizeProfileImg] = useState(0)
+    const [SizeProfileImg, setSizeProfileImg] = useState(0)
 
     const ImageCover = useRef();
     const BodyRef = useRef();
@@ -33,13 +33,13 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const sessionRef = useRef();
     const frameImage = useRef()
 
-    const { current : TabOn } = useRef(new TabLoad(Tabbar));
+    const { current: TabOn } = useRef(new TabLoad(Tabbar));
     const Href = new HrefData("HOME");
 
     const FetchProfile = useCallback(async () => {
         try {
             const result = await clientMo.get("/api/admin/profile/get");
-    
+
             if (result) {
                 setProfile(JSON.parse(result));
             } else {
@@ -50,28 +50,28 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             // Log ข้อผิดพลาดถ้ามี
             console.error("Error fetching profile:", error);
         }
-    } , [])
-    
+    }, [])
+
     const sessionoff = useCallback((type = false) => {
         if (type) {
             setBodyFileMain(<Login setBodyFileMain={setBodyFileMain} socket={socket} />);
         } else {
             setSession(<SessionOut setBodyFileMain={setBodyFileMain} sessionEle={sessionRef} />);
         }
-    } , [setBodyFileMain, socket])
+    }, [setBodyFileMain, socket])
 
     const Auth = useCallback(async (tebLoadOn = false) => {
         if (tebLoadOn) TabOn.start();
         const result = await clientMo.post('/api/admin/check');
         if (result) return true;
         else sessionoff();
-    } , [TabOn, sessionoff])
+    }, [TabOn, sessionoff])
 
     const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
         setTextPage(ArrtextPage.filter(val => val !== ""));
         ImageCover.current.style.height = `${heightCover}%`;
         BodyRef.current.style.height = `${heigthBody}%`;
-    } , [])
+    }, [])
 
     const method = useCallback((e) => {
         const path = window.location.pathname.replace("/uat", "").split("/").filter(val => val);
@@ -93,7 +93,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let query = seconPath[1] || "";
 
             // temp
-            if(seconPath[0] === "schedules") {
+            if (seconPath[0] === "schedules") {
                 TabOn.addTimeOut(TabOn.end());
                 return
             }
@@ -235,7 +235,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             auth={Auth}
                             HrefData={Href}
                         />
-                    ); 
+                    );
                 } else if (query.indexOf("user-access-logs") === 0) {
                     Href.set(`report?user-access-logs${type}`);
                     setBody(
@@ -247,7 +247,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             auth={Auth}
                             HrefData={Href}
                         />
-                    ); 
+                    );
                 }
             } else if (query.indexOf("group") === 0) {
                 Href.set(`group?default${type}`);
@@ -276,11 +276,11 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 />
             );
         }
-    } , [Auth, Href, TabOn, modifyMainPage, sessionoff, socket])
+    }, [Auth, Href, TabOn, modifyMainPage, sessionoff, socket])
 
     const ChkPath = useCallback(async (e) => {
         if (await Auth(true)) method(e);
-    } , [Auth, method])
+    }, [Auth, method])
 
     const Resize = useCallback(() => {
         setResponsive(window.innerWidth);
@@ -288,11 +288,11 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         const LoadImg = () => {
             setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
         }
-    } , [])
+    }, [])
 
     useEffect(() => {
         FetchProfile();
-        ChkPath(null , "web")
+        ChkPath(null, "web")
         setTabMenu(
             <DesktopNev
                 setSession={sessionoff}
@@ -301,11 +301,11 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 socket={socket}
                 auth={Auth}
                 modify={modifyMainPage}
-                eleImageCover={ImageCover} 
-                eleBody={BodyRef} setTextStatus={setTextPage} 
+                eleImageCover={ImageCover}
+                eleBody={BodyRef} setTextStatus={setTextPage}
                 TabOn={TabOn}
                 HrefData={Href}
-                getProfile={getProfile} 
+                getProfile={getProfile}
                 FetchProfile={FetchProfile}
             />
         );
@@ -324,7 +324,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     return (
         <AdminContext.Provider
             value={{
-                TabOn : TabOn,
+                TabOn: TabOn,
                 titlePageNested: modifyMainPage,
             }}
         >
@@ -377,10 +377,12 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             {/* {body} */}
                             <BrowserRouter basename={env.subpath_server}>
                                 <Routes>
-                                    <Route path="/admin/schedules" element={<ScheduleIndex/>}>
-                                        <Route index element={<SchedulesPlan/>} />
-                                        <Route path=":station_id" element={<SchedulesPlan/>} />
-                                        <Route path=":station_id/:plant_id" element={<SchedulePlants/>} />
+                                    <Route path="/admin/schedules" element={<ScheduleIndex />}>
+                                        <Route index element={<SchedulesPlan />} />
+                                        <Route path=":station_id" element={<SchedulesPlan />} />
+                                        <Route path=":station_id/:plant_id" element={<SchedulePlants />} />
+                                    </Route>
+                                    <Route path="/admin/station" element={<WeatherStation />}>
                                     </Route>
                                     <Route path="/admin/weather-station" element={
                                         <></>
