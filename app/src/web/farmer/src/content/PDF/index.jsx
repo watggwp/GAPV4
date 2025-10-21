@@ -240,41 +240,40 @@ export default function PDFDownloadOnly() {
           padding:4px 6px 10px;   /* เดิมมากกว่านี้ */
         }
 
-        /* 2) การ์ด: เล็กลงทั้งกว้าง-สูง */
-        .pdf-card{
-          width:100%;
-          max-width:340px;        /* เดิม 420/480 -> เล็กลงชัดเจน */
-          background:#fff;
-          border:1px solid #e6efe9;
-          border-radius:10px;     /* มุมน้อยลง */
-          padding:10px;           /* ช่องว่างในกรอบน้อยลง */
-          box-shadow:0 4px 10px rgba(0,0,0,.05);
-          display:flex;
-          flex-direction:column;
-          min-height:min(40vh, 340px);  /* เดิมสูงกว่านี้ */
-        }
+        /* 1) กรอบการ์ด: ให้สูงเท่าที่จำเป็น (พอดีเนื้อหา) */
+.pdf-card{
+  width:100%;
+  max-width:360px;          /* เดิม 420/480/640 -> เล็กลง */
+  background:#fff;
+  border:1px solid #e6efe9;
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 6px 14px rgba(0,0,0,.05);
+  display:flex;
+  flex-direction:column;
+  gap:10px;                 /* เว้นช่องระหว่างหัวข้อ/ปุ่ม */
+  min-height:auto;          /* << สำคัญ: เอาความสูงขั้นต่ำออก ให้พอดีเนื้อหา */
+}
 
-        /* 3) หัวข้อ: ลดขนาดอีกนิด */
-        .pdf-title{
-          margin:0 0 6px;
-          text-align:center;
-          font-size:clamp(15px,3.6vw,17px);
-          font-weight:800;
-          color:#103d2b;
-        }
+/* 2) ตัวเนื้อหาในกรอบ: ไม่ต้องดันว่างเปล่า */
+.pdf-body{
+  flex:0 0 auto;            /* เดิม flex:1 — ยกเลิกการดันพื้นที่ว่าง */
+  min-height:0;
+}
 
-        /* 4) พื้นที่ปุ่ม: กระชับลง */
-        .pdf-actions{
-          margin-top:8px;
-          display:grid;
-          grid-template-columns:1fr;
-          gap:6px;
-        }
-        .btn-primary{
-          height:44px;            /* เดิม 46-50px */
-          border-radius:10px;     /* ให้เข้ากับกรอบ */
-          font-size:15px;
-        }
+/* 3) ปุ่มในกรอบ: กระชับลงเล็กน้อย */
+.pdf-actions{
+  margin-top:6px;           /* เดิมมากกว่า */
+  display:grid;
+  grid-template-columns:1fr;
+  gap:6px;
+}
+.btn-primary{
+  height:44px;              /* เดิม 46–50px */
+  border-radius:12px;
+  font-size:15px;
+}
+
         .btn-primary:active{ transform:translateY(1px); }
         .btn-primary[disabled]{ opacity:.75; background:#97e0b9; box-shadow:none; cursor:not-allowed; }
 
