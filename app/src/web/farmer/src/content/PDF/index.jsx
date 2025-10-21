@@ -81,7 +81,7 @@ export default function PDFDownloadOnly() {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // ขนาด host ของกราฟที่ซ่อน (เล็กลงบนมือถือเพื่อไม่ดันเลย์เอาต์)
+  // host สำหรับกราฟ (ซ่อน)
   const [hostSize, setHostSize] = useState(() => {
     const w = typeof window !== "undefined" ? window.innerWidth : 980;
     const maxW = w <= 480 ? 420 : 980;
@@ -89,7 +89,6 @@ export default function PDFDownloadOnly() {
     const height = Math.round(width * 0.5);
     return { width, height };
   });
-
   const hostRef = useRef(null);
 
   useEffect(() => {
@@ -184,106 +183,150 @@ export default function PDFDownloadOnly() {
     }
   }, [greenhouse_id, gap_id, data]);
 
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) window.history.back();
+    else window.location.assign("/");
+  }, []);
+
   return (
     <>
-      {/* CSS mobile-first & fixed CTA bottom */}
+      {/* สไตล์: ปุ่มอยู่ในกรอบการ์ด + ปุ่มย้อนกลับใต้โลโก้ */}
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
 
-        .pdf-shell {
-          /* ให้เต็มความกว้างจริงๆ ของ parent */
-          width: 100%;
-          min-height: 100vh;
-          background: #f3f8f6;
-          display: flex;
-          flex-direction: column;
-          /* กันหัวแอปชน: เว้นบนสักหน่อย */
-          padding-top: max(env(safe-area-inset-top), 8px);
-        }
+        .pdf-shell{
+  width:100%;
+  min-height:100vh;
+  background:#eef6f2;
+  display:flex;
+  flex-direction:column;
+  padding-top:max(env(safe-area-inset-top),8px);
+}
 
-        .pdf-content {
-          flex: 1 1 auto;
-          display: flex;
-          justify-content: center;
-          padding: 12px 12px 96px;  /* เผื่อพื้นที่ปุ่มล่าง */
-        }
+/* ปุ่มย้อนกลับใต้โลโก้ */
+.pdf-topbar{
+  width:100%;
+  padding:8px 12px 6px;
+  display:flex;
+  justify-content:flex-start;
+  gap:8px;
+}
+.btn-back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  height:40px;
+  padding:0 14px;
+  border:1px solid #cfe6db;
+  background:#fff;
+  border-radius:12px;
+  color:#2e6b4e;
+  font-weight:700;
+  font-size:14px;
+  box-shadow:0 3px 8px rgba(0,0,0,.06);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-back:active{ transform:translateY(1px); }
+.i-back{
+  display:inline-block; width:10px; height:10px;
+  border-left:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform:rotate(45deg); margin-top:1px;
+}
 
-        .pdf-card {
-          width: 100%;
-          max-width: min(640px, 100%);
-          background: #fff;
-          border: 1px solid #e6efe9;
-          border-radius: 16px;
-          padding: 18px;
-          box-shadow: 0 6px 14px rgba(0,0,0,.05);
-          text-align: center;
-        }
+/* เนื้อหากลาง: ลด padding ให้การ์ดเล็กลง */
+.pdf-content{
+  flex:1 1 auto;
+  display:flex;
+  justify-content:center;
+  padding:6px 10px 14px;           /* เดิม 8px 12px 16px */
+}
 
-        .pdf-title {
-          margin: 2px 0 10px;
-          font-size: clamp(18px, 4.8vw, 22px);
-          line-height: 1.35;
-        }
+/* การ์ดเล็กลงทั้งกว้าง/สูง */
+.pdf-card{
+  width:100%;
+  max-width:480px;                  /* เดิม 640px */
+  background:#fff;
+  border:1px solid #e6efe9;
+  border-radius:14px;               /* เดิม 16px */
+  padding:14px;                     /* เดิม 16px */
+  box-shadow:0 6px 14px rgba(0,0,0,.05);
+  display:flex;
+  flex-direction:column;
+  min-height:min(56vh,520px);       /* เดิม min(72vh,760px) */
+}
 
-        /* แถบปุ่มล่างติดขอบ */
-        .pdf-cta {
-          position: fixed;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          padding: 10px max(env(safe-area-inset-right), 14px)
-                   max(calc(env(safe-area-inset-bottom) + 6px), 12px)
-                   max(env(safe-area-inset-left), 14px);
-          background: linear-gradient(180deg, rgba(243,248,246,0) 0%, rgba(243,248,246,.9) 30%, rgba(243,248,246,1) 100%);
-          display: flex;
-          justify-content: center;
-          z-index: 9;
-        }
-        .pdf-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          max-width: 560px;
-          height: 54px;
-          padding: 0 16px;
-          border: 0;
-          border-radius: 14px;
-          font-size: clamp(15px, 4vw, 16px);
-          font-weight: 800;
-          letter-spacing: .2px;
-          color: #fff;
-          background: #1db954;
-          box-shadow: 0 10px 22px rgba(0,0,0,.18);
-          cursor: pointer;
-          transition: transform .06s ease, box-shadow .12s ease, opacity .2s ease;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .pdf-btn:active { transform: translateY(1px) scale(0.995); box-shadow: 0 6px 16px rgba(0,0,0,.16); }
-        .pdf-btn[disabled] { opacity: .6; cursor: not-allowed; }
+/* หัวข้อเล็กลงเล็กน้อย */
+.pdf-title{
+  margin:2px 0 6px;
+  text-align:center;
+  font-size:clamp(17px,4.2vw,19px); /* เดิม 18–20px */
+  font-weight:800;
+  color:#103d2b;
+}
 
-        .pdf-note {
-          margin-top: 8px;
-          color: #6a7a71;
-          font-size: clamp(13px, 3.6vw, 14px);
-        }
+.pdf-body{ flex:1 1 auto; }
 
-        /* จอเล็กมาก */
-        @media (max-width: 360px) {
-          .pdf-card { padding: 14px; border-radius: 12px; }
-          .pdf-btn { height: 50px; }
-        }
+.pdf-actions{
+  margin-top:10px;                  /* เดิม 12px */
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;                          /* เดิม 10px */
+}
 
-        /* จอใหญ่ขึ้น */
-        @media (min-width: 768px) {
-          .pdf-content { padding: 20px 20px 110px; }
-          .pdf-card { padding: 22px; border-radius: 18px; }
-        }
+/* ปุ่มหลัก */
+.btn-primary{
+  width:100%;
+  height:48px;                      /* เดิม 50px */
+  border:0;
+  border-radius:12px;               /* เดิม 14px */
+  background:#24b25f;
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.2px;
+  box-shadow:0 6px 16px rgba(36,178,95,.35);
+}
+.btn-primary:active{ transform:translateY(1px); }
+.btn-primary[disabled]{
+  opacity:.75; background:#97e0b9; box-shadow:none; cursor:not-allowed;
+}
+
+.pdf-note{
+  margin-top:6px; color:#6a7a71; font-size:13.5px; text-align:center;
+}
+
+/* จอเล็กมาก */
+@media (max-width:400px){
+  .pdf-card{
+    max-width:360px;
+    padding:12px;
+    min-height:min(54vh,480px);
+  }
+  .btn-primary{ height:46px; }
+}
+
+/* จอกว้างขึ้นแต่ยังคงขนาดเล็กกะทัดรัด */
+@media (min-width:768px){
+  .pdf-content{ padding:10px 14px 16px; }
+  .pdf-card{
+    max-width:520px;                /* เดสก์ท็อปก็ไม่ใหญ่เกินไป */
+    min-height:min(50vh,500px);
+  }
+}
+
       `}</style>
 
       <div className="pdf-shell">
+        {/* ปุ่มย้อนกลับใต้โลโก้ */}
+        <div className="pdf-topbar">
+          <button className="btn-back" onClick={handleBack} aria-label="ย้อนกลับ">
+            <span className="i-back" aria-hidden="true"></span>
+            <span>ย้อนกลับ</span>
+          </button>
+        </div>
+
         <div className="pdf-content">
-          {/* host กราฟซ่อน (ไม่ทำให้เกิดแถบขาวด้านข้าง) */}
+          {/* host กราฟซ่อน */}
           <div
             ref={hostRef}
             style={{
@@ -320,22 +363,25 @@ export default function PDFDownloadOnly() {
             </div>
           </div>
 
-          {/* การ์ดเนื้อหา */}
+          {/* การ์ดหลัก + ปุ่มอยู่ในกรอบ */}
           <div className="pdf-card">
             <h1 className="pdf-title">ดาวน์โหลดรายงาน GAP</h1>
-            {loading && <div className="pdf-note">กำลังเตรียมข้อมูล…</div>}
-          </div>
-        </div>
 
-        {/* ปุ่มล่างติดขอบ (ไม่เลื่อนหนีมือ) */}
-        <div className="pdf-cta">
-          <button
-            className="pdf-btn"
-            disabled={downloading || loading}
-            onClick={handleDownload}
-          >
-            {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลด PDF"}
-          </button>
+            <div className="pdf-body">
+              {/* หากมีข้อความ/รายละเอียดอื่นๆ ใส่ในส่วนนี้ */}
+              {loading && <div className="pdf-note">กำลังเตรียมข้อมูล…</div>}
+            </div>
+
+            <div className="pdf-actions">
+              <button
+                className="btn-primary"
+                disabled={downloading || loading}
+                onClick={handleDownload}
+              >
+                {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลด PDF"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>
