@@ -190,130 +190,127 @@ export default function PDFDownloadOnly() {
 
   return (
     <>
-      {/* สไตล์: ปุ่มอยู่ในกรอบการ์ด + ปุ่มย้อนกลับใต้โลโก้ */}
+      {/* สไตล์: ย่อกรอบขาวให้เล็กลง */}
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
 
         .pdf-shell{
-  width:100%;
-  min-height:100vh;
-  background:#eef6f2;
-  display:flex;
-  flex-direction:column;
-  padding-top:max(env(safe-area-inset-top),8px);
-}
+          width:100%;
+          min-height:100vh;
+          background:#eef6f2;
+          display:flex;
+          flex-direction:column;
+          padding-top:max(env(safe-area-inset-top),8px);
+        }
 
-/* ปุ่มย้อนกลับใต้โลโก้ */
-.pdf-topbar{
-  width:100%;
-  padding:8px 12px 6px;
-  display:flex;
-  justify-content:flex-start;
-  gap:8px;
-}
-.btn-back{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  height:40px;
-  padding:0 14px;
-  border:1px solid #cfe6db;
-  background:#fff;
-  border-radius:12px;
-  color:#2e6b4e;
-  font-weight:700;
-  font-size:14px;
-  box-shadow:0 3px 8px rgba(0,0,0,.06);
-  -webkit-tap-highlight-color:transparent;
-}
-.btn-back:active{ transform:translateY(1px); }
-.i-back{
-  display:inline-block; width:10px; height:10px;
-  border-left:2px solid currentColor; border-bottom:2px solid currentColor;
-  transform:rotate(45deg); margin-top:1px;
-}
+        /* ปุ่มย้อนกลับใต้โลโก้ */
+        .pdf-topbar{
+          width:100%;
+          padding:8px 12px 6px;
+          display:flex;
+          justify-content:flex-start;
+          gap:8px;
+        }
+        .btn-back{
+          display:inline-flex;
+          align-items:center;
+          gap:8px;
+          height:38px;
+          padding:0 12px;
+          border:1px solid #cfe6db;
+          background:#fff;
+          border-radius:10px;
+          color:#2e6b4e;
+          font-weight:700;
+          font-size:14px;
+          box-shadow:0 3px 8px rgba(0,0,0,.06);
+          -webkit-tap-highlight-color:transparent;
+        }
+        .btn-back:active{ transform:translateY(1px); }
+        .i-back{
+          display:inline-block; width:10px; height:10px;
+          border-left:2px solid currentColor; border-bottom:2px solid currentColor;
+          transform:rotate(45deg); margin-top:1px;
+        }
 
-/* เนื้อหากลาง: ลด padding ให้การ์ดเล็กลง */
-.pdf-content{
-  flex:1 1 auto;
-  display:flex;
-  justify-content:center;
-  padding:6px 10px 14px;           /* เดิม 8px 12px 16px */
-}
+        /* เนื้อหากลาง: ลด padding ให้การ์ดเล็กลง */
+        .pdf-content{
+          flex:1 1 auto;
+          display:flex;
+          justify-content:center;
+          padding:4px 8px 12px;
+        }
 
-/* การ์ดเล็กลงทั้งกว้าง/สูง */
-.pdf-card{
-  width:100%;
-  max-width:480px;                  /* เดิม 640px */
-  background:#fff;
-  border:1px solid #e6efe9;
-  border-radius:14px;               /* เดิม 16px */
-  padding:14px;                     /* เดิม 16px */
-  box-shadow:0 6px 14px rgba(0,0,0,.05);
-  display:flex;
-  flex-direction:column;
-  min-height:min(56vh,520px);       /* เดิม min(72vh,760px) */
-}
+        /* การ์ดเล็กลงทั้งกว้าง/สูง */
+        .pdf-card{
+          width:100%;
+          max-width:420px;                 /* เล็กลงจาก 480/640 */
+          background:#fff;
+          border:1px solid #e6efe9;
+          border-radius:12px;              /* ลดมุมโค้งลง */
+          padding:12px;                    /* ลด padding */
+          box-shadow:0 6px 14px rgba(0,0,0,.05);
+          display:flex;
+          flex-direction:column;
+          min-height:min(48vh, 420px);     /* เตี้ยลงอย่างชัดเจน */
+        }
 
-/* หัวข้อเล็กลงเล็กน้อย */
-.pdf-title{
-  margin:2px 0 6px;
-  text-align:center;
-  font-size:clamp(17px,4.2vw,19px); /* เดิม 18–20px */
-  font-weight:800;
-  color:#103d2b;
-}
+        /* หัวข้อเล็กลงอีกนิด */
+        .pdf-title{
+          margin:2px 0 6px;
+          text-align:center;
+          font-size:clamp(16px,3.8vw,18px);
+          font-weight:800;
+          color:#103d2b;
+        }
 
-.pdf-body{ flex:1 1 auto; }
+        .pdf-body{ flex:1 1 auto; }
 
-.pdf-actions{
-  margin-top:10px;                  /* เดิม 12px */
-  display:grid;
-  grid-template-columns:1fr;
-  gap:8px;                          /* เดิม 10px */
-}
+        .pdf-actions{
+          margin-top:8px;
+          display:grid;
+          grid-template-columns:1fr;
+          gap:6px;
+        }
 
-/* ปุ่มหลัก */
-.btn-primary{
-  width:100%;
-  height:48px;                      /* เดิม 50px */
-  border:0;
-  border-radius:12px;               /* เดิม 14px */
-  background:#24b25f;
-  color:#fff;
-  font-size:16px;
-  font-weight:800;
-  letter-spacing:.2px;
-  box-shadow:0 6px 16px rgba(36,178,95,.35);
-}
-.btn-primary:active{ transform:translateY(1px); }
-.btn-primary[disabled]{
-  opacity:.75; background:#97e0b9; box-shadow:none; cursor:not-allowed;
-}
+        /* ปุ่มหลักยังอ่านง่าย */
+        .btn-primary{
+          width:100%;
+          height:46px;
+          border:0;
+          border-radius:12px;
+          background:#24b25f;
+          color:#fff;
+          font-size:15.5px;
+          font-weight:800;
+          letter-spacing:.2px;
+          box-shadow:0 6px 16px rgba(36,178,95,.35);
+        }
+        .btn-primary:active{ transform:translateY(1px); }
+        .btn-primary[disabled]{ opacity:.75; background:#97e0b9; box-shadow:none; cursor:not-allowed; }
 
-.pdf-note{
-  margin-top:6px; color:#6a7a71; font-size:13.5px; text-align:center;
-}
+        .pdf-note{
+          margin-top:6px; color:#6a7a71; font-size:13.5px; text-align:center;
+        }
 
-/* จอเล็กมาก */
-@media (max-width:400px){
-  .pdf-card{
-    max-width:360px;
-    padding:12px;
-    min-height:min(54vh,480px);
-  }
-  .btn-primary{ height:46px; }
-}
+        /* จอเล็กมาก */
+        @media (max-width:400px){
+          .pdf-card{
+            max-width:340px;
+            padding:10px;
+            min-height:min(46vh, 380px);
+          }
+          .btn-primary{ height:44px; }
+        }
 
-/* จอกว้างขึ้นแต่ยังคงขนาดเล็กกะทัดรัด */
-@media (min-width:768px){
-  .pdf-content{ padding:10px 14px 16px; }
-  .pdf-card{
-    max-width:520px;                /* เดสก์ท็อปก็ไม่ใหญ่เกินไป */
-    min-height:min(50vh,500px);
-  }
-}
-
+        /* จอกว้างขึ้นแต่ยังคงขนาดเล็กกะทัดรัด */
+        @media (min-width:768px){
+          .pdf-content{ padding:8px 12px 14px; }
+          .pdf-card{
+            max-width:460px;               /* เดสก์ท็อปก็ยังเล็ก */
+            min-height:min(44vh, 400px);
+          }
+        }
       `}</style>
 
       <div className="pdf-shell">
@@ -368,7 +365,6 @@ export default function PDFDownloadOnly() {
             <h1 className="pdf-title">ดาวน์โหลดรายงาน GAP</h1>
 
             <div className="pdf-body">
-              {/* หากมีข้อความ/รายละเอียดอื่นๆ ใส่ในส่วนนี้ */}
               {loading && <div className="pdf-note">กำลังเตรียมข้อมูล…</div>}
             </div>
 
