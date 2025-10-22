@@ -1,9 +1,8 @@
 // app/src/web/farmer/src/content/PDF/index.jsx
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import WeatherManagement from "../../../../../assets/components/weather-management";
-import { ExportPDF } from "../../../../../assets/js/Export"; // ถ้าไฟล์ชื่อ exports.js ให้แก้เป็น ../../../../../assets/js/exports
+import { ExportPDF } from "../../../../../assets/js/Export";
 
 /* ---------------- helpers: วันที่/ช่วงเวลา ---------------- */
 const toMs = (input) => {
@@ -21,35 +20,155 @@ const endOfDayLocal2359 = (input) => {
   return d.getTime();
 };
 
-/* --------------- helpers: แกะ/แปลง response --------------- */
+/* --------------- helpers: response --------------- */
 function unwrap(res) {
   let v = res;
-  if (v && v.data !== undefined) v = v.data; // axios
+  if (v && v.data !== undefined) v = v.data;
   if (v && typeof v === "string") { try { v = JSON.parse(v); } catch {} }
   return v || null;
 }
+
+/* utils */
+const asStr = (v) => (v === undefined || v === null ? "" : String(v));
+const pick = (...vals) => {
+  for (const v of vals) if (v !== undefined && v !== null) return v;
+  return undefined;
+};
+const isPlainObj = (o) => o && typeof o === "object" && !Array.isArray(o);
+
+/* ========= ตัวช่วย “เดาจนเจอ” dataform จาก payload ที่แปลกทรง ========= */
+
+/** มองหา object ที่มีคีย์ของแบบฟอร์ม (plant_name/plant_date/harvest_date/amount/plant_area/unit_name/generation) */
+function findFormLikeDeep(raw) {
+  const candidates = [];
+  const seen = new Set();
+
+  const pushIfFormish = (obj) => {
+    if (!isPlainObj(obj)) return;
+    const keys = Object.keys(obj).map((k) => k.toLowerCase());
+    const hasName = keys.includes("name_plant") || keys.includes("plant_name");
+    const hasDate = keys.includes("date_plant") || keys.includes("plant_date");
+    const hasAny =
+      hasName ||
+      hasDate ||
+      keys.includes("harvest_date") ||
+      keys.includes("date_harvest") ||
+      keys.includes("amount") ||
+      keys.includes("qty") ||
+      keys.includes("plant_area") ||
+      keys.includes("unit_name") ||
+      keys.includes("generation");
+
+    if (hasAny) candidates.push(obj);
+  };
+
+  const walk = (node, depth = 0) => {
+    if (!node || depth > 3) return;             // พอแค่ 3 ชั้นกันหลุดโลก
+    if (seen.has(node)) return;
+    seen.add(node);
+
+    if (isPlainObj(node)) {
+      pushIfFormish(node);
+      for (const k of Object.keys(node)) {
+        const v = node[k];
+        if (isPlainObj(v)) walk(v, depth + 1);
+        else if (Array.isArray(v)) v.forEach((i) => walk(i, depth + 1));
+      }
+    } else if (Array.isArray(node)) {
+      node.forEach((i) => walk(i, depth + 1));
+    }
+  };
+
+  walk(raw, 0);
+  return candidates[0] || null;
+}
+
+/** แมป fields -> รูปแบบที่ ExportPDF ต้องการ (รับ object ที่มีคีย์จริง ๆ) */
+function mapDataForm(df) {
+  if (!isPlainObj(df)) return {
+    type_main:"", name_plant:"", generation:"", date_glow:"", date_plant:"",
+    date_success:"", date_harvest:"", posi_w:"", posi_h:"", qty:"", area:"",
+    unit:"", history:"", insect:"", prevent:"", qtyInsect:"", system_glow:"",
+    system_glow_other:"", water:"", water_other:"", water_flow:"", water_flow_other:""
+  };
+
+  return {
+    type_main:          asStr(pick(df.type_main, df.type, df.category)),
+    name_plant:         asStr(pick(df.name_plant, df.plant_name, df.plant, df.crop)),
+    generation:         asStr(pick(df.generation, df.gen)),
+    date_glow:          asStr(pick(df.date_glow, df.seed_date, df.date_seed)),
+    date_plant:         asStr(pick(df.date_plant, df.plant_date)),
+    date_success:       asStr(pick(df.date_success, df.success_date)),
+    date_harvest:       asStr(pick(df.date_harvest, df.harvest_date)),
+    posi_w:             asStr(df.posi_w ?? ""),
+    posi_h:             asStr(df.posi_h ?? ""),
+    qty:                asStr(pick(df.qty, df.amount)),
+    area:               asStr(pick(df.area, df.plant_area)),
+    unit:               asStr(pick(df.unit, df.unit_name)),
+    history:            asStr(df.history ?? ""),
+    insect:             asStr(df.insect ?? ""),
+    prevent:            asStr(pick(df.prevent, df.solution, "")),
+    qtyInsect:          asStr(pick(df.qtyInsect, df.qty_insect, "")),
+    system_glow:        asStr(df.system_glow ?? ""),
+    system_glow_other:  asStr(df.system_glow_other ?? ""),
+    water:              asStr(df.water ?? ""),
+    water_other:        asStr(df.water_other ?? ""),
+    water_flow:         asStr(df.water_flow ?? ""),
+    water_flow_other:   asStr(df.water_flow_other ?? ""),
+  };
+}
+
+/** รวม normalize ทั้ง payload (รองรับทรงแปลก และ array) */
 function normalizePayload(raw) {
   if (!raw || typeof raw !== "object") return null;
-  const dataForm = raw.dataForm ?? raw.dataform ?? null;
-  const farmerObj = Array.isArray(raw.farmer) ? raw.farmer[0] : raw.farmer;
+
+  // ---- farmer ----
+  let farmerObj = Array.isArray(raw.farmer) ? raw.farmer[0] : raw.farmer;
+  if (!isPlainObj(farmerObj) && isPlainObj(raw.acc_farmer)) farmerObj = raw.acc_farmer; // กันแบ็กเอนด์ดึงชื่อ table มา
+  const farmer = farmerObj
+    ? {
+        fullname: asStr(pick(farmerObj.fullname, farmerObj.name, farmerObj.full_name)),
+        id_farmer: asStr(pick(farmerObj.id_farmer, farmerObj.farmer_id, farmerObj.code)),
+        station: asStr(pick(farmerObj.station, farmerObj.name_station, farmerObj.center)),
+      }
+    : null;
+
+  // ---- dataform ----
+  let df = raw.dataForm ?? raw.dataform ?? raw.form ?? null;
+  if (Array.isArray(df)) df = df[0];
+  if (!isPlainObj(df)) {
+    // พยายามหาใน payload
+    df = findFormLikeDeep(raw);
+  }
+  const dataForm = mapDataForm(df || {});
+
+  // ---- collections ----
+  const ferti = Array.isArray(raw.ferti) ? raw.ferti : [];
+  const chemi = Array.isArray(raw.chemi) ? raw.chemi : [];
+  const report = Array.isArray(raw.report) ? raw.report : [];
+  const checkPlant = Array.isArray(raw.checkPlant) ? raw.checkPlant : [];
+  const checkForm = Array.isArray(raw.checkForm) ? raw.checkForm : [];
+
+  const id_farm_house = pick(raw.id_farm_house, raw.id_farmhouse, raw.id_farmHouse, df?.id_farm_house);
+  const device_id = pick(raw.device_id, raw.deviceId, df?.device_id);
+
   return {
     dataForm,
-    farmer: farmerObj || null,
-    ferti: raw.ferti || [],
-    chemi: raw.chemi || [],
-    report: raw.report || [],
-    checkPlant: raw.checkPlant || [],
-    checkForm: raw.checkForm || [],
-    id_farm_house: raw.id_farm_house ?? raw.id_farmhouse ?? raw.id_farmHouse,
-    device_id: raw.device_id ?? raw.deviceId,
+    farmer: farmer || null,
+    ferti,
+    chemi,
+    report,
+    checkPlant,
+    checkForm,
+    id_farm_house: id_farm_house ?? null,
+    device_id: device_id ?? null,
     __raw: raw,
   };
 }
 
 /* --------- ดึง greenhouse_id/gap_id จาก URL ---------- */
 function getIdsFromURL() {
-  let greenhouse_id = null;
-  let gap_id = null;
+  let greenhouse_id = null, gap_id = null;
   try {
     const url = new URL(window.location.href);
     const qs = new URLSearchParams(url.search);
@@ -59,10 +178,8 @@ function getIdsFromURL() {
       const parts = url.pathname.split("/").filter(Boolean);
       const pdfIdx = parts.findIndex((p) => p.toLowerCase() === "pdf");
       if (pdfIdx >= 0) {
-        const afterA = parts[pdfIdx + 1];
-        const afterB = parts[pdfIdx + 2];
-        const beforeA = parts[pdfIdx - 2];
-        const beforeB = parts[pdfIdx - 1];
+        const afterA = parts[pdfIdx + 1], afterB = parts[pdfIdx + 2];
+        const beforeA = parts[pdfIdx - 2], beforeB = parts[pdfIdx - 1];
         if (afterA && afterB) { greenhouse_id ??= afterA; gap_id ??= afterB; }
         else if (beforeA && beforeB) { greenhouse_id ??= beforeA; gap_id ??= beforeB; }
       }
@@ -81,16 +198,17 @@ export default function PDFDownloadOnly() {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // host สำหรับกราฟ (ซ่อน)
+  /* host สำหรับกราฟซ่อน */
   const [hostSize, setHostSize] = useState(() => {
     const w = typeof window !== "undefined" ? window.innerWidth : 980;
-    const maxW = w <= 480 ? 420 : 980;
-    const width = Math.min(maxW, Math.max(300, w - 24));
+    const maxW = w <= 480 ? 360 : 720;
+    const width = Math.min(maxW, Math.max(280, w - 24));
     const height = Math.round(width * 0.5);
     return { width, height };
   });
   const hostRef = useRef(null);
 
+  /* แจ้งพร้อมเมื่อ Recharts mount เสร็จ */
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
@@ -107,8 +225,8 @@ export default function PDFDownloadOnly() {
   useEffect(() => {
     const onResize = () => {
       const w = window.innerWidth;
-      const maxW = w <= 480 ? 420 : 980;
-      const width = Math.min(maxW, Math.max(300, w - 24));
+      const maxW = w <= 480 ? 360 : 720;
+      const width = Math.min(maxW, Math.max(280, w - 24));
       const height = Math.round(width * 0.5);
       setHostSize({ width, height });
     };
@@ -116,6 +234,7 @@ export default function PDFDownloadOnly() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  /* โหลดข้อมูล + เติม fallback ให้ครบข้อ 7–9 และ log raw */
   useEffect(() => {
     if (!greenhouse_id || !gap_id) return;
     (async () => {
@@ -124,7 +243,42 @@ export default function PDFDownloadOnly() {
         const res = await clientMo.get(
           `/api/farmer/report/export?id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`
         );
-        setData(normalizePayload(unwrap(res)));
+        const raw = unwrap(res);
+        console.log("[RAW export]", raw);
+
+        let payload = normalizePayload(raw);
+
+        // set meta for chart
+        if (typeof window !== "undefined") {
+          window.__weatherMeta = {
+            hasDevice: !!payload?.device_id,
+            device_id: payload?.device_id || null,
+            rows: 0,
+          };
+        }
+
+        // ---- Fallback เติมข้อมูลให้ครบถ้ายังไม่มี ----
+        const needs = {
+          report: !payload?.report?.length,
+          checkForm: !payload?.checkForm?.length,
+          checkPlant: !payload?.checkPlant?.length,
+        };
+        const qsBase = `id_farmhouse=${greenhouse_id}&id_plant=${gap_id}`;
+        const ask = async (type) => {
+          try {
+            const r = await clientMo.get(`/api/farmer/report/list?type=${type}&${qsBase}`);
+            return unwrap(r) || [];
+          } catch {
+            return [];
+          }
+        };
+        if (needs.report)     payload.report     = await ask("r");
+        if (needs.checkForm)  payload.checkForm  = await ask("cf");
+        if (needs.checkPlant) payload.checkPlant = await ask("cp");
+
+        setData(payload);
+        console.log("[mapped] farmer →", payload.farmer);
+        console.log("[mapped] dataForm →", payload.dataForm);
       } catch (e) {
         console.error(e);
         setData(null);
@@ -160,6 +314,23 @@ export default function PDFDownloadOnly() {
         alert("ไม่พบข้อมูลสำหรับสร้าง PDF");
         return;
       }
+
+      if (hostRef.current) {
+        hostRef.current.style.width = `${hostSize.width}px`;
+        hostRef.current.style.height = `${hostSize.height}px`;
+      }
+
+      const st = toMs(payload?.dataForm?.date_plant);
+      const et = endOfDayLocal2359(payload?.dataForm?.date_harvest || new Date().toISOString());
+      const timeRange = st && et && et >= st ? { st, et } : null;
+      if (timeRange) {
+        try {
+          window.dispatchEvent(
+            new CustomEvent("weather-export:set-range", { detail: { st: timeRange.st, et: timeRange.et } })
+          );
+        } catch {}
+      }
+
       const formatted = {
         farmer: [payload.farmer],
         dataForm: payload.dataForm,
@@ -168,12 +339,11 @@ export default function PDFDownloadOnly() {
         report: payload.report || [],
         checkPlant: payload.checkPlant || [],
         checkForm: payload.checkForm || [],
-        id_farm_house: payload.id_farm_house,
-        device_id: payload.device_id,
+        id_farm_house: payload.id_farm_house || greenhouse_id,
+        device_id: payload.device_id || null,
       };
-      const st = toMs(payload?.dataForm?.date_plant);
-      const et = endOfDayLocal2359(payload?.dataForm?.date_harvest || new Date().toISOString());
-      const timeRange = st && et && et >= st ? { st, et } : null;
+
+      console.log("[export payload] dataForm:", formatted.dataForm);
       await ExportPDF([formatted], { range: timeRange, download: true });
     } catch (e) {
       console.error(e);
@@ -181,7 +351,7 @@ export default function PDFDownloadOnly() {
     } finally {
       setDownloading(false);
     }
-  }, [greenhouse_id, gap_id, data]);
+  }, [greenhouse_id, gap_id, data, hostSize.width, hostSize.height]);
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) window.history.back();
@@ -190,181 +360,81 @@ export default function PDFDownloadOnly() {
 
   return (
     <>
-      {/* สไตล์: ย่อกรอบขาวให้เล็กลง */}
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
-
-        .pdf-shell{
-          width:100%;
-          min-height:100vh;
-          background:#eef6f2;
-          display:flex;
-          flex-direction:column;
-          padding-top:max(env(safe-area-inset-top),8px);
-        }
-
-        /* ปุ่มย้อนกลับใต้โลโก้ */
-        .pdf-topbar{
-          width:100%;
-          padding:8px 12px 6px;
-          display:flex;
-          justify-content:flex-start;
-          gap:8px;
-        }
-        .btn-back{
-          display:inline-flex;
-          align-items:center;
-          gap:8px;
-          height:38px;
-          padding:0 12px;
-          border:1px solid #cfe6db;
-          background:#fff;
-          border-radius:10px;
-          color:#2e6b4e;
-          font-weight:700;
-          font-size:14px;
-          box-shadow:0 3px 8px rgba(0,0,0,.06);
-          -webkit-tap-highlight-color:transparent;
-        }
-        .btn-back:active{ transform:translateY(1px); }
-        .i-back{
-          display:inline-block; width:10px; height:10px;
-          border-left:2px solid currentColor; border-bottom:2px solid currentColor;
-          transform:rotate(45deg); margin-top:1px;
-        }
-
-        .pdf-content{
-          flex:1 1 auto;
-          display:flex;
-          justify-content:center;
-          padding:4px 6px 10px;   /* เดิมมากกว่านี้ */
-        }
-
-        /* 1) กรอบการ์ด: ให้สูงเท่าที่จำเป็น (พอดีเนื้อหา) */
-.pdf-card{
-  width:100%;
-  max-width:360px;          /* เดิม 420/480/640 -> เล็กลง */
-  background:#fff;
-  border:1px solid #e6efe9;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 6px 14px rgba(0,0,0,.05);
-  display:flex;
-  flex-direction:column;
-  gap:10px;                 /* เว้นช่องระหว่างหัวข้อ/ปุ่ม */
-  min-height:auto;          /* << สำคัญ: เอาความสูงขั้นต่ำออก ให้พอดีเนื้อหา */
-}
-
-/* 2) ตัวเนื้อหาในกรอบ: ไม่ต้องดันว่างเปล่า */
-.pdf-body{
-  flex:0 0 auto;            /* เดิม flex:1 — ยกเลิกการดันพื้นที่ว่าง */
-  min-height:0;
-}
-
-/* 3) ปุ่มในกรอบ: กระชับลงเล็กน้อย */
-.pdf-actions{
-  margin-top:6px;           /* เดิมมากกว่า */
-  display:grid;
-  grid-template-columns:1fr;
-  gap:6px;
-}
-.btn-primary{
-  height:44px;              /* เดิม 46–50px */
-  border-radius:12px;
-  font-size:15px;
-}
-
-        .btn-primary:active{ transform:translateY(1px); }
-        .btn-primary[disabled]{ opacity:.75; background:#97e0b9; box-shadow:none; cursor:not-allowed; }
-
-        .pdf-note{
-          margin-top:6px; color:#6a7a71; font-size:13.5px; text-align:center;
-        }
-
-        /* จอเล็กมาก */
-        @media (max-width:400px){
-          .pdf-card{
-            max-width:340px;
-            padding:10px;
-            min-height:min(46vh, 380px);
-          }
-          .btn-primary{ height:44px; }
-        }
-
-        /* จอกว้างขึ้นแต่ยังคงขนาดเล็กกะทัดรัด */
-        @media (min-width:768px){
-          .pdf-content{ padding:8px 12px 14px; }
-          .pdf-card{
-            max-width:460px;               /* เดสก์ท็อปก็ยังเล็ก */
-            min-height:min(44vh, 400px);
-          }
+        .wrap { min-height: 100vh; width: 100%; background: #e7f4ef;
+          display: flex; flex-direction: column; padding: max(env(safe-area-inset-top), 8px) 12px 12px; gap: 10px; }
+        .topbar{ align-self: stretch; display: flex; justify-content: flex-start; padding: 4px 0;
+          margin-left: -12px; margin-right: -12px;
+          padding-left: max(env(safe-area-inset-left), 6px); padding-right: max(env(safe-area-inset-right), 6px); }
+        .btn-back{ display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 12px;
+          background: #fff; border: 2px solid #e53935; border-radius: 12px; color: #e53935; font-weight: 800; font-size: 14px;
+          box-shadow: 0 2px 8px rgba(229,57,53,.18); -webkit-tap-highlight-color: transparent; cursor: pointer; }
+        .btn-back:active{ transform: translateY(1px); }
+        .btn-back svg{ display:block } .btn-back path{ stroke:#e53935; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+        .center { flex: 1 1 auto; display: grid; place-items: start center; }
+        .card { width: 100%; max-width: 360px; background: #fff; border-radius: 12px; border: 2px solid #3f6f3f;
+          box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 14px 14px 16px; text-align: center; }
+        .title { margin: 4px 0 14px; font-size: clamp(18px, 5.2vw, 22px); font-weight: 900; color: #0b311f; letter-spacing: .2px; }
+        .btn { width: 100%; height: 44px; border: 0; border-radius: 12px; background: #3f6f3f; color: #fff; font-size: 16px; font-weight: 800;
+          letter-spacing: .2px; box-shadow: 0 8px 18px rgba(63,111,63,.25); -webkit-tap-highlight-color: transparent; cursor: pointer; }
+        .btn:active { transform: translateY(1px); }
+        .btn[disabled] { opacity: .7; cursor: not-allowed; }
+        .hiddenHost { position: fixed; left: -10000px; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: -1; }
+        @media (max-width: 360px) {
+          .card { max-width: 320px; padding: 12px 12px 14px; }
+          .btn { height: 42px; font-size: 15px; }
         }
       `}</style>
 
-      <div className="pdf-shell">
-        {/* ปุ่มย้อนกลับใต้โลโก้ */}
-        <div className="pdf-topbar">
+      <div className="wrap">
+        {/* ปุ่มย้อนกลับ ใต้โลโก้ GAP */}
+        <div className="topbar">
           <button className="btn-back" onClick={handleBack} aria-label="ย้อนกลับ">
-            <span className="i-back" aria-hidden="true"></span>
-            <span>ย้อนกลับ</span>
+            <svg width="28" height="20" viewBox="0 0 28 20" aria-hidden="true">
+              <path d="M16 3 L8 10 L16 17" />
+              <path d="M23 3 L15 10 L23 17" />
+            </svg>
           </button>
         </div>
 
-        <div className="pdf-content">
-          {/* host กราฟซ่อน */}
-          <div
-            ref={hostRef}
-            style={{
-              position: "fixed",
-              inset: "0 auto auto -10000px",
-              width: hostSize.width,
-              height: hostSize.height,
-              opacity: 0,
-              pointerEvents: "none",
-              zIndex: -1,
-            }}
-            aria-hidden
-          >
-            <div id="weather-chart-export" style={{ width: "100%", height: "100%" }}>
-              {data?.device_id && range?.st && range?.et && (
-                <WeatherManagement
-                  endpointData={`/api/sensor/weather-greenhouse/${data.id_farm_house || greenhouse_id}/${data.device_id}`}
-                  query={{ r: "farmer" }}
-                  startTime={range.st}
-                  endTime={range.et}
-                  columnTimestamp="timestamp"
-                  columns={[
-                    { field: "air_temperature",  name: "อุณหภูมิ",      color: "green"  },
-                    { field: "air_humidity",     name: "ความชื้น",       color: "yellow" },
-                    { field: "light",            name: "แสง",            color: "orange" },
-                    { field: "soil_temperature", name: "อุณหภูมิดิน",     color: "red"    },
-                    { field: "soil_humidity",    name: "ความชื้นดิน",     color: "blue"   },
-                    { field: "pressure",         name: "ความกดอากาศ",     color: "#4a4573"},
-                    { field: "batt",             name: "แบตเตอรี่",       color: "red"    },
-                  ]}
-                  showTable={false}
-                />
-              )}
-            </div>
+        {/* host กราฟซ่อน */}
+        <div className="hiddenHost" ref={hostRef} aria-hidden>
+          <div id="weather-chart-export" style={{ width: hostSize.width, height: hostSize.height }}>
+            {data?.device_id && range?.st && range?.et && (
+              <WeatherManagement
+                endpointData={`/api/sensor/weather-greenhouse/${data.id_farm_house || greenhouse_id}/${data.device_id}`}
+                query={{ r: "farmer" }}
+                startTime={range.st}
+                endTime={range.et}
+                columnTimestamp="timestamp"
+                columns={[
+                  { field: "air_temperature",  name: "อุณหภูมิ",      color: "green"  },
+                  { field: "air_humidity",     name: "ความชื้น",       color: "yellow" },
+                  { field: "light",            name: "แสง",            color: "orange" },
+                  { field: "soil_temperature", name: "อุณหภูมิดิน",    color: "red"    },
+                  { field: "soil_humidity",    name: "ความชื้นดิน",    color: "blue"   },
+                  { field: "pressure",         name: "ความกดอากาศ",    color: "#4a4573"},
+                  { field: "batt",             name: "แบตเตอรี่",      color: "red"    },
+                ]}
+                showTable={false}
+              />
+            )}
           </div>
+        </div>
 
-          {/* การ์ดหลัก + ปุ่มอยู่ในกรอบ */}
-          <div className="pdf-card">
-            <h1 className="pdf-title">ดาวน์โหลดรายงาน GAP</h1>
-
-            <div className="pdf-body">
-              {loading && <div className="pdf-note">กำลังเตรียมข้อมูล…</div>}
-            </div>
-
-            <div className="pdf-actions">
-              <button
-                className="btn-primary"
-                disabled={downloading || loading}
-                onClick={handleDownload}
-              >
-                {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลด PDF"}
-              </button>
-            </div>
+        {/* การ์ดดาวน์โหลด */}
+        <div className="center">
+          <div className="card">
+            <h1 className="title">ดาวน์โหลดรายงาน GAP</h1>
+            <button
+              className="btn"
+              disabled={downloading || loading}
+              onClick={handleDownload}
+              aria-label="ดาวน์โหลด PDF"
+            >
+              {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลดPDF"}
+            </button>
           </div>
         </div>
       </div>

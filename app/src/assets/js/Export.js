@@ -149,12 +149,12 @@ const captureWeatherChart = async (
     if (m0 && m0.hasDevice === true && Number.isFinite(hasRows) && hasRows <= 0) {
       return null;
     }
-  } catch {}
+  } catch { }
 
   // สั่งให้ component สลับ metric (ถ้ามี)
   try {
     window.dispatchEvent(new CustomEvent("weather-export:set-metric", { detail: { field, color } }));
-  } catch {}
+  } catch { }
 
   // รอ signal / ถ้าไม่มาก็ไปต่อแบบ fallback
   const signaled = await waitForEvent("weather-export:chart-ready", { timeout });
@@ -173,7 +173,7 @@ const captureWeatherChart = async (
       // ไม่มีค่าตัวเลขในฟิลด์นี้ → ไม่จับรูปของ metric นี้
       return null;
     }
-  } catch {}
+  } catch { }
 
   // จับรูปเฉพาะกราฟ (ถ้ามี .recharts-wrapper)
   const host = document.querySelector(selector);
@@ -1151,7 +1151,7 @@ const ExportPDF = async (Data, opts = {}) => {
       let meta = (typeof window !== "undefined" && window.__weatherMeta) || null;
       if (!meta) {
         // ขอ WM ส่ง meta ปัจจุบันมาอีกครั้ง
-        try { window.dispatchEvent(new CustomEvent("weather-export:get-meta")); } catch {}
+        try { window.dispatchEvent(new CustomEvent("weather-export:get-meta")); } catch { }
         const m = await waitForEvent("weather-export:meta", { timeout: 3000 });
         meta = (m && m.detail) ? m.detail : m || {};
       }
