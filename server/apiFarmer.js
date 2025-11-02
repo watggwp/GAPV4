@@ -2870,7 +2870,7 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
 
         } else res.send("error auth")
     })
-   app.get('/api/farmer/report/export', async (req, res) => {
+app.get('/api/farmer/report/export', async (req, res) => {
   if (!req.session.uidFarmer)
     return res.send("error auth");
 
@@ -2890,87 +2890,102 @@ module.exports = function apiFarmer(app, Database , pool = new ConnentPool(), db
       `, [auth.data.uid_line], (err, result) => resolve(result || []));
     });
 
-    // ✅ 2. ดึงข้อมูลฟอร์มปลูก (ตรวจสอบให้แน่ใจว่ามีข้อมูลจริง)
-    const [dataForm] = await new Promise(resolve => {
+    // ✅ 2. ดึงข้อมูลฟอร์มปลูก (dataform)
+    const [dataform] = await new Promise(resolve => {
   con.query(`
     SELECT 
       id,
-      plant_name AS name_plant,
-      plant_date AS date_plant,
-      harvest_date AS date_harvest,
-      amount AS qty,
-      plant_area AS area,
-      unit_name AS unit,
-      generation
+      name_plant,
+      generation,
+      date_glow,
+      date_plant,
+      posi_w,
+      posi_h,
+      qty,
+      area,
+      date_harvest,
+      system_glow,
+      water,
+      water_flow,
+      history,
+      insect,
+      qtyInsect,
+      unit,
+      date_success,
+      name_varieties
     FROM formplant
     WHERE id_farm_house = ? AND id = ?
     LIMIT 1
-  `, [id_farmhouse, id_plant], (err, result) => resolve(result || []));
+  `, [id_farmhouse, id_plant], (err, result) => {
+    console.log("SQL result:", result);
+    resolve(result || []);
+  });
 });
 
 
+// ✅ ดึงข้อมูล "ปุ๋ย" จาก formfertilizer
+const ferti = await new Promise(resolve => {
+  con.query(`
+    SELECT 
+      date, 
+      name, 
+      formula_name, 
+      use_is, 
+      volume, 
+      source
+    FROM formfertilizer
+    WHERE id_plant = ?
+  `, [id_plant], (err, result) => {
+    if (err) {
+      console.error("❌ ferti query error:", err);
+      return resolve([]);
+    }
+    console.log("✅ ferti result:", result);
+    resolve(result || []);
+  });
+});
 
-    console.log("✅ DataForm Result:", dataForm);
 
-    // ✅ 3. ดึงข้อมูลปุ๋ย
-    const ferti = await new Promise(resolve => {
-      con.query(`
-        SELECT name, formula_name, use_is, volume, source, date
-        FROM formfertilizer
-        WHERE id_plant = ?
-        ORDER BY date ASC
-      `, [id_plant], (err, result) => resolve(result || []));
-    });
-
-    // ✅ 4. ดึงข้อมูลสารเคมี
-    const chemi = await new Promise(resolve => {
-      con.query(`
-        SELECT name, formula_name, insect, use_is, rate, volume, date_safe, date
-        FROM formchemical
-        WHERE id_plant = ?
-        ORDER BY date ASC
-      `, [id_plant], (err, result) => resolve(result || []));
-    });
-
-    // ✅ 5. ดึงข้อมูลรายงานคำแนะนำ (ข้อ 7)
-    const report = await new Promise(resolve => {
-      con.query(`
-        SELECT report_text, advisor_name, date_report
-        FROM formreport
-        WHERE id_plant = ?
-        ORDER BY date_report ASC
-      `, [id_plant], (err, result) => resolve(result || []));
-    });
-
-    // ✅ 6. ดึงข้อมูลตรวจสอบ (ข้อ 8)
-    const checkForm = await new Promise(resolve => {
-      con.query(`
-        SELECT status_check, note_text, date_check
-        FROM checkform
-        WHERE id_plant = ?
-      `, [id_plant], (err, result) => resolve(result || []));
-    });
-
-    // ✅ 7. ปิดการเชื่อมต่อและส่งข้อมูลกลับ
-    con.end();
-
+// ✅ ดึงข้อมูล "สารเคมี" จาก formchemical
+const chemi = await new Promise(resolve => {
+  con.query(`
+    SELECT 
+      date, 
+      date_safe, 
+      name, 
+      formula_name, 
+      insect, 
+      use_is, 
+      rate, 
+      volume, 
+      source
+    FROM formchemical
+    WHERE id_plant = ?
+  `, [id_plant], (err, result) => {
+    if (err) {
+      console.error("❌ chemi query error:", err);
+      return resolve([]);
+    }
+    console.log("✅ chemi result:", result);
+    resolve(result || []);
+  });
+});
+    // ✅ 5. ส่งกลับให้ React (index.jsx)
     res.json({
       farmer,
-      dataform: dataForm || {},  // ✅ ใช้ key เดียวกับฝั่ง React
-      ferti: ferti || [],
-      chemi: chemi || [],
-      report: report || [],
-      checkForm: checkForm || []
+      dataform: dataform || {},   // ← ต้องชื่อ key นี้ (พิมพ์เล็กทั้งหมด)
+      ferti,
+      chemi,
+      report: []
     });
 
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "server error", detail: err.message });
+  } finally {
     con.end();
-    console.error("❌ Export Error:", err);
-    res.send("error auth");
   }
 });
-
-
 
     app.get('/api/farmer/report/list', async (req, res) => {
         if (req.session.uidFarmer) {

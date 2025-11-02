@@ -1,7 +1,6 @@
 // exports.js
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { useLiff } from "./module";
 import * as FileSaver from "file-saver";
 import XLSX from "sheetjs-style";
 
@@ -14,6 +13,7 @@ const TRIM = {
   right: 0,
   bottom: 0
 };
+
 const drawChartsAtEnd = (
   pdf,
   chartImages,
@@ -106,6 +106,7 @@ const cropDataURL = (dataURL, { left = 0, top = 0, right = 0, bottom = 0 } = {})
     img.crossOrigin = "anonymous";
     img.src = dataURL;
   });
+
 const waitForEvent = (type, { timeout = 8000 } = {}) =>
   new Promise((resolve) => {
     let done = false;
@@ -120,6 +121,7 @@ const waitForEvent = (type, { timeout = 8000 } = {}) =>
     };
     window.addEventListener(type, handler, { once: true });
   });
+
 const waitForRecharts = async (selector, { tries = 40, delay = 150 } = {}) => {
   for (let i = 0; i < tries; i++) {
     const host = typeof selector === "string" ? document.querySelector(selector) : selector;
@@ -133,36 +135,47 @@ const waitForRecharts = async (selector, { tries = 40, delay = 150 } = {}) => {
   }
   return false;
 };
+
+// แทนที่ captureWeatherChart เดิมทั้งหมด
 const captureWeatherChart = async (
   { field, color },
   { selector = "#weather-chart-export", timeout = 10000 } = {}
 ) => {
-  // 1) ถ้า meta.rows เป็นศูนย์ "ที่รู้แน่ๆ" ค่อยคัดออก
+  // อย่ารีเทิร์นเร็วเพราะ meta.rows ยัง undefined
   try {
     const m0 = (typeof window !== "undefined" && window.__weatherMeta) || {};
     const hasRows = Number(m0.rows ?? NaN);
-    if (m0 && m0.hasDevice === true && Number.isFinite(hasRows) && hasRows <= 0) return null;
-    // ถ้า rows ยัง undefined/ไม่ชัดเจน -> ไปต่อ ห้ามรีเทิร์นเร็ว
+    // ถ้า "ยืนยันได้จริง" ว่า 0 แถว ค่อยไม่จับ
+    if (m0 && m0.hasDevice === true && Number.isFinite(hasRows) && hasRows <= 0) {
+      return null;
+    }
   } catch { }
 
-  // 2) สั่ง component ให้สลับ metric
+  // สั่งให้ component สลับ metric (ถ้ามี)
   try {
     window.dispatchEvent(new CustomEvent("weather-export:set-metric", { detail: { field, color } }));
   } catch { }
 
-  // 3) รอ component แจ้งพร้อม (อย่าพึ่งตัดสินจาก count)
+  // รอ signal / ถ้าไม่มาก็ไปต่อแบบ fallback
   const signaled = await waitForEvent("weather-export:chart-ready", { timeout });
 
-  // เผื่อบางที signal มาแล้ว แต่ DOM ยังไม่วาด svg
-  const ready = await waitForRecharts(selector, { tries: 50, delay: 150 });
+  // ถ้าไม่ได้ signal ก็ยังพยายามเช็ค DOM
+  const ready = signaled || (await waitForRecharts(selector, { tries: 60, delay: 150 }));
   if (!ready) return null;
 
-  await sleep(120);
+  // เผื่อให้ DOM render เสร็จจริง ๆ
+  await sleep(150);
 
-  // 4) ตอนนี้เพิ่งค่อยดู JSON ของ metric ปัจจุบันว่ามีค่าจริงไหม
-  const cj = await getChartJSON();
-  if (cj && !fieldHasData(cj, field)) return null;
+  // ถ้ามี JSON และฟิลด์นี้ไม่มีข้อมูลจริง ให้คืน null
+  try {
+    const cj = await getChartJSON();
+    if (cj && !fieldHasData(cj, field)) {
+      // ไม่มีค่าตัวเลขในฟิลด์นี้ → ไม่จับรูปของ metric นี้
+      return null;
+    }
+  } catch { }
 
+  // จับรูปเฉพาะกราฟ (ถ้ามี .recharts-wrapper)
   const host = document.querySelector(selector);
   const chartOnly = host?.querySelector?.(".recharts-wrapper") || host;
   if (!chartOnly) return null;
@@ -175,7 +188,9 @@ const captureWeatherChart = async (
 
   dataURL = await cropDataURL(dataURL, TRIM);
   return dataURL;
-}; const getChartJSON = async () => {
+};
+
+const getChartJSON = async () => {
   let j = (typeof window !== "undefined" && window.__weatherJSON) || null;
   if (!j) {
     const ev = await waitForEvent("weather-export:chart-json", { timeout: 2000 });
@@ -183,6 +198,7 @@ const captureWeatherChart = async (
   }
   return j;
 };
+
 const fieldHasData = (json, field) => {
   const rows = Array.isArray(json?.data) ? json.data : [];
   for (const r of rows) {
@@ -213,6 +229,7 @@ const captureElementToDataURL = async (selector, opts = {}) => {
   });
   return canvas.toDataURL("image/png");
 };
+
 const addImageFit = (pdf, img, x, y, maxW, maxH) => {
   const prop = pdf.getImageProperties(img);
   const ratio = prop.width / prop.height;
@@ -241,33 +258,41 @@ const TableBox = (
   pdf = new jsPDF(),
   posiStartX = 0,
   posiStartY = 0,
-  headers = {},
-  body = {},
+  headers = [],
+  body = [],
   heightHeader = 0,
   heightBody = 0,
   FontSize = 0
 ) => {
+  // --- defaults & guards ---
+  headers = Array.isArray(headers) ? headers : [];
+  body = Array.isArray(body) ? body : [];
   pdf.setFontSize(FontSize);
   let startHeadX = posiStartX;
   let startHeadY = posiStartY;
   const ObjectText = { fontSize: FontSize, fontName: "THSarabunNew" };
 
+  // ---------- header ----------
   for (let headerData of headers) {
-    const widthText = pdf.getStringUnitWidth(headerData.name) * FontSize;
-    const lineHeight = pdf.getTextDimensions(headerData.name, ObjectText).h;
-    const endX = startHeadX + parseInt(headerData.size, 10);
+    if (!headerData) continue;
+    const hName = (headerData.name ?? "").toString();
+    const hSize = parseInt(headerData.size ?? 0, 10) || 0;
+
+    const widthText = pdf.getStringUnitWidth(hName) * FontSize;
+    const lineHeight = pdf.getTextDimensions(hName, ObjectText).h;
+    const endX = startHeadX + hSize;
     const endY = startHeadY + heightHeader;
 
     pdf.line(startHeadX, startHeadY, endX, startHeadY);
     if (body.length === 0) pdf.line(startHeadX, endY, endX, endY);
     pdf.line(startHeadX, startHeadY, startHeadX, endY);
     pdf.text(
-      headerData.name,
+      hName,
       startHeadX + ((endX - startHeadX) / 2 - widthText / 2),
       startHeadY + (endY - startHeadY) / ((headerData.headSup ? headerData.headSup.length + 1 : 1) * 2) + lineHeight / 3.5
     );
 
-    if (headerData.headSup) {
+    if (Array.isArray(headerData.headSup) && headerData.headSup.length > 0) {
       const findCenter = startHeadY + (endY - startHeadY) / (headerData.headSup.length + 1);
       const findXCenter = startHeadX + (endX - startHeadX) / (headerData.headSup.length + 1);
       pdf.line(startHeadX, findCenter, endX, findCenter);
@@ -277,10 +302,11 @@ const TableBox = (
       let endSubX = findXCenter;
       for (let row of headerData.headSup) {
         for (let data of row) {
-          const widthTextSub = pdf.getStringUnitWidth(data.name) * FontSize;
-          const lineHeightSub = pdf.getTextDimensions(data.name, ObjectText).h;
+          const subName = (data?.name ?? "").toString();
+          const widthTextSub = pdf.getStringUnitWidth(subName) * FontSize;
+          const lineHeightSub = pdf.getTextDimensions(subName, ObjectText).h;
           pdf.text(
-            data.name,
+            subName,
             startSubX + ((endSubX - startSubX) / 2 - widthTextSub / 2),
             findCenter + heightHeader / (headerData.headSup.length + 1) - lineHeightSub / 3.5
           );
@@ -290,41 +316,51 @@ const TableBox = (
         }
       }
     }
-    startHeadX += parseInt(headerData.size, 10);
+    startHeadX += hSize;
   }
   pdf.line(startHeadX, startHeadY, startHeadX, startHeadY + heightHeader);
 
+  // ---------- body ----------
   let startBodyY = startHeadY + heightHeader;
-  for (let Row of body) {
-    let startBodyX = posiStartX;
 
-    let splite = Row.filter((val) => val.name.indexOf("|") >= 0);
+  for (let Row of body) {
+    const cells = Array.isArray(Row) ? Row : [];
+
+    // find multi-line requirement safely
+    const splite = cells.filter(
+      (val) => val && typeof val.name !== "undefined" && val.name !== null && val.name.toString().includes("|")
+    );
     const numLine = [];
     let countHeight = 1;
     const maxText = 3;
 
     if (splite.length !== 0) {
-      const list = splite[0].name.split("|");
+      const list = splite[0].name.toString().split("|");
       for (let x = 0; x < list.length; x += maxText) {
         const newArray = list.slice(x, x + maxText);
         numLine.push(newArray.join(""));
       }
-      countHeight = numLine.length;
+      countHeight = Math.max(1, numLine.length);
     }
 
-    for (let Body of Row) {
-      const widthText = pdf.getStringUnitWidth(Body.name) * FontSize;
-      const lineHeight = pdf.getTextDimensions(Body.name, ObjectText).h;
-      const endX = startBodyX + parseInt(Body.size, 10);
+    let startBodyX = posiStartX;
+
+    for (let Body of cells) {
+      const nameStr = (Body?.name ?? "").toString();
+      const sizeNum = parseInt(Body?.size ?? 0, 10) || 0;
+
+      const widthText = pdf.getStringUnitWidth(nameStr) * FontSize;
+      const lineHeight = pdf.getTextDimensions(nameStr, ObjectText).h;
+      const endX = startBodyX + sizeNum;
       const endY = startBodyY + heightBody * countHeight;
 
       pdf.line(startBodyX, startBodyY, endX, startBodyY);
       pdf.line(startBodyX, endY, endX, endY);
       pdf.line(startBodyX, startBodyY, startBodyX, endY);
 
-      if (Body.name.indexOf("|") >= 0 && countHeight > 1) {
+      if (nameStr.includes("|") && countHeight > 1) {
+        const list = nameStr.split("|");
         const newSplit = [];
-        const list = Body.name.split("|");
         for (let x = 0; x < list.length; x += maxText) {
           const newArray = list.slice(x, x + maxText);
           newSplit.push(newArray.join(""));
@@ -333,12 +369,12 @@ const TableBox = (
         pdf.text(Text, startBodyX + 5, startBodyY + 12);
       } else {
         pdf.text(
-          Body.name.replaceAll("|", ""),
+          nameStr.replaceAll("|", ""),
           startBodyX + ((endX - startBodyX) / 2 - widthText / 2),
           startBodyY + (endY - startBodyY) / 2 + lineHeight / 3.5
         );
       }
-      startBodyX += parseInt(Body.size, 10);
+      startBodyX += sizeNum;
     }
     pdf.line(startBodyX, startBodyY, startBodyX, startBodyY + heightBody * countHeight);
     startBodyY += heightBody * countHeight;
@@ -479,11 +515,12 @@ const toThaiDayRangeMsSafe = (startISO, endISO, { fallbackDays = 30, minDays = 7
 
 /* =============================== Export PDF =============================== */
 const ExportPDF = async (Data, opts = {}) => {
-  const formsOnly = opts.formsOnly ?? false
-  const pagesWanted = opts.pages ?? [1, 2]
+  const formsOnly = opts.formsOnly ?? false;
+  const pagesWanted = opts.pages ?? [1, 2];
   const presetRange = opts.range;
   const pdf = new jsPDF("portrait", "pt", "a4", { compress: false });
   pdf.addFileToVFS("/THSarabunNew.ttf");
+  pdf.addFileToVFS("/THSarabunNewBold.ttf");
   pdf.addFont("/THSarabunNew.ttf", "THSarabunNew", "normal");
   pdf.addFont("/THSarabunNewBold.ttf", "THSarabunNew-bold", "bold");
   pdf.setFont("THSarabunNew");
@@ -580,7 +617,6 @@ const ExportPDF = async (Data, opts = {}) => {
     /* ------------------ ช่วงเวลาไทย (+07:00) ส่งให้ WeatherManagement ------------------ */
     let chartImages = [];
     if (!formsOnly) {
-
       try {
         const stMs = Math.trunc(presetRange?.st ?? 0);
         const etMs = Math.trunc(presetRange?.et ?? 0);
@@ -594,12 +630,12 @@ const ExportPDF = async (Data, opts = {}) => {
 
         if (ready) {
           const METRICS = [
-            { field: "air_temperature", name: "อุณหภูมิ ( ํC)", color: "#F28E2B", yDomain: [0, 60] },
+            { field: "air_temperature", name: "อุณหภูมิ (°C)", color: "#F28E2B", yDomain: [0, 60] },
             { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
             { field: "light", name: "แสง (LUX)", color: "#ccad3fff", yDomain: [0, 200000] },
-            { field: "soil_temperature", name: "อุณหภูมิดิน ( ํC)", color: "#E15759", yDomain: [0, 60] },
+            { field: "soil_temperature", name: "อุณหภูมิดิน (°C)", color: "#E15759", yDomain: [0, 60] },
             { field: "soil_humidity", name: "ความชื้นดิน (%RH)", color: "#4E79A7", yDomain: [0, 100] },
-            { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ['dataMin', 'dataMax'] },
+            { field: "pressure", name: "ความกดอากาศ (hPa)", color: "#B07AA1", yDomain: ["dataMin", "dataMax"] },
             { field: "batt", name: "แบตเตอรี่ (V)", color: "#59A14F", yDomain: [8, 15] },
           ];
 
@@ -609,6 +645,7 @@ const ExportPDF = async (Data, opts = {}) => {
             chartImages.push({ ...m, img }); // เก็บแม้ img=null เพื่อใส่กรอบ fallback
           }
 
+          // บันทึกรูปภาพทั้งบล็อกกราฟไว้เป็น fallback
           Export.__chartImg = await captureElementToDataURL(chartSel, {
             scale: 3, backgroundColor: "#fff", useCORS: true,
           });
@@ -622,6 +659,7 @@ const ExportPDF = async (Data, opts = {}) => {
         Export.__chartImg = null;
       }
     }
+
     /* ----------------------------- ๓. ระบบการปลูก ----------------------------- */
     const y3 = 190;
     TextBoxHead(pdf, 30, y3, "๓.");
@@ -1101,6 +1139,7 @@ const ExportPDF = async (Data, opts = {}) => {
     TextBoxHead(pdf, width / 2 + 40, presentFactor + 30, "ลงชื่อ");
     const check_boss_posi = TextBoxDot(pdf, 30, width / 2 + 67, presentFactor + 30, "");
     TextBoxHead(pdf, check_boss_posi, presentFactor + 30, "หัวหน้าผู้ตรวจประเมิน");
+
     // ถ้า formsOnly และยังมีระเบียนถัดไป ให้คั่นหน้าเลยตรงนี้
     const isLastRecord = parseInt(index, 10) + 1 === Data.length;
     if (formsOnly && !isLastRecord) {
@@ -1118,8 +1157,22 @@ const ExportPDF = async (Data, opts = {}) => {
       }
       // normalize
       if (meta && meta.detail) meta = meta.detail;
-      const rows = Number(meta.rows ?? 0);
-      const hasDevice = meta.hasDevice === true || !!meta.deviceId;
+      const rows = Number(meta?.rows ?? meta?.count ?? meta?.length ?? 0);
+      const hasDeviceMeta =
+        meta?.hasDevice === true ||
+        !!meta?.device_id ||
+        !!meta?.deviceId;
+
+      // จัดชุดรูปกราฟที่ "มีภาพจริง" เท่านั้น
+      let charts = (chartImages || []).filter(g => g && g.img);
+      let hasData = charts.length > 0;
+
+      // Fallback: ไม่มี metric image เลย แต่จับภาพทั้งบล็อกได้ → ใส่เป็นกราฟสรุป 1 รูป
+      if (!hasData && Export.__chartImg) {
+        charts = [{ name: "สรุปสภาพอากาศ", field: "summary", img: Export.__chartImg }];
+        hasData = true;
+      }
+
       {
         // ให้กราฟเริ่มที่หน้าใหม่หลังจบตารางทั้งหมด (นี่จะกลายเป็นหน้า 3)
         const titleFrom = Export?.dataForm?.date_plant
@@ -1129,14 +1182,11 @@ const ExportPDF = async (Data, opts = {}) => {
           ? new Date(Export.dataForm.date_success || Export.dataForm.date_harvest).toLocaleDateString("th-TH")
           : "";
 
+        console.log("hasData?", hasData, "charts:", charts.length);
+        console.log("meta rows", rows);
 
-        const charts = (chartImages || []).filter(Boolean);
-        const hasData = charts.length > 0;
-        const hasDevice = meta.hasDevice === true || !!meta.device_id || hasData;
-        console.log(hasData, charts.length)
-        console.log("this is meta rows", meta.rows)
-        if (!hasDevice) {
-          // 2) ไม่มี device_id → แจ้งข้อความแทนกราฟ
+        if (!hasDeviceMeta && !hasData) {
+          // ไม่พบอุปกรณ์ + ไม่มีข้อมูลกราฟเลย
           pdf.addPage();
           const PAGE_LEFT = 24;
           const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 30;
@@ -1146,7 +1196,12 @@ const ExportPDF = async (Data, opts = {}) => {
           pdf.setDrawColor(180);
           pdf.rect(PAGE_LEFT, yGraph, IMG_W, CHART_H);
           pdf.setFontSize(12);
-          pdf.text("ไม่สามารถแสดงกราฟได้เนื่องจากไม่พบอุปกรณ์ในโรงเรือน", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
+          pdf.text(
+            "ไม่สามารถแสดงกราฟได้เนื่องจากไม่พบอุปกรณ์ในโรงเรือน หรือยังไม่มีข้อมูลในช่วงเวลาที่เลือก",
+            PAGE_LEFT + IMG_W / 2,
+            60 + CHART_H / 2,
+            { align: "center" }
+          );
           pdf.setFontSize(16);
         } else if (hasData) {
           // วาดทีละ 2 กราฟต่อหน้า (ฟังก์ชันนี้จะ addPage ให้เอง)
@@ -1154,13 +1209,13 @@ const ExportPDF = async (Data, opts = {}) => {
             top: 40,
             bottom: 36,
             gap: 12,
-            scaleW: 0.95,     // กว้างขึ้น
-            baseHeight: 260,  // อ้างอิงความสูงต่อกราฟ
+            scaleW: 0.95,
+            baseHeight: 260,
             titleFrom,
             titleTo
-          })
+          });
         } else {
-          // fallback เมื่อไม่มีรูปกราฟใด ๆ
+          // มีอุปกรณ์ แต่ไม่มีข้อมูลกราฟในช่วง
           pdf.addPage();
           const PAGE_LEFT = 24;
           const PAGE_RIGHT = pdf.internal.pageSize.getWidth() - 30;
@@ -1170,7 +1225,7 @@ const ExportPDF = async (Data, opts = {}) => {
           pdf.setDrawColor(180);
           pdf.rect(PAGE_LEFT, yGraph, IMG_W, CHART_H);
           pdf.setFontSize(12);
-          pdf.text("ไม่มีข้อมูลสำหรับกราฟนี้", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
+          pdf.text("ไม่มีข้อมูลกราฟในช่วงเวลาที่เลือก", PAGE_LEFT + IMG_W / 2, 60 + CHART_H / 2, { align: "center" });
           pdf.setFontSize(16);
         }
 
@@ -1181,16 +1236,19 @@ const ExportPDF = async (Data, opts = {}) => {
     }
   }
 
-  const [init, liff] = useLiff("1661049098-dorebKYg");
-  init
-    .then(async () => {
-      if (!liff.isInClient())
-        pdf.save(`${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`);
-      else alert("กรุณาดาวโหลดผ่านเบราเซอร์");
-    })
-    .catch(() => {
-      pdf.save(`${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}.pdf`);
-    });
+  // === บันทึกไฟล์ตรง ๆ ที่ฝั่งเบราว์เซอร์ (ไม่พึ่ง LIFF) ===
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(now.getFullYear());
+  const filename = `${dd}_${mm}_${yyyy}.pdf`;
+
+  // ถ้าผู้เรียกต้องการ Blob ไปใช้งานต่อ (อัปโหลด/พรีวิว) ให้ส่ง opts.download=false
+  if (opts && opts.download === false) {
+    return pdf.output("blob");
+  }
+  // ค่าเริ่มต้น: ดาวน์โหลดทันที
+  pdf.save(filename);
 };
 
 /* =============================== Export Excel =============================== */
