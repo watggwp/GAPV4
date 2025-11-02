@@ -369,37 +369,37 @@ export default function PDFDownloadOnly() {
 }
 
 /* ------------------------ inline styles ------------------------ */
-const styles = {
-  wrap: {
-    minHeight: "100vh",
-    display: "grid",
-    placeItems: "center",
-    background: "#f7faf9",
-    padding: 16,
-  },
-  btn: {
-    height: 56,
-    minWidth: 240,
-    padding: "0 20px",
-    border: 0,
-    borderRadius: 14,
-    fontSize: 18,
-    fontWeight: 800,
-    letterSpacing: ".2px",
-    color: "#fff",
-    background: "#1db954",
-    cursor: "pointer",
-    boxShadow: "0 10px 22px rgba(0,0,0,.18)",
-  },
-  btnDisabled: { opacity: 0.6, cursor: "not-allowed" },
-  hiddenHost: {
-    position: "fixed",
-    left: -10000,
-    top: 0,
-    width: 980,
-    height: 360,
-    opacity: 0,
-    pointerEvents: "none",
-    zIndex: -1,
-  },
-};
+// const styles = {
+//   wrap: {
+//     minHeight: "100vh",
+//     display: "grid",
+//     placeItems: "center",
+//     background: "#f7faf9",
+//     padding: 16,
+//   },
+//   btn: {
+//     height: 56,
+//     minWidth: 240,
+//     padding: "0 20px",
+//     border: 0,
+//     borderRadius: 14,
+//     fontSize: 18,
+//     fontWeight: 800,
+//     letterSpacing: ".2px",
+//     color: "#fff",
+//     background: "#1db954",
+//     cursor: "pointer",
+//     boxShadow: "0 10px 22px rgba(0,0,0,.18)",
+//   },
+//   btnDisabled: { opacity: 0.6, cursor: "not-allowed" },
+//   hiddenHost: {
+//     position: "fixed",
+//     left: -10000,
+//     top: 0,
+//     width: 980,
+//     height: 360,
+//     opacity: 0,
+//     pointerEvents: "none",
+//     zIndex: -1,
+//   },
+// };
