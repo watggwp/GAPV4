@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import WeatherManagement from "../../../../../assets/components/weather-management";
 import { ExportPDF } from "../../../../../assets/js/Export";
+import { useFarmer } from "../../main";
 
 /* ---------------- helpers: วันที่/ช่วงเวลา ---------------- */
 const toMs = (input) => {
@@ -108,6 +109,8 @@ function getIdsFromURL() {
 }
 
 export default function PDFDownloadOnly() {
+  const { liff } = useFarmer()
+
   const [{ greenhouse_id, gap_id }] = useState(getIdsFromURL());
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -277,7 +280,13 @@ export default function PDFDownloadOnly() {
       console.log("[export payload] chemi:", formatted.chemi);
 
       try {
-        await ExportPDF([formatted], { range: timeRange, download: true });
+        const blob = await ExportPDF([formatted], { range: timeRange, download: false });
+        const blobUrl = URL.createObjectURL(blob);
+
+        liff.openWindow({
+          url: blobUrl,
+          external: true
+        })
       } catch (err) {
         console.error("❌ ExportPDF error:", err);
         alert("เกิดข้อผิดพลาดระหว่างสร้างไฟล์ PDF\n" + (err.message || ""));
@@ -289,7 +298,7 @@ export default function PDFDownloadOnly() {
     } finally {
       setDownloading(false);
     }
-  }, [greenhouse_id, gap_id, data, hostSize.width, hostSize.height, waitChartReady]);
+  }, [greenhouse_id, gap_id, data, hostSize.width, hostSize.height, waitChartReady, liff]);
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) window.history.back();
