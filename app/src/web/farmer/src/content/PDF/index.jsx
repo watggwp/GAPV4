@@ -283,6 +283,7 @@ export default function PDFDownloadOnly() {
         const blob = await ExportPDF([formatted], { range: timeRange, download: false });
         const blobUrl = URL.createObjectURL(blob);
 
+        alert(blobUrl)
         liff.openWindow({
           url: blobUrl,
           external: true
