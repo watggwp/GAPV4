@@ -3,6 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import WeatherManagement from "../../../../../assets/components/weather-management";
 import { ExportPDF, onGenerateFileNamePDF } from "../../../../../assets/js/Export";
 import { useFarmer } from "../../main";
+import { Link, Stack } from "@mui/material";
 
 /* ---------------- helpers: วันที่/ช่วงเวลา ---------------- */
 const toMs = (input) => {
@@ -113,6 +114,8 @@ export default function PDFDownloadOnly() {
 
   const [{ greenhouse_id, gap_id }] = useState(getIdsFromURL());
   const [data, setData] = useState(null);
+
+  const [ blobUrlPDF , setBlobUrlPDF ] = useState("")
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -281,13 +284,12 @@ export default function PDFDownloadOnly() {
 
       try {
         const pdfBlob = await ExportPDF([formatted], { range: timeRange, download: false });
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(pdfBlob);
-        link.download = onGenerateFileNamePDF();
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // const link = document.createElement("a");
+        setBlobUrlPDF(URL.createObjectURL(pdfBlob))
+        // link.download = onGenerateFileNamePDF();
+        // document.body.appendChild(link);
+        // link.click();
+        // document.body.removeChild(link);
 
       } catch (err) {
         console.error("❌ ExportPDF error:", err);
@@ -300,12 +302,16 @@ export default function PDFDownloadOnly() {
     } finally {
       setDownloading(false);
     }
-  }, [greenhouse_id, gap_id, data, hostSize.width, hostSize.height, waitChartReady, liff]);
+  }, [greenhouse_id, gap_id, data, hostSize.width, hostSize.height, waitChartReady]);
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) window.history.back();
     else window.location.assign("/");
   }, []);
+
+  useEffect(() => {
+    handleDownload()
+  } , [handleDownload])
 
   return (
     <>
@@ -364,14 +370,27 @@ export default function PDFDownloadOnly() {
         <div className="center">
           <div className="card">
             <h1 className="title">ดาวน์โหลดรายงาน GAP</h1>
-            <button
+            {
+              downloading ? 
+                <Stack>
+                  กำลังสร้างไฟล์...
+                </Stack> : 
+                <Link
+                  href={blobUrlPDF}
+                  underline="none"
+                  download={onGenerateFileNamePDF()}
+                >
+                  ดาวน์โหลดไฟล์ PDF
+                </Link>
+            }
+            {/* <button
               className="btn"
               disabled={downloading || loading}
               onClick={handleDownload}
               aria-label="ดาวน์โหลด PDF"
             >
               {downloading ? "กำลังสร้างไฟล์..." : "ดาวน์โหลดPDF"}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
