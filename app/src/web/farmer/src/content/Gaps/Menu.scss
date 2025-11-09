@@ -7,9 +7,9 @@
 
   .all-menu {
     /* ปรับแค่ layout */
-    --card-w: 160px;      /* ความกว้างการ์ดคงที่ เพื่อให้ 2 คอลัมน์เท่ากัน */
+    --card-w: 115px;      /* ความกว้างการ์ดคงที่ เพื่อให้ 2 คอลัมน์เท่ากัน */
     --card-gap: 16px;     /* ช่องไฟการ์ด */
-    --card-img: 120px;    /* ขนาดรูปวงกลม */
+    --card-img: 80px;    /* ขนาดรูปวงกลม */
     --max-wrap: 820px;    /* กรอบสูงสุด */
 
     width: 100%;
@@ -120,7 +120,10 @@
 
     /* ====== Report banner ====== */
     .report-farm{
-      width:100%; max-width:360px; padding:10px; margin-top:8px;
+      width:100%; 
+      max-width:360px; 
+      padding:4px; 
+      margin-top:8px;
       position:relative;
       img{ width:100%; border-radius:16px; display:block; }
       .dot-someting{

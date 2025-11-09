@@ -117,27 +117,15 @@ const MenuPlant = () => {
         </div>
 
         {/* แถว 3 — ซ้าย: EC/pH + PDF (แนวตั้ง) / ขวา: ปั๊มน้ำ */}
-        <div className="row row-twoCols">
+        <div className="row">
           {/* คอลัมน์ซ้าย */}
-          <div className="stack">
-            <div onClick={() => selectMenu("ec/ph")} className="frame-menu frame-ecph">
-              <div className="img">
-                <img src="/ecph.png" alt="ecph" />
-              </div>
-              <span>EC/pH</span>
-              {DotReport[0]?.checkEditSoil ? <div className="dot-someting"></div> : null}
+          <div onClick={() => selectMenu("ec/ph")} className="frame-menu frame-ecph">
+            <div className="img">
+              <img src="/ecph.png" alt="ecph" />
             </div>
-
-            <div onClick={() => selectMenu("pdf")} className="frame-menu frame-pdf">
-              <div className="img">
-                <img src={pdfIcon} alt="PDF Icon" />
-              </div>
-              <span>PDF</span>
-              {DotReport[0]?.checkPdf ? <div className="dot-someting"></div> : null}
-            </div>
+            <span>EC/pH</span>
+            {DotReport[0]?.checkEditSoil ? <div className="dot-someting"></div> : null}
           </div>
-
-          {/* คอลัมน์ขวา */}
           <div>
             <div onClick={() => selectMenu("pump")} className="frame-menu frame-pump">
               <div className="img" style={{ backgroundColor: "white" }}>
@@ -147,16 +135,27 @@ const MenuPlant = () => {
               {DotReport[0]?.checkEditSensor ? <div className="dot-someting"></div> : null}
             </div>
           </div>
+          {/* คอลัมน์ขวา */}
+        </div>
+        <div className="row">
+          <div onClick={() => selectMenu("pdf")} className="frame-menu frame-pdf">
+            <div className="img">
+              <img src={pdfIcon} alt="PDF Icon" />
+            </div>
+            <span>PDF</span>
+            {DotReport[0]?.checkPdf ? <div className="dot-someting"></div> : null}
+          </div>
         </div>
 
         {/* เมนู Sensor */}
         <Stack
           borderRadius={4}
           direction={"row"}
-          width={"calc(100% - 28px)"}
+          width={"calc(100% - 8px)"}
           maxWidth={"300px"}
           justifyContent={"start"}
           alignItems={"center"}
+          marginTop={1}
           padding={2}
           onClick={() => selectMenu("sensor")}
           sx={{

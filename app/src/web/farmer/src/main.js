@@ -76,8 +76,8 @@ const MainFarmer = () => {
                     CloseAccount("not line" , null , "โปรดเข้าระบบด้วยไลน์")
                     return
                 }
-                let UID = "U915317b45fea27966b03ff8e47960321"
-                RouterPage(UID , Liff)
+                const uidTest = process.env.REACT_APP_UID_USER_TEST
+                RouterPage(uidTest , Liff)
                 return
             }
 
