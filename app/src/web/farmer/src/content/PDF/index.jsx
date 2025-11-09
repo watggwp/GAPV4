@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import WeatherManagement from "../../../../../assets/components/weather-management";
-import { ExportPDF } from "../../../../../assets/js/Export";
+import { ExportPDF, onGenerateFileNamePDF } from "../../../../../assets/js/Export";
 import { useFarmer } from "../../main";
 
 /* ---------------- helpers: วันที่/ช่วงเวลา ---------------- */
@@ -280,14 +280,15 @@ export default function PDFDownloadOnly() {
       console.log("[export payload] chemi:", formatted.chemi);
 
       try {
-        const blob = await ExportPDF([formatted], { range: timeRange, download: false });
-        const blobUrl = URL.createObjectURL(blob);
+        const pdfBlob = await ExportPDF([formatted], { range: timeRange, download: false });
 
-        alert(blobUrl)
-        liff.openWindow({
-          url: blobUrl,
-          external: true
-        })
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = onGenerateFileNamePDF();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
       } catch (err) {
         console.error("❌ ExportPDF error:", err);
         alert("เกิดข้อผิดพลาดระหว่างสร้างไฟล์ PDF\n" + (err.message || ""));

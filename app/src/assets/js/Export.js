@@ -513,6 +513,14 @@ const toThaiDayRangeMsSafe = (startISO, endISO, { fallbackDays = 30, minDays = 7
   return { stMs: Math.trunc(st), etMs: Math.trunc(et) };
 };
 
+export function onGenerateFileNamePDF() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(now.getFullYear());
+  return `${dd}_${mm}_${yyyy}.pdf`;
+}
+
 /* =============================== Export PDF =============================== */
 const ExportPDF = async (Data, opts = {}) => {
   const formsOnly = opts.formsOnly ?? false;
@@ -1236,19 +1244,12 @@ const ExportPDF = async (Data, opts = {}) => {
     }
   }
 
-  // === บันทึกไฟล์ตรง ๆ ที่ฝั่งเบราว์เซอร์ (ไม่พึ่ง LIFF) ===
-  const now = new Date();
-  const dd = String(now.getDate()).padStart(2, "0");
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const yyyy = String(now.getFullYear());
-  const filename = `${dd}_${mm}_${yyyy}.pdf`;
-
   // ถ้าผู้เรียกต้องการ Blob ไปใช้งานต่อ (อัปโหลด/พรีวิว) ให้ส่ง opts.download=false
   if (opts && opts.download === false) {
     return pdf.output("blob");
   }
   // ค่าเริ่มต้น: ดาวน์โหลดทันที
-  pdf.save(filename);
+  pdf.save(onGenerateFileNamePDF());
 };
 
 /* =============================== Export Excel =============================== */
