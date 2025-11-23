@@ -140,7 +140,9 @@
     
     "server-services:gap-dashboard": "cd ./services/gap-device-dashboard/backend && pm2 start dist/main.js --name gap-device-dashboard-backend",
     "server-services:gap-dashboard-stop": "pm2 stop gap-device-dashboard-backend",
-    "server-services:gap-dashboard-logs": "pm2 logs gap-device-dashboard-backend"
+    "server-services:gap-dashboard-logs": "pm2 logs gap-device-dashboard-backend",
+
+    "monitoring": "node ./sysmonitor/heartbeat.js"
   },
   "description": "- Install Package\r       ```\r       npm install\r       ```",
   "main": "index.js",

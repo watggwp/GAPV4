@@ -21,32 +21,47 @@ function connectionParams() {
 }
 
 const { database , username , password } = connectionParams()
-
-// check connection database
-const connection = db.createConnection({
-    host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
-    user: username,
-    password : password,
-    database : database
-})
-
 const errors = {
     "ECONNREFUSED" : "Database connection not found",
     "ER_ACCESS_DENIED_ERROR" : 'Access denied connect Database',
 }
 
-connection.connect((err)=>{
-    if (err) {
-        console.error(errors[err.code])
-        console.error('Connection database fail !!!')
-    } else {
-        console.log("Database connection success !!!");
-        connection.end()
+async function serverInitial() {
+    while(true) {
+        const result = await new Promise((resolve) => {
+            setTimeout(() => {
+                const datetime = new Date()
+                const connection = db.createConnection({
+                    host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
+                    user: username,
+                    password : password,
+                    database : database
+                })
+                
+                connection.connect((err)=>{
+                    if (err) {
+                        errors[err.code] && console.error(errors[err.code])
+                        console.error(`Connection database fail ${datetime.toISOString()} !!!`)
 
-        try {
-            appRun(username , password)
-        } catch (err) {
-            console.error(err)
-        }
-    };
-})
+                        resolve(false)
+                    } else {
+                        console.log("Database connection success !!!");
+                        connection.end()
+
+                        resolve(true)
+                    };
+                })
+            }, 10000);
+        })
+
+        if(result) break;
+    }
+
+    try {
+        appRun(username , password)
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+serverInitial()

@@ -214,5 +214,9 @@ module.exports = function appConfig(username, password, hostServer) {
         res.sendFile(__dirname.replace('\server', '/index404.html'));
     });
 
+    app.get("/api/heartbeat", (req, res) => {
+        res.status(200)
+    });
+
     return server
 }
