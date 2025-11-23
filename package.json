@@ -126,17 +126,21 @@
     "build": "node scripts/build.js admin && node scripts/build.js doctor && node scripts/build.js farmer",
     "test": "node scripts/test.js",
     "server": "pm2 start server/server.js --name gap-backend -- deploy",
+    "server-logs": "pm2 logs gap-backend",
     "server-docker": "pm2-runtime start server/server.js --name gap-backend -- deploy",
     "server-node": "node server/server.js deploy",
     "server-stop": "pm2 stop server/server.js --name gap-backend",
     "server-restart": "pm2 restart server/server.js --name gap-backend",
     "server-startup": "pm2 startup",
-    "server-log": "pm2 log gap-backend",
     "server-dev": "nodemon server/server.js",
     "server-dev-router": "nodemon server/server.js router",
     "server-ngrok": "node server/serverNgrok.js",
     "init-env": "node initEnv/setupEnv.js",
-    "test-script": "nodemon testSetting/webSocget.js"
+    "test-script": "nodemon testSetting/webSocget.js",
+    
+    "server-services:gap-dashboard": "cd ./services/gap-device-dashboard/backend && pm2 start dist/main.js --name gap-device-dashboard-backend",
+    "server-services:gap-dashboard-stop": "pm2 stop gap-device-dashboard-backend",
+    "server-services:gap-dashboard-logs": "pm2 logs gap-device-dashboard-backend"
   },
   "description": "- Install Package\r       ```\r       npm install\r       ```",
   "main": "index.js",
