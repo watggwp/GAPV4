@@ -297,12 +297,12 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const rows = await pool.executeQuery(`
-      SELECT timestamp
-      FROM weather_greenhouse
-      WHERE device_id = ?
-      ORDER BY timestamp DESC
-      LIMIT 1
-    `, [device_id]);
+                SELECT timestamp
+                FROM weather_greenhouse
+                WHERE device_id = ?
+                ORDER BY timestamp DESC
+                LIMIT 1
+            `, [device_id]);
 
             if (rows.length === 0) {
                 // ไม่มีข้อมูลเลย → อัปเดตให้เป็น off แล้วตอบกลับ

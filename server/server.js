@@ -1,57 +1,52 @@
-// import db from 'mysql'
-// import appRun from './appRun'
-// import dotenv from 'dotenv'
-// dotenv.config().parsed
-
 const db  = require('mysql')
 const appRun = require("./appRun")
 require('dotenv').config().parsed
 
-const mode = process.argv[2]
-let username = (mode == process.env.BUILD) ? process.env.USER_DB ?? "" : process.env.USER_DBDEV ?? ""
-let password = (mode == process.env.BUILD) ? process.env.PASS_DB ?? "" : process.env.PASSWORD_DBDEV ?? ""
-let state = 0
-
-console.log("Read Database...")
-if(!username && !password) {
-    process.stdout.write('USERNAME DB : ')
-    process.stdin.on('data', (data) => {
-        const input = data.toString().trim();
-    
-        if(state == 0) {
-            username = input
-            process.stdout.write('PASSWORD DB: ')
-            state = 1
-        }
-        
-        else if(state == 1) password = input
-
-        if(username && password && state == 1) {
-            let con = db.createConnection({
-                host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
-                user: username,
-                password : password,
-                database : mode == process.env.BUILD ? process.env.DATABASE_SER : process.env.DATABASE_DEV 
-            })
-            
-            con.connect((err)=>{
-                if (err) {
-                    state = 0
-                    username = password = ""
-                    if(err.errno == 1045) {console.log('Denien connect Database')}
-                    
-                    console.log('Please enter username and password again\n')
-                    process.stdout.write('USERNAME DB : ')
-                } else {
-                    console.log("Check DB connected success!");
-                    state = 2
-                    con.end()
-
-                    appRun(username , password)
-                };
-            })
-        }
-    });
-} else {
-    appRun(username , password)
+function connectionParams() {
+    const mode = process.argv[2]
+    switch(mode) {
+        case process.env.BUILD :
+            return {
+                database : process.env.DATABASE_SER,
+                username : process.env.USER_DB || "",
+                password : process.env.PASS_DB || ""
+            }
+        default:
+            return {
+                database : process.env.DATABASE_DEV,
+                username : process.env.USER_DBDEV || "",
+                password : process.env.PASSWORD_DBDEV || ""
+            }
+    }
 }
+
+const { database , username , password } = connectionParams()
+
+// check connection database
+const connection = db.createConnection({
+    host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
+    user: username,
+    password : password,
+    database : database
+})
+
+const errors = {
+    "ECONNREFUSED" : "Database connection not found",
+    "ER_ACCESS_DENIED_ERROR" : 'Access denied connect Database',
+}
+
+connection.connect((err)=>{
+    if (err) {
+        console.error(errors[err.code])
+        console.error('Connection database fail !!!')
+    } else {
+        console.log("Database connection success !!!");
+        connection.end()
+
+        try {
+            appRun(username , password)
+        } catch (err) {
+            console.error(err)
+        }
+    };
+})

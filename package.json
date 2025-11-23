@@ -131,6 +131,7 @@
     "server-stop": "pm2 stop server/server.js --name gap-backend",
     "server-restart": "pm2 restart server/server.js --name gap-backend",
     "server-startup": "pm2 startup",
+    "server-log": "pm2 log gap-backend",
     "server-dev": "nodemon server/server.js",
     "server-dev-router": "nodemon server/server.js router",
     "server-ngrok": "node server/serverNgrok.js",
