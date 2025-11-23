@@ -87,7 +87,6 @@ module.exports = function appConfig(username, password, hostServer) {
     // if(mode != process.env.BUILD) reactServ(app)
 
     // set session
-    console.log(mode)
     const sessionMiddleware = sessions({
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
