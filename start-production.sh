@@ -1,4 +1,7 @@
+# start gap-backend
 npm run server
+
+# start gap-iot
 npm run server-services:gap-dashboard
 
 # check gap-backend
