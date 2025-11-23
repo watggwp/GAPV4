@@ -53,7 +53,7 @@ client.once('ready', async () => {
 
     const lastStatus = {}
     const lastSentTime = {}
-    const sendInterval = 5 * 60 * 1000
+    const sendInterval = 30 * 60 * 1000
     const checkInterval = 10 * 1000
 
     services.forEach(s => {
