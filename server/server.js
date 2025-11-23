@@ -8,8 +8,8 @@ const appRun = require("./appRun")
 require('dotenv').config().parsed
 
 const mode = process.argv[2]
-let username = (mode == process.env.BUILD) ? process.argv[3] ?? "" : process.env.USER_DBDEV ?? ""
-let password = (mode == process.env.BUILD) ? process.argv[4] ?? "" : process.env.PASSWORD_DBDEV ?? ""
+let username = (mode == process.env.BUILD) ? process.env.USER_DB ?? "" : process.env.USER_DBDEV ?? ""
+let password = (mode == process.env.BUILD) ? process.env.PASS_DB ?? "" : process.env.PASSWORD_DBDEV ?? ""
 let state = 0
 
 console.log("Read Database...")
