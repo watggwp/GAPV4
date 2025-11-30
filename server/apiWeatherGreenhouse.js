@@ -259,6 +259,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 batt
             } = req.body
 
+            // select avg current
+
             try {
                 await pool.executeQuery(
                     `

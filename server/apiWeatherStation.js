@@ -230,6 +230,8 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
 
         const { device_id, timestamp, temperature, humidity, light, rainfall, pressure, batt } = req.body
 
+        // select avg current
+
         try {
             await pool.executeQuery(
                 `
