@@ -185,6 +185,13 @@ list.forEach((item) =>
                                     <span class="text-logo consultant-logo">ที่ปรึกษา</span>
                                 </a>
                             </li>
+                            <li class="list" id="Protection"  onClick={()=>{setrole("protection")}}>
+                                <a href="#">
+                                    <span class="icon">🛡️</span>
+                                    <span class="text">อารักขาพืช</span>
+                                    <span class="text-logo protection-logo">อารักขาพืช</span>
+                                </a>
+                            </li>
                             <div class="indicator"></div>
                         </ul>
                     </div>

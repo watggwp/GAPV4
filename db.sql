@@ -40,22 +40,23 @@ CREATE TABLE `acc_doctor` (
   `time_online` varchar(60) NOT NULL,
   `doctor_role` tinyint(1) NOT NULL,
   `analyst_role` tinyint(1) NOT NULL,
-  `consultant_role` tinyint(1) NOT NULL
+  `consultant_role` tinyint(1) NOT NULL,
+  `protection_role` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `acc_doctor`
 --
 
-INSERT INTO `acc_doctor` (`id_table_doctor`, `id_doctor`, `uid_line_doctor`, `password_doctor`, `fullname_doctor`, `station_doctor`, `img_doctor`, `status_account`, `status_delete`, `time_online`, `doctor_role`, `analyst_role`, `consultant_role`) VALUES
-(1, '1000', 'Uf053bedbbccd5bf7469c5f0a2cbe6f97', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'บุษบง ศรีสุข', '1', '', 1, 0, '1742570535307', 1, 1, 1),
-(2, '1003', 'Uec52e5da629da4c89c55674831d126a8', '1d7f7021ffe549796f76b7fc6f97709c1275e02b0e5e72540d725f9a70c99a5f', 'มานะ ใจดี', '1', '', 1, 1, '1739819719079', 1, 1, 1),
-(3, '1001', '', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '', '', '', 0, 1, '', 1, 1, 1),
-(4, '1002', '', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '', '', '', 1, 0, '', 1, 0, 1),
-(5, '1004', '', '1d7f7021ffe549796f76b7fc6f97709c1275e02b0e5e72540d725f9a70c99a5f', 'สุขกาย สบายใจ', '1', '', 1, 0, '', 0, 0, 1),
-(14, '1111', '', '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c', '', '', '', 1, 0, '', 1, 0, 1),
-(15, '1112', '', 'fe91a760983d401d9b679fb092b689488d1f46d92f3af5e9e93363326f3e8aa4', 'สามัคคี มีพลัง', '1', '', 1, 0, '1742468323067', 0, 1, 1),
-(16, '1172', '', '02ede7e8caf71df40a5bb6495f5fcbc092cf7c87de6beed5d7813910d82ba3bd', '', '', '', 1, 1, '', 1, 1, 1);
+INSERT INTO `acc_doctor` (`id_table_doctor`, `id_doctor`, `uid_line_doctor`, `password_doctor`, `fullname_doctor`, `station_doctor`, `img_doctor`, `status_account`, `status_delete`, `time_online`, `doctor_role`, `analyst_role`, `consultant_role`, `plant_protection_role`) VALUES
+(1, '1000', 'Uf053bedbbccd5bf7469c5f0a2cbe6f97', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'บุษบง ศรีสุข', '1', '', 1, 0, '1742570535307', 1, 1, 1, 0),
+(2, '1003', 'Uec52e5da629da4c89c55674831d126a8', '1d7f7021ffe549796f76b7fc6f97709c1275e02b0e5e72540d725f9a70c99a5f', 'มานะ ใจดี', '1', '', 1, 1, '1739819719079', 1, 1, 1, 0),
+(3, '1001', '', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '', '', '', 0, 1, '', 1, 1, 1, 0),
+(4, '1002', '', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', '', '', '', 1, 0, '', 1, 0, 1, 0),
+(5, '1004', '', '1d7f7021ffe549796f76b7fc6f97709c1275e02b0e5e72540d725f9a70c99a5f', 'สุขกาย สบายใจ', '1', '', 1, 0, '', 0, 0, 1, 0),
+(14, '1111', '', '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c', '', '', '', 1, 0, '', 1, 0, 1, 0),
+(15, '1112', '', 'fe91a760983d401d9b679fb092b689488d1f46d92f3af5e9e93363326f3e8aa4', 'สามัคคี มีพลัง', '1', '', 1, 0, '1742468323067', 0, 1, 1, 0),
+(16, '1172', '', '02ede7e8caf71df40a5bb6495f5fcbc092cf7c87de6beed5d7813910d82ba3bd', '', '', '', 1, 1, '', 1, 1, 1, 0);
 
 -- --------------------------------------------------------
 

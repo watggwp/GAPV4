@@ -110,7 +110,7 @@ const NavFirst = ({ setMain, setSession, setdoctor, socket, type = 0, eleImageCo
                 <span>Menu</span>
             </div>
             <div className={`content-menu${Responsive > 800 ? "" : " column"}`}>
-                {Responsive > 800 ?
+                {/* {Responsive > 800 ?
                     <>
                         <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer} />
                         <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form} />
@@ -120,10 +120,16 @@ const NavFirst = ({ setMain, setSession, setdoctor, socket, type = 0, eleImageCo
                         <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer} />
                         <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form} />
                     </div>
-                }
-
+                } */}
                 {
-                    Boolean(profile?.doctor_role) &&  //role
+                    Boolean(profile?.doctor_role || profile?.consultant_role || profile?.analyzer_role || profile?.protection_role) &&  //role
+                    <>
+                        <ButtonMenu type={"farmer"} textRow1={"ทะเบียน"} textRow2={"เกษตรกร"} action={farmer} />
+                        <ButtonMenu type={"form"} textRow1={"แบบบันทึก"} textRow2={"และการปลูก"} action={form} />
+                    </>
+                }
+                {
+                    Boolean(profile?.doctor_role || profile?.protection_role) &&  //role
                     <>
                         <ButtonMenu type={"data"} textRow1={"เพิ่มเติม"} textRow2={"ข้อมูล"} action={data} />
                         <ButtonMenu type={"group"} textRow1={"จัดกลุ่ม"} textRow2={"ข้อมูล"} action={group} />
@@ -131,15 +137,21 @@ const NavFirst = ({ setMain, setSession, setdoctor, socket, type = 0, eleImageCo
                     </>
                 }
                 {
-                    Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
+                    Boolean(profile?.doctor_role || profile?.consultant_role || profile?.protection_role) &&  //role
                     <>
                         <ButtonMenu type={"report"} textRow1={"รายงาน"} textRow2={"ข้อมูล"} action={report} />
                     </>
                 }
                 {
-                    Boolean(profile?.doctor_role || profile?.consultant_role) &&  //role
+                    Boolean(profile?.doctor_role || profile?.consultant_role || profile?.protection_role) &&  //role
                     <>
                         <ButtonMenu type={"sensor"} textRow1={"ข้อมูล"} textRow2={"สภาพแวดล้อม"} action={station} />
+                    </>
+                }
+                {
+                    Boolean(profile?.protection_role) && // เช็คสิทธิ์ Protection   
+                    <>
+                        <ButtonMenu type={"Map"} textRow1={"แผนที่"} textRow2={"การปลูก"} action={() => { alert("test") }} />
                     </>
                 }
             </div>

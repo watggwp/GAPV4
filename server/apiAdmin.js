@@ -193,7 +193,8 @@ module.exports = function apiAdmin (app , Database , pool = new ConnectionPool()
               id_table_doctor, 
               doctor_role,
               analyst_role,
-              consultant_role
+              consultant_role,
+              protection_role
           FROM acc_doctor 
           WHERE id_table_doctor = ? 
           LIMIT 1;`,
@@ -226,6 +227,7 @@ module.exports = function apiAdmin (app , Database , pool = new ConnectionPool()
                   doctor_role: parseRole(row.doctor_role),
                   analyst_role: parseRole(row.analyst_role),
                   consultant_role: parseRole(row.consultant_role),
+                  protection_role: parseRole(row.protection_role),
               }));
 
               console.log("✅ API Returning Data:", formattedResult);
@@ -261,7 +263,8 @@ app.post('/api/admin/role/update', async (req, res) => {
           id_table_doctor, 
           doctor_role, 
           analyst_role, 
-          consultant_role 
+          consultant_role,
+          protection_role 
       } = req.body;
 
       // อัปเดต role
@@ -270,13 +273,14 @@ app.post('/api/admin/role/update', async (req, res) => {
           SET 
               doctor_role = ?, 
               analyst_role = ?, 
-              consultant_role = ?
+              consultant_role = ?,
+              protection_role = ?
           WHERE id_table_doctor = ?
       `;
 
       con.query(
           sql,
-          [doctor_role, analyst_role, consultant_role, id_table_doctor],
+          [doctor_role, analyst_role, consultant_role, protection_role, id_table_doctor],
           (err, result) => {
               if (err) {
                   console.error("❌ Database Error:", err);
@@ -723,7 +727,7 @@ app.post('/api/admin/add', async (req, res) => {
                         return;
                     } 
 
-                    const { role2 , role3 , role4 } = req.body;
+                    const { role2 , role3 , role4 , role5 } = req.body;
                     con.query(`
                         INSERT INTO acc_doctor
                         (
@@ -738,10 +742,11 @@ app.post('/api/admin/add', async (req, res) => {
                             time_online,
                             doctor_role,
                             analyst_role,
-                            consultant_role
+                            consultant_role,
+                            protection_role
                         ) 
-                        VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?)
-                    `, [req.body['id_doctor'], req.body['passwordDT'], role2, role3, role4], 
+                        VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?, ?)
+                    `, [req.body['id_doctor'], req.body['passwordDT'], role2, role3, role4, role5], 
                     (err, result) => {
                         if(err) {
                             dbpacket.dbErrorReturn(con , err , res);

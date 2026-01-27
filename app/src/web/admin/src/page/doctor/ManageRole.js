@@ -9,6 +9,7 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
         doctor_role: false,
         analyst_role: false,
         consultant_role: false,
+        protection_role: false,
     });
 
     const [LoadingStatus, setLoading] = useState(true);
@@ -72,6 +73,7 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
                 doctor_role: Boolean(profile.doctor_role),
                 analyst_role: Boolean(profile.analyst_role),
                 consultant_role: Boolean(profile.consultant_role),
+                protection_role: Boolean(profile.protection_role),
             });
 
             console.log("✅ Profile State Updated:", {
@@ -79,6 +81,7 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
                 doctor_role: Boolean(profile.doctor_role),
                 analyst_role: Boolean(profile.analyst_role),
                 consultant_role: Boolean(profile.consultant_role),
+                protection_role: Boolean(profile.protection_role),
             });
 
         } catch (error) {
@@ -113,6 +116,7 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
                 doctor_role: Profile.doctor_role ? 1 : 0,
                 analyst_role: Profile.analyst_role ? 1 : 0,
                 consultant_role: Profile.consultant_role ? 1 : 0,
+                protection_role: Profile.protection_role ? 1 : 0,
             });
 
 
@@ -153,30 +157,39 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
                         <span>สิทธิ์การใช้งาน</span>
                         <div className="checkbox-role">
                             <label className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!Profile.doctor_role} 
-                                    onChange={() => handleCheckboxChange("doctor_role")} 
+                                <input
+                                    type="checkbox"
+                                    checked={!!Profile.doctor_role}
+                                    onChange={() => handleCheckboxChange("doctor_role")}
                                 />
                                 <span>หมอพืช</span>
                             </label>
 
                             <label className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!Profile.analyst_role} 
-                                    onChange={() => handleCheckboxChange("analyst_role")} 
+                                <input
+                                    type="checkbox"
+                                    checked={!!Profile.analyst_role}
+                                    onChange={() => handleCheckboxChange("analyst_role")}
                                 />
                                 <span>นักวิเคราะห์สาร</span>
                             </label>
 
                             <label className="checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!Profile.consultant_role} 
-                                    onChange={() => handleCheckboxChange("consultant_role")} 
+                                <input
+                                    type="checkbox"
+                                    checked={!!Profile.consultant_role}
+                                    onChange={() => handleCheckboxChange("consultant_role")}
                                 />
                                 <span>ที่ปรึกษาเกษตรกร</span>
+                            </label>
+
+                            <label className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    checked={!!Profile.protection_role}
+                                    onChange={() => handleCheckboxChange("protection_role")}
+                                />
+                                <span>อารักขาพืช</span>
                             </label>
                         </div>
                     </label>

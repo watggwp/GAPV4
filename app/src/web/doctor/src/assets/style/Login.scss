@@ -1,7 +1,7 @@
 #doctor {
     .login-doctor * {
         -webkit-user-drag: none;
-    
+
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -khtml-user-select: none;
@@ -9,6 +9,7 @@
         -ms-user-select: none;
         user-select: none;
     }
+
     .login-doctor {
         display: flex;
         justify-content: center;
@@ -19,7 +20,7 @@
         background-size: cover;
         background-repeat: no-repeat;
         background-attachment: fixed;
-    
+
         form {
             display: flex;
             flex-direction: column;
@@ -30,16 +31,17 @@
             border-radius: 30px;
             width: 95%;
             max-width: 393px;
-    
+
             .Logo-App {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 margin-bottom: 18px;
+
                 img {
                     width: 80px;
                 }
-    
+
                 span {
                     font-size: 45px;
                     font-family: Sans-font;
@@ -50,10 +52,10 @@
                     color: #379b7a00;
                 }
 
-                
+
 
             }
-    
+
             label {
                 display: flex;
                 justify-content: center;
@@ -65,21 +67,23 @@
                 width: 292.4px;
                 height: 52.4px;
                 outline: 2px solid transparent;
+
                 span {
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     padding: 0px 10px;
+
                     svg {
                         color: #22C7A9;
                         font-size: 30px;
                     }
-    
+
                     svg[emply=""] {
                         animation: emplyInput 0.5s 0s alternate;
                     }
                 }
-    
+
                 input {
                     display: flex;
                     border: 0;
@@ -92,18 +96,20 @@
                     outline: 0;
                     font-weight: 900;
                 }
+
                 input[type="password"]::placeholder {
                     font-family: Sans-font;
                 }
+
                 input[type="password"] {
                     font-family: main-font;
                 }
             }
-    
+
             .empty {
                 box-shadow: 0px 2px 2px rgba(255, 0, 0, 0.719) !important;
             }
-    
+
             button {
                 margin-top: 15px;
                 border-radius: 50px;
@@ -125,7 +131,7 @@
             font-family: Sans-font;
             font-weight: 900;
             font-size: 18px;
-            margin:30px 5px;
+            margin: 30px 5px;
             margin-bottom: 0px;
             opacity: 0;
             visibility: hidden;
@@ -134,10 +140,10 @@
             padding: 5px 20px;
             border-radius: 20px;
             overflow: hidden;
-            transition: 0.5s opacity , 0.5s visibility;
+            transition: 0.5s opacity, 0.5s visibility;
             box-shadow: 0px 4px 4px rgba(255, 0, 0, 0.829);
         }
-        
+
         .error-login[show=""] {
             opacity: 1;
             visibility: visible;
@@ -147,6 +153,7 @@
             form {
                 padding-left: 30px;
                 padding-right: 30px;
+
                 .Logo-App {
                     img {
                         width: 4.2em;
@@ -163,6 +170,7 @@
 
                     span {
                         padding: 0 7px;
+
                         svg {
                             font-size: 30px;
                         }
@@ -183,8 +191,10 @@
             form {
                 padding-left: 25px;
                 padding-right: 25px;
+
                 .Logo-App {
                     margin-bottom: 8px;
+
                     img {
                         width: 4em;
                     }
@@ -210,13 +220,14 @@
         }
 
     }
-    
+
     // responsive computer
     .login-doctor[computer=""] {
         .content-login {
             button {
                 cursor: pointer;
             }
+
             button:hover {
                 box-shadow: 0px 0px 10px green;
             }
@@ -224,9 +235,11 @@
     }
 
     #form-personal-doctor {
-        * , input {
+
+        *,
+        input {
             -webkit-user-drag: none;
-    
+
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
@@ -255,6 +268,7 @@
 
         .form {
             margin: 15px 0px;
+
             .id {
                 display: flex;
                 flex-direction: column;
@@ -266,6 +280,7 @@
                 border-radius: 15px 15px 0px 0px;
                 padding: 5px 0px;
                 padding-top: 8px;
+
                 span {
                     font-size: 18px;
                     font-weight: 900;
@@ -306,7 +321,8 @@
                         font-weight: 900;
                     }
 
-                    input , select {
+                    input,
+                    select {
                         background-color: #418b72;
                         border: 0;
                         outline: 0;
@@ -314,7 +330,8 @@
                         border-radius: 10px;
                         padding: 5px 10px;
                         padding-top: 7px;
-                        font-size: 18px;                        color: white;
+                        font-size: 18px;
+                        color: white;
                         width: 100%;
                     }
 
@@ -370,6 +387,7 @@
             justify-content: space-evenly;
             align-items: center;
             width: 100%;
+
             button {
                 border-radius: 10px;
                 width: 30%;
@@ -403,78 +421,83 @@
     @media only screen and (max-width : 300px) {
         #form-personal-doctor {
             padding: 10px 15px;
-    
+
             .head {
                 font-size: 22px;
             }
-    
+
             .form {
                 margin: 5px 0px;
                 margin-bottom: 10px;
+
                 .id {
                     span {
                         font-size: 16px;
                     }
-    
+
                     input {
                         font-size: 16px;
                     }
                 }
-    
+
                 .profile {
                     padding: 5px;
-    
+
                     .input-field {
-    
+
                         span {
                             font-size: 16px;
                         }
-    
-                        input , select {
+
+                        input,
+                        select {
                             padding: 5px 6px;
                             padding-top: 6px;
                             font-size: 16px;
                         }
-    
+
                         input::placeholder {
                             color: rgb(255, 255, 255);
                         }
                     }
                 }
-    
+
                 .password {
                     padding: 8px;
-    
+
                     input {
                         font-size: 16px;
                         height: 30px;
                     }
                 }
             }
-    
+
             .bt {
                 display: flex;
                 justify-content: space-evenly;
                 align-items: center;
                 width: 100%;
+
                 button {
                     font-size: 16px;
                 }
             }
         }
     }
-    
+
     @keyframes emplyInput {
         0% {
             transform: rotate(20deg);
         }
+
         50% {
             transform: rotate(-20deg);
         }
+
         100% {
             transform: rotate(0deg);
         }
-    } 
+    }
 }
 
 
@@ -493,27 +516,27 @@
     position: sticky;
     top: 0;
     z-index: 4;
-  }
-  
-  .navigation ul {
+}
+
+.navigation ul {
     display: flex;
     width: 400px;
     /* padding: 6rem; */
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-around;
-  }
-  
-  .navigation ul li {
+}
+
+.navigation ul li {
     position: relative;
     list-style: none;
     left: -10px;
     width: 70px;
     height: 70px;
     z-index: 1;
-  }
-  
-  .navigation ul li a {
+}
+
+.navigation ul li a {
     position: relative;
     display: flex;
     justify-content: center;
@@ -524,9 +547,9 @@
     font-weight: 500;
     right: 10px;
     z-index: -1;
-  }
-  
-  .navigation ul li a .icon {
+}
+
+.navigation ul li a .icon {
     position: relative;
     display: block;
     top: -20px;
@@ -534,18 +557,18 @@
     font-size: 2.5rem;
     text-align: center;
     transition: 0.5s;
-    
+
     color: #379B7A;
     opacity: 0;
     z-index: -1;
-  }
-  
-  .navigation ul li.active a .icon {
+}
+
+.navigation ul li.active a .icon {
     opacity: 1;
     transform: translateY(45px);
-  }
-  
-  .navigation ul li a .text {
+}
+
+.navigation ul li a .text {
     position: absolute;
     // top: 10px;
     width: 110px;
@@ -558,13 +581,14 @@
     letter-spacing: 0.05em;
     transition: 0.5s;
     // transform: translateY(20px);
-  }
-  
-  .navigation ul li.active a .text {
+}
+
+.navigation ul li.active a .text {
     color: #ffffff;
     background: #d7d4d400;
     transform: translateY(-30px);
-  }
+}
+
 .navigation ul li a .text-logo {
     position: absolute;
     bottom: 115px;
@@ -579,70 +603,81 @@
     margin-left: 15px;
     padding-top: 8px;
     opacity: 0;
-  }
-  
-  .navigation ul li.active a .text-logo {
+}
+
+.navigation ul li.active a .text-logo {
     opacity: 1;
-  }
+}
 
-  .doctor-logo{
-    left: 40px;
-  }
+.doctor-logo {
+    left: 50px;
+}
 
-  .analyst-logo{
-    left: -40px;
-  }
+.analyst-logo {
+    left: 0px;
+}
 
-  .consultant-logo{
-    left: -192px;
-  }
+.consultant-logo {
+    left: -120px;
+}
 
-  .indicator {
+.protection-logo {
+    left: -190px;
+}
+
+.indicator {
     position: absolute;
     top: 50%;
     width: 80px;
     height: 80px;
     left: 32px;
-     background: #379B7A;
+    background: #379B7A;
     border-radius: 50%;
-    border: 6px  solid #ffffff;
+    border: 6px solid #ffffff;
     transition: 0.5s;
     z-index: -1;
-  }
-  
-  .indicator::before {
+}
+
+.indicator::before {
     content: '';
     position: absolute;
-    bottom: 40px;
-    left: -19px;
+    bottom: 39.1px;
+    left: -19.7px;
     width: 20px;
     height: 20px;
     background: #379B7A;
     border-bottom-right-radius: 20px;
-    box-shadow: 3px 2px 0 0 #ffffff;
-  }
-  
-  .indicator::after {
+    box-shadow: 3px 4px 0px 0px #ffffff;
+}
+
+.indicator::after {
     content: '';
     position: absolute;
-    bottom: 40px;
-    right: -19px;
+    bottom: 39.1px;
+    right: -19.7px;
     width: 20px;
     height: 20px;
     background: #379B7A;
     border-bottom-left-radius: 20px;
-    box-shadow: -3px 2px 0 0 #ffffff;
-  }
-  
-  .navigation ul li:nth-child(1).active ~ .indicator {
-    transform: translateX(calc(70px * 0));
-  }
-  
-  .navigation ul li:nth-child(2).active ~ .indicator {
-    transform: translateX(calc(121px * 1));
-  }
-  
-  .navigation ul li:nth-child(3).active ~ .indicator {
- 
-   transform: translateX(calc(120px * 2));
-  }
+    box-shadow: -3px 4px 0 0 #ffffff;
+}
+
+.navigation ul li:nth-child(1).active~.indicator {
+    transform: translateX(0);
+    left: 17px;
+}
+
+.navigation ul li:nth-child(2).active~.indicator {
+    transform: translateX(0);
+    left: 107px;
+}
+
+.navigation ul li:nth-child(3).active~.indicator {
+    transform: translateX(0);
+    left: 198px;
+}
+
+.navigation ul li:nth-child(4).active~.indicator {
+    transform: translateX(0);
+    left: 290px;
+}
