@@ -111,7 +111,7 @@ list.forEach((item) =>
                         }
                     }
                     else {
-                        ErrorLogin.current.innerHTML = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+                        ErrorLogin.current.innerHTML = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือ เลือกประเภทผู้ใช้ไม่ถูกต้อง"
                         ErrorLogin.current.setAttribute("show" , "")
                         for(let x = 0; x < e.target.length-1; x++) {
                             let prevent = e.target[x].parentElement;

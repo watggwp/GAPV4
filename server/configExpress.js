@@ -71,6 +71,14 @@ module.exports = function appConfig(username, password, hostServer) {
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     app.set('trust proxy', 1);
 
+    app.use((req, res, next) => {
+        console.log('host:', req.headers.host);
+        console.log('protocol:', req.protocol);
+        console.log('secure:', req.secure);
+        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
+        next();
+    });
+
     const upload = multer()
     const server =
         // (mode == process.env.BUILD) ? https.createServer({
@@ -91,21 +99,22 @@ module.exports = function appConfig(username, password, hostServer) {
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-        // cookie: {
-        //     httpOnly: true,
-        //     secure : true,
-        //     maxAge: null,
-        //     sameSite: "none"
-        // },
-        // resave : false
         cookie: {
-            // ตั้งให้เปิด mode https ได้
-            // httpOnly: true,
-            // secure : mode == process.env.BUILD,
+            httpOnly: true,
+            secure: true,
+            // maxAge: 1000 * 60 * 60 * 24,
             maxAge: null,
-            sameSite: 'strict'
-            // secure: mode != process.env.BUILD ? false : true
+            sameSite: "none"
         },
+        // resave: false
+        // cookie: {
+        //     // ตั้งให้เปิด mode https ได้
+        //     // httpOnly: true,
+        //     // secure : mode == process.env.BUILD,
+        //     maxAge: null,
+        //     sameSite: 'strict'
+        //     // secure: mode != process.env.BUILD ? false : true
+        // },
         resave: false
     })
 
@@ -150,6 +159,9 @@ module.exports = function appConfig(username, password, hostServer) {
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`,
         // ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
         `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`,
+        "https://doctor.mhnk.online",
+        "https://admin.mhnk.online",
+        "https://api.mhnk.online",
         "https://gapv2.ngrok.app",
         "http://localhost:5173"
     ]
@@ -158,7 +170,36 @@ module.exports = function appConfig(username, password, hostServer) {
     const io = WebSocket(server, sessionMiddleware, origins, db, listDB, apifunc)
 
     app.use(cors({
+        //อันเก่า
         origin: origins,
+
+        //อันนหใม่ที่อนุญาติ IP ต่างๆ
+        // origin: function (origin, callback) {
+        //     // Allow requests with no origin (like mobile apps or curl requests)
+        //     if (!origin) return callback(null, true);
+
+        //     // Allow localhost and specific domains from the list
+        //     if (origins.indexOf(origin) !== -1) {
+        //         return callback(null, true);
+        //     }
+
+        //     // Allow any ngrok domain
+        //     if (origin.endsWith('.ngrok.app') || origin.endsWith('.ngrok-free.app') || origin.endsWith('.ngrok.io')) {
+        //         return callback(null, true);
+        //     }
+
+        //     // Allow localhost regex and LAN IPs (192.168.x.x, 10.x.x.x, 172.16.x.x)
+        //     if (/^http:\/\/localhost(:\d+)?$/.test(origin) ||
+        //         /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+        //         /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+        //         /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin)) {
+        //         return callback(null, true);
+        //     }
+
+        //     const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        //     // console.log("Blocked Origin:", origin); // Optional debug
+        //     return callback(new Error(msg), false);
+        // },
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     }))
@@ -193,22 +234,22 @@ module.exports = function appConfig(username, password, hostServer) {
     callServices(app, Pool)
 
     // router api url
-    if(mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app , db , Pool , apifunc , dbpackage , listDB , io)
-    apiDoctor(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
-    apiFarmer(app , db , Pool , dbpackage , listDB , io)
-    apiEcph(app , Pool)
-    apiWeatherStation(app , Pool)
-    apiWeatherGreenhouse(app , Pool)
-    apiPump(app , Pool)
-    apiMessage(app , db , Pool , apifunc , dbpackage , listDB , hostServer , io)
-    
-    apiSchedules(app , Pool)
-    apiFertilizers(app , Pool)
-    apiChemicals(app , Pool)
-    apiPests(app , Pool)
-    
-    apiAddDevice(app , Pool)
+    if (mode === process.env.BUILD || mode === "router") router(app)
+    apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, io)
+    apiDoctor(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
+    apiFarmer(app, db, Pool, dbpackage, listDB, io)
+    apiEcph(app, Pool)
+    apiWeatherStation(app, Pool)
+    apiWeatherGreenhouse(app, Pool)
+    apiPump(app, Pool)
+    apiMessage(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
+
+    apiSchedules(app, Pool)
+    apiFertilizers(app, Pool)
+    apiChemicals(app, Pool)
+    apiPests(app, Pool)
+
+    apiAddDevice(app, Pool)
     // page error 404
     app.get("*", (req, res) => {
         res.sendFile(__dirname.replace('\server', '/index404.html'));

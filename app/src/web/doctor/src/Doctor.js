@@ -1,13 +1,9 @@
-import React , {Component, createContext, useCallback, useContext, useEffect, useRef, useState} from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { clientMo } from "../../../assets/js/moduleClient";
 import Login from "./Login";
 
-// import NavDoctor from "./navDoctor";
-import NavFirst from "./navFirst";
-
 import "./assets/style/doctorMain.scss"
-// import './assets/style/doctor.scss'
-import DesktopNev from "./navTop/desktop";
+
 import SessionOut from "./sesionOut";
 import PageFormPlant from "./page/form/PageFormPlant";
 import PageFarmer from "./page/farmer/PageFarmer";
@@ -18,96 +14,114 @@ import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
 import env from "../../../env";
 
+// New Component Imports
+import Sidebar from "./Sidebar";
+import DashboardLayout from "./DashboardLayout";
+import DoctorHeader from "./DoctorHeader";
+import WeatherStation from "./page/station"; // Assume this is needed as it was used in Sidebar
+
 export const DoctorContext = createContext({
-    profile : {},
-    bannerCoverRef : { current : "" },
-    contentRef : { current : "" },
-    onSession : () => {},
-    setTextPage : () => {}
+    profile: {},
+    bannerCoverRef: { current: "" },
+    contentRef: { current: "" },
+    onSession: () => { },
+    setTextPage: () => { }
 })
 
 export function useDoctor() {
     return useContext(DoctorContext)
 }
 
-const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
-    const [body , setBody] = useState(<div></div>)
-    const [session , setSession] = useState(<div></div>)
-    const [TextPage , setTextPage] = useState([])
+const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
+    const [body, setBody] = useState(<div></div>)
+    const [session, setSession] = useState(<div></div>)
+    const [TextPage, setTextPage] = useState([])
 
-    const [getProfile , setProfile] = useState([])
+    const [getProfile, setProfile] = useState([])
+
+    // Sidebar Collapse State - Default state depends on screen size
+    const [isSidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
+
+    // Page Title State
+    const [pageTitle, setPageTitle] = useState("Dashboard");
 
     const ImageCover = useRef()
     const frameImage = useRef()
     const BodyRef = useRef()
 
-    const [Responsive , setResponsive] = useState(window.innerWidth)
-    const [SizeProfileImg , setSizeProfileImg] = useState(0)
+    const [Responsive, setResponsive] = useState(window.innerWidth)
+    const [SizeProfileImg, setSizeProfileImg] = useState(0)
 
-    useEffect(()=>{
-        if(isClick === 1) window.history.replaceState({} , "" , "/doctor")
-        
+    useEffect(() => {
+        if (isClick === 1) window.history.replaceState({}, "", "/doctor")
+
+        // Listener to handle auto-collapse on resize
+        const handleResize = () => {
+            setResponsive(window.innerWidth);
+            if (window.innerWidth <= 768) {
+                setSidebarCollapsed(true);
+            }
+        };
+
         FetchProfile()
-        ChkPath(null , "web")
-        window.addEventListener("popstate" , ChkPath)
-        window.addEventListener("resize" , Resize)
-        socket.emit("connect-account" , username , password)
+        ChkPath(null, "web")
+        window.addEventListener("popstate", ChkPath)
+        window.addEventListener("resize", handleResize)
+        socket.emit("connect-account", username, password)
 
-        return() => {
-            socket.emit("disconnect-account" , username , password)
-            window.removeEventListener("popstate" , ChkPath)
-            window.removeEventListener("resize" , Resize)
+        return () => {
+            socket.emit("disconnect-account", username, password)
+            window.removeEventListener("popstate", ChkPath)
+            window.removeEventListener("resize", handleResize)
         }
-    } , [])
+    }, [])
 
     const FetchProfile = async () => {
         const result = await clientMo.get("/api/doctor/profile/get")
-        if(result) {
+        if (result) {
             console.log(result)
             setProfile(JSON.parse(result))
         }
         else setSession()
     }
 
-    const ChkPath = async (e , type="pop") => {
+    const ChkPath = async (e, type = "pop") => {
         const context = await clientMo.post('/api/doctor/check')
-        if(context) {
-            const path = window.location.pathname.replace("/uat" , "").split("/").filter(val=>val)
+        if (context) {
+            const path = window.location.pathname.replace("/uat", "").split("/").filter(val => val)
             console.log(path)
-            if(path.length === 1 && path[0] === "doctor") setBody(<NavFirst setMain={setMain} setdoctor={setBody} setSession={sessionoff} socket={socket} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
-            else if(path.length >= 2 && path[0] === "doctor") {
-                if(path[1] === "form"){
-                    // if(path[2] == undefined) setBody(<PageForm setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
-                    // else if(path[2] === "ap" || path[2] === "wt") {
-                    //     if(path[2] === "ap") {
-                    //         setBody(<PageFormPlant setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
-                    //     }
-                    //     else if(path[2] === "wt") {
-                    //         setBody(<PageFormPlant setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`wt:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
-                    //     }
-                    // }
-                    setBody(<PageFormPlant setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
-                } else if(path[1] === "farmer") {
-                    if(path[2] === "ap") {
-                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
+            if (path.length === 1 && path[0] === "doctor") {
+                setBody(<DashboardLayout setMain={setMain} setdoctor={setBody} setSession={sessionoff} socket={socket} />);
+                setPageTitle("Dashboard");
+            }
+            else if (path.length >= 2 && path[0] === "doctor") {
+                if (path[1] === "form") {
+                    setBody(<PageFormPlant setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />);
+                    setPageTitle("แบบบันทึกการปลูก");
+                } else if (path[1] === "farmer") {
+                    setPageTitle("ทะเบียนเกษตรกร");
+                    if (path[2] === "ap") {
+                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
                     }
-                    else if(path[2] === "wt") {
-                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`wt:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
+                    else if (path[2] === "wt") {
+                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`wt:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
                     }
-                    else if(path[2] === "not") {
-                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`not:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
+                    else if (path[2] === "not") {
+                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`not:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
                     }
-                    
-                } else if(path[1] === "data") {
-                    const search = window.location.search.replaceAll("?" , "").split("&").map(val=>{
+
+                } else if (path[1] === "data") {
+                    // Logic to set title for 'data' routes if needed
+                    setPageTitle("ข้อมูล");
+
+                    const search = window.location.search.replaceAll("?", "").split("&").map(val => {
                         const Split = val.split("=")
                         return (Split[0] === "type") ? Split[1] : ""
                     })
-                    setBody(<PageData setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`${search[0]}:${type}:${new Date().getTime()}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage}/>)
+                    setBody(<PageData setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`${search[0]}:${type}:${new Date().getTime()}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
+                } else if (path[1] === "schedules") {
+                    setPageTitle("แผนการปลูก");
                 }
-
-            
-                
             } else {
                 setBody(<div>เกิดปัญหา</div>)
             }
@@ -116,205 +130,88 @@ const Doctor = ({setMain , socket , isClick = 0 , username , password}) => {
     }
 
     const sessionoff = useCallback((type = false) => {
-        if(type) {
-            setMain(<Login setMain={setMain} socket={socket} isClick={1}/>)
+        if (type) {
+            setMain(<Login setMain={setMain} socket={socket} isClick={1} />)
         } else {
-            setSession(<SessionOut/>)
-            document.getElementById('session').setAttribute('show' , '')
+            setSession(<SessionOut />)
+            document.getElementById('session').setAttribute('show', '')
         }
-    } , [setMain, socket])
+    }, [setMain, socket])
 
     const Resize = () => {
         const size = window.innerWidth
         setResponsive(size)
-        if(size <= 800 && frameImage.current) setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
-    }
-
-    const LoadImg = () => {
-        setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
+        // if(size <= 800 && frameImage.current) setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
     }
 
     return (
         <DoctorContext.Provider
             value={{
-                profile : getProfile,
-                bannerCoverRef : ImageCover,
-                contentRef : BodyRef,
-                onSession : sessionoff,
+                profile: getProfile,
+                bannerCoverRef: ImageCover,
+                contentRef: BodyRef,
+                onSession: sessionoff,
                 setTextPage
             }}
         >
-            <div className="doctor"
-            // onMouseDown={this.hidePopUp} onContextMenu={this.hidePopUp}
-            >
-                <DesktopNev setMain={setMain} socket={socket} setSession={sessionoff} setBody={setBody} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} 
-                    FetchProfile={FetchProfile}/>
-                <section ref={ImageCover} className="image-cover">
-                    { Responsive > 800 ?
-                        <>
-                        <div className="text-cover">
-                            <div className="icon">
-                                <span>ยินดีต้อนรับ</span>
-                                <img src={`${env.subpath_server}/Logo-white.png`}></img>
-                            </div>
-                            <div className="status">
-                                {TextPage.map((val , index)=>(
-                                    <div className="box-status" key={index}>
-                                        <span>{val}</span>
-                                        {TextPage.length - 1 > index ? <img src={"/arrow.png"}></img> : <></>}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="frame">
-                            <img src={`${env.subpath_server}/cover-2-3.png`}></img>
-                        </div>
-                        </> :
-                        <>
-                        <div className="text-icon-cover" ref={frameImage}>
-                            <div className="text">
-                                <span>ยินดีต้อนรับ</span>
-  
-  
-                                <span style={{fontWeight : 900}}>เจ้าหน้าที่</span>
-  
-                            </div>
-                            <div className="icon-profile" style={{
-                                borderRadius : "50%",
-                                overflow : "hidden",
-                                width : `${SizeProfileImg}px` ,
-                                height : `${SizeProfileImg}px`
-                            }} onLoad={LoadImg}>
-                                <img src={getProfile.length != 0 ? getProfile.img_doctor ? getProfile.img_doctor : "/PROFILE.png" : "/PROFILE.png"}></img>
-                            </div>
-                        </div>
-                        <div className="frame-image-cover">
-                            <img src={`${env.subpath_server}/cover-2-3.png`}></img>
-                        </div>
-                        
-                        </>
-                    }
-                </section>
-                <section ref={BodyRef} className="container-body-doctor">
-                    {/* <div onLoad={this.checkSize}>
-                        {this.state.nav}
-                    </div> */}
-                    <bot-main>
-                        <bot-content>
-                            <BrowserRouter basename={env.subpath_server}>
-                                <Routes>
-                                    <Route path="/doctor/schedules" element={<ScheduleIndex/>}>
-                                        <Route index element={<SchedulesPlan/>} />
-                                        <Route path=":plant_id" element={<SchedulePlants/>} />
-                                    </Route>
-                                    <Route path="*" element={body} />
-                                </Routes>
-                            </BrowserRouter>
-                            {/* {body} */}
-                        </bot-content>
-                    </bot-main>
-                </section>
-                {/* feedBack */}
-                <section id="session">
-                    {session}
-                </section>
-            </div>
+            <BrowserRouter basename={env.subpath_server}>
+                <div className="doctor" style={{ flexDirection: 'row', overflow: 'hidden' }}>
+                    <Sidebar
+                        setMain={setMain}
+                        socket={socket}
+                        setSession={sessionoff}
+                        setdoctor={setBody}
+                        eleImageCover={ImageCover}
+                        eleBody={BodyRef}
+                        setTextStatus={setTextPage}
+                        isCollapsed={isSidebarCollapsed}
+                        toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
+                        setTitle={setPageTitle}
+                    />
+
+                    <div className="main-content-wrapper" style={{
+                        flexGrow: 1,
+                        height: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'margin-left 0.3s ease'
+                    }}>
+
+                        <DoctorHeader
+                            setMain={setMain}
+                            socket={socket}
+                            setSession={sessionoff}
+                            isSidebarCollapsed={isSidebarCollapsed}
+                            pageTitle={pageTitle}
+                            toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
+                        />
+
+                        <section ref={BodyRef} className="container-body-doctor" style={{
+                            flexGrow: 1,
+                            padding: '20px', // Add some padding around the content
+                            overflowY: 'auto'
+                        }}>
+                            <Routes>
+                                <Route path="/doctor/schedules" element={<ScheduleIndex />}>
+                                    <Route index element={<SchedulesPlan />} />
+                                    <Route path=":plant_id" element={<SchedulePlants />} />
+                                </Route>
+                                <Route path="*" element={body} />
+                            </Routes>
+                        </section>
+                    </div>
+
+                    {/* feedBack */}
+                    <section id="session">
+                        {session}
+                    </section>
+
+                    {/* Dummy element for legacy ImageCover ref compatibility */}
+                    <div ref={ImageCover} style={{ display: 'none' }}></div>
+                </div>
+            </BrowserRouter>
         </DoctorContext.Provider>
     )
 }
 
 export default Doctor
-
-// constructor(){
-    //     super();
-    //     this.state={
-    //         // nav: <div></div> ,
-    //         body: ,
-    //         session: ,
-    //         // timeOld : 0
-    //     }
-    // }
-
-    // componentDidMount() {
-    //     this.setState({
-    //         body : 
-    //         // <NavDoctor bodyDoctor={this} main={this.props.main} socket={this.props.socket}/>
-    //     })
-    //     // window.addEventListener('resize' , this.checkSize)
-    // }
-
-    // componentWillUnmount() {
-    //     window.removeEventListener('resize' , this.checkSize)
-    // }
-
-    // checkSize = () => {
-    //     // e.target.innerHeight 
-    //     let list = document.querySelectorAll('.nav-menu .list-menu-nav')
-    //     // console.log(window.innerWidth)
-    //     if(window.innerWidth <= 500) {
-    //         list.forEach((el) => {
-    //             el.setAttribute('mini-nav' , '')
-    //             el.setAttribute('mini-nav-action' , '')
-    //         })
-    //     } else {
-    //         list.forEach((el) => {
-    //             el.removeAttribute('mini-nav')
-    //             el.removeAttribute('mini-nav-action')
-    //         })
-    //     }
-    // }
-
-    // Logout = (e) => {
-    //     e.target.parentElement.classList.toggle('hide')
-    //     clientMo.rmAction('#loading' , 'hide' , 0)
-    //     setTimeout(()=>{
-    //         clientMo.get('/api/logout').then(()=>{
-    //             this.props.main.setState({
-    //                 body : <Login socket={this.props.socket} main={this.props.main} state={true}/>
-    //             })
-    //             clientMo.addAction('#loading' , 'hide' , 1500)
-    //         })
-    //     } , 2000)
-    // }
-
-    // Menu = () => {
-    //     let list = document.querySelectorAll('.nav-menu .list-menu-nav')
-    //     let time = new Date()
-
-    //     if (time.getTime() - this.state.timeOld > 500) {
-    //         this.state.timeOld = time.getTime()
-    //         list.forEach((el , index) => {
-            
-    //             if(el.getAttribute('mini-nav') == '') {
-    //                 el.removeAttribute('mini-nav')
-    //                 setTimeout(()=>{el.removeAttribute('mini-nav-action')}, 300)
-    //             }
-    //             else {
-    //                 el.setAttribute('mini-nav' , '')
-    //                 setTimeout(()=>{el.setAttribute('mini-nav-action' , '')}, 300)
-    //             }
-                
-    //         })
-            
-    //     }
-    // }
-
-    // showOption = () => {
-    //     document.getElementById('profile-otion').classList.toggle('display')
-    //     document.querySelector('.profile-icon').classList.toggle('select')
-    // }
-
-    // hidePopUp = (e) => {
-    //     if(document.querySelector('#profile-otion.display')) {
-    //         let hide = true 
-    //         if(e.target == document.querySelector('.profile-icon #icon')) hide = false
-    //         if(e.target == document.querySelector('.profile-icon')) hide = false
-    //         if(e.target == document.querySelector('#profile-otion')) hide = false            
-    //         if(e.target == document.querySelector('#profile-otion #icon')) hide = false            
-
-    //         if(hide) {
-    //             document.querySelector('#profile-otion').classList.remove('display')
-    //             document.querySelector('.profile-icon').classList.remove('select')
-    //         }
-    //     }  
-    // }

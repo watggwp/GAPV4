@@ -12,7 +12,7 @@ module.exports = function UserAccessLogsGAP(connectionPool = new ConnectPool()) 
                 ` , [user_id, account_type])
             } catch (err) {
                 if (err.code !== 'ER_DUP_ENTRY') {
-                    console.error('❌ Duplicate entry detected!');
+                    console.error('❌ User Access Log Error:', err);
                 }
             }
         }

@@ -1,0 +1,281 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
+.dashboard-layout {
+    flex-grow: 1;
+    flex-grow: 1;
+    // height: 100vh; // Removed: Parent container handles scroll, this should just grow
+    // overflow-y: auto; // Removed: Parent handles scroll
+    min-height: 100%; // Ensure it fills at least the visible area
+    background-color: #F8F9FA;
+    font-family: 'Prompt', sans-serif;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    /* Header styles moved to DoctorHeader.scss */
+
+    .dashboard-filters {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background-color: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        flex-wrap: wrap;
+
+        select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-family: 'Prompt', sans-serif;
+            color: #555;
+            outline: none;
+            min-width: 150px;
+
+            &:focus {
+                border-color: #4FB096;
+            }
+        }
+
+        .filter-btn {
+            background-color: #4FB096;
+            color: white;
+            border: none;
+            padding: 8px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: 'Prompt', sans-serif;
+            font-size: 1rem;
+
+            &:hover {
+                background-color: #3D8C77;
+            }
+        }
+
+        .legend {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #555;
+
+                .dot {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                }
+
+                &.normal {
+                    color: #4FB096;
+
+                    .dot {
+                        background-color: #4FB096;
+                    }
+                }
+
+                &.watch {
+                    color: #F8B400;
+
+                    .dot {
+                        background-color: #F8B400;
+                    }
+                }
+
+                &.disease {
+                    color: #FF5252;
+
+                    .dot {
+                        background-color: #FF5252;
+                    }
+                }
+            }
+        }
+    }
+
+    .map-section {
+        height: 30%; // Reduced height for desktop
+        width: 100%; // Ensure full width
+        flex-shrink: 0; // Prevent shrinking
+        background-color: #e0e0e0;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-widgets {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+
+        .widget {
+            background-color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+            .widget-header {
+                margin-bottom: 20px;
+
+                h3 {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0;
+                }
+            }
+
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+
+                thead th {
+                    padding: 12px 10px;
+                    text-align: center;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: #444;
+
+                    &:first-child {
+                        border-top-left-radius: 10px;
+                        border-bottom-left-radius: 10px;
+                    }
+
+                    &:last-child {
+                        border-top-right-radius: 10px;
+                        border-bottom-right-radius: 10px;
+                    }
+                }
+
+                tbody td {
+                    padding: 12px 10px;
+                    text-align: center;
+                    font-size: 0.9rem;
+                    color: #333;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+
+                tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+                tbody tr:nth-child(even) {
+                    background-color: #f9fdfb;
+                }
+            }
+
+            &.left-widget {
+                thead th {
+                    background-color: #FFCCBC; // Salmon/Orange header
+                }
+
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    color: #333;
+                    font-size: 0.85rem;
+                    min-width: 60px;
+
+                    &.red {
+                        background-color: #ff8a80;
+                        color: white;
+                        border-radius: 10px;
+                    }
+
+                    &.yellow {
+                        background-color: #ffe082;
+                        color: #5d4037;
+                        border-radius: 10px;
+                    }
+
+                    &.green {
+                        background-color: #a5d6a7;
+                        color: #1b5e20;
+                        border-radius: 10px;
+                    }
+                }
+            }
+
+            &.right-widget {
+                thead th {
+                    background-color: #FFCCBC; // Match left or slightly different? Image shows similar.
+                }
+
+                .production-bar-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    justify-content: space-between;
+
+                    .bar-bg {
+                        flex-grow: 1;
+                        height: 15px;
+                        /* Background of bar is transparent in design, just color bar */
+                        background: transparent;
+                        display: flex;
+                        align-items: center;
+
+                        .bar-fill {
+                            height: 100%;
+                            border-radius: 10px;
+                            /* Gradient or solid */
+                        }
+                    }
+
+                    .value {
+                        min-width: 40px;
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Mobile Layout */
+    @media (max-width: 768px) {
+        gap: 15px;
+
+        .dashboard-filters {
+            flex-direction: column;
+            align-items: stretch;
+
+            select {
+                width: 100%;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+
+            .legend {
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 10px;
+                flex-wrap: wrap;
+            }
+        }
+
+        .dashboard-widgets {
+            grid-template-columns: 1fr; // Stack vertically
+        }
+
+        .map-section {
+            height: 300px; // Reduced height for mobile
+        }
+
+        .widget {
+            overflow-x: auto; // Allow table scroll
+        }
+    }
+}
