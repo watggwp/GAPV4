@@ -29,7 +29,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2006915135-zmE4MLZb"
+            "uri": "https://doctor.mhnk.online"
           }
         },
         {
@@ -41,14 +41,14 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2006915135-4nOZeDn8"
+            "uri": "https://liff.line.me/2009108007-9j6NrujI"
           }
         },
       ]
     }
     
     richmenu.createRichMenu(jsonLogin).then( async (RichID)=>{
-      let pathImage = "API/assets/Menu.png"
+      let pathImage = "API/assets/GAPV4.png"
       await richmenu.setRichMenuImage(RichID , fs.readFileSync(pathImage) , "image/png")
       richmenu.setDefaultRichMenu(RichID)
     })
@@ -93,9 +93,11 @@ const RichMenu = {
   }
 
 }
-// RichMenu.DeleteRichMenu.someone("richmenu-307696451cdf4d64368a8476e28e7841")
-RichMenu.GetRichMenu()
+// RichMenu.DeleteRichMenu.someone("richmenu-7c3606604d4a2026e8d792fb2349effc")
+// RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
+// RichMenu.setDefault("richmenu-67122c2041070ca16eafeaa30d1dd4c3")
+// richmenu.linkRichMenuToUser("Uff9c982ec0354c273ea3605abb777445" , "richmenu-4c684e130b16fd664e744ea4c158c960")
 // RichMenu.createRichAddFarm({
 //   "size": {
 //     "width": 2500,
@@ -114,7 +116,7 @@ RichMenu.GetRichMenu()
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2006915135-bL5Werv3"
+//         "uri": "https://liff.line.me/2009108007-suQvoPkK"
 //       }
 //     },
 //     {
@@ -126,7 +128,7 @@ RichMenu.GetRichMenu()
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2006915135-rpPe4wml"
+//         "uri": "https://liff.line.me/2009108007-HZeEJyK0"
 //       }
 //     },
 //     {
@@ -140,6 +142,10 @@ RichMenu.GetRichMenu()
 //         "type": "postback",
 //         "data": "house_add"
 //       }
+//       // "action": {
+//       //   "type": "uri",
+//       //   "uri": "https://liff.line.me/2009108007-oB10I6oH"
+//       // }
 //     },
 //     {
 //       "bounds": {
@@ -150,12 +156,12 @@ RichMenu.GetRichMenu()
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2006915135-ANO5DXR8"
+//         "uri": "https://liff.line.me/2009108007-Kh7K514Q"
 //       }
 //     }
 //   ]
 // })
-// RichMenu.setDefault("richmenu-20949fb410f74a6e7f1897a227287a83")
+// RichMenu.setDefault("richmenu-c449da35475bf1d94e5f8e5fbb899c0c")
 // richmenu.linkRichMenuToUser("U503dd2e67d74458b812b1ad73db59528" , "richmenu-b47b274d02920fb5e8f7600bfa25a936")
 
 
@@ -179,7 +185,7 @@ RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
 // RichMenu.createRichAddFarm()
 
-// RichMenu.setDefault("richmenu-29008f2338b228f0e50630151d38c29e")
+// RichMenu.setDefault("richmenu-67122c2041070ca16eafeaa30d1dd4c3")
 
 // richmenu.linkRichMenuToUser("Uceb5937bcd2edc0de5341022f8d59e9f" , "richmenu-e27bfb6f25e7ba8daa207df690e18489")
 

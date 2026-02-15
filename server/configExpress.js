@@ -99,22 +99,22 @@ module.exports = function appConfig(username, password, hostServer) {
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure: true,
-            // maxAge: 1000 * 60 * 60 * 24,
-            maxAge: null,
-            sameSite: "none"
-        },
-        // resave: false
         // cookie: {
-        //     // ตั้งให้เปิด mode https ได้
-        //     // httpOnly: true,
-        //     // secure : mode == process.env.BUILD,
+        //     httpOnly: true,
+        //     secure: true,
+        //     // maxAge: 1000 * 60 * 60 * 24,
         //     maxAge: null,
-        //     sameSite: 'strict'
-        //     // secure: mode != process.env.BUILD ? false : true
+        //     sameSite: "none"
         // },
+        // resave: false
+        cookie: {
+            // ตั้งให้เปิด mode https ได้
+            // httpOnly: true,
+            // secure : mode == process.env.BUILD,
+            maxAge: null,
+            sameSite: 'strict'
+            // secure: mode != process.env.BUILD ? false : true
+        },
         resave: false
     })
 
@@ -162,8 +162,11 @@ module.exports = function appConfig(username, password, hostServer) {
         "https://doctor.mhnk.online",
         "https://admin.mhnk.online",
         "https://api.mhnk.online",
-        "https://gapv2.ngrok.app",
-        "http://localhost:5173"
+        "https://farmer.mhnk.online",
+        "http://localhost:5173",
+        "http://localhost:3002",
+        "http://localhost:3003",
+        "http://localhost:3004"
     ]
 
     // protocal websocket

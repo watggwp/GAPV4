@@ -17,31 +17,32 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
 const env = {
     Background,
-    path_icon : {
-        sensor_small : SensorSmall,
-        sensor_station : SensorStationIcon,
-        sensor_greenhouse : SensorGreenhouse,
-        sensor_pump : pumpIcon,
-        sensor_greenhouse_bg : SensorGreenhouseBg,
-        pump : Pump,
-        user_not_found : UserNotfound
+    path_icon: {
+        sensor_small: SensorSmall,
+        sensor_station: SensorStationIcon,
+        sensor_greenhouse: SensorGreenhouse,
+        sensor_pump: pumpIcon,
+        sensor_greenhouse_bg: SensorGreenhouseBg,
+        pump: Pump,
+        user_not_found: UserNotfound
     },
-    icon : {
-        close : CloseRoundedIcon,
-        delete : DeleteRoundedIcon,
-        history : HistoryRoundedIcon,
-        plus : ControlPointRoundedIcon,
-        replyAll : ReplyAllRoundedIcon
+    icon: {
+        close: CloseRoundedIcon,
+        delete: DeleteRoundedIcon,
+        history: HistoryRoundedIcon,
+        plus: ControlPointRoundedIcon,
+        replyAll: ReplyAllRoundedIcon
     },
-    mapping_user_type : {
-        doctor : 1,
-        farmer : 2
+    mapping_user_type: {
+        doctor: 1,
+        farmer: 2
     },
-    domain : (
-        process.env.NODE_ENV === "development" ? 
+    domain: (
+        process.env.NODE_ENV === "development" ?
             process.env.REACT_APP_API_DEV :
             process.env.REACT_APP_API_PROD
     ),
+    REACT_APP_KEY_MAP: process.env.REACT_APP_KEY_MAP,
     subpath_server: process.env.PUBLIC_URL || ""
 }
 

@@ -5,7 +5,9 @@
       ```
       npm install
       ```
-
+      ```
+      npm install leaflet react-leaflet@4
+      ```
    - Init env
       ```
       npm run init-env

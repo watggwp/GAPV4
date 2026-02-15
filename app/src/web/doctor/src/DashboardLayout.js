@@ -1,7 +1,22 @@
 import React from 'react';
 import './assets/style/DashboardLayout.scss';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import env from '../../../env';
+
+// Fix for default Leaflet marker icon
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const DashboardLayout = ({ setMain, socket, setSession }) => {
     // Mock Data for Tables
@@ -19,25 +34,12 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
 
     // Dummy Map data
     const mapPins = [
-        { id: 1, position: { lat: 18.79, lng: 98.98 }, status: "red" }, // Chiang Mai example
-        { id: 2, position: { lat: 18.78, lng: 98.99 }, status: "green" },
-        { id: 3, position: { lat: 18.80, lng: 98.97 }, status: "yellow" },
+        { id: 1, position: [18.79, 98.98], status: "red", name: "แปลง A1" }, // Chiang Mai example
+        { id: 2, position: [18.78, 98.99], status: "green", name: "แปลง B2" },
+        { id: 3, position: [18.80, 98.97], status: "yellow", name: "แปลง C3" },
     ];
 
-    const containerStyle = {
-        width: '100%',
-        height: '100%'
-    };
-
-    const center = {
-        lat: 18.7883,
-        lng: 98.9853
-    };
-
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: env.google_maps_key || ""
-    })
+    const center = [18.7883, 98.9853];
 
     return (
         <div className="dashboard-layout">
@@ -73,21 +75,36 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
             </div>
 
             <div className="map-section">
-                {isLoaded ? (
-                    <GoogleMap
-                        mapContainerStyle={containerStyle}
-                        center={center}
-                        zoom={12}
-                    >
-                        {mapPins.map(pin => (
-                            <Marker key={pin.id} position={pin.position} />
-                        ))}
-                    </GoogleMap>
-                ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        Loading Map...
-                    </div>
-                )}
+                <MapContainer center={center} zoom={12} scrollWheelZoom={true} style={{ height: '100%', width: '100%', zIndex: 0 }}>
+                    <LayersControl position="topright">
+                        <LayersControl.BaseLayer checked name="แผนที่ทั่วไป (Street)">
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name="ดาวเทียม (Satellite)">
+                            <TileLayer
+                                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            />
+                        </LayersControl.BaseLayer>
+                        <LayersControl.BaseLayer name="สะอาดตา (Clean)">
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                            />
+                        </LayersControl.BaseLayer>
+                    </LayersControl>
+
+                    {mapPins.map(pin => (
+                        <Marker key={pin.id} position={pin.position}>
+                            <Popup>
+                                {pin.name} <br /> สถานะ: {pin.status}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
             </div>
 
             <div className="dashboard-widgets">
@@ -106,6 +123,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 <th>ชนิดพืช</th>
                                 <th>วันที่ครบกำหนด</th>
                                 <th>วันที่เกินกำหนด</th>
+                                <th>สถานะ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,7 +136,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                     <td>{item.overdue}</td>
                                     <td>
                                         <span className={`status-badge ${item.status}`}>
-                                            {item.status === 'red' ? 'ล่าช้า' :
+                                            {item.status === 'red' ? 'พบโรค' :
                                                 item.status === 'yellow' ? 'เฝ้าระวัง' : 'ปกติ'}
                                         </span>
                                     </td>
