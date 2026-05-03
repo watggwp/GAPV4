@@ -118,6 +118,7 @@ export default function PDFDownloadOnly() {
   const [ blobUrlPDF , setBlobUrlPDF ] = useState("")
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const [hostSize, setHostSize] = useState(() => {
     const w = typeof window !== "undefined" ? window.innerWidth : 980;
@@ -283,7 +284,11 @@ export default function PDFDownloadOnly() {
       console.log("[export payload] chemi:", formatted.chemi);
 
       try {
-        const pdfBlob = await ExportPDF([formatted], { range: timeRange, download: false });
+        const pdfBlob = await ExportPDF([formatted], { 
+          range: timeRange, 
+          download: false,
+          onProgress: (val) => setProgress(val)
+        });
         // const link = document.createElement("a");
         setBlobUrlPDF(URL.createObjectURL(pdfBlob))
         // link.download = onGenerateFileNamePDF();
@@ -373,7 +378,7 @@ export default function PDFDownloadOnly() {
             {
               downloading ? 
                 <Stack>
-                  กำลังสร้างไฟล์...
+                  กำลังสร้างไฟล์... {progress}%
                 </Stack> : 
                 <Link
                   href={blobUrlPDF}

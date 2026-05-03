@@ -38,7 +38,7 @@ list.forEach((item) =>
 
     let timeoutEmply = 0
 
-    const [init , liff] = useLiff("2006915135-zmE4MLZb")
+    const [init , liff] = useLiff(process.env.REACT_APP_LIFF_DOCTOR)
 
     useEffect(()=>{
         if(isClick) window.history.pushState({} , null , '/doctor')

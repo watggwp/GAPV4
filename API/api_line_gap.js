@@ -29,7 +29,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://doctor.mhnk.online"
+            "uri": "https://liff.line.me/2009108007-REIob8fw"
           }
         },
         {
@@ -57,7 +57,7 @@ const RichMenu = {
 
   createRichAddFarm : (object_create) => {    
     richmenu.createRichMenu(object_create).then((RichID)=>{
-      let pathImage = "API/assets/farmer-menuV3-small.png"
+      let pathImage = "API/assets/farmer-menuV4-small.png"
       richmenu.setRichMenuImage(RichID , fs.readFileSync(pathImage) , "image/png")
     })
   },
@@ -93,11 +93,14 @@ const RichMenu = {
   }
 
 }
-// RichMenu.DeleteRichMenu.someone("richmenu-7c3606604d4a2026e8d792fb2349effc")
+
+//รูปภาพห้ามเกิน1MB
+
+// RichMenu.DeleteRichMenu.someone("richmenu-67122c2041070ca16eafeaa30d1dd4c3")
 // RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
-// RichMenu.setDefault("richmenu-67122c2041070ca16eafeaa30d1dd4c3")
-// richmenu.linkRichMenuToUser("Uff9c982ec0354c273ea3605abb777445" , "richmenu-4c684e130b16fd664e744ea4c158c960")
+// RichMenu.setDefault("richmenu-de534382f619a47859395782454c8df8")
+// richmenu.linkRichMenuToUser("Uff9c982ec0354c273ea3605abb777445" , "richmenu-222ec92b02d740bf4f6dd6d5f7a5f7bc")
 // RichMenu.createRichAddFarm({
 //   "size": {
 //     "width": 2500,
@@ -138,14 +141,14 @@ const RichMenu = {
 //         "width": 959,
 //         "height": 789
 //       },
-//       "action": {
-//         "type": "postback",
-//         "data": "house_add"
-//       }
 //       // "action": {
-//       //   "type": "uri",
-//       //   "uri": "https://liff.line.me/2009108007-oB10I6oH"
+//       //   "type": "postback",
+//       //   "data": "house_add"
 //       // }
+//       "action": {
+//         "type": "uri",
+//         "uri": "https://liff.line.me/2009108007-b5gCZTDc"
+//       }
 //     },
 //     {
 //       "bounds": {

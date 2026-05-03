@@ -87,45 +87,45 @@ const ListData = ({
     socket.removeListener("update-online");
     clearInterval(getInterval);
     setStateOnPage({ status: status?.status })
-    
+
     const primaryMenu = (
       HrefPage.get().split("?")[0] === "list" ? (
-        ["default" , "delete"].includes(window.location.href.split("?")[1])
-          ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-        ["admin" , "deleteAdmin"].includes(window.location.href.split("?")[1])
-          ? "บัญชีผู้ดูแลระบบ" : ""
+        ["default", "delete"].includes(window.location.href.split("?")[1])
+          ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
+          ["admin", "deleteAdmin"].includes(window.location.href.split("?")[1])
+            ? "บัญชีผู้ดูแลระบบ" : ""
       ) :
-      HrefPage.get().split("?")[0] === "data"
-        ? "ข้อมูลเพิ่มเติม" : 
-      HrefPage.get().split("?")[0] === "group"
-        ? "จัดกลุ่มข้อมูล" : 
-      HrefPage.get().split("?")[0] === "report"
-        ? "รายงานข้อมูล" : ""
+        HrefPage.get().split("?")[0] === "data"
+          ? "ข้อมูลเพิ่มเติม" :
+          HrefPage.get().split("?")[0] === "group"
+            ? "จัดกลุ่มข้อมูล" :
+            HrefPage.get().split("?")[0] === "report"
+              ? "รายงานข้อมูล" : ""
     )
 
     const secondaryMenu = (
       HrefPage.get().split("?")[0] === "list" ? (
         ["delete"].includes(window.location.href.split("?")[1])
-          ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" : 
-        ["deleteAdmin"].includes(window.location.href.split("?")[1])
-          ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : ""
-      ) : 
-      HrefPage.get().indexOf("plant") >= 0
-        ? "ชนิดพืช" : 
-      HrefPage.get().indexOf("station") >= 0
-        ? "ศูนย์" : 
-      HrefPage.get().indexOf("group") >= 0
-        ? "รายการจัดกลุ่มข้อมูล" : 
-      HrefPage.get().indexOf("chemical") >= 0
-        ? "สารเคมี" : 
-      HrefPage.get().indexOf("pest") >= 0
-        ? "โรคพืช / ศัตรูพืช" : 
-      HrefPage.get().indexOf("listlocation") >= 0
-        ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร" : 
-      HrefPage.get().indexOf("graph") >= 0
-        ? "จำนวนเกษตรกรและพืชที่เพาะปลูก" : 
-      HrefPage.get().indexOf("statistics") >= 0
-        ? "สถิติโรคพืช" : ""
+          ? "บัญชีเจ้าหน้าที่ส่งเสริมที่ถูกลบ" :
+          ["deleteAdmin"].includes(window.location.href.split("?")[1])
+            ? "บัญชีผู้ดูแลระบบที่ถูกลบ" : ""
+      ) :
+        HrefPage.get().indexOf("plant") >= 0
+          ? "ชนิดพืช" :
+          HrefPage.get().indexOf("station") >= 0
+            ? "ศูนย์" :
+            HrefPage.get().indexOf("group") >= 0
+              ? "รายการจัดกลุ่มข้อมูล" :
+              HrefPage.get().indexOf("chemical") >= 0
+                ? "สารเคมี" :
+                HrefPage.get().indexOf("pest") >= 0
+                  ? "โรคพืช / ศัตรูพืช" :
+                  HrefPage.get().indexOf("listlocation") >= 0
+                    ? "รายชื่อหมอพืชและที่ปรึกษาเกษตรกร" :
+                    HrefPage.get().indexOf("graph") >= 0
+                      ? "จำนวนเกษตรกรและพืชที่เพาะปลูก" :
+                      HrefPage.get().indexOf("statistics") >= 0
+                        ? "สถิติโรคพืช" : ""
     )
 
     modify(70, 30, [
@@ -143,8 +143,8 @@ const ListData = ({
               status.status === "default"
                 ? 0
                 : status.status === "delete"
-                ? 1
-                : -1,
+                  ? 1
+                  : -1,
             limit: Limit || 10,
             startRow: StartRow,
             textSearch: textSearch
@@ -157,8 +157,8 @@ const ListData = ({
               status.status === "admin"
                 ? 0
                 : status.status === "deleteAdmin"
-                ? 1
-                : -1,
+                  ? 1
+                  : -1,
             limit: Limit || 10,
             startRow: StartRow,
             textSearch: textSearch
@@ -180,15 +180,15 @@ const ListData = ({
               status.status === "admin"
                 ? 0
                 : status.status === "deleteAdmin"
-                ? 1
-                : -1,
+                  ? 1
+                  : -1,
             limit: Limit || 10,
             startRow: StartRow,
             textSearch: textSearch
           });
           break;
         }
-        default :
+        default:
           break;
       }
     } else if (HrefPage.get().split("?")[0] === "data") {
@@ -258,15 +258,15 @@ const ListData = ({
   return (
     <section className="body-list-manage">
       {status.status === "default" ||
-      status.status === "admin" ||
-      status.status === "plant" ||
-      status.status === "station" ||
-      status.status === "group" ||
-      status.status === "chemical" ||
-      status.status === "pest" ||
-      status.status === "listlocation" ||
-      status.status === "graph" ||
-      status.status === "statistics" ? (
+        status.status === "admin" ||
+        status.status === "plant" ||
+        status.status === "station" ||
+        status.status === "group" ||
+        status.status === "chemical" ||
+        status.status === "pest" ||
+        status.status === "listlocation" ||
+        status.status === "graph" ||
+        status.status === "statistics" ? (
         <InsertPage
           ReloadAccount={() => fetchDataList(0, DataFetch.length)}
           type={status.status}
@@ -276,28 +276,28 @@ const ListData = ({
       )}
       <div className="List-data">
         {
-          status.status === "listlocation" ? 
-            <InsertReport/> :
-          status.status === "graph" ? 
-            <InsertGraph/> : 
-          status.status === "statistics" ? 
-            <InsertStatistics/> : 
-          status.status === "group" ? 
-            <PageGroup/> : 
-            <ManageList
-              socket={socket}
-              Data={DataFetch}
-              setBecause={setBecause}
-              ListCount={ListCount}
-              setListCount={setListCount}
-              TabOn={TabOn}
-              HrefPage={HrefPage}
-              status={status}
-              auth={auth}
-              session={session}
-              RefBe={RefBe}
-              Fetch={() => fetchDataList(0, DataFetch.length)}
-            />
+          status.status === "listlocation" ?
+            <InsertReport /> :
+            status.status === "graph" ?
+              <InsertGraph /> :
+              status.status === "statistics" ?
+                <InsertStatistics /> :
+                status.status === "group" ?
+                  <PageGroup /> :
+                  <ManageList
+                    socket={socket}
+                    Data={DataFetch}
+                    setBecause={setBecause}
+                    ListCount={ListCount}
+                    setListCount={setListCount}
+                    TabOn={TabOn}
+                    HrefPage={HrefPage}
+                    status={status}
+                    auth={auth}
+                    session={session}
+                    RefBe={RefBe}
+                    Fetch={() => fetchDataList(0, DataFetch.length)}
+                  />
         }
       </div>
       <div
@@ -308,15 +308,15 @@ const ListData = ({
       >
         {
           status.status !== "group" && status.status !== "statistics" && status.status !== "listlocation" && status.status !== "graph" &&
-            <LoadOtherOffset
-              Fetch={fetchDataList}
-              Data={DataFetch}
-              setRow={setRowList}
-              Limit={5}
-              style={{
-                backgroundColor: "#22C7A9"
-              }}
-            />
+          <LoadOtherOffset
+            Fetch={fetchDataList}
+            Data={DataFetch}
+            setRow={setRowList}
+            Limit={5}
+            style={{
+              backgroundColor: "#22C7A9"
+            }}
+          />
         }
       </div>
       <div ref={RefBe} className="page-because-popup">
@@ -373,24 +373,24 @@ const ManageList = ({
   const OpenManageRole = async (id_table_doctor, doctor_role, analyst_role, consultant_role) => {
     if (await auth(true)) {
 
-        setBecause(null);
+      setBecause(null);
 
-        // รอให้ React อัปเดตสถานะก่อนเปิดใหม่
-        setTimeout(() => {
-            setBecause(
-                <ManageRole
-                    RefOnPage={RefBe}
-                    id_table={id_table_doctor}  // ส่งค่า id_table ไปยัง ManageRole
-                    doctor_role={doctor_role}
-                    analyst_role={analyst_role}
-                    consultant_role={consultant_role}
-                    setBecause={setBecause}
-                    ReloadFetch={Fetch} // ใช้สำหรับรีโหลดข้อมูลหลังอัปเดต
-                />
-            );
-        }, 100); 
+      // รอให้ React อัปเดตสถานะก่อนเปิดใหม่
+      setTimeout(() => {
+        setBecause(
+          <ManageRole
+            RefOnPage={RefBe}
+            id_table={id_table_doctor}  // ส่งค่า id_table ไปยัง ManageRole
+            doctor_role={doctor_role}
+            analyst_role={analyst_role}
+            consultant_role={consultant_role}
+            setBecause={setBecause}
+            ReloadFetch={Fetch} // ใช้สำหรับรีโหลดข้อมูลหลังอัปเดต
+          />
+        );
+      }, 100);
     }
-};
+  };
 
 
   const OpenConfirmDoctor = async (id_table_doctor, typeStatus) => {
@@ -512,39 +512,38 @@ const ManageList = ({
 
   const manageList = () => {
     console.log(Data)
-      const doctorList = Data.map((data, key) => (
-  <list-data-body
-    key={key}
-    id={`data-list-content-${
-      HrefPage.get().split("?")[0] === "list"
-        ? status.status === "default"
-          ? data.id_table_doctor
-          : status.status === "admin"
-            ? data.id
-          : ""
-        : HrefPage.get().split("?")[0] === "data"
-          ? status.status === "pest" ? data.pest_id : data.id
-        : ""
-    }`}
-    status={
-      status.status === "delete" || status.status === "deleteAdmin" ?
-        "delete" : status.status
-    }
-  >
-    {HrefPage.get().split("?")[0] === "list" ? (
-      status.status === "default" || status.status === "delete" ? (
-        <>
-          {status.status === "default" ? (
-            <div className="status-online">
-              <div
-                className="text-online"
-                style={
-                  data.time_online == "online"
-                    ? { backgroundColor: "#00ff3c" }
-                    : {}
-                }
-              >
-                {/* {data.time_online ? (
+    const doctorList = Data.map((data, key) => (
+      <list-data-body
+        key={key}
+        id={`data-list-content-${HrefPage.get().split("?")[0] === "list"
+          ? status.status === "default"
+            ? data.id_table_doctor
+            : status.status === "admin"
+              ? data.id
+              : ""
+          : HrefPage.get().split("?")[0] === "data"
+            ? status.status === "pest" ? data.pest_id : data.id
+            : ""
+          }`}
+        status={
+          status.status === "delete" || status.status === "deleteAdmin" ?
+            "delete" : status.status
+        }
+      >
+        {HrefPage.get().split("?")[0] === "list" ? (
+          status.status === "default" || status.status === "delete" ? (
+            <>
+              {status.status === "default" ? (
+                <div className="status-online">
+                  <div
+                    className="text-online"
+                    style={
+                      data.time_online == "online"
+                        ? { backgroundColor: "#00ff3c" }
+                        : {}
+                    }
+                  >
+                    {/* {data.time_online ? (
                   data.time_online == "online" ? (
                     "กำลังใช้งาน"
                   ) : data.time_online == "offline" ? (
@@ -559,285 +558,285 @@ const ManageList = ({
                 ) : (
                   "ยังไม่เข้าระบบ"
                 )} */}
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}
-          <detail-data-main>
-            <detail-Image>
-              <img
-                src={
-                  data.img_doctor
-                    ? data.img_doctor
-                    : "/doctor-svgrepo-com.svg"
-                }
-              ></img>
-            </detail-Image>
-            <detail-data>
-              <detail-in-fullname>
-                <span>
-                  {data.fullname_doctor
-                    ? data.fullname_doctor
-                    : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุชื่อ"}
-                </span>
-              </detail-in-fullname>
-              <detail-in>
-                <span className="head-data">รหัสประจำตัว</span>
-                <div className="text-data">{data.id_doctor}</div>
-              </detail-in>
-              <detail-in>
-                <span className="head-data">ศูนย์</span>
-                <div className="text-data">
-                  {data.station
-                    ? data.station
-                    : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุ"}
+                  </div>
                 </div>
-              </detail-in>
-            </detail-data>
-          </detail-data-main>
-          <action-bt>
-            {status.status === "default" ? (
-              <>
-                <bt-role>
-                    <button
-                        onClick={() =>
-                            OpenManageRole(
-                                data.id_table_doctor, 
-                                data.doctor_role, 
-                                data.analyst_role, 
-                                data.consultant_role
-                            )
-                        }
-                    >
-                        สิทธิ์การใช้งาน
-                    </button>
-                </bt-role>
-                <content-status because={1}>
-                  <bt-because>
-                    <button
-                      onClick={() =>
-                        OpenDetailManage(
-                          data.id_table_doctor,
-                          "status_account"
-                        )
-                      }
-                    >
-                      เหตุผล
-                    </button>
-                  </bt-because>
-                  <bt-status
-                    onClick={() =>
-                      OpenConfirmDoctor(
-                        data.id_table_doctor,
-                        "status_account"
-                      )
-                    }
-                  >
-                    <div
-                      className="frame"
-                      status={data.status_account ? "1" : "0"}
-                    >
-                      <span>ON</span>
-                      <span className="dot"></span>
-                      <span>OFF</span>
-                    </div>
-                  </bt-status>
-                </content-status>
-                <bt-delete>
-                  <button
-                    onClick={() =>
-                      OpenConfirmDoctor(
-                        data.id_table_doctor,
-                        "status_delete"
-                      )
-                    }
-                  >
-                    ลบบัญชี
-                  </button>
-                </bt-delete>
-              </>
-            ) : status.status === "delete" ? (
-              <content-status because={0} delete="">
-                <bt-because>
-                  <button
-                    onClick={() =>
-                      OpenDetailManage(
-                        data.id_table_doctor,
-                        "status_delete"
-                      )
-                    }
-                  >
-                    เหตุผล
-                  </button>
-                </bt-because>
-              </content-status>
-            ) : (
-              <></>
-            )}
-          </action-bt>
-        </>
-      ) : status.status === "admin" || status.status === "deleteAdmin" ? (
-        <>
-          {status.status === "admin" ? (
-            <div className="status-online">
-              <div
-                className="text-online"
-                style={
-                  data.time_online == "online"
-                    ? { backgroundColor: "#00ff3c" }
-                    : {}
-                }
-              >
-                {/* {data.time_online ? (
-                  data.time_online == "online" ? (
-                    "กำลังใช้งาน"
-                  ) : data.time_online == "offline" ? (
-                    "ปิดใช้งาน"
-                  ) : (
-                    <TimeDiff
-                      DATE={parseInt(data.time_online)}
-                      DivInput={false}
-                      textPresent="ใช้งานเมื่อ "
-                    />
-                  )
-                ) : (
-                  "ยังไม่เข้าระบบ"
-                )} */}
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}
-          <detail-data-main>
-            <detail-Image>
-              <img
-                src={
-                  data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"
-                }
-              ></img>
-            </detail-Image>
-            <detail-data>
-              <detail-in-fullname>
-                <span>
-                  {data.fullname_admin
-                    ? data.fullname_admin
-                    : "ผู้ดูแลระบบยังไม่ระบุชื่อ"}
-                </span>
-              </detail-in-fullname>
-              <detail-in>
-                <span className="head-data">รหัสประจำตัว</span>
-                <div className="text-data">{data.username}</div>
-              </detail-in>
-              <detail-in>
-                <span className="head-data">ศูนย์</span>
-                <div className="text-data">
-                  {data.station ? data.station : "ผู้ดูแลระบบยังไม่ระบุ"}
-                </div>
-              </detail-in>
-            </detail-data>
-          </detail-data-main>
-          <action-bt>
-            {status.status === "admin" ? (
-              <>
-                <content-status because={1}>
-                  <bt-because>
-                    <button
-                      onClick={() =>
-                        OpenDetailManageAdmin(data.id, "status_account")
-                      }
-                    >
-                      เหตุผล
-                    </button>
-                  </bt-because>
-                  <bt-status
-                    onClick={() =>
-                      OpenConfirmAdmin(data.id, "status_account")
-                    }
-                  >
-                    <div
-                      className="frame"
-                      status={data.status_account ? "1" : "0"}
-                    >
-                      <span>ON</span>
-                      <span className="dot"></span>
-                      <span>OFF</span>
-                    </div>
-                  </bt-status>
-                </content-status>
-                <bt-delete>
-                  <button
-                    onClick={() =>
-                      OpenConfirmAdmin(data.id, "status_delete")
-                    }
-                  >
-                    ลบบัญชี
-                  </button>
-                </bt-delete>
-              </>
-            ) : status.status === "deleteAdmin" ? (
-              <content-status because={0} delete="">
-                <bt-because>
-                  <button
-                    onClick={() =>
-                      OpenDetailManageAdmin(data.id, "status_delete")
-                    }
-                  >
-                    เหตุผล
-                  </button>
-                </bt-because>
-              </content-status>
-            ) : (
-              <></>
-            )}
-          </action-bt>
-        </>
-      ) : undefined
-    ) : HrefPage.get().split("?")[0] === "data" ? (
-      <>
-        <detail-data-main column="">
-          <detail-data maxsize="" flex={status.status}>
-            <div className= "name" w={status.status === "plant" ? "name" : ""}>
-              {status.status === "plant" && (
-                <>
-                  <span>ชื่อพืช</span>
-                  <div className="text-data">{data.name}</div>
-                </>
-              )}
-            </div>
-
-            <div
-              className={
-                status.status === "plant" ? "type_plant" : "location"
-              }
-            >
-              {status.status === "plant" ? <span>ประเภท</span> : <></>}
-              {status.status === "plant" ? (
-                <div className="text-data">{data.type_plant}</div>
-              ) : status.status === "station" ? (
-                <MapsJSX
-                  lat={data.location.x}
-                  lng={data.location.y}
-                  w={"300vw"}
-                  h={"100vw"}
-                />
               ) : (
-                ""
+                <></>
               )}
-            </div>
-        
-
-
-            <div className= "chemical" w={status.status === "chemical" ? "chemical" : ""}>
-              {status.status === "chemical" && (
-                <>
-                  <span>ชื่อสารเคมี</span>
-                  <div className="text-data">{data.name}</div>
-                </>
+              <detail-data-main>
+                <detail-Image>
+                  <img
+                    src={
+                      data.img_doctor
+                        ? data.img_doctor
+                        : "/doctor-svgrepo-com.svg"
+                    }
+                  ></img>
+                </detail-Image>
+                <detail-data>
+                  <detail-in-fullname>
+                    <span>
+                      {data.fullname_doctor
+                        ? data.fullname_doctor
+                        : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุชื่อ"}
+                    </span>
+                  </detail-in-fullname>
+                  <detail-in>
+                    <span className="head-data">รหัสประจำตัว</span>
+                    <div className="text-data">{data.id_doctor}</div>
+                  </detail-in>
+                  <detail-in>
+                    <span className="head-data">ศูนย์</span>
+                    <div className="text-data">
+                      {data.station
+                        ? data.station
+                        : "เจ้าหน้าที่ส่งเสริมยังไม่ระบุ"}
+                    </div>
+                  </detail-in>
+                </detail-data>
+              </detail-data-main>
+              <action-bt>
+                {status.status === "default" ? (
+                  <>
+                    <bt-role>
+                      <button
+                        onClick={() =>
+                          OpenManageRole(
+                            data.id_table_doctor,
+                            data.doctor_role,
+                            data.analyst_role,
+                            data.consultant_role
+                          )
+                        }
+                      >
+                        สิทธิ์การใช้งาน
+                      </button>
+                    </bt-role>
+                    <content-status because={1}>
+                      <bt-because>
+                        <button
+                          onClick={() =>
+                            OpenDetailManage(
+                              data.id_table_doctor,
+                              "status_account"
+                            )
+                          }
+                        >
+                          เหตุผล
+                        </button>
+                      </bt-because>
+                      <bt-status
+                        onClick={() =>
+                          OpenConfirmDoctor(
+                            data.id_table_doctor,
+                            "status_account"
+                          )
+                        }
+                      >
+                        <div
+                          className="frame"
+                          status={data.status_account ? "1" : "0"}
+                        >
+                          <span>ON</span>
+                          <span className="dot"></span>
+                          <span>OFF</span>
+                        </div>
+                      </bt-status>
+                    </content-status>
+                    <bt-delete>
+                      <button
+                        onClick={() =>
+                          OpenConfirmDoctor(
+                            data.id_table_doctor,
+                            "status_delete"
+                          )
+                        }
+                      >
+                        ลบบัญชี
+                      </button>
+                    </bt-delete>
+                  </>
+                ) : status.status === "delete" ? (
+                  <content-status because={0} delete="">
+                    <bt-because>
+                      <button
+                        onClick={() =>
+                          OpenDetailManage(
+                            data.id_table_doctor,
+                            "status_delete"
+                          )
+                        }
+                      >
+                        เหตุผล
+                      </button>
+                    </bt-because>
+                  </content-status>
+                ) : (
+                  <></>
+                )}
+              </action-bt>
+            </>
+          ) : status.status === "admin" || status.status === "deleteAdmin" ? (
+            <>
+              {status.status === "admin" ? (
+                <div className="status-online">
+                  <div
+                    className="text-online"
+                    style={
+                      data.time_online == "online"
+                        ? { backgroundColor: "#00ff3c" }
+                        : {}
+                    }
+                  >
+                    {/* {data.time_online ? (
+                  data.time_online == "online" ? (
+                    "กำลังใช้งาน"
+                  ) : data.time_online == "offline" ? (
+                    "ปิดใช้งาน"
+                  ) : (
+                    <TimeDiff
+                      DATE={parseInt(data.time_online)}
+                      DivInput={false}
+                      textPresent="ใช้งานเมื่อ "
+                    />
+                  )
+                ) : (
+                  "ยังไม่เข้าระบบ"
+                )} */}
+                  </div>
+                </div>
+              ) : (
+                <></>
               )}
-            </div>
+              <detail-data-main>
+                <detail-Image>
+                  <img
+                    src={
+                      data.img_admin ? data.img_admin : "/admin-svgrepo-com.svg"
+                    }
+                  ></img>
+                </detail-Image>
+                <detail-data>
+                  <detail-in-fullname>
+                    <span>
+                      {data.fullname_admin
+                        ? data.fullname_admin
+                        : "ผู้ดูแลระบบยังไม่ระบุชื่อ"}
+                    </span>
+                  </detail-in-fullname>
+                  <detail-in>
+                    <span className="head-data">รหัสประจำตัว</span>
+                    <div className="text-data">{data.username}</div>
+                  </detail-in>
+                  <detail-in>
+                    <span className="head-data">ศูนย์</span>
+                    <div className="text-data">
+                      {data.station ? data.station : "ผู้ดูแลระบบยังไม่ระบุ"}
+                    </div>
+                  </detail-in>
+                </detail-data>
+              </detail-data-main>
+              <action-bt>
+                {status.status === "admin" ? (
+                  <>
+                    <content-status because={1}>
+                      <bt-because>
+                        <button
+                          onClick={() =>
+                            OpenDetailManageAdmin(data.id, "status_account")
+                          }
+                        >
+                          เหตุผล
+                        </button>
+                      </bt-because>
+                      <bt-status
+                        onClick={() =>
+                          OpenConfirmAdmin(data.id, "status_account")
+                        }
+                      >
+                        <div
+                          className="frame"
+                          status={data.status_account ? "1" : "0"}
+                        >
+                          <span>ON</span>
+                          <span className="dot"></span>
+                          <span>OFF</span>
+                        </div>
+                      </bt-status>
+                    </content-status>
+                    <bt-delete>
+                      <button
+                        onClick={() =>
+                          OpenConfirmAdmin(data.id, "status_delete")
+                        }
+                      >
+                        ลบบัญชี
+                      </button>
+                    </bt-delete>
+                  </>
+                ) : status.status === "deleteAdmin" ? (
+                  <content-status because={0} delete="">
+                    <bt-because>
+                      <button
+                        onClick={() =>
+                          OpenDetailManageAdmin(data.id, "status_delete")
+                        }
+                      >
+                        เหตุผล
+                      </button>
+                    </bt-because>
+                  </content-status>
+                ) : (
+                  <></>
+                )}
+              </action-bt>
+            </>
+          ) : undefined
+        ) : HrefPage.get().split("?")[0] === "data" ? (
+          <>
+            <detail-data-main column="">
+              <detail-data maxsize="" flex={status.status}>
+                <div className="name" w={status.status === "plant" ? "name" : ""}>
+                  {status.status === "plant" && (
+                    <>
+                      <span>ชื่อพืช</span>
+                      <div className="text-data">{data.name}</div>
+                    </>
+                  )}
+                </div>
 
-            {/* <div className="chemical" w={status.status}>
+                <div
+                  className={
+                    status.status === "plant" ? "type_plant" : "location"
+                  }
+                >
+                  {status.status === "plant" ? <span>ประเภท</span> : <></>}
+                  {status.status === "plant" ? (
+                    <div className="text-data">{data.type_plant}</div>
+                  ) : status.status === "station" ? (
+                    <MapsJSX
+                      lat={data.location.x}
+                      lng={data.location.y}
+                      w={"300vw"}
+                      h={"100vw"}
+                    />
+                  ) : (
+                    ""
+                  )}
+                </div>
+
+
+
+                <div className="chemical" w={status.status === "chemical" ? "chemical" : ""}>
+                  {status.status === "chemical" && (
+                    <>
+                      <span>ชื่อสารเคมี</span>
+                      <div className="text-data">{data.name}</div>
+                    </>
+                  )}
+                </div>
+
+                {/* <div className="chemical" w={status.status}>
             {status.status === "chemical" && (
               <> 
                 <span className={status.status}>ชื่อสารเคมี</span>
@@ -846,16 +845,16 @@ const ManageList = ({
             )}
             </div> */}
 
-<div className= "name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
-            {status.status === "chemical" && (
-              <>
-                <span>ชื่อสามัญสารเคมี</span>
-                <div className="text-data">{data.name_formula}</div>
-              </>
-            )}
-          </div>
+                <div className="name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
+                  {status.status === "chemical" && (
+                    <>
+                      <span>ชื่อสามัญสารเคมี</span>
+                      <div className="text-data">{data.name_formula}</div>
+                    </>
+                  )}
+                </div>
 
-            {/* <div className="pest" w={status.status}>
+                {/* <div className="pest" w={status.status}>
               {status.status === "pest" ? (
                 <span className={status.status}>
                   {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
@@ -868,28 +867,28 @@ const ManageList = ({
               </div>
             </div> */}
 
-          <div className= "station" w={status.status === "station" ? "name" : ""}>
-            {status.status === "station" && (
-              <>
-                <div className="text-data">{data.name}</div>
-              </>
-            )}
-          </div>
+                <div className="station" w={status.status === "station" ? "name" : ""}>
+                  {status.status === "station" && (
+                    <>
+                      <div className="text-data">{data.name}</div>
+                    </>
+                  )}
+                </div>
 
-          <div className="pest" w={status.status}>
-              {status.status === "pest" ? (
-                <span className={status.status}>
-                  {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
-                </span>
-              ) : (
-                <></>
-              )}
-              <div className={`text-data ${status.status}`}>
-                {data.pest_name}
-              </div>
-            </div>
+                <div className="pest" w={status.status}>
+                  {status.status === "pest" ? (
+                    <span className={status.status}>
+                      {data.type_pest === "ศัตรูพืช" ? "ศัตรูพืช" : "โรคพืช"}
+                    </span>
+                  ) : (
+                    <></>
+                  )}
+                  <div className={`text-data ${status.status}`}>
+                    {data.pest_name}
+                  </div>
+                </div>
 
-          {/* <div className= "name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
+                {/* <div className= "name_formula" w={status.status === "chemical" ? "name_formula" : ""}>
             {status.status === "chemical" && (
               <>
                 <span>ชื่อสามัญสารเคมี</span>
@@ -897,100 +896,100 @@ const ManageList = ({
               </>
             )}
           </div> */}
-          </detail-data>
+              </detail-data>
 
-        {status.status === "plant" ? (
-          <detail-data maxsize="">
-            <div className="name">
-              <span className={status.status}>สายพันธุ์พืช</span>
-              <div className="text-data">{data.variety_name}</div>
-            </div>
-            <div className="name">
-              <span className={status.status}>จำนวนวันที่จะเก็บเกี่ยว</span>
-              <div className="text-data">{`${data.qty_harvest} วัน`}</div>
-            </div>
+              {status.status === "plant" ? (
+                <detail-data maxsize="">
+                  <div className="name">
+                    <span className={status.status}>สายพันธุ์พืช</span>
+                    <div className="text-data">{data.variety_name}</div>
+                  </div>
+                  <div className="name">
+                    <span className={status.status}>จำนวนวันที่จะเก็บเกี่ยว</span>
+                    <div className="text-data">{`${data.qty_harvest} วัน`}</div>
+                  </div>
 
-          </detail-data>
-        ) : (
-          <></>
-        )}
-
-        {status.status === "chemical" ? (
-          <detail-data maxsize="">
-            <div className="chemical">
-              <span className={status.status}>วิธีการใช้</span>
-              <div className="text-data">{data.how_use}</div>
-            </div>
-            <div className="chemical">
-              <span className={status.status}>จำนวนวันที่ปลอดภัย</span>
-              <div className="text-data">{`${data.date_safe_list} วัน`}</div>
-            </div>
-
-          </detail-data>
-        ) : (
-          <></>
-        )}
-
-            <div 
-              className={
-              status.status === "station" ? "id_station" : "" 
-              }
-                >
-              {status.status === "station" ? <span>รหัสศูนย์ส่งเสริม</span> : <></>}
-              {status.status === "station" ? (
-              <div className="text-data">{data.id_station}</div>
+                </detail-data>
               ) : (
-              <></>
+                <></>
               )}
-            </div>
 
-        </detail-data-main>
-        <action-bt>
-          <content-status because={0}>
-            {status.status === "station" ? (
+              {status.status === "chemical" ? (
+                <detail-data maxsize="">
+                  <div className="chemical">
+                    <span className={status.status}>วิธีการใช้</span>
+                    <div className="text-data">{data.how_use}</div>
+                  </div>
+                  <div className="chemical">
+                    <span className={status.status}>จำนวนวันที่ปลอดภัย</span>
+                    <div className="text-data">{`${data.date_safe_list} วัน`}</div>
+                  </div>
+
+                </detail-data>
+              ) : (
+                <></>
+              )}
+
               <div
-                className="edit-bt"
-                onClick={() => OpenEditData(data.id, status.status)}
+                className={
+                  status.status === "station" ? "id_station" : ""
+                }
               >
-                แก้ไข
+                {status.status === "station" ? <span>รหัสศูนย์ส่งเสริม</span> : <></>}
+                {status.status === "station" ? (
+                  <div className="text-data">{data.id_station}</div>
+                ) : (
+                  <></>
+                )}
               </div>
-            ) : (
-              <></>
-            )}
-            <bt-status
-              onClick={() => OpenConfirmData(
-                status.status === "pest" ? data.pest_id : data.id, 
-                status.status
-              )}
-            >
-              <div className="frame" status={data.is_use}>
-                <span>ON</span>
-                <span className="dot"></span>
-                <span>OFF</span>
-              </div>
-            </bt-status>
-          </content-status>
-        </action-bt>
-      </>
-    ) : (
 
-      <></>
-    )}
-  </list-data-body>
-));
+            </detail-data-main>
+            <action-bt>
+              <content-status because={0}>
+                {status.status === "station" ? (
+                  <div
+                    className="edit-bt"
+                    onClick={() => OpenEditData(data.id, status.status)}
+                  >
+                    แก้ไข
+                  </div>
+                ) : (
+                  <></>
+                )}
+                <bt-status
+                  onClick={() => OpenConfirmData(
+                    status.status === "pest" ? data.pest_id : data.id,
+                    status.status
+                  )}
+                >
+                  <div className="frame" status={data.is_use}>
+                    <span>ON</span>
+                    <span className="dot"></span>
+                    <span>OFF</span>
+                  </div>
+                </bt-status>
+              </content-status>
+            </action-bt>
+          </>
+        ) : (
 
-TabOn.addTimeOut(TabOn.end());
-setList(
-  doctorList.length ? (
-    doctorList
-  ) : (
-    <div style={{ font: "900 18px Sans-font" }}>ไม่พบข้อมูล</div>
-  )
-);
+          <></>
+        )}
+      </list-data-body>
+    ));
 
-    
+    TabOn.addTimeOut(TabOn.end());
+    setList(
+      doctorList.length ? (
+        doctorList
+      ) : (
+        <div style={{ font: "900 18px Sans-font" }}>ไม่พบข้อมูล</div>
+      )
+    );
 
-    
+
+
+
   };
 
   return List;
@@ -1028,105 +1027,108 @@ const InsertPage = ({ ReloadAccount, type }) => {
   }, []);
 
 
-  
+
 
   const CheckEmply = (roles = {}) => {
     const RefIsCheck =
-        type === "default" ? [
-          RefData.Data1.current.value, RefData.Data2.current.value , Object.entries(roles).some(([role , status]) => status)
-        ] : 
-        type === "admin" ? [RefData.Data1.current.value, RefData.Data2.current.value] : 
-        type === "station" ? [
+      type === "default" ? [
+        RefData.Data1.current.value, RefData.Data2.current.value, Object.entries(roles).some(([role, status]) => status)
+      ] :
+        type === "admin" ? [RefData.Data1.current.value, RefData.Data2.current.value] :
+          type === "station" ? [
             RefData.Data1.current.value,
             RefData.Data2.current.value,
             RefData.Data3.current.value,
             RefData.Data4.current.value,
-        ] : 
-        type === "plant" ? [
-            RefData.Data1.current.value,
-            RefData.Data2.current.value,
-            RefData.Data3.current.value,
-            QtyDate.current.value,
-        ] :
-        type === "chemical" ? [
-            RefData.Data1.current.value,
-            RefData.Data2.current.value,
-            RefData.Data3.current.value,
-            QtyDate.current.value,
-        ] :
-        type === "pest" ? [
-            RefData.Data1.current.value,
-            RefData.Data2.current.value,
-        ] :
-        type === "group" ? [
-          RefData.Data1.current.value,
-          RefData.Data2.current.value,
-      ]
-        : 
-        [];
+          ] :
+            type === "plant" ? [
+              RefData.Data1.current.value,
+              RefData.Data2.current.value,
+              RefData.Data3.current.value,
+              QtyDate.current.value,
+            ] :
+              type === "chemical" ? [
+                RefData.Data1.current.value,
+                RefData.Data2.current.value,
+                RefData.Data3.current.value,
+                QtyDate.current.value,
+              ] :
+                type === "pest" ? [
+                  RefData.Data1.current.value,
+                  RefData.Data2.current.value,
+                ] :
+                  type === "group" ? [
+                    RefData.Data1.current.value,
+                    RefData.Data2.current.value,
+                  ]
+                    :
+                    [];
 
     if (RefIsCheck.filter((val) => !val).length == 0 && pwAdmin.current.value) {
       setstateOnBt(false);
       return type === "station" ? {
-            name: RefData.Data1.current.value,
-            lat: RefData.Data2.current.value,
-            lng: RefData.Data3.current.value,
-            id_station: RefData.Data4.current.value,
-            type: type,
+        name: RefData.Data1.current.value,
+        lat: RefData.Data2.current.value,
+        lng: RefData.Data3.current.value,
+        id_station: RefData.Data4.current.value,
+        type: type,
+        passwordAd: pwAdmin.current.value
+      } :
+        type === "default" ?
+          {
+            id_doctor: RefData.Data1.current.value,
+            doctor_role: roles.doctor_role ? 1 : 0,
+            analyst_role: roles.analyst_role ? 1 : 0,
+            consultant_role: roles.consultant_role ? 1 : 0,
+            protection_role: roles.protection_role ? 1 : 0,
+            passwordDT: RefData.Data2.current.value,
             passwordAd: pwAdmin.current.value
-        } : 
-          type === "default" ? 
-            {
-              id_doctor: RefData.Data1.current.value,
-              ...roles,
-              passwordDT: RefData.Data2.current.value,
-              passwordAd: pwAdmin.current.value
-            } :
+          } :
           type === "admin" ?
             {
               id: RefData.Data1.current.value,
               passwordAdNew: RefData.Data2.current.value,
               passwordAd: pwAdmin.current.value
             }
-        : type === "plant" ? {
-            name: RefData.Data1.current.value,
-            type_plant: RefData.Data2.current.value,
-            variety_name: RefData.Data3.current.value,
-            qtyDate: QtyDate.current.value,
-            type: type,
-            passwordAd: pwAdmin.current.value
-        }
-        : type === "chemical" ? {
-            name: RefData.Data1.current.value,
-            name_formula: RefData.Data2.current.value,
-            how_use: RefData.Data3.current.value,
-            date_safe: QtyDate.current.value,
-            type: type,
-            passwordAd: pwAdmin.current.value
-        }
-        : type === "pest" ? {
-          name: RefData.Data1.current.value,
-          type_pest: RefData.Data2.current.value,
-          type: type,
-          passwordAd: pwAdmin.current.value,
-          
-        }
-        : type === "group" ? {
-          name: RefData.Data1.current.value,
-          pest_name: RefData.Data2.current.value,
-          type: type,
-          passwordAd: pwAdmin.current.value
-      }
+            : type === "plant" ? {
+              name: RefData.Data1.current.value,
+              type_plant: RefData.Data2.current.value,
+              variety_name: RefData.Data3.current.value,
+              qtyDate: QtyDate.current.value,
+              type: type,
+              passwordAd: pwAdmin.current.value
+            }
+              : type === "chemical" ? {
+                name: RefData.Data1.current.value,
+                name_formula: RefData.Data2.current.value,
+                how_use: RefData.Data3.current.value,
+                date_safe: QtyDate.current.value,
+                type: type,
+                passwordAd: pwAdmin.current.value
+              }
+                : type === "pest" ? {
+                  name: RefData.Data1.current.value,
+                  type_pest: RefData.Data2.current.value,
+                  type: type,
+                  passwordAd: pwAdmin.current.value,
+
+                }
+                  : type === "group" ? {
+                    name: RefData.Data1.current.value,
+                    pest_name: RefData.Data2.current.value,
+                    type: type,
+                    passwordAd: pwAdmin.current.value
+                  }
 
 
-        : {};
+                    : {};
     } else {
       setstateOnBt(true);
       return false;
     }
   };
 
-  const ClickAdd = async (e , roles) => {
+  const ClickAdd = async (e, roles) => {
     const Data = CheckEmply(roles);
     console.log(Data)
     if (Data) {
@@ -1134,38 +1136,37 @@ const InsertPage = ({ ReloadAccount, type }) => {
       setText("");
       setStatus(0);
       let result =
-            type === "default"
+        type === "default"
           ? await clientMo.post("/api/admin/add/doctor", Data)
           : type === "admin"
-          ? await clientMo.post("/api/admin/add", Data)
-          : type === "plant" ||
-            type === "station" ||
-            type === "chemical" ||
-            type === "pest"
-          ? await clientMo.post("/api/admin/data/insert", Data)
-          : type === "group"
-          ? await clientMo.post("/api/admin/group/insert", Data)
-          : type === "report"
-          ? await clientMo.post("/api/admin/report/insert", Data)
+            ? await clientMo.post("/api/admin/add", Data)
+            : type === "plant" ||
+              type === "station" ||
+              type === "chemical" ||
+              type === "pest"
+              ? await clientMo.post("/api/admin/data/insert", Data)
+              : type === "group"
+                ? await clientMo.post("/api/admin/group/insert", Data)
+                : type === "report"
+                  ? await clientMo.post("/api/admin/report/insert", Data)
 
 
-          : "";
+                  : "";
       if (result === "1") {
         setText(
-          `เพิ่ม${
-            type === "default"
-              ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-              : type === "admin"
+          `เพิ่ม${type === "default"
+            ? "บัญชีเจ้าหน้าที่ส่งเสริม"
+            : type === "admin"
               ? "บัญชีผู้ดูแลระบบ"
               : type === "plant"
-              ? "ชนิดพืช"
-              : type === "station"
-              ? "ศูนย์"
-              : type === "chemical"
-              ? "สารเคมี"
-              : type === "pest"
-              ? "ศัตรูพืช/โรคพืช"
-              : ""
+                ? "ชนิดพืช"
+                : type === "station"
+                  ? "ศูนย์"
+                  : type === "chemical"
+                    ? "สารเคมี"
+                    : type === "pest"
+                      ? "ศัตรูพืช/โรคพืช"
+                      : ""
           }สำเร็จ`
         );
         setStatus(1);
@@ -1179,20 +1180,19 @@ const InsertPage = ({ ReloadAccount, type }) => {
         pwAdmin.current.value = "";
       } else if (result === "overflow") {
         setText(
-          `มี${
-            type === "default"
-              ? "บัญชีเจ้าหน้าที่ส่งเสริม"
-              : type === "admin"
+          `มี${type === "default"
+            ? "บัญชีเจ้าหน้าที่ส่งเสริม"
+            : type === "admin"
               ? "บัญชีผู้ดูแลระบบ"
               : type === "plant"
-              ? "พืชสายพันธุ์"
-              : type === "station"
-              ? "ศูนย์"
-              : type === "chemical"
-              ? "สารเคมี"
-              : type === "pest"
-              ? "ศัตรูพืช"
-              : ""
+                ? "พืชสายพันธุ์"
+                : type === "station"
+                  ? "ศูนย์"
+                  : type === "chemical"
+                    ? "สารเคมี"
+                    : type === "pest"
+                      ? "ศัตรูพืช"
+                      : ""
           }นี้แล้ว`
         );
         setStatus(2);
@@ -1230,7 +1230,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
     setStep(1); // กลับไปยังเมนูเริ่มต้น
 
     if (e) setPopupDataManage({
-      open : false
+      open: false
     });
   };
 
@@ -1308,7 +1308,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
         )
       )}
     </section>
-);
+  );
 };
 
 const BodyDetailInsert = ({
@@ -1334,10 +1334,10 @@ const BodyDetailInsert = ({
 
 }) => {
   const [checkboxState, setCheckboxState] = useState({
-    role1: false,
-    role2: false,
-    role3: false,
-    role4: false
+    doctor_role: false,
+    analyst_role: false,
+    consultant_role: false,
+    protection_role: false
   });
 
   const handleCheckboxChange = (event) => {
@@ -1364,14 +1364,14 @@ const BodyDetailInsert = ({
       </div>
       <div className="body-page">
         <span className="head">
-          {   
-            type === "default" ? "เพิ่มบัญชีเจ้าหน้าที่ส่งเสริม" : 
-            type === "admin" ? "เพิ่มบัญชีผู้ดูแลระบบ" : 
-            type === "plant" ? "เพิ่มรายการชนิดพืช"  : 
-            type === "station" ? "เพิ่มรายการศูนย์" : 
-            type === "chemical" ? "เพิ่มรายการสารเคมี" : 
-            type === "pest" ? "เพิ่มรายการโรคพืช / ศัตรูพืช" : 
-            type === "gruop" ? "เพิ่มรายการจัดกลุ่มข้อมูล" : ""
+          {
+            type === "default" ? "เพิ่มบัญชีเจ้าหน้าที่ส่งเสริม" :
+              type === "admin" ? "เพิ่มบัญชีผู้ดูแลระบบ" :
+                type === "plant" ? "เพิ่มรายการชนิดพืช" :
+                  type === "station" ? "เพิ่มรายการศูนย์" :
+                    type === "chemical" ? "เพิ่มรายการสารเคมี" :
+                      type === "pest" ? "เพิ่มรายการโรคพืช / ศัตรูพืช" :
+                        type === "gruop" ? "เพิ่มรายการจัดกลุ่มข้อมูล" : ""
           }
         </span>
         <div className="detail-data">
@@ -1380,11 +1380,11 @@ const BodyDetailInsert = ({
               <span className="head-text">
                 {
                   type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
-                  type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
-                  type === "plant" ? "ชื่อพืช" : 
-                  type === "station" ? "ชื่อศูนย์ส่งเสริม" : 
-                  type === "chemical" ? "ชื่อสารเคมี" : 
-                  type === "pest" ? "โรคพืช / ศัตรูพืช" : ""
+                    type === "admin" ? "บัญชีผู้ดูแลระบบ" :
+                      type === "plant" ? "ชื่อพืช" :
+                        type === "station" ? "ชื่อศูนย์ส่งเสริม" :
+                          type === "chemical" ? "ชื่อสารเคมี" :
+                            type === "pest" ? "โรคพืช / ศัตรูพืช" : ""
                 }
               </span>
               {type === "pest" ? (
@@ -1405,12 +1405,12 @@ const BodyDetailInsert = ({
                   onChange={CheckEmply}
                   ref={RefData.Data1}
                   placeholder={
-                    type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" : 
-                    type === "admin" ? "บัญชีผู้ดูแลระบบ" : 
-                    type === "plant" ? "เช่น มะเขือเทศ" : 
-                    type === "station" ? "เช่น ศูนย์โครงการหลวง" : 
-                    type === "chemical" ? "เช่น พรีวาธอน" : ""
-                  }                  
+                    type === "default" ? "บัญชีเจ้าหน้าที่ส่งเสริม" :
+                      type === "admin" ? "บัญชีผู้ดูแลระบบ" :
+                        type === "plant" ? "เช่น มะเขือเทศ" :
+                          type === "station" ? "เช่น ศูนย์โครงการหลวง" :
+                            type === "chemical" ? "เช่น พรีวาธอน" : ""
+                  }
                 />
               )}
             </div>
@@ -1441,10 +1441,10 @@ const BodyDetailInsert = ({
             {type === "plant" && (
               <div className="field-text">
                 <span className="head-text">สายพันธุ์พืช</span>
-                <input 
-                    onChange={CheckEmply}
-                    ref={RefData.Data3}
-                    placeholder="เช่น เชอร์รี่แดง"
+                <input
+                  onChange={CheckEmply}
+                  ref={RefData.Data3}
+                  placeholder="เช่น เชอร์รี่แดง"
                 ></input>
               </div>
             )}
@@ -1452,10 +1452,10 @@ const BodyDetailInsert = ({
             {type === "station" && (
               <div className="field-text">
                 <span className="head-text">รหัสศูนย์ส่งเสริม</span>
-                <input 
-                    onChange={CheckEmply}
-                    ref={RefData.Data4}
-                    placeholder="เช่น 12345"
+                <input
+                  onChange={CheckEmply}
+                  ref={RefData.Data4}
+                  placeholder="เช่น 12345"
                 ></input>
               </div>
             )}
@@ -1463,16 +1463,16 @@ const BodyDetailInsert = ({
             {type === "chemical" && (
               <>
                 <div className="field-text">
-                    <span className="head-text">ชื่อสามัญสารเคมี</span>
-                    <input 
-                        onChange={CheckEmply}
-                        ref={RefData.Data2}
-                        placeholder="เช่น เเมนโคเซบ"
-                    ></input>
+                  <span className="head-text">ชื่อสามัญสารเคมี</span>
+                  <input
+                    onChange={CheckEmply}
+                    ref={RefData.Data2}
+                    placeholder="เช่น เเมนโคเซบ"
+                  ></input>
                 </div>
                 <div className="field-text">
-                    <span className="head-text">วิธีการใช้</span>
-                    <input ref={RefData.Data3} placeholder="เช่น ฉีดพ่น"></input>
+                  <span className="head-text">วิธีการใช้</span>
+                  <input ref={RefData.Data3} placeholder="เช่น ฉีดพ่น"></input>
                 </div>
               </>
             )}
@@ -1501,8 +1501,8 @@ const BodyDetailInsert = ({
                     <span>หมอพืช</span>
                     <input
                       type="checkbox"
-                      name="role2"
-                      checked={checkboxState.role2}
+                      name="doctor_role"
+                      checked={checkboxState.doctor_role}
                       onChange={handleCheckboxChange}
                     />
                   </label>
@@ -1510,8 +1510,8 @@ const BodyDetailInsert = ({
                     <span>นักวิเคราะห์สาร</span>
                     <input
                       type="checkbox"
-                      name="role3"
-                      checked={checkboxState.role3}
+                      name="analyst_role"
+                      checked={checkboxState.analyst_role}
                       onChange={handleCheckboxChange}
                     />
                   </label>
@@ -1519,8 +1519,17 @@ const BodyDetailInsert = ({
                     <span>ที่ปรึกษาเกษตรกร</span>
                     <input
                       type="checkbox"
-                      name="role4"
-                      checked={checkboxState.role4}
+                      name="consultant_role"
+                      checked={checkboxState.consultant_role}
+                      onChange={handleCheckboxChange}
+                    />
+                  </label>
+                  <label className="checkbox-item">
+                    <span>อารักขาพืช</span>
+                    <input
+                      type="checkbox"
+                      name="protection_role"
+                      checked={checkboxState.protection_role}
                       onChange={handleCheckboxChange}
                     />
                   </label>
@@ -1614,7 +1623,7 @@ const BodyDetailInsert = ({
           </button>
           <button
             className="submit"
-            onClick={(e) => ClickAdd(e , checkboxState)}
+            onClick={(e) => ClickAdd(e, checkboxState)}
             no={stateOnBt ? "" : null}
           >
             เพิ่มข้อมูล

@@ -771,7 +771,7 @@ const PopUpPreview = (props) => {
                 setText("เพิ่มสำเร็จ")
                 setResult(1)
             } else if (result === "search") {
-                setText("บัญชีรอการตรวจสอบ")
+                setText("ท่านมีบัญชีอยู่แล้ว\nระบบปรับเมนูให้อัตโนมัติแล้ว")
                 setResult(2)
             } else if (result === "error") {
                 setText("SERVER ERROR")

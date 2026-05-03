@@ -201,6 +201,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                         })
                                 } else {
                                     con.end()
+                                    // มีบัญชีอยู่แล้ว → เปลี่ยน rich menu ให้เป็นเมนูหลัก
+                                    RoyalGapLine.changeRichMenu(uidLine, RichHouse)
                                     res.send("search")
                                 }
                             } else {

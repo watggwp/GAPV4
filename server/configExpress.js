@@ -99,23 +99,23 @@ module.exports = function appConfig(username, password, hostServer) {
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-        // cookie: {
-        //     httpOnly: true,
-        //     secure: true,
-        //     // maxAge: 1000 * 60 * 60 * 24,
-        //     maxAge: null,
-        //     sameSite: "none"
-        // },
-        // resave: false
         cookie: {
-            // ตั้งให้เปิด mode https ได้
-            // httpOnly: true,
-            // secure : mode == process.env.BUILD,
+            httpOnly: true,
+            secure: true,
+            // maxAge: 1000 * 60 * 60 * 24,
             maxAge: null,
-            sameSite: 'strict'
-            // secure: mode != process.env.BUILD ? false : true
+            sameSite: "none"
         },
         resave: false
+        // cookie: {
+        //     // ตั้งให้เปิด mode https ได้
+        //     // httpOnly: true,
+        //     // secure : mode == process.env.BUILD,
+        //     maxAge: null,
+        //     sameSite: 'strict'
+        //     // secure: mode != process.env.BUILD ? false : true
+        // },
+        // resave: false
     })
 
     const subpathPrefix = process.env.PREFIX_PATH || ""; // ทุก redirect จะเพิ่ม prefix นี้
@@ -159,11 +159,12 @@ module.exports = function appConfig(username, password, hostServer) {
         `http://${process.env.REACT_APP_API_LOCAL}:${process.env.FARMER_PORT}`,
         // ...Object.entries(jsonDataNgrok).map((Data)=>Data[1]), 
         `https://${process.env.REACT_APP_API_PUBLIC}:${process.env.REACT_APP_API_PORT}`,
-        "https://doctor.mhnk.online",
-        "https://admin.mhnk.online",
-        "https://api.mhnk.online",
-        "https://farmer.mhnk.online",
+        "https://doctor.gapv4.online",
+        "https://admin.gapv4.online",
+        "https://api.gapv4.online",
+        "https://farmer.gapv4.online",
         "http://localhost:5173",
+        "http://localhost:3001",
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004"

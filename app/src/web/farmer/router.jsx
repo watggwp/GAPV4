@@ -25,6 +25,9 @@ import HouseSetup from "./src/HouseList/setup";
 // ✅ import หน้า PDF ที่เพิ่มใหม่
 import PDFPage from "./src/content/PDF/index.jsx";
 
+// ✅ import หน้า GAP card shortcut (LIFF)
+import GapCardList from "./src/content/Gaps/GapCardList";
+
 import env from "../../env";
 
 export default function Router() {
@@ -39,6 +42,8 @@ export default function Router() {
             <Route path=":greenhouse_id" element={<HouseSetup />} />
           </Route>
           <Route path="weather-station" element={<WeatherStation />} />
+          {/* ✅ GAP card-list — standalone LIFF entry point — แสดงทุกใบ GAP ที่ไม่ซ่อน ในทุกโรงเรือน */}
+          <Route path="gap" element={<GapCardList />} />
           <Route path="form" element={<GreenhouseIndex />}>
             <Route path=":greenhouse_id" element={<Greenhouse />}>
               <Route
@@ -180,6 +185,17 @@ export default function Router() {
                   <GreenhouseWrapper
                     element={<PDFPage />}
                     namepage={"gap-greenhouse-pdf"}
+                  />
+                }
+              />
+
+              {/* ✅ GAP card-list shortcut — ลัดบันทึกปุ๋ย/สารเคมีผ่าน LIFF */}
+              <Route
+                path="cards"
+                element={
+                  <GreenhouseWrapper
+                    element={<GapCardList />}
+                    namepage={"gap-card-list"}
                   />
                 }
               />

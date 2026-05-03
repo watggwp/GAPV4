@@ -526,12 +526,18 @@ const ExportPDF = async (Data, opts = {}) => {
   const formsOnly = opts.formsOnly ?? false;
   const pagesWanted = opts.pages ?? [1, 2];
   const presetRange = opts.range;
+  const onProgress = opts.onProgress || (() => {});
+  
+  onProgress(2);
+
   const pdf = new jsPDF("portrait", "pt", "a4", { compress: false });
   pdf.addFileToVFS("/THSarabunNew.ttf");
   pdf.addFileToVFS("/THSarabunNewBold.ttf");
   pdf.addFont("/THSarabunNew.ttf", "THSarabunNew", "normal");
   pdf.addFont("/THSarabunNewBold.ttf", "THSarabunNew-bold", "bold");
   pdf.setFont("THSarabunNew");
+  
+  onProgress(5);
 
   let PresentRow = 0;
   const width = pdf.internal.pageSize.getWidth();
@@ -539,6 +545,8 @@ const ExportPDF = async (Data, opts = {}) => {
 
   for (let index in Data) {
     const Export = Data[index];
+    const basePrc = 5 + (parseInt(index) / Data.length) * 90;
+    onProgress(Math.floor(basePrc + 2));
 
     pdf.setFontSize(18);
     TextBoxHead(
@@ -637,6 +645,7 @@ const ExportPDF = async (Data, opts = {}) => {
         const ready = signaled || (await waitForRecharts(chartSel, { tries: 80, delay: 150 }));
 
         if (ready) {
+          onProgress(Math.floor(basePrc + 10));
           const METRICS = [
             { field: "air_temperature", name: "อุณหภูมิ (°C)", color: "#F28E2B", yDomain: [0, 60] },
             { field: "air_humidity", name: "ความชื้น (%RH)", color: "#76B7B2", yDomain: [0, 100] },
@@ -648,9 +657,11 @@ const ExportPDF = async (Data, opts = {}) => {
           ];
 
           chartImages = [];
-          for (const m of METRICS) {
+          for (let c = 0; c < METRICS.length; c++) {
+            const m = METRICS[c];
             const img = await captureWeatherChart(m, { selector: chartSel });
             chartImages.push({ ...m, img }); // เก็บแม้ img=null เพื่อใส่กรอบ fallback
+            onProgress(Math.floor(basePrc + 10 + ((c + 1) / METRICS.length) * 40));
           }
 
           // บันทึกรูปภาพทั้งบล็อกกราฟไว้เป็น fallback
@@ -1042,6 +1053,8 @@ const ExportPDF = async (Data, opts = {}) => {
     const ROW_H = 18;
     const FONT = 12;
     TableBox(pdf, startX9, y9 + 8, headers, body, HEADER_H, ROW_H, FONT);
+    
+    onProgress(Math.floor(basePrc + 70));
 
     /* ------------------------------- หน้า 2 ------------------------------- */
     pdf.addPage();
@@ -1153,6 +1166,8 @@ const ExportPDF = async (Data, opts = {}) => {
     if (formsOnly && !isLastRecord) {
       pdf.addPage();
     }
+    
+    onProgress(Math.floor(basePrc + 85));
 
     /* ------------------------- กราฟสภาพแวดล้อมใต้ข้อ ๑๑ ------------------------- */
     if (!formsOnly) {
@@ -1246,10 +1261,13 @@ const ExportPDF = async (Data, opts = {}) => {
 
   // ถ้าผู้เรียกต้องการ Blob ไปใช้งานต่อ (อัปโหลด/พรีวิว) ให้ส่ง opts.download=false
   if (opts && opts.download === false) {
-    return pdf.output("blob");
+    const blob = pdf.output("blob");
+    onProgress(100);
+    return blob;
   }
   // ค่าเริ่มต้น: ดาวน์โหลดทันที
   pdf.save(onGenerateFileNamePDF());
+  onProgress(100);
 };
 
 /* =============================== Export Excel =============================== */

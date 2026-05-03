@@ -188,8 +188,10 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
 
                         <section ref={BodyRef} className="container-body-doctor" style={{
                             flexGrow: 1,
-                            padding: '20px', // Add some padding around the content
-                            overflowY: 'auto'
+                            padding: '0',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column'
                         }}>
                             <Routes>
                                 <Route path="/doctor/schedules" element={<ScheduleIndex />}>

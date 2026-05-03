@@ -727,7 +727,7 @@ app.post('/api/admin/add', async (req, res) => {
                         return;
                     } 
 
-                    const { role2 , role3 , role4 , role5 } = req.body;
+                    const { doctor_role , analyst_role , consultant_role , protection_role } = req.body;
                     con.query(`
                         INSERT INTO acc_doctor
                         (
@@ -746,7 +746,7 @@ app.post('/api/admin/add', async (req, res) => {
                             protection_role
                         ) 
                         VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?, ?)
-                    `, [req.body['id_doctor'], req.body['passwordDT'], role2, role3, role4, role5], 
+                    `, [req.body['id_doctor'], req.body['passwordDT'], doctor_role, analyst_role, consultant_role, protection_role], 
                     (err, result) => {
                         if(err) {
                             dbpacket.dbErrorReturn(con , err , res);
