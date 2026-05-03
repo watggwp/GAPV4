@@ -1,0 +1,299 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
+.dashboard-layout {
+    flex-grow: 1;
+    min-height: 100%;
+    background-color: #F4F7F4;
+    font-family: 'Prompt', sans-serif;
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-sizing: border-box;
+
+    /* ── Filter Bar ───────────────────────────────── */
+    .dashboard-filters {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background-color: #fff;
+        padding: 12px 20px;
+        border-radius: 14px;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+        flex-wrap: wrap;
+
+        select {
+            padding: 7px 14px;
+            border: 1.5px solid #d0d0d0;
+            border-radius: 20px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.88rem;
+            color: #444;
+            outline: none;
+            background-color: #fff;
+            cursor: pointer;
+            min-width: 150px;
+
+            &:focus {
+                border-color: #3A9E72;
+            }
+        }
+
+        .filter-btn {
+            background-color: #3DAE7A;
+            color: white;
+            border: none;
+            padding: 8px 28px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: #2d8f62;
+            }
+        }
+
+        .legend {
+            margin-left: auto;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            font-size: 0.88rem;
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                color: #444;
+
+                .dot {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    display: inline-block;
+
+                    &.green-dot {
+                        background-color: #4CAF50;
+                    }
+
+                    &.red-dot {
+                        background-color: #e53935;
+                    }
+                }
+            }
+        }
+    }
+
+    /* ── Main Area: Map + Right Panels ───────────── */
+    .dashboard-main {
+        display: flex;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+        height: calc(100vh - 160px);
+
+        /* MAP */
+        .map-section {
+            flex: 0 0 54%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+            .map-popup {
+                font-family: 'Prompt', sans-serif;
+                font-size: 0.85rem;
+                min-width: 200px;
+                line-height: 1.7;
+
+                .popup-row {
+                    color: #333;
+
+                    strong {
+                        color: #2a6e4e;
+                        margin-right: 4px;
+                    }
+                }
+            }
+        }
+
+        /* RIGHT PANELS */
+        .right-widgets {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+
+            .widget {
+                background-color: #fff;
+                border-radius: 14px;
+                box-shadow: 0 1px 8px rgba(0, 0, 0, 0.07);
+                padding: 14px 16px;
+
+                /* Widget Title */
+                .widget-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    color: #1e5c3c;
+                    margin-bottom: 10px;
+                    line-height: 1.4;
+                }
+
+                /* Widget Header Row (title + month select) */
+                .widget-header-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+
+                    .widget-title-inline {
+                        font-size: 1.5rem;
+                        font-weight: 600;
+                        color: #1e5c3c;
+                    }
+
+                    .period-selects {
+                        display: flex;
+                        gap: 6px;
+                    }
+
+                    .month-select {
+                        padding: 5px 12px;
+                        border: 1.5px solid #d0d0d0;
+                        border-radius: 20px;
+                        font-family: 'Prompt', sans-serif;
+                        font-size: 0.83rem;
+                        color: #444;
+                        outline: none;
+                        background-color: #fff;
+                        cursor: pointer;
+
+                        &:focus {
+                            border-color: #3A9E72;
+                        }
+                    }
+                }
+
+                /* Table */
+                .dash-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.84rem;
+
+                    thead tr {
+                        background-color: #F5D9C8;
+                    }
+
+                    thead th {
+                        padding: 9px 10px;
+                        text-align: center;
+                        font-weight: 600;
+                        color: #444;
+                        white-space: nowrap;
+
+                        &:first-child {
+                            border-radius: 8px 0 0 8px;
+                        }
+
+                        &:last-child {
+                            border-radius: 0 8px 8px 0;
+                        }
+                    }
+
+                    tbody td {
+                        padding: 8px 10px;
+                        text-align: center;
+                        color: #333;
+                        border-bottom: 1px solid #f2f2f2;
+                    }
+
+                    tbody tr:last-child td {
+                        border-bottom: none;
+                    }
+
+                    tbody tr.row-highlight {
+                        background-color: #f9fdfb;
+                    }
+
+                    /* Day badge for unfilled-plots table */
+                    .day-badge {
+                        display: inline-block;
+                        padding: 3px 12px;
+                        border-radius: 12px;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        white-space: nowrap;
+                    }
+
+                    /* Production bar */
+                    .bar-cell {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+
+                        .bar-track {
+                            flex: 1;
+                            height: 12px;
+                            background-color: #ececec;
+                            border-radius: 6px;
+                            overflow: hidden;
+
+                            .bar-fill {
+                                height: 100%;
+                                border-radius: 6px;
+                                transition: width 0.4s ease;
+                            }
+                        }
+
+                        .bar-value {
+                            min-width: 38px;
+                            text-align: right;
+                            font-weight: 600;
+                            font-size: 0.83rem;
+                            color: #333;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* ── Mobile ───────────────────────────────────── */
+    @media (max-width: 900px) {
+        padding: 12px;
+        gap: 12px;
+
+        .dashboard-filters {
+            flex-direction: column;
+            align-items: stretch;
+
+            select,
+            .filter-btn {
+                width: 100%;
+            }
+
+            .legend {
+                margin-left: 0;
+                justify-content: center;
+                margin-top: 6px;
+            }
+        }
+
+        .dashboard-main {
+            flex-direction: column;
+            height: auto;
+
+            .map-section {
+                flex: none;
+                height: 320px;
+            }
+
+            .right-widgets {
+                overflow-y: visible;
+            }
+        }
+    }
+}

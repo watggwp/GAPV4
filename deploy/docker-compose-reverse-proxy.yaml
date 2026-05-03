@@ -1,0 +1,12 @@
+services:
+  reverse-proxy-gap:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/royal-gap.conf:ro
+    ports:
+      - ${PORT_REVERSE_PROXY:-3010}:443
+    networks:
+      - royal-gap-network
+
+networks:
+  royal-gap-network:

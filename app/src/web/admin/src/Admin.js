@@ -1,0 +1,410 @@
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { HrefData, TabLoad } from "../../../assets/js/module";
+import { clientMo } from "../../../assets/js/moduleClient";
+import "./assets/style/adminMain.scss";
+import Login from "./Login";
+import NavFirst from "./navFirst";
+import DesktopNev from "./navTop/desktop";
+import PageTemplate from "./page/PageTemplate";
+import SessionOut from "./sesionOut";
+import { BrowserRouter, Route, Routes } from "react-router";
+import ScheduleIndex from "./page/schedule";
+import SchedulesPlan from "./page/schedule/schedules";
+import SchedulePlants from "./page/schedule/schedulePlants";
+import env from "../../../env";
+import WeatherStation from "./page/station"
+export const AdminContext = React.createContext({
+    TabOn: undefined,
+    titlePageNested: (heigthBody, heightCover, ArrtextPage = []) => { }
+})
+
+const Admin = ({ setBodyFileMain, socket, username, password }) => {
+    const [body, setBody] = useState(<div></div>);
+    const [TabMenuTop, setTabMenu] = useState(<></>);
+    const [session, setSession] = useState(<div></div>);
+    const [TextPage, setTextPage] = useState([]);
+    const [getProfile, setProfile] = useState([]);
+    const [Responsive, setResponsive] = useState(window.innerWidth);
+    const [SizeProfileImg, setSizeProfileImg] = useState(0)
+
+    const ImageCover = useRef();
+    const BodyRef = useRef();
+    const Tabbar = useRef();
+    const sessionRef = useRef();
+    const frameImage = useRef()
+
+    const { current: TabOn } = useRef(new TabLoad(Tabbar));
+    const Href = new HrefData("HOME");
+
+    const FetchProfile = useCallback(async () => {
+        try {
+            const result = await clientMo.get("/api/admin/profile/get");
+
+            if (result) {
+                setProfile(JSON.parse(result));
+            } else {
+                console.log("No result, setting session.");
+                setSession();
+            }
+        } catch (error) {
+            // Log ข้อผิดพลาดถ้ามี
+            console.error("Error fetching profile:", error);
+        }
+    }, [])
+
+    const sessionoff = useCallback((type = false) => {
+        if (type) {
+            setBodyFileMain(<Login setBodyFileMain={setBodyFileMain} socket={socket} />);
+        } else {
+            setSession(<SessionOut setBodyFileMain={setBodyFileMain} sessionEle={sessionRef} />);
+        }
+    }, [setBodyFileMain, socket])
+
+    const Auth = useCallback(async (tebLoadOn = false) => {
+        if (tebLoadOn) TabOn.start();
+        const result = await clientMo.post('/api/admin/check');
+        if (result) return true;
+        else sessionoff();
+    }, [TabOn, sessionoff])
+
+    const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
+        setTextPage(ArrtextPage.filter(val => val !== ""));
+        ImageCover.current.style.height = `${heightCover}%`;
+        BodyRef.current.style.height = `${heigthBody}%`;
+    }, [])
+
+    const method = useCallback((e) => {
+        const path = window.location.pathname.replace("/uat", "").split("/").filter(val => val);
+        const type = e ? "=pop" : '';
+        if (path.length === 1 && path[0] === "admin") {
+            setBody(
+                <NavFirst
+                    session={sessionoff}
+                    setBodyFileAdmin={setBody}
+                    auth={Auth}
+                    socket={socket}
+                    modify={modifyMainPage}
+                    TabOn={TabOn}
+                    HrefData={Href}
+                />
+            );
+        } else if (path.length >= 2 && path[0] === "admin") {
+            let seconPath = path[1].split("?");
+            let query = seconPath[1] || "";
+
+            // temp
+            if (seconPath[0] === "schedules") {
+                TabOn.addTimeOut(TabOn.end());
+                return
+            }
+
+            if (seconPath[0] === "list") {
+                if (query === "default") {
+                    Href.set(`list?default${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "delete") {
+                    Href.set(`list?delete${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "admin") {
+                    Href.set(`list?admin${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
+                else if (query === "deleteAdmin") {
+                    Href.set(`list?deleteAdmin${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
+            } else if (seconPath[0] === "data") {
+                if (query === "plant") {
+                    Href.set(`data?plant${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "station") {
+                    Href.set(`data?station${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "chemical") {
+                    Href.set(`data?chemical${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "pest") {
+                    Href.set(`data?pest${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
+            } else if (seconPath[0] === "report") {
+                if (query === "statistics") {
+                    Href.set(`report?statistics${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query === "listlocation") {
+                    Href.set(`report?listlocation${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query.indexOf("graph") === 0) {
+                    Href.set(`report?graph${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                } else if (query.indexOf("user-access-logs") === 0) {
+                    Href.set(`report?user-access-logs${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
+                }
+            } else if (query.indexOf("group") === 0) {
+                Href.set(`group?default${type}`);
+                setBody(
+                    <PageTemplate
+                        session={sessionoff}
+                        TabOn={TabOn}
+                        socket={socket}
+                        modify={modifyMainPage}
+                        auth={Auth}
+                        HrefData={Href}
+                    />
+                );
+
+            }
+        } else {
+            setBody(
+                <NavFirst
+                    session={sessionoff}
+                    setBodyFileAdmin={setBody}
+                    auth={Auth}
+                    socket={socket}
+                    modify={modifyMainPage}
+                    TabOn={TabOn}
+                    HrefData={Href}
+                />
+            );
+        }
+    }, [Auth, Href, TabOn, modifyMainPage, sessionoff, socket])
+
+    const ChkPath = useCallback(async (e) => {
+        if (await Auth(true)) method(e);
+    }, [Auth, method])
+
+    const Resize = useCallback(() => {
+        setResponsive(window.innerWidth);
+
+        const LoadImg = () => {
+            setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
+        }
+    }, [])
+
+    useEffect(() => {
+        FetchProfile();
+        ChkPath(null, "web")
+        setTabMenu(
+            <DesktopNev
+                setSession={sessionoff}
+                setBodyFileMain={setBodyFileMain}
+                setBodyFileAdmin={setBody}
+                socket={socket}
+                auth={Auth}
+                modify={modifyMainPage}
+                eleImageCover={ImageCover}
+                eleBody={BodyRef} setTextStatus={setTextPage}
+                TabOn={TabOn}
+                HrefData={Href}
+                getProfile={getProfile}
+                FetchProfile={FetchProfile}
+            />
+        );
+
+        window.addEventListener("popstate", ChkPath);
+        window.addEventListener("resize", Resize);
+        socket.emit("connect-account", username, password);
+
+        return () => {
+            socket.emit("disconnect-account", username, password);
+            window.removeEventListener("popstate", ChkPath);
+            window.removeEventListener("resize", Resize);
+        };
+    }, []);
+
+    return (
+        <AdminContext.Provider
+            value={{
+                TabOn: TabOn,
+                titlePageNested: modifyMainPage,
+            }}
+        >
+            <div
+                onLoad={clientMo.unLoadingPage}
+                className="admin"
+            >
+                {TabMenuTop}
+                <div className="status-loadPage">
+                    <div ref={Tabbar} className="tab-load"></div>
+                </div>
+                <section ref={ImageCover} className="image-cover">
+                    {Responsive > 800 ? (
+                        <>
+                            <div className="text-cover">
+                                <div className="icon">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <img src={`${env.subpath_server}/Logo-white.png`} alt="Logo" />
+                                </div>
+                                <div className="status">
+                                    {TextPage.map((val, index) => (
+                                        <div className="box-status" key={index}>
+                                            <span>{val}</span>
+                                            {TextPage.length - 1 > index ? <img src="/arrow.png" alt="arrow" /> : <></>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="frame">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-icon-cover">
+                                <div className="text">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <span style={{ fontWeight: 900 }}>ผู้ดูแลระบบ</span>
+                                </div>
+                            </div>
+                            <div className="frame-image-cover">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    )}
+                </section>
+                <section ref={BodyRef} className="container-body-admin">
+                    <bot-main>
+                        <bot-content>
+                            {/* {body} */}
+                            <BrowserRouter basename={env.subpath_server}>
+                                <Routes>
+                                    <Route path="/admin/schedules" element={<ScheduleIndex />}>
+                                        <Route index element={<SchedulesPlan />} />
+                                        <Route path=":station_id" element={<SchedulesPlan />} />
+                                        <Route path=":station_id/:plant_id" element={<SchedulePlants />} />
+                                    </Route>
+                                    <Route path="/admin/station" element={<WeatherStation />}>
+                                    </Route>
+                                    <Route path="/admin/weather-station" element={
+                                        <></>
+                                        // เอา component weather มาใส่ตรงนี้
+                                    }>
+                                    </Route>
+                                    <Route path="*" element={body} />
+                                </Routes>
+                            </BrowserRouter>
+                        </bot-content>
+                    </bot-main>
+                </section>
+                <section ref={sessionRef} id="session">
+                    {session}
+                </section>
+            </div>
+        </AdminContext.Provider>
+    );
+};
+
+export function useAdminContext() {
+    return useContext(AdminContext)
+}
+
+export default Admin;

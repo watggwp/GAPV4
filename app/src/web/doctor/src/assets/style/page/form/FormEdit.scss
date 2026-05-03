@@ -1,0 +1,49 @@
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+
+    button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        border: none;
+        outline: none;
+        text-align: center;
+        box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    // ✅ ปุ่ม "บันทึก"
+    .save-btn {
+        background: linear-gradient(135deg, #1D976C, #93F9B9) !important;
+        color: white !important;
+
+        &:hover {
+            background: linear-gradient(135deg, #168D5C, #78E8A1) !important;
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
+    // ❌ ปุ่ม "ยกเลิก"
+    .cancel-btn {
+        background: linear-gradient(135deg, #E74C3C, #FF6B6B) !important;
+        color: white !important;
+
+        &:hover {
+            background: linear-gradient(135deg, #C0392B, #FF4D4D) !important;
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+}
