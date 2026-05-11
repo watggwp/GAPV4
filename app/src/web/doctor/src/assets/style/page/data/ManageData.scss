@@ -4,6 +4,11 @@
     position: relative;
     max-width: 250px;
     width: 100%;
+
+    @media (min-width: 600px) {
+        max-width: 420px;
+    }
+
     background-color: white;
     padding: 4px 0px;
     border-radius: 8px;
@@ -29,6 +34,7 @@
         display: flex;
         flex-direction: column;
         font-family: Sans-font;
+
         .head-text {
             font-weight: 900;
             font-size: 18px;
@@ -37,6 +43,44 @@
             text-align: center;
             margin: 4px 0px;
         }
+
+        .head-title-row {
+            display: flex;
+            align-items: center;
+            position: relative;
+
+            .head-text {
+                flex: 1;
+            }
+
+            .btn-history-icon {
+                position: absolute;
+                left: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50px;
+                background-color: #ffffff;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                padding: 4px;
+                flex-shrink: 0;
+
+                svg {
+                    width: 100%;
+                    height: 100%;
+                    fill: rgb(112, 110, 110);
+                }
+
+                &:hover {
+                    background-color: #c5c5c5;
+                }
+            }
+        }
+
         .manage-menu {
             display: flex;
             justify-content: space-evenly;
@@ -53,10 +97,11 @@
                 font-weight: 900;
                 color: white;
             }
+
             .edit:hover {
                 background-color: #22c7a99f;
-            } 
-            
+            }
+
             .status-frame {
                 display: flex;
                 justify-content: flex-start;
@@ -71,7 +116,8 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    transition: 0.5s transform , 0.5s background-color;
+                    transition: 0.5s transform, 0.5s background-color;
+
                     span {
                         text-align: center;
                         font-size: 17px;
@@ -88,6 +134,7 @@
 
             .status-frame[status="1"] {
                 border: 2px solid #22C7A9;
+
                 .status {
                     transform: translateX(0px);
 
@@ -99,6 +146,7 @@
 
             .status-frame[status="0"] {
                 border: 2px solid red;
+
                 .status {
                     transform: translateX(-35px);
 
@@ -112,6 +160,7 @@
 
     .detail {
         padding: 0px 4px;
+
         .body {
             display: flex;
             align-items: center;
@@ -138,7 +187,7 @@
                     border: 0;
                     outline: 0;
                     margin-top: 0px;
-                    box-shadow:0px 0px 5px inset #416963;
+                    box-shadow: 0px 0px 5px inset #416963;
                     height: 26px;
                 }
 
@@ -152,7 +201,7 @@
                     -webkit-appearance: none;
                     margin: 0;
                 }
-                
+
                 .field-select {
                     display: flex;
                     flex-direction: column;
@@ -187,7 +236,7 @@
                         right: 0;
                     }
 
-                    span.important{
+                    span.important {
                         position: relative;
                         justify-content: flex-start;
                     }
@@ -198,7 +247,7 @@
                         border-radius: 8px;
                         padding: 0px 2px;
                         margin: 0px 2px;
-                        border:2px solid #22C7A9;
+                        border: 2px solid #22C7A9;
                         width: 100%;
                         text-align: center;
                         height: 26px;
@@ -230,6 +279,7 @@
                         justify-content: space-evenly;
                         align-items: center;
                         width: 100%;
+
                         span {
                             width: auto;
                             font-size: 35px;
@@ -238,6 +288,7 @@
                             justify-content: center;
                             align-items: center;
                         }
+
                         input {
                             width: 22%;
                             height: 30px;
@@ -275,9 +326,12 @@
                 }
 
                 select {
-                    appearance: none; /* สำหรับ WebKit บน iOS */
-                    -webkit-appearance: none; /* สำหรับ WebKit บน iOS */
-                    -moz-appearance: none; /* สำหรับ Firefox */
+                    appearance: none;
+                    /* สำหรับ WebKit บน iOS */
+                    -webkit-appearance: none;
+                    /* สำหรับ WebKit บน iOS */
+                    -moz-appearance: none;
+                    /* สำหรับ Firefox */
                     cursor: default;
                     // padding: 0;
                 }
@@ -291,15 +345,17 @@
         }
     }
 
-    .bt-manage{
+    .bt-manage {
         display: flex;
         flex-direction: column;
         margin-top: 10px;
         border-top: 3px solid #2d965c;
         padding: 0px 4px;
         border-radius: 8px;
+
         .password {
             margin-top: 10px;
+
             input {
                 background-color: #22C7A9;
                 box-shadow: 0px 0px 5px inset #176f3f;
@@ -326,6 +382,7 @@
             align-items: center;
             margin-top: 10px;
             margin-bottom: 5px;
+
             button {
                 color: white;
                 border: 0;
@@ -338,33 +395,38 @@
                 height: 26px;
                 cursor: pointer;
             }
-    
+
             //action button
             .submit {
                 background-color: #17a188;
                 box-shadow: 0px 2px 2px #176f3f;
             }
+
             .submit:hover {
                 background-color: #49bea9;
             }
+
             .submit:active {
                 box-shadow: 0px 2px 2px inset #176f3f;
                 padding-top: 2px;
             }
+
             .submit[on=""] {
                 background-color: #17a1889e;
                 box-shadow: none;
                 padding: 0;
                 cursor: not-allowed;
             }
-    
+
             .cancel {
                 background-color: red;
                 box-shadow: 0px 2px 2px rgb(139, 0, 0);
             }
+
             .cancel:hover {
                 background-color: rgb(237, 80, 80);
             }
+
             .cancel:active {
                 box-shadow: 0px 2px 2px inset rgb(139, 0, 0);
                 padding-top: 2px;

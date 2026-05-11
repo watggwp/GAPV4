@@ -1,0 +1,178 @@
+.group-page {
+    margin-top: 20px;
+    font-family: Sans-font;
+
+    // ── Desktop: wrapper ให้ scroll แนวนอนได้ ──
+    .group-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    // ── Desktop table ──
+    .group-table {
+        width: 100%;
+        min-width: 700px;
+        border-collapse: collapse;
+
+        thead tr {
+            background-color: #60d6cf;
+            color: #fff;
+        }
+
+        th {
+            padding: 12px 10px;
+            font-weight: 900;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-weight: 900;
+        }
+
+        .td-center {
+            text-align: center;
+        }
+
+        .td-actions {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .td-no-data {
+            text-align: center;
+            font-weight: 900;
+            padding: 16px;
+        }
+    }
+
+    // ── ปุ่มต่าง ๆ ──
+    .btn-edit {
+        padding: 5px 10px;
+        width: 75px;
+        background: linear-gradient(160deg, rgb(245, 146, 33), rgb(255, 170, 42));
+        font-weight: 900;
+        font-family: Sans-font;
+        color: #fff;
+        border: none;
+        border-radius: 60px;
+        cursor: pointer;
+        box-shadow: 0px 2px 4px rgba(216, 140, 140, 0.94);
+        margin-right: 5px;
+        white-space: nowrap;
+    }
+
+    .btn-toggle {
+        padding: 5px 12px;
+        font-weight: 900;
+        font-family: Sans-font;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        white-space: nowrap;
+
+        &.enable  { background-color: #28a745; }
+        &.disable { background-color: #dc3545; }
+    }
+
+    .btn-history {
+        padding: 5px 10px;
+        width: 75px;
+        background: linear-gradient(160deg, #6f42c1, #a77ee0);
+        font-weight: 900;
+        font-family: Sans-font;
+        color: #fff;
+        border: none;
+        border-radius: 60px;
+        cursor: pointer;
+        box-shadow: 0px 2px 4px rgba(111, 66, 193, 0.4);
+        margin-left: 5px;
+        white-space: nowrap;
+    }
+
+    // ── Mobile: card layout (≤ 700px) ──
+    @media screen and (max-width: 700px) {
+        .group-table-wrapper {
+            overflow-x: unset;
+            box-shadow: none;
+        }
+
+        .group-table {
+            min-width: unset;
+            border: none;
+
+            // ซ่อน header
+            thead {
+                display: none;
+            }
+
+            // แต่ละแถว → card
+            tbody tr {
+                display: flex;
+                flex-direction: column;
+                border: 1px solid #d8f6f4;
+                border-radius: 14px;
+                margin-bottom: 14px;
+                padding: 14px 16px;
+                box-shadow: 0 3px 10px rgba(96, 214, 207, 0.15);
+                background: #fff;
+            }
+
+            // แต่ละ cell
+            td {
+                display: flex;
+                align-items: flex-start;
+                border: none;
+                padding: 5px 0;
+                font-size: 14px;
+
+                // label หน้า cell
+                &::before {
+                    content: attr(data-label);
+                    font-weight: 900;
+                    color: #0a9a91;
+                    min-width: 120px;
+                    flex-shrink: 0;
+                    font-size: 13px;
+                }
+
+                // cell ปุ่ม
+                &.td-actions {
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px dashed #c8f0ed;
+                    justify-content: flex-start;
+
+                    &::before {
+                        display: none;
+                    }
+                }
+
+                &.td-no-data {
+                    justify-content: center;
+                    &::before { display: none; }
+                }
+            }
+
+            // ปุ่มใน mobile ขยายเต็ม
+            .btn-edit,
+            .btn-history,
+            .btn-toggle {
+                flex: 1;
+                width: auto;
+                text-align: center;
+                padding: 7px 6px;
+                font-size: 13px;
+                margin: 0;
+            }
+        }
+    }
+}
