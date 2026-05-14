@@ -259,6 +259,18 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
+                } else if (query.indexOf("admin-access-logs") === 0) {
+                    Href.set(`report?admin-access-logs${type}`);
+                    setBody(
+                        <PageTemplate
+                            session={sessionoff}
+                            TabOn={TabOn}
+                            socket={socket}
+                            modify={modifyMainPage}
+                            auth={Auth}
+                            HrefData={Href}
+                        />
+                    );
                 }
             } else if (query.indexOf("group") === 0) {
                 setPageTitle("จัดกลุ่มข้อมูล");
@@ -329,7 +341,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 <div
                     onLoad={clientMo.unLoadingPage}
                     className="admin"
-                    style={{ flexDirection: 'row', overflow: 'hidden', display: 'flex', height: '100vh' }}
+                    style={{ flexDirection: 'row', overflow: 'hidden', display: 'flex', width: '100%', height: '100vh' }}
                 >
                     <AdminSidebar
                         setBodyFileAdmin={setBody}
@@ -362,7 +374,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         <section ref={BodyRef} className="container-body-admin" style={{
                             flexGrow: 1,
                             padding: '0',
-                            overflowY: 'auto',
+                            overflow: 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'stretch',

@@ -1,6 +1,7 @@
 .group-page {
     margin-top: 20px;
     font-family: Sans-font;
+    width: 100%; // ยืดเต็ม container แม้ parent จะ align-items: center
 
     // ── Desktop: wrapper ให้ scroll แนวนอนได้ ──
     .group-table-wrapper {
@@ -41,6 +42,8 @@
         .td-actions {
             text-align: center;
             white-space: nowrap;
+
+            .btn-edit { margin-right: 6px; }
         }
 
         .td-no-data {
@@ -51,53 +54,109 @@
     }
 
     // ── ปุ่มต่าง ๆ ──
-    .btn-edit {
-        padding: 5px 10px;
-        width: 75px;
-        background: linear-gradient(160deg, rgb(245, 146, 33), rgb(255, 170, 42));
-        font-weight: 900;
+    .btn-edit,
+    .btn-toggle,
+    .btn-history {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         font-family: Sans-font;
-        color: #fff;
-        border: none;
-        border-radius: 60px;
         cursor: pointer;
-        box-shadow: 0px 2px 4px rgba(216, 140, 140, 0.94);
-        margin-right: 5px;
+        border: none;
+        transition: all .18s ease;
         white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    // icon บน + label ล่าง (เหมาะผู้ใช้สูงอายุ)
+    .btn-edit,
+    .btn-toggle {
+        flex-direction: column;
+        gap: 4px;
+        padding: 9px 16px;
+        border-radius: 10px;
+        min-width: 60px;
+        color: #fff;
+
+        svg {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        span {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+    }
+
+    .btn-edit {
+        // ใช้สี teal ของเว็บ
+        background: #22C7A9;
+
+        &:hover {
+            background: #1aab90;
+            box-shadow: 0 4px 12px rgba(34, 199, 169, .4);
+            transform: translateY(-1px);
+        }
     }
 
     .btn-toggle {
-        padding: 5px 12px;
-        font-weight: 900;
-        font-family: Sans-font;
-        color: #fff;
-        border: none;
-        border-radius: 30px;
-        cursor: pointer;
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-        white-space: nowrap;
+        &.enable {
+            background: #2e7d32;
+            &:hover {
+                background: #1b5e20;
+                box-shadow: 0 4px 12px rgba(46, 125, 50, .4);
+                transform: translateY(-1px);
+            }
+        }
 
-        &.enable  { background-color: #28a745; }
-        &.disable { background-color: #dc3545; }
+        &.disable {
+            background: #c62828;
+            &:hover {
+                background: #b71c1c;
+                box-shadow: 0 4px 12px rgba(198, 40, 40, .4);
+                transform: translateY(-1px);
+            }
+        }
     }
 
+    .btn-divider {
+        display: inline-block;
+        width: 1px;
+        height: 48px;
+        background: #e0e0e0;
+        vertical-align: middle;
+        margin: 0 8px;
+    }
+
+    // ประวัติ: วงกลม ghost ไม่มีข้อความบน desktop
     .btn-history {
-        padding: 5px 10px;
-        width: 75px;
-        background: linear-gradient(160deg, #6f42c1, #a77ee0);
-        font-weight: 900;
-        font-family: Sans-font;
-        color: #fff;
-        border: none;
-        border-radius: 60px;
-        cursor: pointer;
-        box-shadow: 0px 2px 4px rgba(111, 66, 193, 0.4);
-        margin-left: 5px;
-        white-space: nowrap;
+        flex-direction: column;
+        gap: 3px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: white;
+        border: 1.5px solid #bdbdbd;
+        color: #757575;
+
+        svg { width: 20px; height: 20px; }
+
+        .btn-history-label { display: none; }
+
+        &:hover {
+            border-color: #22C7A9;
+            color: #1aab90;
+            background: #f0fdf9;
+            box-shadow: 0 3px 10px rgba(34, 199, 169, .25);
+        }
     }
 
-    // ── Mobile: card layout (≤ 700px) ──
-    @media screen and (max-width: 700px) {
+    // ── Mobile: card layout
+    // ใช้ 900px แทน 700px เพราะ sidebar (~260px) กินพื้นที่บน viewport ด้วย
+    @media screen and (max-width: 900px) {
         .group-table-wrapper {
             overflow-x: unset;
             box-shadow: none;
@@ -162,17 +221,32 @@
                 }
             }
 
-            // ปุ่มใน mobile ขยายเต็ม
+            // ปุ่มใน mobile: ยืด flex เท่ากัน
             .btn-edit,
-            .btn-history,
             .btn-toggle {
                 flex: 1;
-                width: auto;
-                text-align: center;
-                padding: 7px 6px;
-                font-size: 13px;
-                margin: 0;
+                min-width: unset;
+                padding: 10px 6px;
+
+                svg { width: 20px; height: 20px; }
+
+                span { font-size: 12px; }
             }
+
+            // ปุ่มประวัติ mobile → วงกลมขนาดเท่าปุ่มอื่น + แสดง label
+            .btn-history {
+                flex: 0 0 auto;
+                width: auto;
+                height: auto;
+                border-radius: 10px;
+                padding: 10px 16px;
+
+                svg { width: 20px; height: 20px; }
+
+                .btn-history-label { display: inline; font-size: 12px; font-weight: 700; }
+            }
+
+            .btn-divider { display: none; }
         }
     }
 }

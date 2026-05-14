@@ -65,7 +65,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         setTitle("ทะเบียนเจ้าหน้าที่");
         if (await auth(true)) {
             HrefData.set("list?default");
-            navigator("/admin");
+            navigator("/admin/list?default");
             setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
@@ -74,7 +74,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         setTitle("เพิ่มเติมข้อมูล");
         if (await auth(true)) {
             HrefData.set("data?plant");
-            navigator("/admin");
+            navigator("/admin/data?plant");
             setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
@@ -83,7 +83,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         setTitle("จัดกลุ่มข้อมูล");
         if (await auth(true)) {
             HrefData.set("group?default");
-            navigator("/admin");
+            navigator("/admin/group?default");
             setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
@@ -106,7 +106,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         setTitle("รายงานข้อมูล");
         if (await auth(true)) {
             HrefData.set("report?listlocation");
-            navigator("/admin");
+            navigator("/admin/report?listlocation");
             setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
