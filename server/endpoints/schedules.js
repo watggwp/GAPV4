@@ -8,8 +8,8 @@ const RoyalGapEnv = require('../core/env');
 
 module.exports = function Schedules(app, pool = new Pool()) {
     app.get('/api/schedules', async (req, res) => {
-        const { profile : { station_doctor : station_id } = {} } = req.session
-        const { station_id : station_id_payload = station_id , has_total_schedule } = req.query
+        const { profile: { station_doctor: station_id } = {} } = req.session
+        const { station_id: station_id_payload = station_id, has_total_schedule } = req.query
 
         try {
             const schedule_plants = await pool.executeQuery(
@@ -19,33 +19,31 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     LEFT JOIN 
                         schedules s ON 
                             s.plant_id = pl.id
-                            ${
-                                station_id_payload !== undefined ? 
-                                    "AND s.station_id = ?" : 
-                                    ""
-                            }
-                    WHERE pl.is_use = 1 ${ 
-                        has_total_schedule !== undefined ? ( 
-                            Number(has_total_schedule) ? "AND s.id IS NOT NULL" : "AND s.id IS NULL"
-                        ) : "" }
+                            ${station_id_payload !== undefined ?
+                    "AND s.station_id = ?" :
+                    ""
+                }
+                    WHERE pl.is_use = 1 ${has_total_schedule !== undefined ? (
+                    Number(has_total_schedule) ? "AND s.id IS NOT NULL" : "AND s.id IS NULL"
+                ) : ""}
                     GROUP BY pl.id , pl.name , pl.variety_name
                     ORDER BY pl.name
-                ` , 
-                station_id_payload !== undefined ? [ station_id_payload ] : []
+                ` ,
+                station_id_payload !== undefined ? [station_id_payload] : []
             )
 
             return res.json(schedule_plants)
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.json([])
         }
     })
 
     app.get('/api/schedules/:plant_id', async (req, res) => {
-        const { profile : { station_doctor : station_id } = {} } = req.session
+        const { profile: { station_doctor: station_id } = {} } = req.session
 
         const { plant_id } = req.params
-        const { station_id : station_id_payload = station_id , s } = req.query
+        const { station_id: station_id_payload = station_id, s } = req.query
 
 
         try {
@@ -89,45 +87,39 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
                     LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
                     WHERE s.plant_id = ? 
-                    ${
-                        station_id_payload !== undefined ? 
-                            "AND s.station_id = ?" : ""
-                    }
-                    ${
-                        s &&
-                            `
+                    ${station_id_payload !== undefined ?
+                    "AND s.station_id = ?" : ""
+                }
+                    ${s &&
+                `
                                 AND (
                                     s.title LIKE ? OR
                                     sdf.fertilizer LIKE ? OR
                                     sdf.formula_fertilizer LIKE ?
                                 )
                             `
-                    }
+                }
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC , s.repeat ASC
-                ` , [
-                    plant_id ,
-                    station_id_payload !== undefined ? [ station_id_payload ] : [],
-                    search , search , search
-                ]
+                ` , (function () { let p = [plant_id]; if (station_id_payload !== undefined) p.push(station_id_payload); if (s) p.push(search, search, search); return p; })()
             )
 
             return res.json({
-                plant_profile : plant_profile[0],
-                schedule_plants : schedule_plants
+                plant_profile: plant_profile[0],
+                schedule_plants: schedule_plants
             })
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.json({
-                plant_profile : {},
-                schedule_plants : []
+                plant_profile: {},
+                schedule_plants: []
             })
         }
     })
 
     app.get('/api/schedules/:plant_id/:schedule_uid', async (req, res) => {
         try {
-            const { plant_id , schedule_uid } = req.params
+            const { plant_id, schedule_uid } = req.params
 
             const schedule_plant = await pool.executeQuery(
                 `
@@ -161,77 +153,77 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     WHERE s.plant_id = ? AND s.uid = ?
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC
-                ` , [ plant_id , String(schedule_uid) ]
+                ` , [plant_id, String(schedule_uid)]
             )
 
             return res.json({
-                schedule_plant : schedule_plant?.[0] || {}
+                schedule_plant: schedule_plant?.[0] || {}
             })
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.status(403).json({
-                schedule_plant : {}
+                schedule_plant: {}
             })
         }
     })
-    
+
     app.post('/api/schedules', async (req, res) => {
         try {
-            const { profile : { station_doctor : station_id } = {} } = req.session
-            
-            const { station_id : station_id_payload = station_id } = req.query
-            const { plant_id , category , title , details , age_plant , repeat } = req.body
+            const { profile: { station_doctor: station_id } = {} } = req.session
+
+            const { station_id: station_id_payload = station_id } = req.query
+            const { plant_id, category, title, details, age_plant, repeat } = req.body
             const schedule_uid = uuid.v4()
             const insert_schedule = await pool.executeQuery(
-                "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )" , 
-                [ schedule_uid , plant_id , station_id_payload , category , title , age_plant , repeat ? 1 : 0 ]
+                "INSERT INTO schedules ( uid , plant_id , station_id , category , title , age_plant , `repeat` ) VALUES ( ? , ? , ? , ? , ? , ? , ? )",
+                [schedule_uid, plant_id, station_id_payload, category, title, age_plant, repeat ? 1 : 0]
             )
 
-            const { insertId , affectedRows } = insert_schedule
+            const { insertId, affectedRows } = insert_schedule
 
             const insert_detail_data = {
-                table : "" ,
-                columns : [],
-                params : []
+                table: "",
+                columns: [],
+                params: []
             }
-            switch(category) {
-                case 1 :
+            switch (category) {
+                case 1:
                     insert_detail_data["table"] = "schedules_detail_fertilizer"
-                    insert_detail_data["columns"] = [ "fertilizer" , "formula_fertilizer" , "volume" , "unit_volume" , "how_use" ]
+                    insert_detail_data["columns"] = ["fertilizer", "formula_fertilizer", "volume", "unit_volume", "how_use"]
                     insert_detail_data["params"] = [
-                        details.name_fertilizer ,
-                        details.formula_fertilizer ,
-                        details.volume ,
-                        details.unit_volume ,
+                        details.name_fertilizer,
+                        details.formula_fertilizer,
+                        details.volume,
+                        details.unit_volume,
                         details.how_use
                     ]
                     break;
-                case 2 :
+                case 2:
                     insert_detail_data["table"] = "schedules_detail_disease"
-                    insert_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
+                    insert_detail_data["columns"] = ["pest", "chemical", "rate", "volume", "unit_volume", "how_use"]
                     insert_detail_data["params"] = [
-                        details.pest ,
-                        details.chemical ,
-                        details.rate ,
-                        details.volume ,
+                        details.pest,
+                        details.chemical,
+                        details.rate,
+                        details.volume,
                         details.unit_volume,
                         details.how_use
                     ]
                     break;
             }
 
-            const { table , columns , params } = insert_detail_data
+            const { table, columns, params } = insert_detail_data
 
-            if(!table || affectedRows !== 1) {
+            if (!table || affectedRows !== 1) {
                 await pool.executeQuery(
                     `
                         DELETE FROM schedules
                         WHERE id = ?
-                    ` , [ insertId ]
+                    ` , [insertId]
                 )
 
                 return res.status(403).json({
-                    insert_result : false
+                    insert_result: false
                 })
             }
 
@@ -242,42 +234,42 @@ module.exports = function Schedules(app, pool = new Pool()) {
                             ( schedule_id , ${columns.join(" , ")} )
                             VALUES
                             ( ? , ${columns.map((_) => "?").join(" , ")} )
-                    ` , [ insertId , ...params ]
+                    ` , [insertId, ...params]
                 )
-            } catch(err) {
+            } catch (err) {
                 console.log(err)
 
                 await pool.executeQuery(
                     `
                         DELETE FROM schedules
                         WHERE id = ?
-                    ` , [ insertId ]
+                    ` , [insertId]
                 )
 
                 return res.status(403).json({
-                    insert_result : false
+                    insert_result: false
                 })
             }
 
             return res.json({
-                insert_result : true
+                insert_result: true
             })
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.status(403).json({
-                insert_result : false
+                insert_result: false
             })
         }
     })
 
     app.put('/api/schedules/:plant_id/:schedule_uid', async (req, res) => {
         try {
-            const { plant_id , schedule_uid } = req.params
-            const { category , title , details , age_plant , repeat } = req.body
+            const { plant_id, schedule_uid } = req.params
+            const { category, title, details, age_plant, repeat } = req.body
 
             await pool.executeQuery(
-                "UPDATE schedules SET category = ? , title = ? , age_plant = ? , `repeat` = ? , last_update = NOW() WHERE plant_id = ? AND uid = ?" , 
-                [ category , title , age_plant , repeat , plant_id , schedule_uid ]
+                "UPDATE schedules SET category = ? , title = ? , age_plant = ? , `repeat` = ? , last_update = NOW() WHERE plant_id = ? AND uid = ?",
+                [category, title, age_plant, repeat, plant_id, schedule_uid]
             )
 
             const schedule_profile = await pool.executeQuery(
@@ -286,16 +278,16 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     FROM schedules
                     WHERE plant_id = ? AND uid = ?
                     LIMIT 1
-                ` , 
-                [ plant_id , schedule_uid ]
+                ` ,
+                [plant_id, schedule_uid]
             )
 
-            const { id : schedule_id } = schedule_profile?.[0] || {}
+            const { id: schedule_id } = schedule_profile?.[0] || {}
 
             const update_detail_data = {
-                table : "" ,
-                columns : [],
-                params : []
+                table: "",
+                columns: [],
+                params: []
             }
 
             const schedule_tables = new Set([
@@ -303,27 +295,27 @@ module.exports = function Schedules(app, pool = new Pool()) {
                 "schedules_detail_disease"
             ])
 
-            switch(category) {
-                case 1 :
+            switch (category) {
+                case 1:
                     update_detail_data["table"] = "schedules_detail_fertilizer"
-                    update_detail_data["columns"] = [ "fertilizer" , "formula_fertilizer" , "volume" , "unit_volume" , "how_use" ]
+                    update_detail_data["columns"] = ["fertilizer", "formula_fertilizer", "volume", "unit_volume", "how_use"]
                     update_detail_data["params"] = [
-                        details.name_fertilizer ,
-                        details.formula_fertilizer ,
-                        details.volume ,
-                        details.unit_volume ,
+                        details.name_fertilizer,
+                        details.formula_fertilizer,
+                        details.volume,
+                        details.unit_volume,
                         details.how_use
                     ]
                     schedule_tables.delete("schedules_detail_fertilizer")
                     break;
-                case 2 :
+                case 2:
                     update_detail_data["table"] = "schedules_detail_disease"
-                    update_detail_data["columns"] = [ "pest" , "chemical" , "rate" , "volume" , "unit_volume" , "how_use" ]
+                    update_detail_data["columns"] = ["pest", "chemical", "rate", "volume", "unit_volume", "how_use"]
                     update_detail_data["params"] = [
-                        details.pest ,
-                        details.chemical ,
-                        details.rate ,
-                        details.volume ,
+                        details.pest,
+                        details.chemical,
+                        details.rate,
+                        details.volume,
                         details.unit_volume,
                         details.how_use
                     ]
@@ -331,11 +323,11 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     break;
             }
 
-            const { table , columns , params } = update_detail_data
+            const { table, columns, params } = update_detail_data
 
-            if(!table || !schedule_id) {
+            if (!table || !schedule_id) {
                 return res.status(403).json({
-                    insert_result : false
+                    insert_result: false
                 })
             }
 
@@ -346,7 +338,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ON DUPLICATE KEY UPDATE
                         ${columns.map((column) => `${column} = VALUES(${column})`).join(" , ")}
                 ` ,
-                [ schedule_id , ...params ]
+                [schedule_id, ...params]
             )
 
             for (const schedule_table_name of [...schedule_tables]) {
@@ -355,59 +347,59 @@ module.exports = function Schedules(app, pool = new Pool()) {
                         DELETE FROM ${schedule_table_name}
                         WHERE schedule_id = ?
                     ` ,
-                    [ schedule_id ]
+                    [schedule_id]
                 )
             }
 
             return res.json({
-                update_schedule_plant : true
+                update_schedule_plant: true
             })
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.status(403).json({
-                update_schedule_plant : false
+                update_schedule_plant: false
             })
         }
     })
 
     app.post('/api/schedules/:plant_id/:schedule_uid', async (req, res) => {
         try {
-            const { plant_id , schedule_uid } = req.params
+            const { plant_id, schedule_uid } = req.params
 
-            const { role_primary , user_doctor , role_doctor , user_username } = req.session
+            const { role_primary, user_doctor, role_doctor, user_username } = req.session
             const { password } = req.body
 
             const authorize = new AuthorizeUser(pool)
             const { verified } = await (
                 role_doctor ?
-                    authorize.doctor(user_doctor , password , role_doctor) :
-                role_primary ?
-                    authorize.admin(user_username , password) :
-                    new Promise((resolve) => resolve({
-                        profile : {},
-                        verified : false
-                    }))
+                    authorize.doctor(user_doctor, password, role_doctor) :
+                    role_primary ?
+                        authorize.admin(user_username, password) :
+                        new Promise((resolve) => resolve({
+                            profile: {},
+                            verified: false
+                        }))
             )
 
-            if(!verified) {
+            if (!verified) {
                 return res.status(405).json({
-                    schedule_plant_delete : false
+                    schedule_plant_delete: false
                 })
             }
 
             await pool.executeQuery(
                 `
                     DELETE FROM schedules WHERE plant_id = ? AND uid = ?
-                ` , [plant_id , String(schedule_uid)]
+                ` , [plant_id, String(schedule_uid)]
             )
 
             return res.json({
-                schedule_plant_delete : true
+                schedule_plant_delete: true
             })
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return res.status(403).json({
-                schedule_plant_delete : false
+                schedule_plant_delete: false
             })
         }
     })
