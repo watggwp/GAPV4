@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button in Context Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Prompt', 'Segoe UI', sans-serif; background: #f0f2f5; padding: 24px; }
+
+  h2 { font-size: 15px; color: #555; font-weight: 600; margin-bottom: 14px;
+       display: flex; align-items: center; gap: 8px; }
+  h2 span { background: #1e5c3c; color: white; font-size: 11px; padding: 2px 10px;
+            border-radius: 10px; font-weight: 700; letter-spacing: .5px; }
+  h2 em { font-style: normal; color: #999; font-size: 12px; font-weight: 400; }
+
+  .preview-block { margin-bottom: 40px; }
+
+  /* ── Table Shell (mirrors the real PageGroup layout) ── */
+  .group-table-wrapper {
+    width: 100%; overflow-x: auto; border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  }
+  .group-table {
+    width: 100%; border-collapse: collapse; font-size: 13.5px;
+    font-family: 'Prompt', sans-serif; background: white; min-width: 620px;
+  }
+  .group-table thead tr { background: #1e5c3c; color: white; }
+  .group-table thead th {
+    padding: 12px 14px; text-align: left; font-weight: 600;
+    font-size: 13px; white-space: nowrap;
+  }
+  .group-table thead th:first-child { border-radius: 12px 0 0 0; }
+  .group-table thead th:last-child  { border-radius: 0 12px 0 0; }
+  .group-table tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .15s; }
+  .group-table tbody tr:hover { background: #f9fdfb; }
+  .group-table tbody tr:last-child { border-bottom: none; }
+  .group-table tbody td { padding: 11px 14px; color: #333; vertical-align: middle; }
+  .group-table tbody td.td-center { text-align: center; }
+  .group-table tbody td.td-actions { text-align: right; white-space: nowrap; }
+
+  /* ── shared btn base ── */
+  .btn { display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+         font-family: 'Prompt', sans-serif; font-weight: 600; transition: all .16s ease;
+         line-height: 1; white-space: nowrap; }
+  .btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .btn + .btn { margin-left: 6px; }
+  .divider-v { display: inline-block; width: 1px; height: 22px; background: #e0e0e0;
+               vertical-align: middle; margin: 0 4px; }
+
+  /* ════════════════════════════════════════════════
+     OPTION 1 — Pill  (Solid Edit+Toggle | Ghost History)
+  ════════════════════════════════════════════════ */
+  .o1-edit {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #f57c00; color: white;
+  }
+  .o1-edit:hover { background: #e65100; box-shadow: 0 3px 8px rgba(245,124,0,.4); }
+
+  .o1-enable {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #2e7d32; color: white;
+  }
+  .o1-enable:hover { background: #1b5e20; box-shadow: 0 3px 8px rgba(46,125,50,.4); }
+
+  .o1-disable {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #c62828; color: white;
+  }
+  .o1-disable:hover { background: #b71c1c; box-shadow: 0 3px 8px rgba(198,40,40,.4); }
+
+  .o1-hist {
+    padding: 6px 14px; border-radius: 20px; font-size: 12.5px;
+    background: white; color: #6a1b9a; border: 1.5px solid #ce93d8;
+  }
+  .o1-hist:hover { background: #f3e5f5; border-color: #8e24aa; }
+
+  /* ════════════════════════════════════════════════
+     OPTION 2 — Rounded Square  (Solid | Ghost gray)
+  ════════════════════════════════════════════════ */
+  .o2-edit {
+    padding: 6px 13px; border-radius: 7px; border: none; font-size: 12.5px;
+    background: #f57c00; color: white;
+  }
+  .o2-edit:hover { background: #e65100; box-shadow: 0 2px 6px rgba(245,124,0,.4); }
+
+  .o2-enable {
+    padding: 6px 13px; border-radius: 7px; border: none; font-size: 12.5px;
+    background: #2e7d32; color: white;
+  }
+  .o2-enable:hover { background: #1b5e20; box-shadow: 0 2px 6px rgba(46,125,50,.4); }
+
+  .o2-disable {
+    padding: 6px 13px; border-radius: 7px; border: none; font-size: 12.5px;
+    background: #c62828; color: white;
+  }
+  .o2-disable:hover { background: #b71c1c; box-shadow: 0 2px 6px rgba(198,40,40,.4); }
+
+  .o2-hist {
+    padding: 6px 13px; border-radius: 7px; font-size: 12.5px;
+    background: white; color: #1565c0; border: 1.5px solid #90caf9;
+  }
+  .o2-hist:hover { background: #e3f2fd; border-color: #42a5f5; }
+
+  /* ════════════════════════════════════════════════
+     OPTION 3 — Solid + Icon-only ghost circle history
+  ════════════════════════════════════════════════ */
+  .o3-edit {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #f57c00; color: white;
+  }
+  .o3-edit:hover { background: #e65100; box-shadow: 0 3px 8px rgba(245,124,0,.4); }
+
+  .o3-enable {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #2e7d32; color: white;
+  }
+  .o3-enable:hover { background: #1b5e20; box-shadow: 0 3px 8px rgba(46,125,50,.4); }
+
+  .o3-disable {
+    padding: 6px 14px; border-radius: 20px; border: none; font-size: 12.5px;
+    background: #c62828; color: white;
+  }
+  .o3-disable:hover { background: #b71c1c; box-shadow: 0 3px 8px rgba(198,40,40,.4); }
+
+  .o3-hist-circle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    background: white; border: 1.5px solid #bdbdbd; color: #757575;
+    transition: all .16s ease; margin-left: 6px; vertical-align: middle;
+  }
+  .o3-hist-circle svg { width: 15px; height: 15px; }
+  .o3-hist-circle:hover { border-color: #8e24aa; color: #6a1b9a; background: #f3e5f5; }
+
+  /* status badge in table */
+  .status-on  { color: #2e7d32; font-weight: 700; font-size: 12px; }
+  .status-off { color: #c62828; font-weight: 700; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OPTION 1 — Pill Shape
+═══════════════════════════════════════════════════════════════ -->
+<div class="preview-block">
+  <h2>
+    <span>Option 1</span> Pill Shape
+    <em>— Solid สีทึบ (แก้ไข + toggle) · Ghost ม่วง (ประวัติ)</em>
+  </h2>
+  <div class="group-table-wrapper">
+    <table class="group-table">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>โรคพืช / ศัตรูพืช</th>
+          <th>สารเคมี</th>
+          <th>พืช</th>
+          <th>วันที่ปลอดภัย</th>
+          <th>จัดการข้อมูล</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-center">1</td>
+          <td>ราน้ำค้าง</td>
+          <td>แมนโคเซ็บ</td>
+          <td>เมล่อน</td>
+          <td class="td-center">7</td>
+          <td class="td-actions">
+            <button class="btn o1-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o1-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o1-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">2</td>
+          <td>เพลี้ยอ่อน</td>
+          <td>ไซเปอร์เมธริน</td>
+          <td>แตงโม</td>
+          <td class="td-center">14</td>
+          <td class="td-actions">
+            <button class="btn o1-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o1-disable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/>
+              </svg>Disable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o1-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">3</td>
+          <td>ไรแดง</td>
+          <td>อะบาเม็กติน</td>
+          <td>สตรอเบอร์รี่</td>
+          <td class="td-center">3</td>
+          <td class="td-actions">
+            <button class="btn o1-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o1-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o1-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OPTION 2 — Rounded Square
+═══════════════════════════════════════════════════════════════ -->
+<div class="preview-block">
+  <h2>
+    <span>Option 2</span> Rounded Square
+    <em>— Solid สีทึบ (แก้ไข + toggle) · Ghost ฟ้า (ประวัติ)</em>
+  </h2>
+  <div class="group-table-wrapper">
+    <table class="group-table">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>โรคพืช / ศัตรูพืช</th>
+          <th>สารเคมี</th>
+          <th>พืช</th>
+          <th>วันที่ปลอดภัย</th>
+          <th>จัดการข้อมูล</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-center">1</td>
+          <td>ราน้ำค้าง</td>
+          <td>แมนโคเซ็บ</td>
+          <td>เมล่อน</td>
+          <td class="td-center">7</td>
+          <td class="td-actions">
+            <button class="btn o2-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o2-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o2-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">2</td>
+          <td>เพลี้ยอ่อน</td>
+          <td>ไซเปอร์เมธริน</td>
+          <td>แตงโม</td>
+          <td class="td-center">14</td>
+          <td class="td-actions">
+            <button class="btn o2-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o2-disable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/>
+              </svg>Disable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o2-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">3</td>
+          <td>ไรแดง</td>
+          <td>อะบาเม็กติน</td>
+          <td>สตรอเบอร์รี่</td>
+          <td class="td-center">3</td>
+          <td class="td-actions">
+            <button class="btn o2-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o2-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="btn o2-hist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>ประวัติ
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     OPTION 3 — Icon-only Ghost Circle
+═══════════════════════════════════════════════════════════════ -->
+<div class="preview-block">
+  <h2>
+    <span>Option 3</span> Icon-only Ghost Circle
+    <em>— Solid pill (แก้ไข + toggle) · วงกลม ghost ไม่มีข้อความ (ประวัติ)</em>
+  </h2>
+  <div class="group-table-wrapper">
+    <table class="group-table">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>โรคพืช / ศัตรูพืช</th>
+          <th>สารเคมี</th>
+          <th>พืช</th>
+          <th>วันที่ปลอดภัย</th>
+          <th>จัดการข้อมูล</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-center">1</td>
+          <td>ราน้ำค้าง</td>
+          <td>แมนโคเซ็บ</td>
+          <td>เมล่อน</td>
+          <td class="td-center">7</td>
+          <td class="td-actions">
+            <button class="btn o3-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o3-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="o3-hist-circle" title="ดูประวัติ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">2</td>
+          <td>เพลี้ยอ่อน</td>
+          <td>ไซเปอร์เมธริน</td>
+          <td>แตงโม</td>
+          <td class="td-center">14</td>
+          <td class="td-actions">
+            <button class="btn o3-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o3-disable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/>
+              </svg>Disable
+            </button>
+            <span class="divider-v"></span>
+            <button class="o3-hist-circle" title="ดูประวัติ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="td-center">3</td>
+          <td>ไรแดง</td>
+          <td>อะบาเม็กติน</td>
+          <td>สตรอเบอร์รี่</td>
+          <td class="td-center">3</td>
+          <td class="td-actions">
+            <button class="btn o3-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>แก้ไข
+            </button>
+            <button class="btn o3-enable">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>
+              </svg>Enable
+            </button>
+            <span class="divider-v"></span>
+            <button class="o3-hist-circle" title="ดูประวัติ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
