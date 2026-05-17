@@ -252,41 +252,6 @@ a {
     /* เพิ่มระยะห่างระหว่างคอลัมน์ */
 }
 
-/* Tablet: 2 คอลัมน์ */
-@media screen and (max-width: 768px) {
-    .modal-body {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .bt-submitgroup {
-        grid-column: span 2;
-    }
-}
-
-/* Mobile: 1 คอลัมน์ */
-@media screen and (max-width: 500px) {
-    .modal-body {
-        grid-template-columns: 1fr;
-        padding: 10px;
-        gap: 8px;
-    }
-
-    .bt-submitgroup {
-        grid-column: 1;
-        gap: 16px;
-
-        button {
-            width: 45%;
-            font-size: 16px;
-            height: 38px;
-        }
-    }
-
-    .table-section {
-        padding: 10px;
-    }
-}
-
 .table-section {
     border: 1px solid #ddd;
     border-radius: 5px;

@@ -25,7 +25,6 @@ const ManageGroup = ({ fetchGroups }) => {
  
     const [ loading, setLoading ] = useState(popupDataManage.type === "edit");
     const [ stateOnBt, setStateOnBt ] = useState(true);
-    const [ because, setBecause ] = useState("");
 
       // เปลี่ยน state สำหรับ ReportAction ให้เป็นตัวเลข 0 (ปิด) / 1 (เปิด)
     const [Open, setOpen] = useState(0);
@@ -106,7 +105,7 @@ const ManageGroup = ({ fetchGroups }) => {
           try {
             const response = await clientMo.post(
               popupDataManage.type === "insert" ? "/api/doctor/group/insert" : "/api/doctor/group/edit",
-              popupDataManage.type === "edit" ? { id: popupDataManage.metadata?.id, ...Data, because } : Data
+              popupDataManage.type === "edit" ? { id: popupDataManage.metadata?.id, ...Data } : Data
             );
             const { status } = JSON.parse(response);
     
@@ -158,7 +157,6 @@ const ManageGroup = ({ fetchGroups }) => {
         };
  
     const Cancel = () => {
-        setBecause("")
         setPopupDataManage((data) => ({
             ...data,
             open : false
@@ -267,7 +265,7 @@ const ManageGroup = ({ fetchGroups }) => {
                     loading ? (
                         <p>กำลังโหลดข้อมูล...</p>
                     ) : (
-                        <div className="modal-body manage-group-body">
+                        <div className="modal-body">
                             <div className="table-section">
                                 <span className="table-title">ศัตรูพืช / โรคพืช</span>
                                 <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
@@ -392,19 +390,7 @@ const ManageGroup = ({ fetchGroups }) => {
                                     disabled={safeDays.status === "loading"}
                                 />
                             </div>
-
-                            {popupDataManage.type === "edit" && (
-                                <div className="table-section">
-                                    <span className="table-title">เหตุผลที่แก้ไข</span>
-                                    <input
-                                        type="text"
-                                        placeholder="ระบุเหตุผล (ถ้ามี)"
-                                        value={because}
-                                        onChange={(e) => setBecause(e.target.value)}
-                                    />
-                                </div>
-                            )}
-
+ 
                             <div className="bt-submitgroup">
                                 <button className="cancel" onClick={Cancel}>
                                     ยกเลิก

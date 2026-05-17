@@ -4,7 +4,6 @@ import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
 import { Loading, MapsJSX, ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
-import GroupHistoryModal from "./GroupHistoryModal";
 import { Modal } from "react-bootstrap";
 import "../../../../../assets/style/moduleStyle.scss"
  
@@ -23,8 +22,6 @@ const PageGroup = () => {
   const [Open, setOpen] = useState(false);
   const [Text, setText] = useState("");
   const [Status, setStatusReport] = useState(null);
-
-  const [historyItem, setHistoryItem] = useState(null);
  
   const fetchGroupData = useCallback(async () => {
     try {
@@ -186,26 +183,9 @@ const PageGroup = () => {
                       cursor: "pointer",
                       backgroundColor: item.status ? "#28a745" : "#dc3545",
                       boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
-                      marginRight: "10px",
                     }}
                   >
                     {item.status ? "ENABLE" : "DISABLE "}
-                  </button>
-
-                  <button
-                    onClick={() => setHistoryItem(item)}
-                    style={{
-                      padding: "5px 10px",
-                      fontWeight: "900",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "30px",
-                      cursor: "pointer",
-                      background: "linear-gradient(160deg, #6f42c1, #a77ee0)",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
-                    }}
-                  >
-                    ประวัติ
                   </button>
                 </td>
               </tr>
@@ -247,15 +227,6 @@ const PageGroup = () => {
       />
       <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg">
         <ManageGroup fetchGroups={fetchGroupData} />
-      </Modal>
-      <Modal show={!!historyItem} onHide={() => setHistoryItem(null)} centered size="xl">
-        {historyItem && (
-          <GroupHistoryModal
-            groupId={historyItem.id}
-            groupLabel={`${historyItem.pest_name} / ${historyItem.chemical_name} / ${historyItem.plant_name}`}
-            onClose={() => setHistoryItem(null)}
-          />
-        )}
       </Modal>
     </div>
   );

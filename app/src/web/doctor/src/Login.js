@@ -187,7 +187,7 @@ list.forEach((item) =>
                             </li>
                             <li class="list" id="Protection"  onClick={()=>{setrole("protection")}}>
                                 <a href="#">
-                                    <span class="icon">💂</span>
+                                    <span class="icon">🛡️</span>
                                     <span class="text">อารักขาพืช</span>
                                     <span class="text-logo protection-logo">อารักขาพืช</span>
                                 </a>

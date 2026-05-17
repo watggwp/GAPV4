@@ -21,7 +21,6 @@ a {
 .admin {
     display: flex;
     flex-direction: column;
-    width: 100%;
     height: 100%;
     .status-loadPage {
         display: flex;
@@ -173,22 +172,22 @@ a {
 
     .container-body-admin {
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         width: 100%;
-        flex: 1;
-        min-height: 0;
+        height: 40vh;
         overflow: hidden;
         bot-main {
             display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
             width: 100%;
             bot-content {
                 display: flex;
-                flex-direction: column;
-                flex: 1;
-                min-height: 0;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
                 width: 100%;
             }
         }
