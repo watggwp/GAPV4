@@ -111,7 +111,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 if (query === "default") {
                     Href.set(`list?default${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="list"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -123,7 +123,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "delete") {
                     Href.set(`list?delete${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="list"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -135,7 +135,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "admin") {
                     Href.set(`list?admin${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="list"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -148,7 +148,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 else if (query === "deleteAdmin") {
                     Href.set(`list?deleteAdmin${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="list"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -163,7 +163,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 if (query === "plant") {
                     Href.set(`data?plant${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="data"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -175,7 +175,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "station") {
                     Href.set(`data?station${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="data"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -187,7 +187,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "chemical") {
                     Href.set(`data?chemical${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="data"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -199,7 +199,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "pest") {
                     Href.set(`data?pest${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="data"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -214,7 +214,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 if (query === "statistics") {
                     Href.set(`report?statistics${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="report"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -226,7 +226,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query === "listlocation") {
                     Href.set(`report?listlocation${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="report"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -238,7 +238,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query.indexOf("graph") === 0) {
                     Href.set(`report?graph${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="report"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -250,7 +250,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query.indexOf("user-access-logs") === 0) {
                     Href.set(`report?user-access-logs${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="report"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -262,7 +262,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 } else if (query.indexOf("admin-access-logs") === 0) {
                     Href.set(`report?admin-access-logs${type}`);
                     setBody(
-                        <PageTemplate
+                        <PageTemplate key="report"
                             session={sessionoff}
                             TabOn={TabOn}
                             socket={socket}
@@ -276,7 +276,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 setPageTitle("จัดกลุ่มข้อมูล");
                 Href.set(`group?default${type}`);
                 setBody(
-                    <PageTemplate
+                    <PageTemplate key="group"
                         session={sessionoff}
                         TabOn={TabOn}
                         socket={socket}

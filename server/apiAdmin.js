@@ -1247,7 +1247,7 @@ app.post('/api/admin/add', async (req, res) => {
                   ` , [ safe_days , chemical_id , plant_id ] ,
                   (err , updateSafeDate) => {
                     con.query(
-                      `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, 'insert', ?, ?, NULL, ?)`,
+                      `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'insert', ?, ?, NULL, ?, '')`,
                       [newGroupId, auth['data'].id, auth['data'].fullname_admin, JSON.stringify({ pest_id, chemical_id, plant_id, safe_days })],
                       () => {
                         con.end()
@@ -1291,7 +1291,7 @@ app.post('/api/admin/add', async (req, res) => {
         const chemical_id = req.body.chemical_id
         const plant_id = req.body.plant_id
         const safe_days = req.body.safe_days
-        const because = req.body.because || null
+        const because = req.body.because || ""
 
         if(id && pest_id && chemical_id && plant_id && safe_days) {
           con.query(
@@ -1479,7 +1479,7 @@ app.post('/api/admin/add', async (req, res) => {
                             }
 
                             con.query(
-                                `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, 'status', ?, ?, ?, ?)`,
+                                `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'status', ?, ?, ?, ?, '')`,
                                 [id, auth['data'].id, auth['data'].fullname_admin, JSON.stringify({ status: oldStatus }), JSON.stringify({ status })],
                                 () => {
                                     con.end();

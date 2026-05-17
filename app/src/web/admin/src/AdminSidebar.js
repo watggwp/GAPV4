@@ -66,7 +66,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         if (await auth(true)) {
             HrefData.set("list?default");
             navigator("/admin/list?default");
-            setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
+            setBodyFileAdmin(<PageTemplate key="list" session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
 
@@ -75,7 +75,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         if (await auth(true)) {
             HrefData.set("data?plant");
             navigator("/admin/data?plant");
-            setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
+            setBodyFileAdmin(<PageTemplate key="data" session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
 
@@ -84,7 +84,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         if (await auth(true)) {
             HrefData.set("group?default");
             navigator("/admin/group?default");
-            setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
+            setBodyFileAdmin(<PageTemplate key="group" session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
 
@@ -107,7 +107,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         if (await auth(true)) {
             HrefData.set("report?listlocation");
             navigator("/admin/report?listlocation");
-            setBodyFileAdmin(<PageTemplate session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
+            setBodyFileAdmin(<PageTemplate key="report" session={setSession} socket={socket} auth={auth} addHref={true} modify={modifyMainPage} TabOn={TabOn} HrefData={HrefData} />);
         } else setSession();
     };
 
