@@ -1,0 +1,221 @@
+.gh-modal-content {
+    display: flex;
+    flex-direction: column;
+    font-family: Sans-font;
+
+    .gh-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 16px 20px 12px;
+        border-bottom: 2px solid #1cfff1;
+        background: linear-gradient(135deg, #e0fffe, #f0ffff);
+        border-radius: 8px 8px 0 0;
+        gap: 12px;
+
+        .gh-header-title {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+
+            h2 {
+                font-size: 20px;
+                font-weight: 900;
+                margin: 0;
+                color: #0a9a91;
+            }
+
+            .gh-group-label {
+                font-size: 13px;
+                color: #555;
+                margin-top: 3px;
+                word-break: break-word;
+            }
+        }
+
+        .btn-close {
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+    }
+
+    .gh-modal-body {
+        padding: 16px 20px;
+        max-height: 65vh;
+        overflow-y: auto;
+        overflow-x: auto;
+
+        .gh-loading,
+        .gh-no-data {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+            padding: 30px 0;
+        }
+    }
+}
+
+// ── Desktop table ──
+.gh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Sans-font;
+    font-size: 14px;
+
+    thead tr {
+        background-color: #60d6cf;
+        color: #fff;
+    }
+
+    th {
+        padding: 10px 12px;
+        font-weight: 900;
+        text-align: center;
+        border: 1px solid #ddd;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 9px 12px;
+        border: 1px solid #eee;
+        vertical-align: middle;
+        font-weight: 700;
+    }
+
+    tbody tr:nth-child(even) { background-color: #f7fffe; }
+    tbody tr:hover           { background-color: #e8fffe; }
+
+    .gh-td-center { text-align: center; }
+
+    .gh-td-date {
+        white-space: nowrap;
+        font-size: 13px;
+        color: #555;
+    }
+}
+
+// ── Mobile: card layout (≤ 650px) ──
+@media screen and (max-width: 650px) {
+    .gh-modal-content {
+        .gh-modal-header {
+            padding: 12px 14px 10px;
+
+            .gh-header-title h2 { font-size: 17px; }
+        }
+
+        .gh-modal-body {
+            padding: 12px 10px;
+            max-height: 70vh;
+            overflow-x: unset;
+        }
+    }
+
+    .gh-table {
+        thead { display: none; }
+
+        tbody tr {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #d8f6f4;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(96, 214, 207, 0.12);
+            background: #fff;
+        }
+
+        td {
+            display: flex;
+            align-items: flex-start;
+            border: none;
+            padding: 4px 0;
+            font-size: 13px;
+            gap: 8px;
+
+            &::before {
+                content: attr(data-label);
+                font-weight: 900;
+                color: #0a9a91;
+                min-width: 90px;
+                flex-shrink: 0;
+                font-size: 12px;
+                padding-top: 1px;
+            }
+
+            &.gh-td-center { justify-content: flex-start; }
+
+            &.gh-td-action {
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px dashed #c8f0ed;
+
+                &::before { display: none; }
+            }
+        }
+    }
+}
+
+// ── Action badge ──
+.gh-action-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #fff;
+
+    &.action-insert { background: linear-gradient(120deg, #28a745, #5dd97a); }
+    &.action-edit   { background: linear-gradient(120deg, #f5921e, #ffaa2a); }
+    &.action-status { background: linear-gradient(120deg, #6f42c1, #a77ee0); }
+}
+
+// ── Status badge ──
+.gh-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #fff;
+
+    &.enable  { background-color: #28a745; }
+    &.disable { background-color: #dc3545; }
+}
+
+// ── Change detail ──
+.gh-change-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.gh-change-insert {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+}
+
+.gh-change-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gh-field-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.gh-field-label  { font-weight: 900; color: #333; white-space: nowrap; }
+.gh-before       { color: #dc3545; text-decoration: line-through; }
+.gh-after        { color: #28a745; font-weight: 900; }
+.gh-arrow        { color: #666; font-weight: 900; }
+.gh-no-change    { color: #aaa; font-style: italic; font-size: 13px; }
+
+.gh-td-because   { max-width: 200px; }
+.gh-because-text { font-size: 13px; color: #555; word-break: break-word; }

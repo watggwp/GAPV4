@@ -6,7 +6,6 @@ import { InsertChemical, InsertFertilizer, InsertPlant, InsertSource , InsertPes
 import { SearchChemical, SearchFertilizer, SearchPlant , SearchPest } from "./search/SearchPage";
 import PopupConfirm from "./Insert/ConfirmInsert";
 import ManageData from "./ManageData";
-import { Modal } from "react-bootstrap";
 import InsertGroup from "../group/InsertGroup";
 import InsertReport from "../report/InsertReport";
 import PageGroup from "../group/PageGroup";
@@ -87,12 +86,10 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
         eleBody.current.style.height = "70%"
         clientMo.unLoadingPage()
 
-        if(LoadType.split(":")[1] === "pop") 
-            setDataProcess(new Map([
-                ["type" , LoadType.split(":")[0]] , //Loadtype 0 : plant , 1 : ferti , 2 : chemi , 3 : source
-                // ["search" , ""] ,
-                ["statusClick" , false]
-            ]))
+        setDataProcess(new Map([
+            ["type" , LoadType.split(":")[0]] ,
+            ["statusClick" , LoadType.split(":")[1] === "pop" ? false : type]
+        ]))
     } , [LoadType])
 
     const OpenOption = (Ref, option, isSearchButton = false) => {
@@ -633,7 +630,7 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) 
                                         <div className="field-text max-box row-text">
                                             <span>จำนวนวันที่จะเก็บเกี่ยว</span>
                                             <div className="data-text">{DataIn.qty_harvest} วัน</div>
-                                        </div> 
+                                        </div>
                                         <a onClick={()=>OpenManageData(DataIn)} className="frame-manage-list" title="จัดการข้อมูล">
                                             <svg viewBox="0 0 20 20">
                                                 <path d="M19 4a1 1 0 01-1 1H2a1 1 0 010-2h16a1 1 0 011 1zm0 6a1 1 0 01-1 1H2a1 1 0 110-2h16a1 1 0 011 1zm-1 7a1 1 0 100-2H2a1 1 0 100 2h16z"/>
@@ -645,7 +642,7 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) 
                                         <div className="field-text max-box row-text">
                                             <span><br></br></span>
                                             <div className="data-text"></div>
-                                        </div> 
+                                        </div>
                                         <a onClick={()=>OpenManageData(DataIn)} className="frame-manage-list position bottom" title="จัดการข้อมูล">
                                             <svg viewBox="0 0 20 20">
                                                 <path d="M19 4a1 1 0 01-1 1H2a1 1 0 010-2h16a1 1 0 011 1zm0 6a1 1 0 01-1 1H2a1 1 0 110-2h16a1 1 0 011 1zm-1 7a1 1 0 100-2H2a1 1 0 100 2h16z"/>
