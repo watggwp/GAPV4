@@ -111,7 +111,7 @@ module.exports = function appConfig(username, password, hostServer) {
             // ตั้งให้เปิด mode https ได้
             // httpOnly: true,
             // secure : mode == process.env.BUILD,
-            maxAge: null,
+            maxAge: 1000 * 60 * 60 * 8, // 8 ชั่วโมง
             sameSite: 'strict'
             // secure: mode != process.env.BUILD ? false : true
         },

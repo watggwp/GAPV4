@@ -41,8 +41,6 @@ const DetailEdit = ({Ref , setRef , type , Data_on}) => {
                         qty : "จำนวนต้น",
                         area : "พื้นที่",
                         date_harvest : "วันที่คาดว่าจะเก็บเกี่ยว",
-                        expected_yield : "ปริมาณผลผลิตที่คาดว่าจะได้รับ",
-                        default_yield : "ผลผลิตที่ได้จริง",
                         system_glow : "รูปแบบการปลูก",
                         water : "แหล่งน้ำ",
                         water_flow : "วิธีการให้น้ำ",

@@ -19,7 +19,6 @@ import InformationReport from "./src/content/InformationReport";
 import Sensor from "./src/content/Sensor";
 import SensorGreenhouse from "./src/content/Sensor/sensor";
 import PumpControlPage from "./src/content/Pump";
-import SchedulesPage from "./src/content/Schedules";
 import Houses from "./src/HouseList/houses";
 import HouseSetup from "./src/HouseList/setup";
 
@@ -175,17 +174,6 @@ export default function Router() {
                   <GreenhouseWrapper
                     element={<Report />}
                     namepage={"gap-greenhouse-report"}
-                  />
-                }
-              />
-
-              {/* ✅ เพิ่มหน้า แผนการปลูก */}
-              <Route
-                path=":gap_id/schedules"
-                element={
-                  <GreenhouseWrapper
-                    element={<SchedulesPage />}
-                    namepage={"gap-greenhouse-schedules"}
                   />
                 }
               />

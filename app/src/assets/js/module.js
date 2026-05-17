@@ -72,59 +72,19 @@ const DayJSX = ({REF , DATE , TYPE = "full" , TEXT = "" , className = ""}) => {
     const DayWeek = [ 'วันอาทิตย์','วันจันทร์','วันอังคาร','วันพุธ','วันพฤหัสบดี','วันศุกร์','วันเสาร์'] 
     const Mount = [ "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"] 
 
-    useEffect(() => {
-        if (!DATE) {
-            setDATE("");
-            return;
-        }
-
-        const safeDate = DATE.toString();
-
-        if (safeDate.indexOf("#") < 0) {
+    useEffect(()=>{
+        if(DATE.toString().indexOf("#") < 0) {
             const clientTimezoneOffset = new Date().getTimezoneOffset();
-            const DateIn = new Date(
-                new Date(DATE) - (clientTimezoneOffset * 60000)
-            );
-            if (DateIn.toString() === "Invalid Date") {
-                setDATE("");
-                return;
-            }
-            if(TYPE === "full") {
-                setDATE(
-                    `${DayWeek[DateIn.getDay()]} ที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ปี พ.ศ. ${DateIn.getFullYear() + 543}`
-                );
-            } else if (TYPE === "small") {
-                setDATE(
-                    `${TEXT ? `${TEXT} ` : ""}${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`
-                );
-            } else {
-                setDATE(
-                    `วันที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`
-                );
-            }
+            const DateIn = new Date(new Date(DATE) - (clientTimezoneOffset * 60000));
+
+            if(TYPE === "full") setDATE(`${DayWeek[DateIn.getDay()]} ที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ปี พ.ศ. ${DateIn.getFullYear() + 543}`)
+            else if (TYPE === "small") setDATE(`${TEXT ? `${TEXT} ` : ""}${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`)
+            else setDATE(`วันที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`)
         } else {
-            const DateSet = safeDate.split("-");
-            setDATE(
-                `${DateSet[2] != "##" ? `วันที่ ${DateSet[2]} ` : ""}` +
-                `${DateSet[1] != "##" ? `เดือน ${Mount[parseInt(DateSet[1], 10) - 1]} ` : ""}` +
-                `${DateSet[0] != "##" ? `ปี ${parseInt(DateSet[0]) + 543}` : ""}`
-            );
+            const DateSet = DATE.split("-")
+            setDATE(`${DateSet[2] != "##" ? `วันที่ ${DateSet[2]} ` : ""}${DateSet[1] != "##" ? `เดือน ${Mount[DateSet[1]]} ` : ""}${DateSet[0] != "##" ? `ปี ${parseInt(DateSet[0]) + 543}` : ""}`)
         }
-    }, [DATE]);
-
-    // useEffect(()=>{
-    //     if(DATE.toString().indexOf("#") < 0) {
-    //         const clientTimezoneOffset = new Date().getTimezoneOffset();
-    //         const DateIn = new Date(new Date(DATE) - (clientTimezoneOffset * 60000));
-
-    //         if(TYPE === "full") setDATE(`${DayWeek[DateIn.getDay()]} ที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ปี พ.ศ. ${DateIn.getFullYear() + 543}`)
-    //         else if (TYPE === "small") setDATE(`${TEXT ? `${TEXT} ` : ""}${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`)
-    //         else setDATE(`วันที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ${DateIn.getFullYear() + 543}`)
-    //     } else {
-    //         const DateSet = DATE.split("-")
-    //         setDATE(`${DateSet[2] != "##" ? `วันที่ ${DateSet[2]} ` : ""}${DateSet[1] != "##" ? `เดือน ${Mount[DateSet[1]]} ` : ""}${DateSet[0] != "##" ? `ปี ${parseInt(DateSet[0]) + 543}` : ""}`)
-    //     }
-    // })
+    })
 
     return (<input className={className} date_dom="" ref={REF} readOnly value={DateOut}></input>)
 }
@@ -699,7 +659,7 @@ Ref = {
         }
         setYearSelect(newYear.reverse())
  
-        if(Value != null && Value.toString().indexOf("#") >= 0) {
+        if(Value.toString().indexOf("#") >= 0) {
             setDefault(Value.split("-"))
         } else if (new Date(Value) != "Invalid Date") {
             const clientTimezoneOffset = new Date().getTimezoneOffset();
@@ -825,8 +785,7 @@ const DatePickerThai = ({
     } , [offsetQtyDate])
 
     useEffect(()=>{
-        const safe = defaultDate ?? "";
-        setSelectedDate(safe ? new Date(safe).toString() != 'Invalid Date' ? safe : new Date().toISOString() : new Date().toISOString() )
+        setSelectedDate(defaultDate ? new Date(defaultDate).toString() != 'Invalid Date' ? defaultDate : new Date().toISOString() : new Date().toISOString() )
     } , [defaultDate])
 
     const handleDatePickerChange = (christDate, buddhistDate) => {
