@@ -4,6 +4,7 @@ import "../assets/style/page/List.scss"
 import ListData from "./ListData";
 import { InsertStatisticsProvider } from "./report/statistics/InsertStatistics";
 import UserAccessLogs from "./report/user-access-logs";
+import AdminAccessLogs from "./report/admin-access-logs";
 
 export const PageTemplateContext = createContext({
     popupDataManage: {
@@ -33,6 +34,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                                 HrefData.get() === "report?graph" ? "graph" :
                                                     HrefData.get() === "report?statistics" ? "statistics" :
                                                         HrefData.get() === "report?user-access-logs" ? "user-access-logs" :
+                                                    HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
                                                             "",
         changePath: addHref
     })
@@ -51,6 +53,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                                 HrefData.get() === "report?graph" ? "graph" :
                                                     HrefData.get() === "report?statistics" ? "statistics" :
                                                         HrefData.get() === "report?user-access-logs" ? "user-access-logs" :
+                                                    HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
                                                             "",
     })
 
@@ -188,12 +191,13 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     </>
                                 )}
 
-                                {["listlocation", "graph", "statistics", "user-access-logs"].includes(StateOnPage.status) && (
+                                {["listlocation", "graph", "statistics", "user-access-logs", "admin-access-logs"].includes(StateOnPage.status) && (
                                     <>
                                         <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
                                         <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
                                         <option value="statistics">แสดงสถิติโรคพืช / ศัตรูพืช</option>
                                         <option value="user-access-logs">แสดงสถิติการเข้าใช้งานระบบ</option>
+                                        <option value="admin-access-logs">แสดงสถิติการเข้าใช้งานของผู้ดูแลระบบ</option>
                                     </>
                                 )}
                             </select>
@@ -243,7 +247,17 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
 
                     {/* รายการแสดงผล */}
                     {
-                        StatusPage.status !== "user-access-logs" ? (
+                        StatusPage.status === "user-access-logs" ? (
+                            <UserAccessLogs
+                                HrefPage={HrefData}
+                                status={StatusPage}
+                            />
+                        ) : StatusPage.status === "admin-access-logs" ? (
+                            <AdminAccessLogs
+                                HrefPage={HrefData}
+                                status={StatusPage}
+                            />
+                        ) : (
                             <div className="list-manage">
                                 <ListData
                                     socket={socket}
@@ -257,11 +271,6 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     textSearch={getTextSearch}
                                 />
                             </div>
-                        ) : (
-                            <UserAccessLogs
-                                HrefPage={HrefData}
-                                status={StatusPage}
-                            />
                         )
                     }
                 </InsertStatisticsProvider>

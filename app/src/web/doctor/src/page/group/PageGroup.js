@@ -1,9 +1,11 @@
 import React, { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import ManageGroup from "./ManageGroup";
+import GroupHistoryModal from "./GroupHistoryModal";
 import { Modal } from "react-bootstrap";
 import { PageDataContext } from "../data/PageData";
 import "../../assets/style/page/PopupManage.scss";
+import "../../assets/style/page/PageGroup.scss";
  
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageDataContext);
@@ -19,6 +21,16 @@ const PageGroup = () => {
   const [Open, setOpen] = useState(false);
   const [Text, setText] = useState("");
   const [Status, setStatusReport] = useState(null);
+
+  const [historyModal, setHistoryModal] = useState({ open: false, groupId: null, groupLabel: "" });
+
+  const handleHistoryClick = (item) => {
+    setHistoryModal({
+      open: true,
+      groupId: item.id,
+      groupLabel: `${item.pest_name} / ${item.chemical_name} / ${item.plant_name}`
+    });
+  };
 
   const fetchGroupData = useCallback(async () => {
     try {
@@ -113,79 +125,78 @@ const PageGroup = () => {
   };
  
   return (
-    <div className="data-table">
-      <table
-        border="1"
-        style={{
-          width: "80rem",
-          marginTop: "20px",
-          borderCollapse: "collapse",
-          fontFamily: "sans-font",
-        }}
-      >
-        <thead>
-          <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>ลำดับ</th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>โรคพืช / ศัตรูพืช</th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>สารเคมี</th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>พืช</th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>วันที่ปลอดภัย</th>
-            <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>จัดการข้อมูล</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groupData.length > 0 ? (
-            groupData.map((item, index) => (
-              <tr key={item.id}>
-                <td style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>{index + 1}</td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.pest_name}</td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.chemical_name}</td>
-                <td style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>{item.plant_name}</td>
-                <td style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>{item.safe_days}</td>
-                <td style={{ padding: "10px", textAlign: "center", border: "1px solid #ddd" }}>
-                  <button
-                    onClick={() => handleEditClick(item)}
-                    style={{
-                      padding: "5px 10px",
-                      width: "75px",
-                      background: "linear-gradient(160deg,rgb(245, 146, 33),rgb(255, 170, 42))",
-                      fontWeight: "900",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "60px",
-                      cursor: "pointer",
-                      boxShadow: "0px 2px 4px rgba(216, 140, 140, 0.94)",
-                      marginRight: "10px",
-                    }}
-                  >
-                    แก้ไข
-                  </button>
- 
-                  <button
-                    onClick={() => handleToggleClick(item.id)}
-                    style={{
-                      padding: "5px 15px",
-                      fontWeight: "900",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "30px",
-                      cursor: "pointer",
-                      backgroundColor: item.status ? "#28a745" : "#dc3545",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
-                    }}
-                  >
-                    {item.status ? "ENABLE" : "DISABLE "}
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
+    <div className="group-page">
+      <div className="group-table-wrapper">
+        <table className="group-table">
+          <thead>
             <tr>
-              <td colSpan="6" style={{ padding: "10px", textAlign: "center", fontWeight: "900", border: "1px solid #ddd" }}>ไม่มีข้อมูล</td>
+              <th>ลำดับ</th>
+              <th>โรคพืช / ศัตรูพืช</th>
+              <th>สารเคมี</th>
+              <th>พืช</th>
+              <th>วันที่ปลอดภัย</th>
+              <th>จัดการข้อมูล</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {groupData.length > 0 ? (
+              groupData.map((item, index) => (
+                <tr key={item.id}>
+                  <td className="td-center" data-label="ลำดับ">{index + 1}</td>
+                  <td data-label="โรคพืช / ศัตรูพืช">{item.pest_name}</td>
+                  <td data-label="สารเคมี">{item.chemical_name}</td>
+                  <td data-label="พืช">{item.plant_name}</td>
+                  <td className="td-center" data-label="วันที่ปลอดภัย">{item.safe_days}</td>
+                  <td className="td-actions">
+                    {/* แก้ไข */}
+                    <button className="btn-edit" title="แก้ไขข้อมูล" onClick={() => handleEditClick(item)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                      </svg>
+                      <span>แก้ไข</span>
+                    </button>
+
+                    {/* เปิด / ปิด */}
+                    <button className={`btn-toggle ${item.status ? "enable" : "disable"}`} title={item.status ? "ปิดการใช้งาน" : "เปิดการใช้งาน"} onClick={() => handleToggleClick(item.id)}>
+                      {item.status ? (
+                        <>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                          </svg>
+                          <span>เปิดใช้</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                          </svg>
+                          <span>ปิดใช้</span>
+                        </>
+                      )}
+                    </button>
+
+                    <span className="btn-divider"></span>
+
+                    {/* ประวัติ */}
+                    <button className="btn-history" title="ดูประวัติ" onClick={() => handleHistoryClick(item)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span className="btn-history-label">ประวัติ</span>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="td-no-data" colSpan="6">ไม่มีข้อมูล</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
  
       {showConfirmModal && (
         <div className="manage-overlay">
@@ -205,8 +216,23 @@ const PageGroup = () => {
         </div>
       )}
  
-      <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg">
+      <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg" scrollable>
         <ManageGroup fetchGroups={fetchGroupData} />
+      </Modal>
+
+      <Modal
+        show={historyModal.open}
+        onHide={() => setHistoryModal((h) => ({ ...h, open: false }))}
+        centered
+        size="xl"
+      >
+        {historyModal.open && (
+          <GroupHistoryModal
+            groupId={historyModal.groupId}
+            groupLabel={historyModal.groupLabel}
+            onClose={() => setHistoryModal((h) => ({ ...h, open: false }))}
+          />
+        )}
       </Modal>
     </div>
   );
