@@ -536,6 +536,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const chemical_id = req.body.chemical_id
                 const plant_id = req.body.plant_id
                 const safe_days = req.body.safe_days
+                const because = req.body.because || ""
 
                 if (id && pest_id && chemical_id && plant_id && safe_days) {
                     con.query(
@@ -646,13 +647,15 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         WHERE chemical_id = ? AND plant_id = ?
                       ` , [safe_days, chemical_id, plant_id],
                                     (err, updateSafeDate) => {
-                                        console.log(err)
-                                        con.end()
-
-                                        res.send({
-                                            status: 200,
-                                            result: "insert group"
-                                        })
+                                        con.query(
+                                            `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'insert', ?, ?, NULL, ?, '')`,
+                                            [newGroupId, auth['data'].id_doctor, auth['data'].fullname_doctor,
+                                                JSON.stringify({ pest_id, chemical_id, plant_id, safe_days })],
+                                            () => {
+                                                con.end()
+                                                res.send({ status: 200, result: "insert group" })
+                                            }
+                                        )
                                     }
                                 )
                             } else {
@@ -725,13 +728,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     return res.status(500).send({ message: "Update error" });
                                 }
 
-                                con.end();
-                                res.send({
-                                    message: `Status updated to ${status} successfully`,
-                                    id,
-                                    newStatus: status,
-                                    status: 200
-                                });
+                                con.query(
+                                    `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'status', ?, ?, ?, ?, '')`,
+                                    [id, auth['data'].id_doctor, auth['data'].fullname_doctor,
+                                        JSON.stringify({ status: oldStatus }),
+                                        JSON.stringify({ status })],
+                                    () => {
+                                        con.end();
+                                        res.send({
+                                            message: `Status updated to ${status} successfully`,
+                                            id,
+                                            newStatus: status,
+                                            status: 200
+                                        });
+                                    }
+                                );
                             }
                         );
                     }
