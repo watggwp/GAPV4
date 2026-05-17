@@ -7,10 +7,14 @@
 
   .all-menu {
     /* ปรับแค่ layout */
-    --card-w: 115px;      /* ความกว้างการ์ดคงที่ เพื่อให้ 2 คอลัมน์เท่ากัน */
-    --card-gap: 16px;     /* ช่องไฟการ์ด */
-    --card-img: 80px;    /* ขนาดรูปวงกลม */
-    --max-wrap: 820px;    /* กรอบสูงสุด */
+    --card-w: 115px;
+    /* ความกว้างการ์ดคงที่ เพื่อให้ 2 คอลัมน์เท่ากัน */
+    --card-gap: 16px;
+    /* ช่องไฟการ์ด */
+    --card-img: 80px;
+    /* ขนาดรูปวงกลม */
+    --max-wrap: 820px;
+    /* กรอบสูงสุด */
 
     width: 100%;
     max-width: var(--max-wrap);
@@ -24,17 +28,21 @@
       text-align: center;
       font-family: main-font;
       font-weight: 900;
-      font-size: 36px;     /* ลดขนาดหัวข้อให้โปร่งขึ้น */
+      font-size: 36px;
+      /* ลดขนาดหัวข้อให้โปร่งขึ้น */
       line-height: 1;
-      margin: 8px 0 14px;  /* ยกขึ้นเล็กน้อย */
+      margin: 8px 0 14px;
+      /* ยกขึ้นเล็กน้อย */
     }
 
     /* ====== แถวการ์ดทั่วไป (สองใบ กึ่งกลาง) ====== */
     .row {
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(2, var(--card-w)); /* คอลัมน์คงที่ */
-      justify-content: center;     /* จัดทั้งแถวให้อยู่กลาง */
+      grid-template-columns: repeat(2, var(--card-w));
+      /* คอลัมน์คงที่ */
+      justify-content: center;
+      /* จัดทั้งแถวให้อยู่กลาง */
       column-gap: var(--card-gap);
       row-gap: var(--card-gap);
       margin-bottom: 6px;
@@ -45,21 +53,32 @@
       width: var(--card-w);
       border-radius: 16px;
       padding: 10px;
-      box-shadow: 0 4px 4px rgba(0,0,0,.15);
+      box-shadow: 0 4px 4px rgba(0, 0, 0, .15);
       transition: transform .2s ease, box-shadow .2s ease;
-      display: flex; flex-direction: column; align-items: center;
-      position: relative; cursor: pointer; background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      background: #fff;
 
-      .img{
+      .img {
         width: var(--card-img);
         height: var(--card-img);
         border-radius: 50%;
         overflow: hidden;
-        display: grid; place-items: center;
+        display: grid;
+        place-items: center;
         background: #fff;
-        img{ width:100%; height:100%; object-fit: cover; }
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
       }
-      span{
+
+      span {
         margin-top: 8px;
         font-family: Sans-font;
         font-weight: 900;
@@ -67,79 +86,141 @@
         text-align: center;
         width: 100%;
       }
-      .dot-someting{
-        position: absolute; top:.35em; right:.35em;
-        width:1.05em; height:1.05em; border-radius:50%;
-        background:#f33; box-shadow:0 2px 2px rgba(106,0,0,.5);
+
+      .dot-someting {
+        position: absolute;
+        top: .35em;
+        right: .35em;
+        width: 1.05em;
+        height: 1.05em;
+        border-radius: 50%;
+        background: #f33;
+        box-shadow: 0 2px 2px rgba(106, 0, 0, .5);
       }
-      &:hover{ transform: translateY(-2px); box-shadow:0 6px 10px rgba(0,0,0,.15); }
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, .15);
+      }
     }
+
     /* เฉพาะการ์ด PDF: จัดไอคอนให้อยู่กลางและไม่โดนครอป */
-    .frame-pdf .img{
+    .frame-pdf .img {
       /* วงกลมเดิมมีขนาดตาม --card-img อยู่แล้ว */
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0;          /* ไม่ให้ padding ดันรูปจนชนขอบ */
-      background: #fff;    /* พื้นขาวรองไอคอน */
+      padding: 0;
+      /* ไม่ให้ padding ดันรูปจนชนขอบ */
+      background: #fff;
+      /* พื้นขาวรองไอคอน */
     }
 
-    .frame-pdf .img img{
+    .frame-pdf .img img {
       /* ให้รูปเล็กกว่าวงกลมเล็กน้อย และรักษาสัดส่วนเสมอ */
       width: auto;
       height: auto;
       max-width: 78%;
       max-height: 78%;
       object-fit: contain;
-      display: block;      /* กัน baseline เว้นบรรทัด */
+      display: block;
+      /* กัน baseline เว้นบรรทัด */
     }
 
     /* ไล่เฉดสี (เดิม) */
-    .frame-plant   { background: linear-gradient(180deg, rgba(0,255,63,.35), #fff); }
-    .frame-ferti   { background: linear-gradient(180deg, #ffe5a1, #fff); }
-    .frame-chemi   { background: linear-gradient(180deg, #ffa2a2, #fff); }
-    .frame-success { background: linear-gradient(180deg, #c070ff, #fff); }
-    .frame-ecph    { background: linear-gradient(180deg, #8cf4fe, #fff); }
-    .frame-pump    { background: linear-gradient(180deg, #ffb770, #fff); }
-    .frame-pdf     { background: linear-gradient(180deg, #ffa2a2, #fff); }
+    .frame-plant {
+      background: linear-gradient(180deg, rgba(0, 255, 63, .35), #fff);
+    }
+
+    .frame-ferti {
+      background: linear-gradient(180deg, #ffe5a1, #fff);
+    }
+
+    .frame-chemi {
+      background: linear-gradient(180deg, #ffa2a2, #fff);
+    }
+
+    .frame-success {
+      background: linear-gradient(180deg, #c070ff, #fff);
+    }
+
+    .frame-ecph {
+      background: linear-gradient(180deg, #8cf4fe, #fff);
+    }
+
+    .frame-pump {
+      background: linear-gradient(180deg, #ffb770, #fff);
+    }
+
+    .frame-pdf {
+      background: linear-gradient(180deg, #ffa2a2, #fff);
+    }
+
+    .frame-schedules {
+      background: linear-gradient(180deg, #76afff, #fff);
+    }
 
     /* ====== แถว EC/pH + PDF (ซ้ายเรียงลง) | ปั๊มน้ำ (ขวา) ====== */
-    .row-twoCols{
-      grid-template-columns: repeat(2, var(--card-w)); /* ให้เท่ากับแถวอื่น */
+    .row-twoCols {
+      grid-template-columns: repeat(2, var(--card-w));
+      /* ให้เท่ากับแถวอื่น */
       justify-content: center;
       column-gap: var(--card-gap);
       row-gap: var(--card-gap);
-      margin-top: -4px; /* ยกแถวนี้ขึ้นนิดหน่อยให้แนบกับด้านบน */
+      margin-top: -4px;
+      /* ยกแถวนี้ขึ้นนิดหน่อยให้แนบกับด้านบน */
     }
-    .row-twoCols .stack{
-      display:flex; flex-direction:column; gap:var(--card-gap);
-      align-items:center; /* กึ่งกลางในคอลัมน์ */
+
+    .row-twoCols .stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--card-gap);
+      align-items: center;
+      /* กึ่งกลางในคอลัมน์ */
     }
+
     .row-twoCols .stack .frame-menu,
-    .row-twoCols .frame-pump{ width: var(--card-w); }
+    .row-twoCols .frame-pump {
+      width: var(--card-w);
+    }
 
     /* ====== Report banner ====== */
-    .report-farm{
-      width:100%; 
-      max-width:360px; 
-      padding:4px; 
-      margin-top:8px;
-      position:relative;
-      img{ width:100%; border-radius:16px; display:block; }
-      .dot-someting{
-        position:absolute; top:12px; right:12px;
-        width:1.1em; height:1.1em; border-radius:50%; background:#f33;
-        box-shadow:0 2px 2px rgba(106,0,0,.5);
+    .report-farm {
+      width: 100%;
+      max-width: 360px;
+      padding: 4px;
+      margin-top: 8px;
+      position: relative;
+
+      img {
+        width: 100%;
+        border-radius: 16px;
+        display: block;
+      }
+
+      .dot-someting {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 1.1em;
+        height: 1.1em;
+        border-radius: 50%;
+        background: #f33;
+        box-shadow: 0 2px 2px rgba(106, 0, 0, .5);
       }
     }
 
     /* ====== Tablet/PC : ขยายสัดส่วนอย่างเดียว (layout) ====== */
-    @media (min-width: 640px){
+    @media (min-width: 640px) {
       --card-w: 200px;
       --card-img: 130px;
-      .head{ font-size: 40px; }
+
+      .head {
+        font-size: 40px;
+      }
     }
-    @media (min-width: 960px){
+
+    @media (min-width: 960px) {
       --card-w: 220px;
       --card-img: 140px;
     }

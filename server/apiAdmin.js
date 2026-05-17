@@ -1239,7 +1239,6 @@ app.post('/api/admin/add', async (req, res) => {
               }
 
               if(dataInsert.affectedRows) {
-                const newGroupId = dataInsert.insertId;
                 con.query(
                   `
                     UPDATE pest_chemical SET safe_days = ?
@@ -1295,69 +1294,62 @@ app.post('/api/admin/add', async (req, res) => {
 
         if(id && pest_id && chemical_id && plant_id && safe_days) {
           con.query(
-            `SELECT pest_id, chemical_id, plant_id, safe_days FROM pest_chemical WHERE id = ?`,
-            [id],
-            (err, beforeRows) => {
-              const beforeData = (err || !beforeRows[0]) ? null : beforeRows[0]
-              con.query(
-                `
-                  UPDATE pest_chemical
-                    SET
-                      pest_id = ?,
-                      chemical_id = ?,
-                      plant_id = ?,
-                      safe_days = ?
-                    WHERE id = ? AND NOT EXISTS (
-                      SELECT 1
-                      FROM pest_chemical
-                      WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND NOT id = ?
-                    )
-                `
-                , [
-                    pest_id , chemical_id , plant_id , safe_days , id ,
-                    pest_id , chemical_id , plant_id , id
-                  ] , (err , dataUpdate) => {
-                if(err) {
-                  console.log(err)
-                  res.send({
-                    status : 403,
-                    result : "err insert"
-                  })
-                }
+            `
+              UPDATE pest_chemical
+                SET 
+                  pest_id = ?, 
+                  chemical_id = ?, 
+                  plant_id = ?, 
+                  safe_days = ?
+                WHERE id = ? AND NOT EXISTS (
+                  SELECT 1
+                  FROM pest_chemical
+                  WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND NOT id = ?
+                )
+            `
+            , [
+                pest_id , chemical_id , plant_id , safe_days , id ,
+                pest_id , chemical_id , plant_id , id
+              ] , (err , dataUpdate) => {
+              if(err) {
+                console.log(err)
+                res.send({
+                  status : 403,
+                  result : "err insert"
+                })
+              }
 
-                if(dataUpdate.changedRows) {
-                  con.query(
-                    `
-                      UPDATE pest_chemical SET safe_days = ?
-                      WHERE chemical_id = ? AND plant_id = ?
-                    ` , [ safe_days , chemical_id , plant_id ] ,
-                    (err , updateSafeDate) => {
-                      con.query(
-                        `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'edit', ?, ?, ?, ?, ?)`,
-                        [id, auth['data'].id, auth['data'].fullname_admin, JSON.stringify(beforeData), JSON.stringify({ pest_id, chemical_id, plant_id, safe_days }), because],
-                        () => {
-                          con.end()
-                          res.send({ status: 200, result: "update group" })
-                        }
-                      )
-                    }
-                  )
-                } else {
-                  con.end()
-                  if(dataUpdate.affectedRows) {
+              if(dataUpdate.changedRows) {
+                con.query(
+                  `
+                    UPDATE pest_chemical SET safe_days = ?
+                    WHERE chemical_id = ? AND plant_id = ?
+                  ` , [ safe_days , chemical_id , plant_id ] ,
+                  (err , updateSafeDate) => {
+                    console.log(err)
+                    con.end()
+
                     res.send({
-                      status : 201,
-                      result : "insert group"
+                      status : 200,
+                      result : "update group"
                     })
-                    return
                   }
-
+                )
+              } else {
+                con.end()
+                if(dataUpdate.affectedRows) {
                   res.send({
-                    status : 409,
+                    status : 201,
                     result : "insert group"
                   })
+                  return
                 }
-              })
+
+                res.send({
+                  status : 409,
+                  result : "insert group"
+                })
+              }
             }
           )
         }
@@ -1451,7 +1443,7 @@ app.post('/api/admin/add', async (req, res) => {
 
             // ตรวจสอบว่ามีข้อมูลนี้อยู่หรือไม่
             con.query(
-                `SELECT id, status AS oldStatus FROM pest_chemical WHERE id = ?`,
+                `SELECT id FROM pest_chemical WHERE id = ?`,
                 [id],
                 (err, result) => {
                     if (err) {
@@ -1464,8 +1456,6 @@ app.post('/api/admin/add', async (req, res) => {
                         con.end();
                         return res.status(404).send({ message: "ID not found" });
                     }
-
-                    const oldStatus = result[0].oldStatus;
 
                     // อัปเดตสถานะ
                     con.query(
@@ -1506,78 +1496,6 @@ app.post('/api/admin/add', async (req, res) => {
     }
 });
 
-
-  app.post('/api/admin/group/history', async (req, res) => {
-    let username = req.session.user_username;
-    let password = req.session.user_password;
-
-    if (!username || !password) {
-      res.redirect('/api/logout');
-      return;
-    }
-
-    let con = Database.createConnection(listDB);
-
-    try {
-      const auth = await apifunc.auth(con, username, password, res, "admin");
-      if (auth['result'] === "pass") {
-        const { group_id } = req.body;
-
-        con.query(
-          `SELECT
-              lg.id,
-              lg.action_type,
-              lg.editor_name,
-              lg.before_data,
-              lg.after_data,
-              lg.created_at,
-              lg.because,
-              bp.pest_name AS before_pest_name,
-              bc.name AS before_chemical_name,
-              bpl.name AS before_plant_name,
-              ap.pest_name AS after_pest_name,
-              ac.name AS after_chemical_name,
-              apl.name AS after_plant_name
-          FROM log_group lg
-          LEFT JOIN pests bp ON bp.pest_id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.pest_id'))
-          LEFT JOIN chemical_list bc ON bc.id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.chemical_id'))
-          LEFT JOIN plant_list bpl ON bpl.id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.plant_id'))
-          LEFT JOIN pests ap ON ap.pest_id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.pest_id'))
-          LEFT JOIN chemical_list ac ON ac.id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.chemical_id'))
-          LEFT JOIN plant_list apl ON apl.id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.plant_id'))
-          WHERE lg.group_id = ?
-          ORDER BY lg.created_at DESC`,
-          [group_id],
-          (err, results) => {
-            con.end();
-            if (err) {
-              console.error("History query error:", err);
-              return res.status(500).json({ status: 500, message: "Database error" });
-            }
-            const parseJson = (val) => {
-              if (!val) return null;
-              if (typeof val === 'string') return JSON.parse(val);
-              return val;
-            };
-            res.json({
-              status: 200,
-              data: results.map(row => ({
-                ...row,
-                before_data: parseJson(row.before_data),
-                after_data: parseJson(row.after_data)
-              }))
-            });
-          }
-        );
-      } else {
-        con.end();
-        res.status(401).json({ status: 401, message: "Unauthorized" });
-      }
-    } catch (err) {
-      con.end();
-      if (err === "not pass") res.redirect('/api/logout');
-    }
-  });
 
 // data page
 app.post('/api/admin/data/list', async (req, res) => {
@@ -2189,7 +2107,6 @@ app.post('/api/admin/data/change', async (req, res) => {
 
             // บัญชีปกติ สามารถเข้าสู่ระบบได้
             req.session.role_primary = "admin";
-            req.session.admin_id = auth['data'].id;
             req.session.user_username = username;
             req.session.user_password = password;
             req.session.tokenSession = apifunc.getTokenCsurf(req);
@@ -2804,66 +2721,6 @@ app.post('/api/admin/report/list', async(req, res) => {
 			if(err == "not pass") {
 				res.redirect('/api/logout')
 			}
-		}
-	})
-
-	app.get('/api/admin/admin-access-logs', async (req, res) => {
-		let username = req.session.user_username
-		let password = req.session.user_password
-
-		if (!username || !password) {
-			res.redirect('/api/logout')
-			return
-		}
-
-		let con = Database.createConnection(listDB)
-
-		try {
-			const auth = await apifunc.auth(con, username, password, res, "admin")
-			if (auth['result'] === "pass") {
-				con.end()
-
-				const { st, et } = req.query
-
-				try {
-					const admin_access_logs = await pool.executeQuery(
-						`SELECT
-							a.id,
-							a.fullname_admin AS fullname,
-							MAX(l.date) AS access_date,
-							COUNT(l.id) AS total_access
-						FROM log_admin l
-						JOIN admin a ON a.id = l.admin_id
-						WHERE l.date BETWEEN ? AND ?
-						GROUP BY a.id, a.fullname_admin
-						ORDER BY total_access DESC`,
-						[new Date(Number(st)), new Date(Number(et))]
-					)
-
-					const chart_access_logs = await pool.executeQuery(
-						`SELECT
-							DATE(date) AS access_date,
-							COUNT(DISTINCT admin_id) AS access_date_count
-						FROM log_admin
-						WHERE date BETWEEN ? AND ?
-						GROUP BY DATE(date)
-						ORDER BY access_date ASC`,
-						[new Date(Number(st)), new Date(Number(et))]
-					)
-
-					return res.status(200).json({
-						status: "success",
-						admin_access_logs,
-						chart_access_logs
-					})
-				} catch (error) {
-					console.error("Error fetching admin access logs:", error)
-					return res.status(500).json({ status: "error", message: "Database query error" })
-				}
-			}
-		} catch (err) {
-			con.end()
-			if (err == "not pass") res.redirect('/api/logout')
 		}
 	})
 

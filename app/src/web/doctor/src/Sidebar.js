@@ -66,91 +66,77 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
     };
 
     const farmer = async () => {
+        setTitle("ทะเบียนเกษตรกร");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("ทะเบียนเกษตรกร");
-            navigator("/doctor");
+        if (context)
             setdoctor(<PageFarmer setMain={setMain}
                 socket={socket} LoadType={"ap"} session={setSession} type={1}
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />);
-        } else setSession();
+        else setSession();
     }
 
     const form = async () => {
+        setTitle("แบบบันทึกการปลูก");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("แบบบันทึกการปลูก");
-            navigator("/doctor");
+        if (context)
             setdoctor(<PageFormPlant setMain={setMain}
                 socket={socket} LoadType={"ap"} session={setSession} type={true}
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />);
-        } else setSession();
+        else setSession();
     }
 
     const data = async () => {
+        setTitle("เพิ่มเติมข้อมูล");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("เพิ่มเติมข้อมูล");
-            navigator("/doctor");
+        if (context)
             setdoctor(<PageData setMain={setMain}
                 socket={socket} LoadType={"plant"} session={setSession} type={true}
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />);
-        } else setSession();
+        else setSession();
     }
 
     const group = async () => {
+        setTitle("จัดกลุ่มข้อมูล");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("จัดกลุ่มข้อมูล");
-            navigator("/doctor");
+        if (context)
             setdoctor(<PageData setMain={setMain}
                 socket={socket} LoadType={"group"} session={setSession} type={true}
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />);
-        } else setSession();
+        else setSession();
     }
 
     const schedules = useCallback(async () => {
+        setTitle("แผนการปลูก");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("แผนการปลูก");
-            navigator("/doctor/schedules");
-        } else setSession();
+        if (context) navigator("/doctor/schedules");
+        else setSession();
     }, [navigator, setSession, setTitle]);
 
     const report = async () => {
+        setTitle("รายงานข้อมูล");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("รายงานข้อมูล");
-            navigator("/doctor");
+        if (context)
             setdoctor(<PageData setMain={setMain}
                 socket={socket} LoadType={"report"} session={setSession} type={true}
                 eleImageCover={eleImageCover} eleBody={eleBody} setTextStatus={setTextStatus} />);
-        } else setSession();
+        else setSession();
     }
 
     const station = useCallback(async () => {
+        setTitle("ข้อมูลสภาพแวดล้อม");
         const context = await clientMo.post('/api/doctor/check');
-        if (context) {
-            setTitle("ข้อมูลสภาพแวดล้อม");
-            navigator("/doctor");
+        if (context)
             setdoctor(<WeatherStation />);
-        } else setSession();
-    }, [setSession, setdoctor, setTitle, navigator]);
+        else setSession();
+    }, [setSession, setdoctor, setTitle]);
 
-    const getBrandName = () => {
-        if (profile?.doctor_role) return "หมอพืช";
-        if (profile?.protection_role) return "อารักขาพืช";
-        if (profile?.consultant_role) return "ที่ปรึกษา";
-        if (profile?.analyzer_role || profile?.analyst_role) return "นักวิเคราะห์";
-        return "หมอพืช";
-    };
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <img src={`${env.subpath_server}/logo2.png`} alt="Logo" className="logo" />
-                    <span className="brand-name">{getBrandName()}</span>
+                    <span className="brand-name">หมอพืช</span>
                 </div>
                 <button className="toggle-btn" onClick={toggleSidebar}>
                     {isCollapsed ? '☰' : '✖'}

@@ -4,7 +4,6 @@ import { AdminContext } from "../../Admin";
 import { PageTemplateContext } from "../PageTemplate";
 import { ReportAction } from "../../../../../assets/js/module";
 import ManageGroup from "./ManageGroup";
-import GroupHistoryModal from "./GroupHistoryModal";
 import { Modal } from "react-bootstrap";
 import "../../../../../assets/style/moduleStyle.scss"
 import "../../assets/style/page/PageGroup.scss"

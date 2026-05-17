@@ -54,6 +54,8 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
     const Seft = useRef();
     const BTConfirm = useRef();
     const timeout = useRef(0);
+    const expected_yield = useRef();
+    const default_yield = useRef();
 
     /* keep "เลือก" always first in insect list */
     useEffect(() => {
@@ -72,14 +74,14 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
         clearTimeout(timeout.current);
     }, [getHistoryPlantLoad]);
 
-    useEffect(() => {
-        if (YearOut.current) YearOut.current.classList.add("report-not");
-    }, []);
+    // useEffect(() => {
+    //     if (YearOut.current) YearOut.current.classList.add("report-not");
+    // }, []);
 
     /* ── API: plant list ── */
     const FetchPlant = async () => {
         const Data = await clientMo.post("/api/farmer/plant/list");
-        if (YearOut.current) YearOut.current.classList.add("report-not");
+        // if (YearOut.current) YearOut.current.classList.add("report-not");
         if (await CloseAccount(Data)) {
             setDataPlant(JSON.parse(Data));
         }
@@ -121,6 +123,8 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                         Insect.current.value = obj.FromHistory[0].insect;
                         QtyInsect.current.value = obj.FromHistory[0].qtyInsect;
                         Seft.current.value = obj.FromHistory[0].seft;
+                        expected_yield.current.value = obj.FromHistory[0].expected_yield;
+                        default_yield.current.value = obj.FromHistory[0].default_yield;
                     }
                     if (obj.insect.length > 0) {
                         setPreviousInsects(obj.insect);
@@ -166,36 +170,42 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
     const ChangeCHK = () => {
         const type = TypePlantInput.current;
-        const generetion = Generation.current;
-        const dateGlow = DateGlow.current;
+        // const generetion = Generation.current;
+        // const dateGlow = DateGlow.current;
         const datePlant = DatePlant.current;
-        const posiW = PositionW.current;
-        const posiH = PositionH.current;
-        const qty = Qty.current;
-        const area = Area.current;
+        // const posiW = PositionW.current;
+        // const posiH = PositionH.current;
+        // const qty = Qty.current;
+        // const area = Area.current;
         const dateOut = DateOut.current;
-        const system = System.current;
-        const water = Water.current;
-        const waterStep = WaterStep.current;
+        // const system = System.current;
+        // const water = Water.current;
+        // const waterStep = WaterStep.current;
 
-        const ListCheck = [type, generetion, dateGlow, datePlant, posiW, posiH,
-            qty, area, dateOut, system, water, waterStep];
 
-        ListCheck.forEach((current) => {
-            if (current) {
-                if (current.value !== "") {
-                    if (current === DateGlow.current) YearOut.current?.classList.remove("report-not");
-                    else current.classList.remove("report-not");
-                } else {
-                    if (current === DateGlow.current) YearOut.current?.classList.add("report-not");
-                    else current.classList.add("report-not");
-                }
-            }
-        });
+        // const ListCheck = [type, generetion, dateGlow, datePlant, posiW, posiH,
+        //     qty, area, dateOut, system, water, waterStep];
 
-        if (type?.value && generetion?.value && dateGlow?.value?.split("-")[0] &&
-            datePlant?.value && posiW?.value && posiH?.value && qty?.value &&
-            area?.value && dateOut?.value && system?.value && water?.value && waterStep?.value) {
+        // ListCheck.forEach((current) => {
+        //     if (current) {
+        //         if (current.value !== "") {
+        //             if (current === DateGlow.current) {/* YearOut.current?.classList.remove("report-not"); */}
+        //             else current.classList.remove("report-not");
+        //         } else {
+        //             if (current === DateGlow.current) {/* YearOut.current?.classList.add("report-not"); */}
+        //             else current.classList.add("report-not");
+        //         }
+        //     }
+        // });
+
+        if (type?.value && // generetion?.value && dateGlow?.value?.split("-")[0] &&
+            datePlant?.value && // posiW?.value && posiH?.value && qty?.value && area?.value && 
+            dateOut?.value // && system?.value && water?.value && waterStep?.value
+            ) {
+        // if (type?.value && generetion?.value && dateGlow?.value?.split("-")[0] &&
+        //     datePlant?.value && posiW?.value && posiH?.value && qty?.value &&
+        //     area?.value && dateOut?.value && system?.value && water?.value && waterStep?.value
+        //     ) {
             BTConfirm.current?.removeAttribute("no");
         } else {
             BTConfirm.current?.setAttribute("no", "");
@@ -210,63 +220,153 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
     };
 
     /* ── Submit ── */
-    const Confirm = async () => {
-        if (!selectedHouseId) return;
-        const type = TypePlantInput.current;
-        const generetion = Generation.current;
-        const dateGlow = DateGlow.current;
-        const datePlant = DatePlant.current;
-        const posiW = PositionW.current;
-        const posiH = PositionH.current;
-        const qty = Qty.current;
-        const area = Area.current;
-        const dateOut = DateOut.current;
-        const system = System.current;
-        const water = Water.current;
-        const waterStep = WaterStep.current;
-        const history = History.current;
-        const insect = Insect.current;
-        const qtyInsect = QtyInsect.current;
-        const seft = Seft.current;
+    // const Confirm = async () => {
+    //     if (!selectedHouseId) return;
+    //     const type = TypePlantInput.current;
+    //     const generetion = Generation.current;
+    //     const dateGlow = DateGlow.current;
+    //     const datePlant = DatePlant.current;
+    //     const posiW = PositionW.current;
+    //     const posiH = PositionH.current;
+    //     const qty = Qty.current;
+    //     const area = Area.current;
+    //     const dateOut = DateOut.current;
+    //     const system = System.current;
+    //     const water = Water.current;
+    //     const waterStep = WaterStep.current;
+    //     const history = History.current;
+    //     const insect = Insect.current;
+    //     const qtyInsect = QtyInsect.current;
+    //     const seft = Seft.current;
+    //     const expectedYield = expected_yield.current;
+    //     const defaultYield = default_yield.current;
 
-        if (type.value && generetion.value && dateGlow.value.split("-")[0] &&
-            datePlant.value && posiW.value && posiH.value && qty.value &&
-            area.value && dateOut.value && system.value && water.value && waterStep.value) {
+    //     if (type.value && generetion.value && dateGlow.value.split("-")[0] &&
+    //         datePlant.value && posiW.value && posiH.value && qty.value &&
+    //         area.value && dateOut.value && system.value && water.value && waterStep.value) {
 
-            const data = {
-                id_farmhouse: selectedHouseId,
-                name_plant: type.value,
-                generetion: generetion.value,
-                dateGlow: dateGlow.value,
-                datePlant: datePlant.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-"),
-                posiW: posiW.value,
-                posiH: posiH.value,
-                qty: qty.value,
-                area: area.value,
-                unit,
-                dateOut: dateOut.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-"),
-                system: system.value,
-                water: water.value,
-                waterStep: waterStep.value,
-                history: history.value,
-                insect: insect.value,
-                qtyInsect: qtyInsect.value,
-                seft: seft.value,
-            };
+    //         const data = {
+    //             id_farmhouse: selectedHouseId,
+    //             name_plant: type.value,
+    //             generetion: generetion.value || null,
+    //             dateGlow: dateGlow.value || null,
+    //             datePlant: datePlant.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-"),
+    //             posiW: posiW.value || null,
+    //             posiH: posiH.value || null,
+    //             qty: qty.value || null,
+    //             area: area.value || null,
+    //             unit: unit.value || null,
+    //             dateOut: dateOut.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-"),
+    //             system: system.value || null,
+    //             water: water.value || null,
+    //             waterStep: waterStep.value || null,
+    //             history: history.value || null,
+    //             insect: insect.value || null,
+    //             qtyInsect: qtyInsect.value || null,
+    //             seft: seft.value || null,
+    //             expectedYield: expectedYield.value || null,
+    //             defaultYield: defaultYield.value || null,
+    //         };
 
-            setWait(true);
-            const response = await clientMo.post("/api/farmer/formplant/insert", data);
-            if (await CloseAccount(response)) {
-                onSuccess();
-            } else {
-                console.error("Insert failed:", response);
-                setWait(false);
-            }
-        } else {
-            console.error("Missing required fields");
+    //         setWait(true);
+    //         const response = await clientMo.post("/api/farmer/formplant/insert", data);
+    //         if (await CloseAccount(response)) {
+    //             onSuccess();
+    //         } else {
+    //             console.error("Insert failed:", response);
+    //             setWait(false);
+    //         }
+    //     } else {
+    //         console.error("Missing required fields");
+    //     }
+    // };
+
+    // ฟังก์ชันแปลงวันที่ พ.ศ. → ค.ศ. รองรับทั้ง yyyy-mm-dd และ dd-mm-yyyy
+    function convertThaiDateToISO(dateStr) {
+        if (!dateStr) return dateStr;
+        let parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        // ถ้าเป็น yyyy-mm-dd
+        if (parts[0].length === 4) {
+            let year = parseInt(parts[0], 10);
+            if (year > 2400) year -= 543;
+            return [year, parts[1].padStart(2, '0'), parts[2].padStart(2, '0')].join('-');
         }
-    };
+        // ถ้าเป็น dd-mm-yyyy
+        if (parts[2].length === 4) {
+            let year = parseInt(parts[2], 10);
+            if (year > 2400) year -= 543;
+            return [year, parts[1].padStart(2, '0'), parts[0].padStart(2, '0')].join('-');
+        }
+        return dateStr;
+    }
 
+    const Confirm = async () => {
+
+    console.log("CLICK CONFIRM");
+
+    try {
+
+        console.log("selectedHouseId =>", selectedHouseId);
+
+        if (!selectedHouseId) {
+            console.log("ไม่มี selectedHouseId");
+            return;
+        }
+
+        const type = TypePlantInput?.current;
+
+        console.log("TYPE =>", type);
+        console.log("TYPE VALUE =>", type?.value);
+
+        if (!type?.value) {
+            console.log("ยังไม่ได้เลือก type");
+            return;
+        }
+        console.log("DATE PLANT =>", DatePlant.current?.value);
+        console.log("DATE OUT =>", DateOut.current?.value);
+
+        if (!DatePlant.current?.value) {
+            console.log("ไม่มีวันที่ปลูก");
+            return;
+        }
+
+        if (!DateOut.current?.value) {
+            console.log("ไม่มีวันที่เก็บเกี่ยว");
+            return;
+        }
+
+        const data = {
+            id_farmhouse: selectedHouseId,
+            name_plant: type.value,
+            datePlant: convertThaiDateToISO(DatePlant.current.value),
+            dateOut: convertThaiDateToISO(DateOut.current.value),
+        };
+
+        console.log("SEND DATA =>", data);
+
+        setWait(true);
+
+        const response = await clientMo.post(
+            "/api/farmer/formplant/insert",
+            data
+        );
+
+        console.log("RESPONSE =>", response);
+
+        if (await CloseAccount(response)) {
+            onSuccess();
+        } else {
+            setWait(false);
+        }
+
+    } catch (err) {
+
+        console.log("CONFIRM ERROR =>", err);
+
+        setWait(false);
+    }
+};
     /* ── JSX ── */
     return (
         <div className="gap-modal-overlay" onClick={onClose}>
@@ -334,21 +434,21 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>รุ่นที่ปลูก</span>
-                                                    <input className="report-not" onInput={ChangeCHK} ref={Generation} type="number" placeholder="ตัวเลข" />
+                                                    <input onInput={ChangeCHK} ref={Generation} type="number" placeholder="ตัวเลข" />
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>วันที่เพาะกล้า (เฉพาะปีได้)</span>
                                                     <DateSelect RefDateValue={DateGlow} methodCheckValue={ChangeCHK} Ref={{ DayCK: DayOut, MountCK: MountOut, YearCK: YearOut }} />
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>วันที่ปลูก</span>
                                                     <DatePickerThai
@@ -365,36 +465,36 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox colume">
                                                     <div className="full">ระยะการปลูก</div>
                                                     <div className="choose">
                                                         <label className="choose colume">
                                                             ระหว่างต้น
-                                                            <input onInput={ChangeCHK} ref={PositionW} type="number" className="center report-not" />
+                                                            <input onInput={ChangeCHK} ref={PositionW} type="number" />
                                                         </label>
                                                         <div>X</div>
                                                         <label className="choose colume">
                                                             ระหว่างแถว
-                                                            <input onInput={ChangeCHK} ref={PositionH} type="number" className="center report-not" />
+                                                            <input onInput={ChangeCHK} ref={PositionH} type="number" />
                                                         </label>
                                                     </div>
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>จำนวนต้น</span>
-                                                    <input className="report-not" onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
+                                                    <input onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <Stack>
                                                         <Stack direction={"row"}>
                                                             <span>พื้นที่</span>
-                                                            <select className="report-not" onChange={Change} ref={System} defaultValue="">
+                                                            <select onChange={Change} ref={System} defaultValue="">
                                                                 <option disabled value="">เลือก</option>
                                                                 <option value="โรงเรือน">โรงเรือน</option>
                                                                 <option value="ไร่">ไร่</option>
@@ -402,16 +502,32 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                             </select>
                                                         </Stack>
                                                         <Stack marginTop={1} alignItems={"center"}>
-                                                            <input className="report-not" style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder} />
+                                                            <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder} />
                                                         </Stack>
                                                     </Stack>
                                                 </label>
                                             </div>
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>วันที่คาดว่า <br />จะเก็บเกี่ยว</span>
                                                     <DatePickerThai classNameMain="input-date" defaultDate={getDateOut} onInputIn={ChangeCHK} refIn={DateOut} />
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
+                                                <label className="frame-textbox">
+                                                    <span>ปริมาณผลผลิต <br /> ที่คาดว่าจะได้รับ</span>
+                                                    <input onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
+                                                    กก.
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
+                                                <label className="frame-textbox">
+                                                    <span>ผลผลิตที่ได้จริง</span>
+                                                    <input onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
+                                                    กก.
                                                 </label>
                                             </div>
                                         </div>
@@ -422,10 +538,10 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                         <div className="num">2.</div>
                                         <div className="body">
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>รูปแบบการปลูก</span>
-                                                    <select className="report-not" onChange={ChangeCHK} ref={System} defaultValue="">
+                                                    <select onChange={ChangeCHK} ref={System} defaultValue="">
                                                         <option disabled value="">เลือก</option>
                                                         <option value="ขึ้นแปลงปลูกตามไหล่เขา">ขึ้นแปลงปลูกตามไหล่เขา</option>
                                                         <option value="ขึ้นแปลงปลูกที่ลุ่มหลังนา">ขึ้นแปลงปลูกที่ลุ่มหลังนา</option>
@@ -444,10 +560,10 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                         <div className="num">3.</div>
                                         <div className="body">
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>แหล่งน้ำ</span>
-                                                    <select className="report-not" onChange={ChangeCHK} ref={Water} defaultValue="">
+                                                    <select onChange={ChangeCHK} ref={Water} defaultValue="">
                                                         <option disabled value="">เลือก</option>
                                                         <option value="อาศัยน้ำฝน">อาศัยน้ำฝน</option>
                                                         <option value="ลำธาร/คลองธรรมชาติ">ลำธาร/คลองธรรมชาติ</option>
@@ -466,10 +582,10 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                         <div className="num">4.</div>
                                         <div className="body">
                                             <div className="row">
-                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <span className="dot-required">*</span>}
+                                                {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>วิธีการให้น้ำ</span>
-                                                    <select className="report-not" onChange={ChangeCHK} ref={WaterStep} defaultValue="">
+                                                    <select onChange={ChangeCHK} ref={WaterStep} defaultValue="">
                                                         <option disabled value="">เลือก</option>
                                                         <option value="สปริงเกอร์">สปริงเกอร์</option>
                                                         <option value="ระบบน้ำหยด">ระบบน้ำหยด</option>
