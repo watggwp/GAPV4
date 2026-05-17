@@ -3,7 +3,8 @@ import { HrefData, TabLoad } from "../../../assets/js/module";
 import { clientMo } from "../../../assets/js/moduleClient";
 import "./assets/style/adminMain.scss";
 import Login from "./Login";
-import AdminDashboardLayout from "./AdminDashboardLayout";
+import NavFirst from "./navFirst";
+import DesktopNev from "./navTop/desktop";
 import PageTemplate from "./page/PageTemplate";
 import SessionOut from "./sesionOut";
 import { BrowserRouter, Route, Routes } from "react-router";
@@ -11,34 +12,26 @@ import ScheduleIndex from "./page/schedule";
 import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
 import env from "../../../env";
-import WeatherStation from "./page/station";
-
-// New Components
-import AdminSidebar from "./AdminSidebar";
-import AdminHeader from "./AdminHeader";
-
+import WeatherStation from "./page/station"
 export const AdminContext = React.createContext({
     TabOn: undefined,
-    titlePageNested: (heigthBody, heightCover, ArrtextPage = []) => { },
-    profile: {}
+    titlePageNested: (heigthBody, heightCover, ArrtextPage = []) => { }
 })
 
 const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const [body, setBody] = useState(<div></div>);
+    const [TabMenuTop, setTabMenu] = useState(<></>);
     const [session, setSession] = useState(<div></div>);
     const [TextPage, setTextPage] = useState([]);
     const [getProfile, setProfile] = useState([]);
     const [Responsive, setResponsive] = useState(window.innerWidth);
-    
-    // Sidebar Collapse State
-    const [isSidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
-    // Page Title State
-    const [pageTitle, setPageTitle] = useState("Dashboard");
+    const [SizeProfileImg, setSizeProfileImg] = useState(0)
 
     const ImageCover = useRef();
     const BodyRef = useRef();
     const Tabbar = useRef();
     const sessionRef = useRef();
+    const frameImage = useRef()
 
     const { current: TabOn } = useRef(new TabLoad(Tabbar));
     const Href = new HrefData("HOME");
@@ -54,6 +47,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                 setSession();
             }
         } catch (error) {
+            // Log ข้อผิดพลาดถ้ามี
             console.error("Error fetching profile:", error);
         }
     }, [])
@@ -75,18 +69,16 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
     const modifyMainPage = useCallback((heigthBody, heightCover, ArrtextPage = []) => {
         setTextPage(ArrtextPage.filter(val => val !== ""));
-        if (ImageCover.current) ImageCover.current.style.height = `${heightCover}%`;
-        // Removed dynamic height on BodyRef to allow flex-grow to stretch it without bounds
-        // if (BodyRef.current) BodyRef.current.style.height = `${heigthBody}%`;
+        ImageCover.current.style.height = `${heightCover}%`;
+        BodyRef.current.style.height = `${heigthBody}%`;
     }, [])
 
     const method = useCallback((e) => {
         const path = window.location.pathname.replace("/uat", "").split("/").filter(val => val);
         const type = e ? "=pop" : '';
         if (path.length === 1 && path[0] === "admin") {
-            setPageTitle("Dashboard");
             setBody(
-                <AdminDashboardLayout
+                <NavFirst
                     session={sessionoff}
                     setBodyFileAdmin={setBody}
                     auth={Auth}
@@ -100,14 +92,13 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             let seconPath = path[1].split("?");
             let query = seconPath[1] || "";
 
+            // temp
             if (seconPath[0] === "schedules") {
-                setPageTitle("แผนการปลูก");
                 TabOn.addTimeOut(TabOn.end());
                 return
             }
 
             if (seconPath[0] === "list") {
-                setPageTitle("ทะเบียนเจ้าหน้าที่");
                 if (query === "default") {
                     Href.set(`list?default${type}`);
                     setBody(
@@ -159,7 +150,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             } else if (seconPath[0] === "data") {
-                setPageTitle("เพิ่มเติมข้อมูล");
                 if (query === "plant") {
                     Href.set(`data?plant${type}`);
                     setBody(
@@ -210,7 +200,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     );
                 }
             } else if (seconPath[0] === "report") {
-                setPageTitle("รายงานข้อมูล");
                 if (query === "statistics") {
                     Href.set(`report?statistics${type}`);
                     setBody(
@@ -259,21 +248,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                             HrefData={Href}
                         />
                     );
-                } else if (query.indexOf("admin-access-logs") === 0) {
-                    Href.set(`report?admin-access-logs${type}`);
-                    setBody(
-                        <PageTemplate
-                            session={sessionoff}
-                            TabOn={TabOn}
-                            socket={socket}
-                            modify={modifyMainPage}
-                            auth={Auth}
-                            HrefData={Href}
-                        />
-                    );
                 }
             } else if (query.indexOf("group") === 0) {
-                setPageTitle("จัดกลุ่มข้อมูล");
                 Href.set(`group?default${type}`);
                 setBody(
                     <PageTemplate
@@ -288,9 +264,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
             }
         } else {
-            setPageTitle("Dashboard");
             setBody(
-                <AdminDashboardLayout
+                <NavFirst
                     session={sessionoff}
                     setBodyFileAdmin={setBody}
                     auth={Auth}
@@ -309,14 +284,31 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
     const Resize = useCallback(() => {
         setResponsive(window.innerWidth);
-        if (window.innerWidth <= 768) {
-            setSidebarCollapsed(true);
+
+        const LoadImg = () => {
+            setSizeProfileImg(frameImage.current.clientWidth * 43 / 100)
         }
     }, [])
 
     useEffect(() => {
         FetchProfile();
         ChkPath(null, "web")
+        setTabMenu(
+            <DesktopNev
+                setSession={sessionoff}
+                setBodyFileMain={setBodyFileMain}
+                setBodyFileAdmin={setBody}
+                socket={socket}
+                auth={Auth}
+                modify={modifyMainPage}
+                eleImageCover={ImageCover}
+                eleBody={BodyRef} setTextStatus={setTextPage}
+                TabOn={TabOn}
+                HrefData={Href}
+                getProfile={getProfile}
+                FetchProfile={FetchProfile}
+            />
+        );
 
         window.addEventListener("popstate", ChkPath);
         window.addEventListener("resize", Resize);
@@ -334,84 +326,79 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             value={{
                 TabOn: TabOn,
                 titlePageNested: modifyMainPage,
-                profile: getProfile
             }}
         >
-            <BrowserRouter basename={env.subpath_server}>
-                <div
-                    onLoad={clientMo.unLoadingPage}
-                    className="admin"
-                    style={{ flexDirection: 'row', overflow: 'hidden', display: 'flex', width: '100%', height: '100vh' }}
-                >
-                    <AdminSidebar
-                        setBodyFileAdmin={setBody}
-                        socket={socket}
-                        setSession={sessionoff}
-                        auth={Auth}
-                        TabOn={TabOn}
-                        HrefData={Href}
-                        modifyMainPage={modifyMainPage}
-                        isCollapsed={isSidebarCollapsed}
-                        toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-                        setTitle={setPageTitle}
-                    />
-
-                    <div className="main-content-wrapper" style={{
-                        flexGrow: 1,
-                        height: '100vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        transition: 'margin-left 0.3s ease'
-                    }}>
-
-                        <AdminHeader
-                            setSession={sessionoff}
-                            isSidebarCollapsed={isSidebarCollapsed}
-                            pageTitle={pageTitle}
-                            toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-                        />
-
-                        <section ref={BodyRef} className="container-body-admin" style={{
-                            flexGrow: 1,
-                            padding: '0',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            justifyContent: 'flex-start'
-                        }}>
-                            <bot-main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'stretch', justifyContent: 'flex-start' }}>
-                                <bot-content style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'stretch', justifyContent: 'flex-start' }}>
-                                    <Routes>
-                                        <Route path="/admin/schedules" element={<ScheduleIndex />}>
-                                            <Route index element={<SchedulesPlan />} />
-                                            <Route path=":station_id" element={<SchedulesPlan />} />
-                                            <Route path=":station_id/:plant_id" element={<SchedulePlants />} />
-                                        </Route>
-                                        <Route path="/admin/station" element={<WeatherStation />}>
-                                        </Route>
-                                        <Route path="/admin/weather-station" element={
-                                            <></>
-                                        }>
-                                        </Route>
-                                        <Route path="*" element={body} />
-                                    </Routes>
-                                </bot-content>
-                            </bot-main>
-                        </section>
-                    </div>
-
-                    <div className="status-loadPage" style={{ display: 'none' }}>
-                        <div ref={Tabbar} className="tab-load"></div>
-                    </div>
-                    {/* Dummy element for legacy ImageCover ref compatibility */}
-                    <div ref={ImageCover} style={{ display: 'none' }}></div>
-
-                    <section ref={sessionRef} id="session">
-                        {session}
-                    </section>
+            <div
+                onLoad={clientMo.unLoadingPage}
+                className="admin"
+            >
+                {TabMenuTop}
+                <div className="status-loadPage">
+                    <div ref={Tabbar} className="tab-load"></div>
                 </div>
-            </BrowserRouter>
+                <section ref={ImageCover} className="image-cover">
+                    {Responsive > 800 ? (
+                        <>
+                            <div className="text-cover">
+                                <div className="icon">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <img src={`${env.subpath_server}/Logo-white.png`} alt="Logo" />
+                                </div>
+                                <div className="status">
+                                    {TextPage.map((val, index) => (
+                                        <div className="box-status" key={index}>
+                                            <span>{val}</span>
+                                            {TextPage.length - 1 > index ? <img src="/arrow.png" alt="arrow" /> : <></>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="frame">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-icon-cover">
+                                <div className="text">
+                                    <span>ยินดีต้อนรับ</span>
+                                    <span style={{ fontWeight: 900 }}>ผู้ดูแลระบบ</span>
+                                </div>
+                            </div>
+                            <div className="frame-image-cover">
+                                <img src="/ดอย.jpg" alt="cover" />
+                            </div>
+                        </>
+                    )}
+                </section>
+                <section ref={BodyRef} className="container-body-admin">
+                    <bot-main>
+                        <bot-content>
+                            {/* {body} */}
+                            <BrowserRouter basename={env.subpath_server}>
+                                <Routes>
+                                    <Route path="/admin/schedules" element={<ScheduleIndex />}>
+                                        <Route index element={<SchedulesPlan />} />
+                                        <Route path=":station_id" element={<SchedulesPlan />} />
+                                        <Route path=":station_id/:plant_id" element={<SchedulePlants />} />
+                                    </Route>
+                                    <Route path="/admin/station" element={<WeatherStation />}>
+                                    </Route>
+                                    <Route path="/admin/weather-station" element={
+                                        <></>
+                                        // เอา component weather มาใส่ตรงนี้
+                                    }>
+                                    </Route>
+                                    <Route path="*" element={body} />
+                                </Routes>
+                            </BrowserRouter>
+                        </bot-content>
+                    </bot-main>
+                </section>
+                <section ref={sessionRef} id="session">
+                    {session}
+                </section>
+            </div>
         </AdminContext.Provider>
     );
 };

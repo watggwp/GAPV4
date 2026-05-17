@@ -536,17 +536,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const chemical_id = req.body.chemical_id
                 const plant_id = req.body.plant_id
                 const safe_days = req.body.safe_days
-                const because = req.body.because || null
 
                 if (id && pest_id && chemical_id && plant_id && safe_days) {
                     con.query(
-                        `SELECT pest_id, chemical_id, plant_id, safe_days FROM pest_chemical WHERE id = ?`,
-                        [id],
-                        (err, beforeRows) => {
-                            const beforeData = (err || !beforeRows[0]) ? null : beforeRows[0]
-
-                            con.query(
-                                `
+                        `
                   UPDATE pest_chemical
                     SET
                       pest_id = ?,
@@ -559,46 +552,40 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                       WHERE pest_id = ? AND chemical_id = ? AND plant_id = ? AND NOT id = ?
                     )
                 `
-                                , [
-                                    pest_id, chemical_id, plant_id, safe_days, id,
-                                    pest_id, chemical_id, plant_id, id
-                                ], (err, dataUpdate) => {
-                                    if (err) {
-                                        console.log(err)
-                                        res.send({
-                                            status: 403,
-                                            result: "err insert"
-                                        })
-                                    }
+                        , [
+                            pest_id, chemical_id, plant_id, safe_days, id,
+                            pest_id, chemical_id, plant_id, id
+                        ], (err, dataUpdate) => {
+                            if (err) {
+                                console.log(err)
+                                res.send({
+                                    status: 403,
+                                    result: "err insert"
+                                })
+                            }
 
-                                    if (dataUpdate.changedRows) {
-                                        con.query(
-                                            `
+                            if (dataUpdate.changedRows) {
+                                con.query(
+                                    `
                         UPDATE pest_chemical SET safe_days = ?
                         WHERE chemical_id = ? AND plant_id = ?
                       ` , [safe_days, chemical_id, plant_id],
-                                            (err, updateSafeDate) => {
-                                                con.query(
-                                                    `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, 'edit', ?, ?, ?, ?, ?)`,
-                                                    [id, auth['data'].id_doctor, auth['data'].fullname_doctor,
-                                                        JSON.stringify(beforeData),
-                                                        JSON.stringify({ pest_id, chemical_id, plant_id, safe_days }),
-                                                        because],
-                                                    () => {
-                                                        con.end()
-                                                        res.send({ status: 200, result: "update group" })
-                                                    }
-                                                )
-                                            }
-                                        )
-                                    } else {
+                                    (err, updateSafeDate) => {
+                                        console.log(err)
+                                        con.end()
+
                                         res.send({
-                                            status: 409,
-                                            result: "insert group"
+                                            status: 200,
+                                            result: "update group"
                                         })
                                     }
-                                }
-                            )
+                                )
+                            } else {
+                                res.send({
+                                    status: 409,
+                                    result: "insert group"
+                                })
+                            }
                         }
                     )
                 }
@@ -653,22 +640,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             }
 
                             if (dataInsert.affectedRows) {
-                                const newGroupId = dataInsert.insertId
                                 con.query(
                                     `
                         UPDATE pest_chemical SET safe_days = ?
                         WHERE chemical_id = ? AND plant_id = ?
                       ` , [safe_days, chemical_id, plant_id],
                                     (err, updateSafeDate) => {
-                                        con.query(
-                                            `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, 'insert', ?, ?, NULL, ?)`,
-                                            [newGroupId, auth['data'].id_doctor, auth['data'].fullname_doctor,
-                                                JSON.stringify({ pest_id, chemical_id, plant_id, safe_days })],
-                                            () => {
-                                                con.end()
-                                                res.send({ status: 200, result: "insert group" })
-                                            }
-                                        )
+                                        console.log(err)
+                                        con.end()
+
+                                        res.send({
+                                            status: 200,
+                                            result: "insert group"
+                                        })
                                     }
                                 )
                             } else {
@@ -716,7 +700,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 // ตรวจสอบว่ามีข้อมูลนี้อยู่หรือไม่
                 con.query(
-                    `SELECT id, status FROM pest_chemical WHERE id = ?`,
+                    `SELECT id FROM pest_chemical WHERE id = ?`,
                     [id],
                     (err, result) => {
                         if (err) {
@@ -730,8 +714,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             return res.status(404).send({ message: "ID not found" });
                         }
 
-                        const oldStatus = result[0].status
-
                         // อัปเดตสถานะ
                         con.query(
                             `UPDATE pest_chemical SET status = ? WHERE id = ?`,
@@ -743,21 +725,13 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     return res.status(500).send({ message: "Update error" });
                                 }
 
-                                con.query(
-                                    `INSERT INTO log_group (group_id, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, 'status', ?, ?, ?, ?)`,
-                                    [id, auth['data'].id_doctor, auth['data'].fullname_doctor,
-                                        JSON.stringify({ status: oldStatus }),
-                                        JSON.stringify({ status })],
-                                    () => {
-                                        con.end();
-                                        res.send({
-                                            message: `Status updated to ${status} successfully`,
-                                            id,
-                                            newStatus: status,
-                                            status: 200
-                                        });
-                                    }
-                                );
+                                con.end();
+                                res.send({
+                                    message: `Status updated to ${status} successfully`,
+                                    id,
+                                    newStatus: status,
+                                    status: 200
+                                });
                             }
                         );
                     }
@@ -770,80 +744,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             con.end();
             console.error("Authentication error:", err);
             res.status(500).send({ message: "Authentication error" });
-        }
-    });
-
-    app.post('/api/doctor/group/history', async (req, res) => {
-        let username = req.session.user_doctor;
-        let password = req.session.pass_doctor;
-
-        if (!username || !password) {
-            res.redirect('/api/logout');
-            return;
-        }
-
-        let con = Database.createConnection(listDB);
-
-        try {
-            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
-            if (auth['result'] === "pass") {
-                const { group_id } = req.body;
-
-                con.query(
-                    `SELECT
-                        lg.id,
-                        lg.action_type,
-                        lg.editor_name,
-                        lg.before_data,
-                        lg.after_data,
-                        lg.created_at,
-                        lg.because,
-                        bp.pest_name AS before_pest_name,
-                        bc.name AS before_chemical_name,
-                        bpl.name AS before_plant_name,
-                        ap.pest_name AS after_pest_name,
-                        ac.name AS after_chemical_name,
-                        apl.name AS after_plant_name
-                    FROM log_group lg
-                    LEFT JOIN pests bp ON bp.pest_id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.pest_id'))
-                    LEFT JOIN chemical_list bc ON bc.id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.chemical_id'))
-                    LEFT JOIN plant_list bpl ON bpl.id = JSON_UNQUOTE(JSON_EXTRACT(lg.before_data, '$.plant_id'))
-                    LEFT JOIN pests ap ON ap.pest_id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.pest_id'))
-                    LEFT JOIN chemical_list ac ON ac.id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.chemical_id'))
-                    LEFT JOIN plant_list apl ON apl.id = JSON_UNQUOTE(JSON_EXTRACT(lg.after_data, '$.plant_id'))
-                    WHERE lg.group_id = ?
-                    ORDER BY lg.created_at DESC`,
-                    [group_id],
-                    (err, results) => {
-                        con.end();
-                        if (err) {
-                            console.error("History query error:", err);
-                            return res.status(500).json({ status: 500, message: "Database error" });
-                        }
-                        const parseJson = (val) => {
-                            if (!val) return null;
-                            if (typeof val === 'string') return JSON.parse(val);
-                            return val;
-                        };
-                        res.json({
-                            status: 200,
-                            data: results.map(row => ({
-                                ...row,
-                                before_data: parseJson(row.before_data),
-                                after_data: parseJson(row.after_data)
-                            }))
-                        });
-                    }
-                );
-            } else {
-                con.end();
-                res.status(401).json({ status: 401, message: "Unauthorized" });
-            }
-        } catch (err) {
-            con.end();
-            if (err === "not pass") {
-                res.redirect('/api/logout');
-            }
         }
     });
 
@@ -4508,24 +4408,40 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     try {
                                         con.query(
                                             `
-                                                INSERT INTO ${From}
+                                                INSERT INTO ${From} 
                                                 ( ${Key.join(",").replaceAll(" ", "").replaceAll(";", "")} )
-                                                VALUES
+                                                VALUES 
                                                 ( ${InsertArray.join(",")} )
-                                            ` , dataInsert, (err, insertResult) => {
+                                            ` , dataInsert, (err, result) => {
 
                                             if (err) {
                                                 con.end()
                                                 res.send("error")
                                             } else {
-                                                const newId = insertResult.insertId;
-                                                const editorId = result['data'].id_doctor;
-                                                const editorName = result['data'].fullname_doctor;
-                                                con.query(
-                                                    'INSERT INTO log_data (data_id, data_type, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, ?, "insert", ?, ?, NULL, ?)',
-                                                    [newId, req.body.type, editorId, editorName, JSON.stringify(req.body.data)],
-                                                    () => { con.end(); res.send("insert") }
-                                                )
+
+                                                // if(req.body.type == "plant"){
+                                                //     const insertId = result.insertId
+                                                //     const {
+                                                //         name , variety_name	, qty_harvest 
+                                                //     } = varietie
+                                                //     con.query(
+
+                                                //             `INSERT INTO varieties
+                                                //             ( plant_id , variety_name , dates ) 
+                                                //             VALUES ( ? , ? , ?)`
+                                                //         , [insertId , name , variety_name	, qty_harvest ] , (err , result) => {
+                                                //             if(err){
+                                                //                 con.end()
+                                                //                 res.send("error")
+                                                //             }
+
+                                                //             con.end()
+                                                //             res.send("insert")
+                                                //         }
+                                                //     )
+                                                // } else {
+                                                // }
+                                                res.send("insert")
                                             }
                                         }
                                         )
@@ -4615,15 +4531,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         }) : false;
 
                         if (!resultCheck) {
-                            const oldData = await new Promise((resolve) => {
-                                con.query(
-                                    `SELECT * FROM ${From} WHERE ${columnID} = ?`,
-                                    [data_id], (err, rows) => {
-                                        resolve(err ? null : (rows[0] || null))
-                                    }
-                                )
-                            })
-
                             const update = Object.entries(req.body.data).map(data => {
                                 if (data[0] === "location") {
                                     data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
@@ -4649,8 +4556,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                             con.query(
                                 `
-                                SELECT *
-                                FROM ${From}
+                                SELECT * 
+                                FROM ${From} 
                                 WHERE ${columnID} = ?
                                 ` , [data_id], (err, select) => {
                                 if (err) {
@@ -4659,16 +4566,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     return 0
                                 }
 
-                                const editorId = result['data'].id_doctor;
-                                const editorName = result['data'].fullname_doctor;
-                                con.query(
-                                    'INSERT INTO log_data (data_id, data_type, action_type, editor_id, editor_name, before_data, after_data, because) VALUES (?, ?, "edit", ?, ?, ?, ?, ?)',
-                                    [data_id, type_request, editorId, editorName, JSON.stringify(oldData), JSON.stringify(select[0]), req.body.because],
-                                    () => {
-                                        con.end()
-                                        res.send({ data: select, result: "pass" })
-                                    }
-                                )
+                                con.end()
+                                res.send({
+                                    data: select,
+                                    result: "pass"
+                                })
                             }
                             )
                         } else {
@@ -4767,15 +4669,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 true
                         )
                         if (checkDataOpenDuplicate) {
-                            const oldStatus = await new Promise((resolve) => {
-                                con.query(
-                                    `SELECT is_use FROM ${From} WHERE ${columnID} = ?`,
-                                    [req.body.id_list], (err, rows) => {
-                                        resolve(err ? null : (rows[0]?.is_use ?? null))
-                                    }
-                                )
-                            })
-
                             con.query(
                                 `
                                 UPDATE ${From} SET is_use = ? WHERE ${columnID} = ? and is_use != ?
@@ -4787,13 +4680,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         return 0
                                     }
 
-                                    const editorId = result['data'].id_doctor;
-                                    const editorName = result['data'].fullname_doctor;
-                                    con.query(
-                                        'INSERT INTO log_data (data_id, data_type, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, ?, "status", ?, ?, ?, ?)',
-                                        [req.body.id_list, type_request, editorId, editorName, JSON.stringify({ is_use: oldStatus }), JSON.stringify({ is_use: state })],
-                                        () => { con.end(); res.send('113') }
-                                    )
+                                    con.end()
+                                    res.send('113')
                                 }
                             )
                         } else {
@@ -4808,56 +4696,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.end()
                     res.send("error")
                 }
-            }
-        } catch (err) {
-            con.end()
-            if (err == "not pass") {
-                res.redirect('/api/logout')
-            }
-        }
-    })
-
-    app.post('/api/doctor/data/history', async (req, res) => {
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
-
-        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-            res.redirect('/api/logout')
-            return 0
-        }
-
-        let con = Database.createConnection(listDB)
-
-        try {
-            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
-            if (result['result'] === "pass") {
-                const { data_id, data_type } = req.body
-
-                con.query(
-                    `SELECT id, action_type, editor_name, before_data, after_data, created_at, because
-                     FROM log_data
-                     WHERE data_id = ? AND data_type = ?
-                     ORDER BY created_at DESC`,
-                    [data_id, data_type],
-                    (err, rows) => {
-                        if (err) {
-                            con.end()
-                            res.send(JSON.stringify([]))
-                            return
-                        }
-                        const parsed = rows.map(row => ({
-                            ...row,
-                            before_data: row.before_data
-                                ? (typeof row.before_data === 'string' ? JSON.parse(row.before_data) : row.before_data)
-                                : null,
-                            after_data: typeof row.after_data === 'string'
-                                ? JSON.parse(row.after_data)
-                                : row.after_data
-                        }))
-                        con.end()
-                        res.send(JSON.stringify(parsed))
-                    }
-                )
             }
         } catch (err) {
             con.end()
