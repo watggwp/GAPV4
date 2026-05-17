@@ -10,6 +10,7 @@ import { Chip, Stack, Typography } from "@mui/material";
 // ✅ import ไอคอน PDF จาก assets
 import pdfIcon from "../../../../../assets/img/iconBt/PDF.png";
 
+
 const {
   path_icon: { sensor_greenhouse_bg, pump },
 } = env;
@@ -64,6 +65,7 @@ const MenuPlant = () => {
         pump: `${basePath}/pump`,
         sensor: `${basePath}/sensor`,
         report: `${basePath}/r`,
+        schedules: `${basePath}/schedules`,
         pdf: `${basePath}/pdf`, // ✅ เส้นทาง PDF
       };
       navigator(pages[page] || basePath);
@@ -138,6 +140,15 @@ const MenuPlant = () => {
           {/* คอลัมน์ขวา */}
         </div>
         <div className="row">
+          <div>
+            <div onClick={() => selectMenu("schedules")} className="frame-menu frame-schedules">
+              <div className="img" style={{ backgroundColor: "white" }}>
+                <img src="/แผนการปลูก.png" alt="schedules" />
+              </div>
+              <span>แผนการปลูก</span>
+              {DotReport[0]?.checkEditSensor ? <div className="dot-someting"></div> : null}
+            </div>
+          </div>
           <div onClick={() => selectMenu("pdf")} className="frame-menu frame-pdf">
             <div className="img">
               <img src={pdfIcon} alt="PDF Icon" />
