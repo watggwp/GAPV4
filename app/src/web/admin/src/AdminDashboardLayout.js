@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { clientMo } from "../../../assets/js/moduleClient";
 import './assets/style/AdminDashboardLayout.scss';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -42,6 +43,16 @@ const THAI_MONTHS = [
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
+const CurrentLocationMarker = () => {
+    const map = useMap();
+    useEffect(() => {
+        map.locate().on("locationfound", function (e) {
+            map.flyTo(e.latlng, map.getZoom());
+        });
+    }, [map]);
+    return null;
+};
+
 const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     const now = new Date();
     const [selectedStation, setSelectedStation] = useState('');
@@ -75,15 +86,41 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
         { id: 5, type: 'มะเขือเทศ', amount: 3198, max: 9000, color: '#4FB8C7' },
     ];
 
-    // Map Pins
-    const mapPins = [
-        { id: 1, position: [18.810, 98.940], status: 'red', plant: 'แตงกวา', name: 'แปลง C3', disease: 'ราแป้ง', amount: 3500 },
-        { id: 2, position: [18.830, 98.960], status: 'green', plant: 'มะเขือเทศ', name: 'แปลง A2', disease: '-', amount: 2100 },
-        { id: 3, position: [18.850, 99.010], status: 'green', plant: 'กะหล่ำปลี', name: 'แปลง B1', disease: '-', amount: 4200 },
-        { id: 4, position: [18.795, 99.050], status: 'green', plant: 'ผักกาดขาว', name: 'แปลง D4', disease: '-', amount: 1800 },
-        { id: 5, position: [18.760, 98.920], status: 'red', plant: 'บล็อกโคลี', name: 'แปลง E1', disease: 'เพลี้ย', amount: 950 },
-        { id: 6, position: [18.870, 98.990], status: 'green', plant: 'หัวหอม', name: 'แปลง F2', disease: '-', amount: 3300 },
-    ];
+    const [mapPins, setMapPins] = useState([]);
+    const [stations, setStations] = useState([]);
+
+    useEffect(() => {
+        const fetchStations = async () => {
+            try {
+                const resText = await clientMo.post('/api/admin/station/list');
+                if (resText) {
+                    setStations(JSON.parse(resText));
+                }
+            } catch (error) {
+                console.error("Error fetching stations:", error);
+            }
+        };
+        fetchStations();
+    }, []);
+
+    useEffect(() => {
+        const fetchLocations = async () => {
+            try {
+                const response = await clientMo.post('/api/admin/farmhouse/locations', {
+                    station: selectedStation,
+                    plant_type: selectedPlantType,
+                    yield_range: selectedYield,
+                    disease_status: selectedDisease
+                });
+                if (response) {
+                    setMapPins(JSON.parse(response));
+                }
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            }
+        };
+        fetchLocations();
+    }, [selectedStation, selectedPlantType, selectedYield, selectedDisease]);
 
     const center = [18.810, 98.980];
 
@@ -104,9 +141,9 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
             <div className="dashboard-filters">
                 <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)}>
                     <option value="">ทุกศูนย์</option>
-                    <option value="ศูนย์ 1">ศูนย์ 1</option>
-                    <option value="ศูนย์ 2">ศูนย์ 2</option>
-                    <option value="ศูนย์ 3">ศูนย์ 3</option>
+                    {stations.map(st => (
+                        <option key={st.id} value={st.name}>{st.name}</option>
+                    ))}
                 </select>
                 <select value={selectedPlantType} onChange={e => setSelectedPlantType(e.target.value)}>
                     <option value="">ชนิดพืช</option>
@@ -150,6 +187,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
                     >
+                        <CurrentLocationMarker />
                         <LayersControl position="topright">
                             <LayersControl.BaseLayer checked name="แผนที่ทั่วไป (Street)">
                                 <TileLayer
