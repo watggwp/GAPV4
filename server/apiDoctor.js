@@ -5387,4 +5387,78 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     //         )
     //     })
     // }
+
+    app.post('/api/doctor/farmhouse/locations', async (req, res) => {
+        let username = req.session.user_username;
+        let password = req.session.user_password;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+        
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const { plant_type, yield_range, disease_status } = req.body;
+                let query = `
+                    SELECT 
+                      h.id_farm_house, h.name_house, 
+                      ST_X(h.location) as lat, ST_Y(h.location) as lng, 
+                      p.name_plant, p.state_status, p.estimated_yield,
+                      (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                    FROM housefarm h
+                    JOIN acc_farmer f ON h.link_user = f.link_user
+                    LEFT JOIN (
+                      SELECT id_farm_house, id, name_plant, state_status, estimated_yield
+                      FROM formplant 
+                      WHERE (id_farm_house, id) IN (
+                        SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
+                      )
+                    ) p ON h.id_farm_house = p.id_farm_house
+                    WHERE h.location IS NOT NULL AND f.station = ?
+                `;
+                let params = [auth['data'].station_doctor];
+                if (plant_type) {
+                    query += " AND p.name_plant = ?";
+                    params.push(plant_type);
+                }
+                
+                con.query(query, params, (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send("Database error");
+                    }
+                    
+                    let filtered = result.filter(row => {
+                        let pass = true;
+                        if (yield_range) {
+                            let y = row.estimated_yield || 0;
+                            if (yield_range === 'low' && y >= 1000) pass = false;
+                            if (yield_range === 'mid' && (y < 1000 || y > 5000)) pass = false;
+                            if (yield_range === 'high' && y <= 5000) pass = false;
+                        }
+                        if (disease_status) {
+                            let hasDisease = row.disease != null;
+                            if (disease_status === 'none' && hasDisease) pass = false;
+                            if (disease_status === 'found' && !hasDisease) pass = false;
+                        }
+                        return pass;
+                    }).map(row => ({
+                        id: row.id_farm_house,
+                        position: [row.lat, row.lng],
+                        status: row.disease ? 'red' : 'green',
+                        plant: row.name_plant || '-',
+                        name: row.name_house,
+                        disease: row.disease || '-',
+                        amount: row.estimated_yield || 0
+                    }));
+                    
+                    res.json(filtered);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
 }

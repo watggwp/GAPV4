@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { clientMo } from "../../../assets/js/moduleClient";
 import './assets/style/DashboardLayout.scss';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -42,6 +43,16 @@ const THAI_MONTHS = [
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
+const CurrentLocationMarker = () => {
+    const map = useMap();
+    useEffect(() => {
+        map.locate().on("locationfound", function (e) {
+            map.flyTo(e.latlng, map.getZoom());
+        });
+    }, [map]);
+    return null;
+};
+
 const DashboardLayout = ({ setMain, socket, setSession }) => {
     const now = new Date();
     const [selectedPlantType, setSelectedPlantType] = useState('');
@@ -75,15 +86,25 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
         { id: 5, type: 'มะเขือเทศ', amount: 3198, max: 9000, color: '#4FB8C7' },
     ];
 
-    // Map Pins
-    const mapPins = [
-        { id: 1, position: [18.810, 98.940], status: 'red', plant: 'แตงกวา', name: 'แปลง C3', disease: 'ราแป้ง', amount: 3500 },
-        { id: 2, position: [18.830, 98.960], status: 'green', plant: 'มะเขือเทศ', name: 'แปลง A2', disease: '-', amount: 2100 },
-        { id: 3, position: [18.850, 99.010], status: 'green', plant: 'กะหล่ำปลี', name: 'แปลง B1', disease: '-', amount: 4200 },
-        { id: 4, position: [18.795, 99.050], status: 'green', plant: 'ผักกาดขาว', name: 'แปลง D4', disease: '-', amount: 1800 },
-        { id: 5, position: [18.760, 98.920], status: 'red', plant: 'บล็อกโคลี', name: 'แปลง E1', disease: 'เพลี้ย', amount: 950 },
-        { id: 6, position: [18.870, 98.990], status: 'green', plant: 'หัวหอม', name: 'แปลง F2', disease: '-', amount: 3300 },
-    ];
+    const [mapPins, setMapPins] = useState([]);
+
+    useEffect(() => {
+        const fetchLocations = async () => {
+            try {
+                const response = await clientMo.post('/api/doctor/farmhouse/locations', {
+                    plant_type: selectedPlantType,
+                    yield_range: selectedYield,
+                    disease_status: selectedDisease
+                });
+                if (response) {
+                    setMapPins(JSON.parse(response));
+                }
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            }
+        };
+        fetchLocations();
+    }, [selectedPlantType, selectedYield, selectedDisease]);
 
     const center = [18.810, 98.980];
 
@@ -144,14 +165,15 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
                     >
+                        <CurrentLocationMarker />
                         <LayersControl position="topright">
-                            <LayersControl.BaseLayer checked name="แผนที่ทั่วไป (Street)">
+                            <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
                             </LayersControl.BaseLayer>
-                            <LayersControl.BaseLayer name="ดาวเทียม (Satellite)">
+                            <LayersControl.BaseLayer checked name="ดาวเทียม (Satellite)">
                                 <TileLayer
                                     attribution='Tiles &copy; Esri'
                                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -161,6 +183,30 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 <TileLayer
                                     attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="โหมดมืด (Dark Matter)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="ภูมิประเทศ (OpenTopoMap)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+                                    url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="ถนนและอาคารชัดเจน (OSM HOT)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                    url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="เส้นทางรอง/สีเขียว (CyclOSM)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.cyclosm.org">CyclOSM</a>'
+                                    url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
                                 />
                             </LayersControl.BaseLayer>
                         </LayersControl>
