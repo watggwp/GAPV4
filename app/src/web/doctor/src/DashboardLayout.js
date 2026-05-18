@@ -167,13 +167,13 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                     >
                         <CurrentLocationMarker />
                         <LayersControl position="topright">
-                            <LayersControl.BaseLayer checked name="แผนที่ทั่วไป (Street)">
+                            <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
                             </LayersControl.BaseLayer>
-                            <LayersControl.BaseLayer name="ดาวเทียม (Satellite)">
+                            <LayersControl.BaseLayer checked name="ดาวเทียม (Satellite)">
                                 <TileLayer
                                     attribution='Tiles &copy; Esri'
                                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -183,6 +183,30 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 <TileLayer
                                     attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="โหมดมืด (Dark Matter)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="ภูมิประเทศ (OpenTopoMap)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+                                    url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="ถนนและอาคารชัดเจน (OSM HOT)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                    url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                                />
+                            </LayersControl.BaseLayer>
+                            <LayersControl.BaseLayer name="เส้นทางรอง/สีเขียว (CyclOSM)">
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.cyclosm.org">CyclOSM</a>'
+                                    url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
                                 />
                             </LayersControl.BaseLayer>
                         </LayersControl>
