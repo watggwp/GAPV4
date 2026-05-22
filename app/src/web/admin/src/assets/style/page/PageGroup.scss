@@ -16,7 +16,7 @@
         border-collapse: collapse;
 
         thead tr {
-            background-color: #60d6cf;
+            background-color: #22C7A9;
             color: #fff;
         }
 
@@ -33,13 +33,17 @@
             font-weight: 900;
         }
 
-        .td-center { text-align: center; }
+        .td-center {
+            text-align: center;
+        }
 
         .td-actions {
             text-align: center;
             white-space: nowrap;
-
-            .btn-edit { margin-right: 6px; }
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .td-no-data {
@@ -64,7 +68,8 @@
     }
 
     .btn-edit,
-    .btn-toggle {
+    .btn-toggle,
+    .btn-history {
         flex-direction: column;
         gap: 4px;
         padding: 9px 16px;
@@ -79,18 +84,18 @@
         }
 
         span {
-            font-size: 11px;
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: 0.3px;
         }
     }
 
     .btn-edit {
-        background: #22C7A9;
+        background: #FF9800;
 
         &:hover {
-            background: #1aab90;
-            box-shadow: 0 4px 12px rgba(34, 199, 169, .4);
+            background: #ce7b00;
+            box-shadow: 0 4px 12px rgba(199, 141, 34, 0.4);
             transform: translateY(-1px);
         }
     }
@@ -98,6 +103,7 @@
     .btn-toggle {
         &.enable {
             background: #2e7d32;
+
             &:hover {
                 background: #1b5e20;
                 box-shadow: 0 4px 12px rgba(46, 125, 50, .4);
@@ -107,6 +113,7 @@
 
         &.disable {
             background: #c62828;
+
             &:hover {
                 background: #b71c1c;
                 box-shadow: 0 4px 12px rgba(198, 40, 40, .4);
@@ -116,33 +123,21 @@
     }
 
     .btn-divider {
-        display: inline-block;
-        width: 1px;
-        height: 48px;
-        background: #e0e0e0;
-        vertical-align: middle;
-        margin: 0 8px;
+        display: none;
     }
 
     .btn-history {
-        flex-direction: column;
-        gap: 3px;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: white;
-        border: 1.5px solid #bdbdbd;
-        color: #757575;
+        background: #5c6bc0;
+        border: none;
 
-        svg { width: 20px; height: 20px; }
-
-        .btn-history-label { display: none; }
+        .btn-history-label {
+            display: inline;
+        }
 
         &:hover {
-            border-color: #22C7A9;
-            color: #1aab90;
-            background: #f0fdf9;
-            box-shadow: 0 3px 10px rgba(34, 199, 169, .25);
+            background: #3949ab;
+            box-shadow: 0 4px 12px rgba(92, 107, 192, .4);
+            transform: translateY(-1px);
         }
     }
 
@@ -156,7 +151,9 @@
             min-width: unset;
             border: none;
 
-            thead { display: none; }
+            thead {
+                display: none;
+            }
 
             tbody tr {
                 display: flex;
@@ -193,12 +190,17 @@
                     border-top: 1px dashed #c8f0ed;
                     justify-content: flex-start;
 
-                    &::before { display: none; }
+                    &::before {
+                        display: none;
+                    }
                 }
 
                 &.td-no-data {
                     justify-content: center;
-                    &::before { display: none; }
+
+                    &::before {
+                        display: none;
+                    }
                 }
             }
 
@@ -208,24 +210,34 @@
                 min-width: unset;
                 padding: 10px 6px;
 
-                svg { width: 20px; height: 20px; }
+                svg {
+                    width: 20px;
+                    height: 20px;
+                }
 
-                span { font-size: 12px; }
+                span {
+                    font-size: 12px;
+                }
             }
 
             .btn-history {
-                flex: 0 0 auto;
-                width: auto;
-                height: auto;
-                border-radius: 10px;
-                padding: 10px 16px;
+                flex: 1;
+                min-width: unset;
+                padding: 15px 10px;
 
-                svg { width: 20px; height: 20px; }
+                svg {
+                    width: 20px;
+                    height: 20px;
+                }
 
-                .btn-history-label { display: inline; font-size: 12px; font-weight: 700; }
+                .btn-history-label {
+                    font-size: 12px;
+                }
             }
 
-            .btn-divider { display: none; }
+            .btn-divider {
+                display: none;
+            }
         }
     }
 }

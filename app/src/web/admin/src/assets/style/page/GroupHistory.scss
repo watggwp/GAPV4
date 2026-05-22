@@ -60,7 +60,7 @@
     width: 100%;
     border-collapse: collapse;
     font-family: Sans-font;
-    font-size: 14px;
+    font-size: 18px;
 
     thead tr {
         background-color: #60d6cf;
@@ -82,14 +82,21 @@
         font-weight: 700;
     }
 
-    tbody tr:nth-child(even) { background-color: #f7fffe; }
-    tbody tr:hover           { background-color: #e8fffe; }
+    tbody tr:nth-child(even) {
+        background-color: #f7fffe;
+    }
 
-    .gh-td-center { text-align: center; }
+    tbody tr:hover {
+        background-color: #e8fffe;
+    }
+
+    .gh-td-center {
+        text-align: center;
+    }
 
     .gh-td-date {
         white-space: nowrap;
-        font-size: 13px;
+        font-size: 16px;
         color: #555;
     }
 }
@@ -100,7 +107,9 @@
         .gh-modal-header {
             padding: 12px 14px 10px;
 
-            .gh-header-title h2 { font-size: 17px; }
+            .gh-header-title h2 {
+                font-size: 17px;
+            }
         }
 
         .gh-modal-body {
@@ -111,7 +120,9 @@
     }
 
     .gh-table {
-        thead { display: none; }
+        thead {
+            display: none;
+        }
 
         tbody tr {
             display: flex;
@@ -142,14 +153,18 @@
                 padding-top: 1px;
             }
 
-            &.gh-td-center { justify-content: flex-start; }
+            &.gh-td-center {
+                justify-content: flex-start;
+            }
 
             &.gh-td-action {
                 margin-top: 8px;
                 padding-top: 8px;
                 border-top: 1px dashed #c8f0ed;
 
-                &::before { display: none; }
+                &::before {
+                    display: none;
+                }
             }
         }
     }
@@ -164,9 +179,17 @@
     font-weight: 900;
     color: #fff;
 
-    &.action-insert { background: linear-gradient(120deg, #28a745, #5dd97a); }
-    &.action-edit   { background: linear-gradient(120deg, #f5921e, #ffaa2a); }
-    &.action-status { background: linear-gradient(120deg, #6f42c1, #a77ee0); }
+    &.action-insert {
+        background: linear-gradient(120deg, #28a745, #5dd97a);
+    }
+
+    &.action-edit {
+        background: linear-gradient(120deg, #f5921e, #ffaa2a);
+    }
+
+    &.action-status {
+        background: linear-gradient(120deg, #6f42c1, #a77ee0);
+    }
 }
 
 // ── Status badge ──
@@ -178,8 +201,13 @@
     font-weight: 900;
     color: #fff;
 
-    &.enable  { background-color: #28a745; }
-    &.disable { background-color: #dc3545; }
+    &.enable {
+        background-color: #28a745;
+    }
+
+    &.disable {
+        background-color: #dc3545;
+    }
 }
 
 // ── Change detail ──
@@ -211,11 +239,39 @@
     font-size: 13px;
 }
 
-.gh-field-label  { font-weight: 900; color: #333; white-space: nowrap; }
-.gh-before       { color: #dc3545; text-decoration: line-through; }
-.gh-after        { color: #28a745; font-weight: 900; }
-.gh-arrow        { color: #666; font-weight: 900; }
-.gh-no-change    { color: #aaa; font-style: italic; font-size: 13px; }
+.gh-field-label {
+    font-weight: 900;
+    color: #333;
+    white-space: nowrap;
+}
 
-.gh-td-because   { max-width: 200px; }
-.gh-because-text { font-size: 13px; color: #555; word-break: break-word; }
+.gh-before {
+    color: #dc3545;
+    text-decoration: line-through;
+}
+
+.gh-after {
+    color: #28a745;
+    font-weight: 900;
+}
+
+.gh-arrow {
+    color: #666;
+    font-weight: 900;
+}
+
+.gh-no-change {
+    color: #aaa;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.gh-td-because {
+    max-width: 200px;
+}
+
+.gh-because-text {
+    font-size: 13px;
+    color: #555;
+    word-break: break-word;
+}

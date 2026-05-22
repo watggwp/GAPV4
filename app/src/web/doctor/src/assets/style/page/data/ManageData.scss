@@ -2,32 +2,45 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    max-width: 250px;
+    max-width: 320px;
     width: 100%;
 
     @media (min-width: 600px) {
-        max-width: 420px;
+        max-width: 500px;
     }
 
     background-color: white;
-    padding: 4px 0px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 4px #126c5ccb;
+    padding: 8px 0px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px #126c5ccb;
     z-index: 2;
 
     .close {
         position: absolute;
-        bottom: 98%;
+        bottom: 100%;
         z-index: 0;
-        right: 0.5em;
-        font-size: 18px;
-        font-family: Sans-font;
-        font-weight: 900;
-        color: white;
+        right: 0.8em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
         background-color: rgb(211, 98, 98);
-        padding: 1.8px 15px;
-        height: 28px;
-        border-radius: 10px 10px 4px 4px;
+        border: none;
+        border-radius: 50% 50% 0 0;
+        cursor: pointer;
+        padding: 7px;
+        transition: background-color 0.18s;
+
+        svg {
+            width: 100%;
+            height: 100%;
+            fill: white;
+        }
+
+        &:hover {
+            background-color: rgb(237, 80, 80);
+        }
     }
 
     .head-form {
@@ -37,70 +50,87 @@
 
         .head-text {
             font-weight: 900;
-            font-size: 18px;
+            font-size: 22px;
             color: #176f3f;
             width: 100%;
             text-align: center;
-            margin: 4px 0px;
+            margin: 6px 0px;
         }
 
         .head-title-row {
             display: flex;
             align-items: center;
             position: relative;
+            min-height: 46px;
 
             .head-text {
                 flex: 1;
             }
 
-            .btn-history-icon {
-                position: absolute;
-                left: 5px;
+            .icon-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 40px;
-                height: 40px;
-                border-radius: 50px;
-                background-color: #ffffff;
+                width: 38px;
+                height: 38px;
                 border: none;
                 border-radius: 50%;
                 cursor: pointer;
-                padding: 4px;
+                padding: 8px;
                 flex-shrink: 0;
+                transition: background-color 0.18s, transform 0.18s;
 
                 svg {
                     width: 100%;
                     height: 100%;
-                    fill: rgb(112, 110, 110);
                 }
 
                 &:hover {
-                    background-color: #c5c5c5;
+                    transform: scale(1.1);
+                }
+
+                &.edit {
+                    position: absolute;
+                    left: 8px;
+                    background-color: #22C7A9;
+
+                    svg { fill: white; }
+
+                    &:hover { background-color: #1aab91; }
+                }
+            }
+
+            .head-right-actions {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                position: absolute;
+                right: 8px;
+
+                .icon-btn.history {
+                    background-color: rgba(255, 255, 255, 0.9);
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+
+                    svg { fill: rgb(90, 90, 90); }
+
+                    &:hover { background-color: #e0e0e0; }
+                }
+
+                .icon-btn.delete {
+                    background-color: rgb(211, 98, 98);
+
+                    svg { fill: white; }
+
+                    &:hover { background-color: rgb(190, 60, 60); }
                 }
             }
         }
 
         .manage-menu {
             display: flex;
-            justify-content: space-evenly;
+            justify-content: center;
             align-items: center;
-
-            .edit {
-                font-size: 17px;
-                margin-right: 8px;
-                background-color: #22C7A9;
-                width: 60px;
-                height: 25px;
-                text-align: center;
-                border-radius: 20px;
-                font-weight: 900;
-                color: white;
-            }
-
-            .edit:hover {
-                background-color: #22c7a99f;
-            }
+            padding: 4px 0px;
 
             .status-frame {
                 display: flex;
@@ -159,7 +189,7 @@
     }
 
     .detail {
-        padding: 0px 4px;
+        padding: 4px 10px;
 
         .body {
             display: flex;
@@ -170,17 +200,15 @@
                 display: flex;
                 justify-content: space-between;
                 width: 100%;
-                margin-top: 5px;
+                margin-top: 10px;
 
                 input {
                     width: 100%;
                     border-radius: 8px;
-                    padding: 2px 6px;
+                    padding: 4px 8px;
                     padding-right: 0px;
-                    // padding-bottom: 0;
                     font-family: Sans-font;
-                    font-size: 15px;
-                    // background-color: rgb(215, 140, 140);
+                    font-size: 17px;
                     background-color: #22c7a9c4;
                     color: black;
                     font-weight: 900;
@@ -188,7 +216,7 @@
                     outline: 0;
                     margin-top: 0px;
                     box-shadow: 0px 0px 5px inset #416963;
-                    height: 26px;
+                    height: 36px;
                 }
 
                 input::placeholder {
@@ -208,7 +236,7 @@
                     justify-content: center;
                     align-items: start;
                     font-family: Sans-font;
-                    font-size: 16px; //media query
+                    font-size: 17px;
                     width: 100%;
 
                     span {
@@ -216,7 +244,7 @@
                         justify-content: space-between;
                         font-family: Sans-font;
                         font-weight: 900;
-                        font-size: 15px; //media query
+                        font-size: 17px;
                         width: 100%;
 
                         span {
@@ -243,14 +271,14 @@
 
                     select {
                         font-family: Sans-font;
-                        font-size: 15px; //media query
+                        font-size: 17px;
                         border-radius: 8px;
-                        padding: 0px 2px;
+                        padding: 0px 4px;
                         margin: 0px 2px;
                         border: 2px solid #22C7A9;
                         width: 100%;
                         text-align: center;
-                        height: 26px;
+                        height: 36px;
 
                         option.on {
                             background-color: #22C7A9;
@@ -291,7 +319,7 @@
 
                         input {
                             width: 22%;
-                            height: 30px;
+                            height: 36px;
                             padding: 0px 0px;
                             padding-top: 2px;
                             text-align: center;
@@ -327,13 +355,9 @@
 
                 select {
                     appearance: none;
-                    /* สำหรับ WebKit บน iOS */
                     -webkit-appearance: none;
-                    /* สำหรับ WebKit บน iOS */
                     -moz-appearance: none;
-                    /* สำหรับ Firefox */
                     cursor: default;
-                    // padding: 0;
                 }
 
                 .field-select.not1 {
@@ -348,13 +372,13 @@
     .bt-manage {
         display: flex;
         flex-direction: column;
-        margin-top: 10px;
+        margin-top: 12px;
         border-top: 3px solid #2d965c;
-        padding: 0px 4px;
+        padding: 0px 8px;
         border-radius: 8px;
 
         .password {
-            margin-top: 10px;
+            margin-top: 12px;
 
             input {
                 background-color: #22C7A9;
@@ -363,10 +387,10 @@
                 outline: 0;
                 border-radius: 8px;
                 font-family: main-font;
-                font-size: 18px;
+                font-size: 20px;
                 width: 100%;
                 text-align: center;
-                height: 30px;
+                height: 42px;
             }
 
             input::placeholder {
@@ -380,8 +404,8 @@
             display: flex;
             justify-content: space-evenly;
             align-items: center;
-            margin-top: 10px;
-            margin-bottom: 5px;
+            margin-top: 12px;
+            margin-bottom: 8px;
 
             button {
                 color: white;
@@ -389,14 +413,13 @@
                 outline: 0;
                 border-radius: 15px;
                 font-family: Sans-font;
-                font-size: 16px;
+                font-size: 19px;
                 font-weight: 900;
-                width: 30%;
-                height: 26px;
+                width: 35%;
+                height: 40px;
                 cursor: pointer;
             }
 
-            //action button
             .submit {
                 background-color: #17a188;
                 box-shadow: 0px 2px 2px #176f3f;
@@ -430,6 +453,49 @@
             .cancel:active {
                 box-shadow: 0px 2px 2px inset rgb(139, 0, 0);
                 padding-top: 2px;
+            }
+        }
+    }
+
+    .bt-delete-confirm {
+        border-top-color: rgb(180, 30, 30);
+
+        .delete-warning {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            font-family: Sans-font;
+            font-weight: 900;
+            font-size: 17px;
+            color: #333;
+            gap: 4px;
+            text-align: center;
+
+            .delete-name {
+                color: rgb(180, 30, 30);
+                font-size: 18px;
+            }
+        }
+
+        .submit.delete-btn {
+            background-color: rgb(180, 30, 30);
+            box-shadow: 0px 2px 2px rgb(100, 0, 0);
+
+            &:hover {
+                background-color: rgb(211, 98, 98);
+            }
+
+            &:active {
+                box-shadow: 0px 2px 2px inset rgb(100, 0, 0);
+                padding-top: 2px;
+            }
+
+            &[on=""] {
+                background-color: rgba(180, 30, 30, 0.45);
+                box-shadow: none;
+                padding: 0;
+                cursor: not-allowed;
             }
         }
     }
