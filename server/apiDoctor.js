@@ -5402,12 +5402,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      p.name_plant, p.state_status, p.estimated_yield,
+                      p.name_plant, p.state_status, p.expected_yield,
                       (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
                     LEFT JOIN (
-                      SELECT id_farm_house, id, name_plant, state_status, estimated_yield
+                      SELECT id_farm_house, id, name_plant, state_status, expected_yield
                       FROM formplant 
                       WHERE (id_farm_house, id) IN (
                         SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
@@ -5431,7 +5431,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     let filtered = result.filter(row => {
                         let pass = true;
                         if (yield_range) {
-                            let y = row.estimated_yield || 0;
+                            let y = row.expected_yield || 0;
                             if (yield_range === 'low' && y >= 1000) pass = false;
                             if (yield_range === 'mid' && (y < 1000 || y > 5000)) pass = false;
                             if (yield_range === 'high' && y <= 5000) pass = false;
@@ -5449,7 +5449,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         plant: row.name_plant || '-',
                         name: row.name_house,
                         disease: row.disease || '-',
-                        amount: row.estimated_yield || 0
+                        amount: row.expected_yield || 0
                     }));
                     
                     res.json(filtered);
