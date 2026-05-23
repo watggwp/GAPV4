@@ -2,6 +2,10 @@ ALTER TABLE `line_chat_gap`.`acc_doctor`
 MODIFY password_doctor varchar(256);
 
 ALTER TABLE formplant
+ADD expected_yield decimal(10,2) NULL,
+ADD default_yield decimal(10,2) NULL;
+
+ALTER TABLE formplant
 MODIFY generation int(11) NULL,
 MODIFY date_glow varchar(50) NULL,
 MODIFY date_plant varchar(50) NOT NULL,
