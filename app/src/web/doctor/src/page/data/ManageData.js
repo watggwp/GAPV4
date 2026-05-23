@@ -314,7 +314,7 @@ const DetailPlant = ({ Data }) => {
                 </label>
             </div>
             <div className="row">
-                <label>
+                <label className="field-select">
                     <span className="important">จำนวนวันที่คาดว่าจะเก็บเกี่ยว</span>
                     <input readOnly defaultValue={Data.qty_harvest}></input>
                 </label>
