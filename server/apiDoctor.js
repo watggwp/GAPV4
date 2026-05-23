@@ -5559,8 +5559,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     // }
 
     app.post('/api/doctor/farmhouse/locations', async (req, res) => {
-        let username = req.session.user_username;
-        let password = req.session.user_password;
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
         if (!username || !password) { return res.status(401).send("Unauthorized"); }
 
         let con = Database.createConnection(listDB);
