@@ -265,6 +265,7 @@
     @media (max-width: 900px) {
         padding: 12px;
         gap: 12px;
+        overflow-y: auto;
 
         .dashboard-filters {
             flex-direction: column;
@@ -285,6 +286,7 @@
         .dashboard-main {
             flex-direction: column;
             height: auto;
+            flex: none;
 
             .map-section {
                 flex: none;

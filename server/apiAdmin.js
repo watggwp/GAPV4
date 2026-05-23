@@ -2207,6 +2207,86 @@ app.post('/api/admin/data/change', async (req, res) => {
 });
 
   
+  app.post('/api/admin/farmhouse/locations', async (req, res) => {
+    let username = req.session.user_username;
+    let password = req.session.user_password;
+    if (!username || !password) { return res.status(401).send("Unauthorized"); }
+    
+    let con = Database.createConnection(listDB);
+    try {
+        const auth = await apifunc.auth(con, username, password, res, "admin");
+        if (auth['result'] === "pass") {
+            const { station, plant_type, yield_range, disease_status } = req.body;
+            let query = `
+                SELECT 
+                  h.id_farm_house, h.name_house, 
+                  ST_X(h.location) as lat, ST_Y(h.location) as lng, 
+                  f.station as station_id,
+                  (SELECT name FROM station_list WHERE id = f.station) as station_name,
+                  p.name_plant, p.state_status, p.expected_yield,
+                  (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                FROM housefarm h
+                LEFT JOIN acc_farmer f ON h.link_user = f.link_user
+                LEFT JOIN (
+                  SELECT id_farm_house, id, name_plant, state_status, expected_yield
+                  FROM formplant 
+                  WHERE (id_farm_house, id) IN (
+                    SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
+                  )
+                ) p ON h.id_farm_house = p.id_farm_house
+                WHERE h.location IS NOT NULL
+            `;
+            let params = [];
+            if (station) {
+                query += " AND (SELECT name FROM station_list WHERE id = f.station) = ?";
+                params.push(station);
+            }
+            if (plant_type) {
+                query += " AND p.name_plant = ?";
+                params.push(plant_type);
+            }
+            
+            con.query(query, params, (err, result) => {
+                con.end();
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send("Database error");
+                }
+                
+                let filtered = result.filter(row => {
+                    let pass = true;
+                    if (yield_range) {
+                        let y = row.expected_yield || 0;
+                        if (yield_range === 'low' && y >= 1000) pass = false;
+                        if (yield_range === 'mid' && (y < 1000 || y > 5000)) pass = false;
+                        if (yield_range === 'high' && y <= 5000) pass = false;
+                    }
+                    if (disease_status) {
+                        let hasDisease = row.disease != null;
+                        if (disease_status === 'none' && hasDisease) pass = false;
+                        if (disease_status === 'found' && !hasDisease) pass = false;
+                    }
+                    return pass;
+                }).map(row => ({
+                    id: row.id_farm_house,
+                    position: [row.lat, row.lng],
+                    status: row.disease ? 'red' : 'green',
+                    plant: row.name_plant || '-',
+                    name: row.name_house,
+                    disease: row.disease || '-',
+                    amount: row.expected_yield || 0,
+                    station: row.station_name || 'ไม่ทราบศูนย์'
+                }));
+                
+                res.json(filtered);
+            });
+        }
+    } catch (err) {
+        con.end();
+        res.status(401).send("Unauthorized");
+    }
+  });
+
   app.get('/api/logout' , (req , res) => {
     req.session.destroy()
     res.send('')
