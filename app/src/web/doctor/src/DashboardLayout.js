@@ -58,7 +58,6 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
     const [selectedPlantType, setSelectedPlantType] = useState('');
     const [selectedYield, setSelectedYield] = useState('');
     const [selectedDisease, setSelectedDisease] = useState('');
-    const [popupInfo, setPopupInfo] = useState(null);
 
     // default = วันนี้ (พ.ศ.)
     const currentBE = now.getFullYear() + 543;
@@ -68,14 +67,8 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
     // แสดงปีปัจจุบันถึง +1 ปี (auto, พ.ศ.)
     const yearOptions = Array.from({ length: 2 }, (_, i) => currentBE + i);
 
-    // Mock Data — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมี
-    const unfilledPlots = [
-        { id: 1, name: 'แปลง A1', type: 'มะเขือเทศ', overdue: 10, statusColor: 'red' },
-        { id: 2, name: 'แปลง C2', type: 'กะหล่ำปลี', overdue: 8, statusColor: 'orange' },
-        { id: 3, name: 'แปลง D3', type: 'แตงกวา', overdue: 6, statusColor: 'yellow' },
-        { id: 4, name: 'แปลง E4', type: 'ผักกาดขาว', overdue: 5, statusColor: 'lightyellow' },
-        { id: 5, name: 'แปลง F5', type: 'หัวหอม', overdue: 3, statusColor: 'lightyellow2' },
-    ];
+    // ข้อมูลจริง — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก
+    const [unfilledPlots, setUnfilledPlots] = useState([]);
 
     // Mock Data — ปริมาณการผลผลิต
     const productionData = [
@@ -87,6 +80,24 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
     ];
 
     const [mapPins, setMapPins] = useState([]);
+
+    // ดึงข้อมูลแปลงที่เกินกำหนดการใส่ปุ๋ย/สารเคมี
+    useEffect(() => {
+        const fetchOverduePlots = async () => {
+            try {
+                const response = await clientMo.post('/api/doctor/dashboard/overdue-plots', {});
+                if (response) {
+                    const data = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (Array.isArray(data)) {
+                        setUnfilledPlots(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching overdue plots:", error);
+            }
+        };
+        fetchOverduePlots();
+    }, []);
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -108,15 +119,12 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
 
     const center = [18.810, 98.980];
 
-    const getBadgeStyle = (color) => {
-        const styles = {
-            red: { backgroundColor: '#e53935', color: '#fff' },
-            orange: { backgroundColor: '#F57C3A', color: '#fff' },
-            yellow: { backgroundColor: '#F5C842', color: '#7a5a00' },
-            lightyellow: { backgroundColor: '#FDE98E', color: '#7a5a00' },
-            lightyellow2: { backgroundColor: '#FFF3C4', color: '#7a5a00' },
-        };
-        return styles[color] || { backgroundColor: '#eee', color: '#333' };
+    const getBadgeStyle = (overdueDays) => {
+        if (overdueDays >= 10) return { backgroundColor: '#e53935', color: '#fff' };
+        if (overdueDays >= 7) return { backgroundColor: '#F57C3A', color: '#fff' };
+        if (overdueDays >= 5) return { backgroundColor: '#F5C842', color: '#7a5a00' };
+        if (overdueDays >= 3) return { backgroundColor: '#FDE98E', color: '#7a5a00' };
+        return { backgroundColor: '#FFF3C4', color: '#7a5a00' };
     };
 
     return (
@@ -243,25 +251,43 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                     <th>ลำดับ</th>
                                     <th>ชื่อแปลง</th>
                                     <th>ชนิดพืช</th>
+                                    <th>กิจกรรม</th>
                                     <th>วันที่เกินกำหนด</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {unfilledPlots.map((item, idx) => (
-                                    <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
-                                        <td>{idx + 1}</td>
-                                        <td>{item.name}</td>
-                                        <td>{item.type}</td>
-                                        <td>
-                                            <span
-                                                className="day-badge"
-                                                style={getBadgeStyle(item.statusColor)}
-                                            >
-                                                {item.overdue} วัน
-                                            </span>
+                                {unfilledPlots.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                            ไม่มีแปลงที่เกินกำหนด
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    unfilledPlots.map((item, idx) => (
+                                        <tr key={`${item.id}-${idx}`} className={idx % 2 === 1 ? 'row-highlight' : ''}>
+                                            <td>{idx + 1}</td>
+                                            <td>{item.name}</td>
+                                            <td>{item.type}</td>
+                                            <td>
+                                                <span style={{
+                                                    fontSize: '0.85em',
+                                                    color: item.category === 1 ? '#2e7d32' : '#c62828'
+                                                }}>
+                                                    {item.category === 1 ? '🌿 ' : '🧪 '}
+                                                    {item.schedule_title}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className="day-badge"
+                                                    style={getBadgeStyle(item.overdue)}
+                                                >
+                                                    {item.overdue} วัน
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

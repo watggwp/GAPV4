@@ -5631,4 +5631,79 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     });
 
+    // === Dashboard: แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก ===
+    app.post('/api/doctor/dashboard/overdue-plots', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+
+                const query = `
+                    SELECT 
+                        fp.id AS formplant_id,
+                        hf.name_house,
+                        fp.name_plant,
+                        s.title AS schedule_title,
+                        s.category,
+                        s.age_plant,
+                        fp.date_plant,
+                        DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) AS due_date,
+                        DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    INNER JOIN plant_list pl ON fp.name_plant = pl.name AND pl.is_use = 1
+                    INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) < CURDATE()
+                        AND (
+                            (s.category = 1 AND NOT EXISTS (
+                                SELECT 1 FROM formfertilizer ff 
+                                WHERE ff.id_plant = fp.id 
+                                AND ABS(DATEDIFF(ff.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                            OR
+                            (s.category = 2 AND NOT EXISTS (
+                                SELECT 1 FROM formchemical fc 
+                                WHERE fc.id_plant = fp.id 
+                                AND ABS(DATEDIFF(fc.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                        )
+                    GROUP BY fp.id, s.id
+                    ORDER BY overdue_days DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard overdue-plots error:', err);
+                        return res.json([]);
+                    }
+
+                    const plots = result.map(row => ({
+                        id: row.formplant_id,
+                        name: row.name_house || '-',
+                        type: row.name_plant || '-',
+                        schedule_title: row.schedule_title || '-',
+                        category: row.category, // 1=ปุ๋ย, 2=สารเคมี
+                        overdue: row.overdue_days || 0,
+                    }));
+
+                    res.json(plots);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
 }
