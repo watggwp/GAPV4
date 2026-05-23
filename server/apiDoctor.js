@@ -5706,4 +5706,78 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     });
 
+    // === Dashboard: ประมาณการผลผลิต (รวมจากแต่ละใบ GAP ตามชนิดพืช + เดือน/ปีเก็บเกี่ยว) ===
+    app.post('/api/doctor/dashboard/production', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+                const { month, year } = req.body; // month: 0-indexed, year: พ.ศ.
+
+                // แปลง พ.ศ. เป็น ค.ศ.
+                const yearCE = year ? year - 543 : new Date().getFullYear();
+                // month 0-indexed → 1-indexed สำหรับ SQL
+                const monthSQL = month !== undefined && month !== null ? month + 1 : (new Date().getMonth() + 1);
+
+                const query = `
+                    SELECT 
+                        fp.name_plant AS type,
+                        SUM(IFNULL(fp.expected_yield, 0)) AS amount,
+                        COUNT(fp.id) AS plot_count
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND MONTH(fp.date_harvest) = ?
+                        AND YEAR(fp.date_harvest) = ?
+                    GROUP BY fp.name_plant
+                    ORDER BY amount DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station, monthSQL, yearCE], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard production error:', err);
+                        return res.json([]);
+                    }
+
+                    // หา max เพื่อใช้ทำ bar chart
+                    const maxAmount = result.length > 0
+                        ? Math.max(...result.map(r => Number(r.amount) || 0))
+                        : 1;
+
+                    // สีสำหรับแต่ละรายการ
+                    const colors = [
+                        '#C8863A', '#BFA04F', '#7EAA4F', '#3C9E6E', '#4FB8C7',
+                        '#8E6BBF', '#D4694A', '#5BA58B', '#C75B8E', '#6B8EC7',
+                        '#A4B84D', '#D99B3B', '#7ABFB0', '#C46CA3', '#6FA0D6',
+                        '#B5A33D', '#D47A5E', '#59B389', '#C287D1', '#7DB5C9'
+                    ];
+
+                    const production = result.map((row, idx) => ({
+                        id: idx + 1,
+                        type: row.type || '-',
+                        amount: Number(row.amount) || 0,
+                        max: maxAmount,
+                        plot_count: row.plot_count || 0,
+                        color: colors[idx % colors.length]
+                    }));
+
+                    res.json(production);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
 }

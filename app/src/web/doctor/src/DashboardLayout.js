@@ -70,14 +70,8 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
     // ข้อมูลจริง — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก
     const [unfilledPlots, setUnfilledPlots] = useState([]);
 
-    // Mock Data — ปริมาณการผลผลิต
-    const productionData = [
-        { id: 1, type: 'แตงกวา', amount: 8700, max: 9000, color: '#C8863A' },
-        { id: 2, type: 'บล็อกโคลี', amount: 7600, max: 9000, color: '#BFA04F' },
-        { id: 3, type: 'กะหล่ำดอก', amount: 6400, max: 9000, color: '#7EAA4F' },
-        { id: 4, type: 'ตะไคร้', amount: 5900, max: 9000, color: '#3C9E6E' },
-        { id: 5, type: 'มะเขือเทศ', amount: 3198, max: 9000, color: '#4FB8C7' },
-    ];
+    // ข้อมูลจริง — ประมาณการผลผลิต (รวมจากแต่ละใบ GAP ตามชนิดพืช + เดือน/ปีเก็บเกี่ยว)
+    const [productionData, setProductionData] = useState([]);
 
     const [mapPins, setMapPins] = useState([]);
 
@@ -116,6 +110,27 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
         };
         fetchLocations();
     }, [selectedPlantType, selectedYield, selectedDisease]);
+
+    // ดึงข้อมูลประมาณการผลผลิต (re-fetch เมื่อเปลี่ยนเดือน/ปี)
+    useEffect(() => {
+        const fetchProduction = async () => {
+            try {
+                const response = await clientMo.post('/api/doctor/dashboard/production', {
+                    month: selectedMonth,
+                    year: selectedYear
+                });
+                if (response) {
+                    const data = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (Array.isArray(data)) {
+                        setProductionData(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching production data:", error);
+            }
+        };
+        fetchProduction();
+    }, [selectedMonth, selectedYear]);
 
     const center = [18.810, 98.980];
 
@@ -322,30 +337,40 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 <tr>
                                     <th>ลำดับ</th>
                                     <th>ชนิดพืช</th>
+                                    <th>จำนวนแปลง</th>
                                     <th>ปริมาณผลผลิต (กิโลกรัม)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {productionData.map((item, idx) => (
-                                    <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
-                                        <td>{idx + 1}</td>
-                                        <td>{item.type}</td>
-                                        <td>
-                                            <div className="bar-cell">
-                                                <div className="bar-track">
-                                                    <div
-                                                        className="bar-fill"
-                                                        style={{
-                                                            width: `${(item.amount / item.max) * 100}%`,
-                                                            backgroundColor: item.color
-                                                        }}
-                                                    />
-                                                </div>
-                                                <span className="bar-value">{item.amount.toLocaleString()}</span>
-                                            </div>
+                                {productionData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                            ไม่มีข้อมูลผลผลิตในเดือนนี้
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    productionData.map((item, idx) => (
+                                        <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
+                                            <td>{idx + 1}</td>
+                                            <td>{item.type}</td>
+                                            <td style={{ textAlign: 'center' }}>{item.plot_count}</td>
+                                            <td>
+                                                <div className="bar-cell">
+                                                    <div className="bar-track">
+                                                        <div
+                                                            className="bar-fill"
+                                                            style={{
+                                                                width: `${(item.amount / item.max) * 100}%`,
+                                                                backgroundColor: item.color
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <span className="bar-value">{item.amount.toLocaleString()}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
