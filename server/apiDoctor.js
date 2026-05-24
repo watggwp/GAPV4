@@ -28,7 +28,133 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         if (apifunc.authCsurf("doctor", req, res)) res.redirect('/api/doctor/auth')
         else res.clearCookie(process.env.cookieName).send("")
     })
+    app.post('/api/doctor/formplant/insert', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
 
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
+            const data = req.body;
+            console.log("DOCTOR INSERT GAP BODY =>", data);
+            if (
+                !data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut
+            ) {
+                con.end();
+                return res.send("missing required fields");
+            }
+
+            const valueOrNull = (value) => {
+                return (value === undefined || value === "" || value === null) ? null : value;
+            };
+            const dateOrNull = (value) => {
+                if (value === undefined || value === "" || value === null) { return null; }
+                if (value.toString().indexOf("#") >= 0) { return null; }
+                const newDate = new Date(value);
+                if (newDate.toString() === "Invalid Date") { return null; }
+                return newDate;
+            };
+
+            con.query(`INSERT INTO formplant 
+                    ( 
+                        id, id_farm_house, name_plant, 
+                        generation, date_glow, date_plant,
+                        posi_w, posi_h,
+                        qty, area, unit, date_harvest, system_glow,
+                        water, water_flow,
+                        history, insect, qtyInsect,
+                        seft, state_status, date_success,
+                        expected_yield, default_yield
+                    ) VALUES (
+                        ?, ?, ?, 
+                        ?, ?, ?,
+                        ?, ?,
+                        ?, ?, ?, ?, ?,
+                        ?, ?,
+                        ?, ?, ?,
+                        ?, 0, "", ?, ?
+                    );
+                `, [
+                new Date().getTime(), data.id_farmhouse, data.name_plant,
+                valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
+                valueOrNull(data.posiW), valueOrNull(data.posiH),
+                valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
+                valueOrNull(data.water), valueOrNull(data.waterStep),
+                valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
+                valueOrNull(data.seft), null, null, valueOrNull(data.expectedYield), valueOrNull(data.defaultYield)
+            ], (err, insert) => {
+                if (err) {
+                    console.log("INSERT ERROR =>", err);
+                    con.end();
+                    return res.send("error");
+                }
+                con.end();
+                res.send("insert");
+            });
+        }).catch(err => {
+            console.log("AUTH ERROR =>", err);
+            con.end();
+            res.send("error auth");
+        });
+    });
+
+    app.post('/api/doctor/formplant/history', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        apifunc.auth(con, username, password, res, "acc_doctor").then(async (result) => {
+            const QtyDate = await new Promise((resolve) => {
+                con.query(
+                    `SELECT qty_harvest FROM plant_list WHERE name = ?`,
+                    [req.body.name_plant_list],
+                    (err, result) => resolve(result)
+                );
+            });
+
+            const sqlQuery = `
+                SELECT 
+                    formplant.*, 
+                    GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
+                    GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
+                FROM formplant
+                LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
+                WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
+                GROUP BY formplant.id, formplant.generation
+                ORDER BY formplant.generation DESC
+            `;
+
+            const queryParams = [req.body.name_plant_list, req.body.id_farmhouse];
+
+            con.query(sqlQuery, queryParams, (err, result) => {
+                con.end();
+                if (!err) {
+                    res.send({
+                        FromHistory: result,
+                        qtyDate: QtyDate,
+                        insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : [],
+                        insect_generation: result.length > 0 && result[0]?.insect_generation ? result[0].insect_generation.split(',') : []
+                    });
+                } else {
+                    res.send("error auth");
+                }
+            });
+        }).catch(err => {
+            con.end();
+            res.send("error auth");
+        });
+    });
 
     // API: ดึงข้อมูลการแก้ไขฟอร์มการปลูกพืช
     app.post('/api/doctor/formplant/edit/select', async (req, res) => {
@@ -1505,7 +1631,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1549,7 +1675,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                   ORDER BY date_register DESC
                                   LIMIT 1
                               )
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1574,7 +1700,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1628,6 +1754,50 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         });
     });
 
+    app.post('/api/doctor/farmhouse/get/HouseList', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+        try {
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            if (result['result'] === "pass") {
+                const { id_farmer } = req.body;
+                con.query(
+                    `
+                    SELECT id_farm_house, name_house, img_house, location, status
+                    FROM housefarm
+                    WHERE link_user = ?
+                    `,
+                    [id_farmer],
+                    (err, resultQuery) => {
+                        con.end();
+                        if (!err) {
+                            if (resultQuery.length > 0) {
+                                const list = resultQuery.map(val => {
+                                    val.img_house = val.img_house ? val.img_house.toString() : "";
+                                    return val;
+                                });
+                                res.send(list);
+                            } else {
+                                res.send([]);
+                            }
+                        } else {
+                            res.send("error auth");
+                        }
+                    }
+                );
+            }
+        } catch (err) {
+            con.end();
+            res.send("error auth");
+        }
+    });
 
     app.post('/api/doctor/farmer/account/comfirm', async (req, res) => {
         let username = req.session.user_doctor
@@ -2122,7 +2292,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         WHERE id_table = ? OR link_user = ?
                     ) as farmer
                     WHERE message_user.uid_line_farmer = farmer.uid_line
-                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
                             and type = ""
                     ` , [req.body.id_table, req.body.link_user, result["data"].id_table_doctor],
                     (err, count) => {
@@ -2255,7 +2425,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             SELECT COUNT(*) as count_unread
                             FROM message_user
                             WHERE uid_line_farmer = ? 
-                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
                             ` , [req.body.uid_line, result['data']['id_table_doctor']],
                             (err, list_unread) => {
                                 resole(parseInt(list_unread[0].count_unread))
@@ -4961,7 +5131,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         `
                         SELECT COUNT(id) as count
                         FROM notify_doctor
-                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0 
+                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 
                                 AND station = ?
                         ` , [result.data.id_table_doctor, result.data.station_doctor],
                         (err, COUNT) => {
@@ -5462,4 +5632,78 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     //         )
     //     })
     // }
+
+    app.post('/api/doctor/farmhouse/locations', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const { plant_type, yield_range, disease_status } = req.body;
+                let query = `
+                    SELECT 
+                      h.id_farm_house, h.name_house, 
+                      ST_X(h.location) as lat, ST_Y(h.location) as lng, 
+                      p.name_plant, p.state_status, p.expected_yield,
+                      (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                    FROM housefarm h
+                    JOIN acc_farmer f ON h.link_user = f.link_user
+                    LEFT JOIN (
+                      SELECT id_farm_house, id, name_plant, state_status, expected_yield
+                      FROM formplant 
+                      WHERE (id_farm_house, id) IN (
+                        SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
+                      )
+                    ) p ON h.id_farm_house = p.id_farm_house
+                    WHERE h.location IS NOT NULL AND f.station = ?
+                `;
+                let params = [auth['data'].station_doctor];
+                if (plant_type) {
+                    query += " AND p.name_plant = ?";
+                    params.push(plant_type);
+                }
+
+                con.query(query, params, (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send("Database error");
+                    }
+
+                    let filtered = result.filter(row => {
+                        let pass = true;
+                        if (yield_range) {
+                            let y = row.expected_yield || 0;
+                            if (yield_range === 'low' && y >= 1000) pass = false;
+                            if (yield_range === 'mid' && (y < 1000 || y > 5000)) pass = false;
+                            if (yield_range === 'high' && y <= 5000) pass = false;
+                        }
+                        if (disease_status) {
+                            let hasDisease = row.disease != null;
+                            if (disease_status === 'none' && hasDisease) pass = false;
+                            if (disease_status === 'found' && !hasDisease) pass = false;
+                        }
+                        return pass;
+                    }).map(row => ({
+                        id: row.id_farm_house,
+                        position: [row.lat, row.lng],
+                        status: row.disease ? 'red' : 'green',
+                        plant: row.name_plant || '-',
+                        name: row.name_house,
+                        disease: row.disease || '-',
+                        amount: row.expected_yield || 0
+                    }));
+
+                    res.json(filtered);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
 }
