@@ -4817,6 +4817,81 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     })
 
+    app.post('/api/doctor/data/delete', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.body.password
+
+        if (username === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        try {
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            if (result['result'] === "pass") {
+                const data_id = req.body.id_list
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" :
+                        type_request == "fertilizer" ? "fertilizer_list" :
+                            type_request == "chemical" ? "chemical_list" :
+                                type_request == "pest" ? "pests" :
+                                    type_request == "source" ? "source_list" : ""
+                )
+                const columnID = type_request == "pest" ? "pest_id" : "id"
+
+                if (!From || !data_id) {
+                    con.end()
+                    res.send(JSON.stringify({ result: "error" }))
+                    return
+                }
+
+                try {
+                    const oldData = await new Promise((resolve) => {
+                        con.query(
+                            `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                            [data_id], (err, rows) => {
+                                resolve(err ? null : (rows[0] || null))
+                            }
+                        )
+                    })
+
+                    await new Promise((resolve, reject) => {
+                        con.query(
+                            `DELETE FROM ${From} WHERE ${columnID} = ?`,
+                            [data_id], (err) => {
+                                if (err) reject(err)
+                                else resolve()
+                            }
+                        )
+                    })
+
+                    const editorId = result['data'].id_doctor
+                    const editorName = result['data'].fullname_doctor
+                    con.query(
+                        'INSERT INTO log_data (data_id, data_type, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, ?, "delete", ?, ?, ?, ?)',
+                        [data_id, type_request, editorId, editorName, JSON.stringify(oldData), null],
+                        () => {
+                            con.end()
+                            res.send(JSON.stringify({ result: "pass" }))
+                        }
+                    )
+                } catch (err) {
+                    console.log(err)
+                    con.end()
+                    res.send(JSON.stringify({ result: "error" }))
+                }
+            }
+        } catch (err) {
+            con.end()
+            if (err == "not pass") {
+                res.send(JSON.stringify({ result: "password" }))
+            }
+        }
+    })
+
     app.post('/api/doctor/data/history', async (req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
