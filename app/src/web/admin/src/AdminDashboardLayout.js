@@ -68,26 +68,20 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     // แสดงปีปัจจุบันถึง +1 ปี (auto, พ.ศ.)
     const yearOptions = Array.from({ length: 2 }, (_, i) => currentBE + i);
 
-    // Mock Data — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมี
-    const unfilledPlots = [
-        { id: 1, name: 'แปลง A1', type: 'มะเขือเทศ', overdue: 10, statusColor: 'red', station: 'ศูนย์ 1' },
-        { id: 2, name: 'แปลง C2', type: 'กะหล่ำปลี', overdue: 8, statusColor: 'orange', station: 'ศูนย์ 2' },
-        { id: 3, name: 'แปลง D3', type: 'แตงกวา', overdue: 6, statusColor: 'yellow', station: 'ศูนย์ 1' },
-        { id: 4, name: 'แปลง E4', type: 'ผักกาดขาว', overdue: 5, statusColor: 'lightyellow', station: 'ศูนย์ 3' },
-        { id: 5, name: 'แปลง F5', type: 'หัวหอม', overdue: 3, statusColor: 'lightyellow2', station: 'ศูนย์ 2' },
-    ];
+    // ข้อมูลจริง — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมี
+    const [unfilledPlots, setUnfilledPlots] = useState([]);
 
-    // Mock Data — ปริมาณการผลผลิต
-    const productionData = [
-        { id: 1, type: 'แตงกวา', amount: 8700, max: 9000, color: '#C8863A' },
-        { id: 2, type: 'บล็อกโคลี', amount: 7600, max: 9000, color: '#BFA04F' },
-        { id: 3, type: 'กะหล่ำดอก', amount: 6400, max: 9000, color: '#7EAA4F' },
-        { id: 4, type: 'ตะไคร้', amount: 5900, max: 9000, color: '#3C9E6E' },
-        { id: 5, type: 'มะเขือเทศ', amount: 3198, max: 9000, color: '#4FB8C7' },
-    ];
+    // ข้อมูลจริง — ประมาณการผลผลิต
+    const [productionData, setProductionData] = useState([]);
+
+    // Pagination state
+    const [pageUnfilled, setPageUnfilled] = useState(1);
+    const [pageProduction, setPageProduction] = useState(1);
+    const ITEMS_PER_PAGE = 5;
 
     const [mapPins, setMapPins] = useState([]);
     const [stations, setStations] = useState([]);
+    const [availablePlants, setAvailablePlants] = useState([]);
 
     useEffect(() => {
         const fetchStations = async () => {
@@ -113,7 +107,21 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                     disease_status: selectedDisease
                 });
                 if (response) {
-                    setMapPins(JSON.parse(response));
+                    const data = JSON.parse(response);
+                    setMapPins(data);
+
+                    // อัปเดตรายชื่อพืชเฉพาะเมื่อยังไม่ได้เลือกชนิดพืช
+                    if (!selectedPlantType) {
+                        const plants = new Set();
+                        data.forEach(pin => {
+                            if (pin.plants) {
+                                pin.plants.forEach(p => {
+                                    if (p.name && p.name !== '-') plants.add(p.name);
+                                });
+                            }
+                        });
+                        setAvailablePlants(Array.from(plants));
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching locations:", error);
@@ -122,18 +130,72 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
         fetchLocations();
     }, [selectedStation, selectedPlantType, selectedYield, selectedDisease]);
 
+    // ดึงข้อมูลแปลงที่เกินกำหนดการใส่ปุ๋ย/สารเคมี
+    useEffect(() => {
+        const fetchOverduePlots = async () => {
+            try {
+                const response = await clientMo.post('/api/admin/dashboard/overdue-plots', {
+                    station: selectedStation
+                });
+                if (response) {
+                    const data = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (Array.isArray(data)) {
+                        setUnfilledPlots(data);
+                        setPageUnfilled(1); // รีเซ็ตหน้าเมื่อข้อมูลเปลี่ยน
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching overdue plots:", error);
+            }
+        };
+        fetchOverduePlots();
+    }, [selectedStation]);
+
+    // ดึงข้อมูลประมาณการผลผลิต (re-fetch เมื่อเปลี่ยนเดือน/ปี หรือศูนย์)
+    useEffect(() => {
+        const fetchProduction = async () => {
+            try {
+                const response = await clientMo.post('/api/admin/dashboard/production', {
+                    station: selectedStation,
+                    month: selectedMonth,
+                    year: selectedYear
+                });
+                if (response) {
+                    const data = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (Array.isArray(data)) {
+                        setProductionData(data);
+                        setPageProduction(1); // รีเซ็ตหน้าเมื่อข้อมูลเปลี่ยน
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching production data:", error);
+            }
+        };
+        fetchProduction();
+    }, [selectedStation, selectedMonth, selectedYear]);
+
     const center = [18.810, 98.980];
 
-    const getBadgeStyle = (color) => {
-        const styles = {
-            red: { backgroundColor: '#e53935', color: '#fff' },
-            orange: { backgroundColor: '#F57C3A', color: '#fff' },
-            yellow: { backgroundColor: '#F5C842', color: '#7a5a00' },
-            lightyellow: { backgroundColor: '#FDE98E', color: '#7a5a00' },
-            lightyellow2: { backgroundColor: '#FFF3C4', color: '#7a5a00' },
-        };
-        return styles[color] || { backgroundColor: '#eee', color: '#333' };
+    const getBadgeStyle = (overdueDays) => {
+        if (overdueDays >= 10) return { backgroundColor: '#e53935', color: '#fff' };
+        if (overdueDays >= 7) return { backgroundColor: '#F57C3A', color: '#fff' };
+        if (overdueDays >= 5) return { backgroundColor: '#F5C842', color: '#7a5a00' };
+        if (overdueDays >= 3) return { backgroundColor: '#FDE98E', color: '#7a5a00' };
+        return { backgroundColor: '#FFF3C4', color: '#7a5a00' };
     };
+
+    // Pagination calculations
+    const totalPagesUnfilled = Math.ceil(unfilledPlots.length / ITEMS_PER_PAGE);
+    const paginatedUnfilled = unfilledPlots.slice(
+        (pageUnfilled - 1) * ITEMS_PER_PAGE,
+        pageUnfilled * ITEMS_PER_PAGE
+    );
+
+    const totalPagesProduction = Math.ceil(productionData.length / ITEMS_PER_PAGE);
+    const paginatedProduction = productionData.slice(
+        (pageProduction - 1) * ITEMS_PER_PAGE,
+        pageProduction * ITEMS_PER_PAGE
+    );
 
     return (
         <div className="dashboard-layout">
@@ -147,10 +209,9 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                 </select>
                 <select value={selectedPlantType} onChange={e => setSelectedPlantType(e.target.value)}>
                     <option value="">ชนิดพืช</option>
-                    <option value="มะเขือเทศ">มะเขือเทศ</option>
-                    <option value="ผักกาดขาว">ผักกาดขาว</option>
-                    <option value="แตงกวา">แตงกวา</option>
-                    <option value="กะหล่ำปลี">กะหล่ำปลี</option>
+                    {availablePlants.map((plant, idx) => (
+                        <option key={idx} value={plant}>{plant}</option>
+                    ))}
                 </select>
                 <select value={selectedYield} onChange={e => setSelectedYield(e.target.value)}>
                     <option value="">ช่วงปริมาณผลผลิต</option>
@@ -241,10 +302,40 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                             >
                                 <Popup>
                                     <div className="map-popup">
-                                        <div className="popup-row"><strong>พืชที่ปลูก:</strong> {pin.plant}</div>
-                                        <div className="popup-row"><strong>ชื่อแปลง:</strong> {pin.name}</div>
-                                        <div className="popup-row"><strong>โรค/ศัตรูพืช:</strong> {pin.disease}</div>
-                                        <div className="popup-row"><strong>ประมาณการผลผลิต:</strong> {pin.amount.toLocaleString()}</div>
+                                        <div className="popup-header">
+                                            <span className="popup-house-icon">🏠</span>
+                                            <span className="popup-house-name">{pin.name}</span>
+                                            {pin.station && <span className="popup-station-badge">{pin.station}</span>}
+                                        </div>
+                                        <div className="popup-plants-list">
+                                            {pin.plants && pin.plants.map((plant, idx) => (
+                                                <div key={idx} className="popup-plant-card">
+                                                    <div className="plant-card-header">
+                                                        <span className="plant-icon">🌱</span>
+                                                        <span className="plant-name">{plant.name}</span>
+                                                        <span className={`plant-status-badge ${plant.status === 'กำลังปลูก' ? 'status-growing' : 'status-checking'}`}>
+                                                            {plant.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="plant-card-details">
+                                                        <div className="plant-detail-item">
+                                                            <span className="detail-label">ผลผลิต</span>
+                                                            <span className="detail-value">{plant.amount.toLocaleString()} กก.</span>
+                                                        </div>
+                                                        <div className="plant-detail-item">
+                                                            <span className="detail-label">โรค/ศัตรูพืช</span>
+                                                            <span className={`detail-value ${plant.disease !== '-' ? 'disease-found' : ''}`}>{plant.disease}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {pin.plants && pin.plants.length > 1 && (
+                                            <div className="popup-total">
+                                                <span>รวมผลผลิตทั้งหมด</span>
+                                                <strong>{pin.totalAmount.toLocaleString()} กก.</strong>
+                                            </div>
+                                        )}
                                     </div>
                                 </Popup>
                             </Marker>
@@ -267,29 +358,69 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                         <th>ชื่อแปลง</th>
                                         <th>ศูนย์</th>
                                         <th>ชนิดพืช</th>
+                                        <th>กิจกรรม</th>
                                         <th>วันที่เกินกำหนด</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {unfilledPlots.map((item, idx) => (
-                                        <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
-                                            <td>{idx + 1}</td>
-                                            <td>{item.name}</td>
-                                            <td>{item.station}</td>
-                                            <td>{item.type}</td>
-                                            <td>
-                                                <span
-                                                    className="day-badge"
-                                                    style={getBadgeStyle(item.statusColor)}
-                                                >
-                                                    {item.overdue} วัน
-                                                </span>
+                                    {unfilledPlots.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                                ไม่มีแปลงที่เกินกำหนด
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        paginatedUnfilled.map((item, idx) => {
+                                            const realIdx = (pageUnfilled - 1) * ITEMS_PER_PAGE + idx;
+                                            return (
+                                                <tr key={`${item.id}-${realIdx}`} className={idx % 2 === 1 ? 'row-highlight' : ''}>
+                                                    <td>{realIdx + 1}</td>
+                                                    <td>{item.name}</td>
+                                                    <td><span className="station-badge">{item.station}</span></td>
+                                                    <td>{item.type}</td>
+                                                    <td>
+                                                        <span style={{
+                                                            fontSize: '0.85em',
+                                                            color: item.category === 1 ? '#2e7d32' : '#c62828'
+                                                        }}>
+                                                            {item.category === 1 ? '🌿 ' : '🧪 '}
+                                                            {item.schedule_title}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span
+                                                            className="day-badge"
+                                                            style={getBadgeStyle(item.overdue)}
+                                                        >
+                                                            {item.overdue} วัน
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                 </tbody>
                             </table>
                         </div>
+                        {totalPagesUnfilled > 1 && (
+                            <div className="pagination-controls">
+                                <button 
+                                    className="page-btn" 
+                                    disabled={pageUnfilled === 1} 
+                                    onClick={() => setPageUnfilled(p => p - 1)}
+                                >
+                                    &laquo; ก่อนหน้า
+                                </button>
+                                <span className="page-info">หน้า {pageUnfilled} จาก {totalPagesUnfilled}</span>
+                                <button 
+                                    className="page-btn" 
+                                    disabled={pageUnfilled === totalPagesUnfilled} 
+                                    onClick={() => setPageUnfilled(p => p + 1)}
+                                >
+                                    ถัดไป &raquo;
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Widget 2: ปริมาณการผลผลิต */}
@@ -323,33 +454,65 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                     <tr>
                                         <th>ลำดับ</th>
                                         <th>ชนิดพืช</th>
+                                        <th>จำนวนแปลง</th>
                                         <th>ปริมาณผลผลิต (กิโลกรัม)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {productionData.map((item, idx) => (
-                                        <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
-                                            <td>{idx + 1}</td>
-                                            <td>{item.type}</td>
-                                            <td>
-                                                <div className="bar-cell">
-                                                    <div className="bar-track">
-                                                        <div
-                                                            className="bar-fill"
-                                                            style={{
-                                                                width: `${(item.amount / item.max) * 100}%`,
-                                                                backgroundColor: item.color
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <span className="bar-value">{item.amount.toLocaleString()}</span>
-                                                </div>
+                                    {productionData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                                ไม่มีข้อมูลผลผลิตในเดือนนี้
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        paginatedProduction.map((item, idx) => {
+                                            const realIdx = (pageProduction - 1) * ITEMS_PER_PAGE + idx;
+                                            return (
+                                                <tr key={item.id} className={idx % 2 === 1 ? 'row-highlight' : ''}>
+                                                    <td>{realIdx + 1}</td>
+                                                    <td>{item.type}</td>
+                                                    <td style={{ textAlign: 'center' }}>{item.plot_count}</td>
+                                                    <td>
+                                                        <div className="bar-cell">
+                                                            <div className="bar-track">
+                                                                <div
+                                                                    className="bar-fill"
+                                                                    style={{
+                                                                        width: `${(item.amount / item.max) * 100}%`,
+                                                                        backgroundColor: item.color
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <span className="bar-value">{item.amount.toLocaleString()}</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                 </tbody>
                             </table>
                         </div>
+                        {totalPagesProduction > 1 && (
+                            <div className="pagination-controls">
+                                <button 
+                                    className="page-btn" 
+                                    disabled={pageProduction === 1} 
+                                    onClick={() => setPageProduction(p => p - 1)}
+                                >
+                                    &laquo; ก่อนหน้า
+                                </button>
+                                <span className="page-info">หน้า {pageProduction} จาก {totalPagesProduction}</span>
+                                <button 
+                                    className="page-btn" 
+                                    disabled={pageProduction === totalPagesProduction} 
+                                    onClick={() => setPageProduction(p => p + 1)}
+                                >
+                                    ถัดไป &raquo;
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -5572,22 +5572,16 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      p.name_plant, p.state_status, p.expected_yield,
-                      (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                      fp.name_plant, fp.state_status, fp.expected_yield,
+                      (SELECT report_text FROM report_detail WHERE id_plant = fp.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
-                    LEFT JOIN (
-                      SELECT id_farm_house, id, name_plant, state_status, expected_yield
-                      FROM formplant 
-                      WHERE (id_farm_house, id) IN (
-                        SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
-                      )
-                    ) p ON h.id_farm_house = p.id_farm_house
-                    WHERE h.location IS NOT NULL AND f.station = ?
+                    INNER JOIN formplant fp ON h.id_farm_house = fp.id_farm_house
+                    WHERE h.location IS NOT NULL AND f.station = ? AND fp.state_status IN (0, 1)
                 `;
                 let params = [auth['data'].station_doctor];
                 if (plant_type) {
-                    query += " AND p.name_plant = ?";
+                    query += " AND fp.name_plant = ?";
                     params.push(plant_type);
                 }
 
@@ -5598,7 +5592,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         return res.status(500).send("Database error");
                     }
 
-                    let filtered = result.filter(row => {
+                    // Group by greenhouse
+                    const grouped = {};
+                    result.forEach(row => {
                         let pass = true;
                         if (yield_range) {
                             let y = row.expected_yield || 0;
@@ -5611,18 +5607,35 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             if (disease_status === 'none' && hasDisease) pass = false;
                             if (disease_status === 'found' && !hasDisease) pass = false;
                         }
-                        return pass;
-                    }).map(row => ({
-                        id: row.id_farm_house,
-                        position: [row.lat, row.lng],
-                        status: row.disease ? 'red' : 'green',
-                        plant: row.name_plant || '-',
-                        name: row.name_house,
-                        disease: row.disease || '-',
-                        amount: row.expected_yield || 0
+                        if (!pass) return;
+
+                        if (!grouped[row.id_farm_house]) {
+                            grouped[row.id_farm_house] = {
+                                id: row.id_farm_house,
+                                position: [row.lat, row.lng],
+                                name: row.name_house,
+                                plants: [],
+                                hasDisease: false,
+                                totalAmount: 0
+                            };
+                        }
+                        const g = grouped[row.id_farm_house];
+                        g.plants.push({
+                            name: row.name_plant || '-',
+                            disease: row.disease || '-',
+                            amount: row.expected_yield || 0,
+                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต'
+                        });
+                        if (row.disease) g.hasDisease = true;
+                        g.totalAmount += (row.expected_yield || 0);
+                    });
+
+                    const pins = Object.values(grouped).map(g => ({
+                        ...g,
+                        status: g.hasDisease ? 'red' : 'green'
                     }));
 
-                    res.json(filtered);
+                    res.json(pins);
                 });
             }
         } catch (err) {
