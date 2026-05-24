@@ -5572,22 +5572,16 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      p.name_plant, p.state_status, p.expected_yield,
-                      (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                      fp.name_plant, fp.state_status, fp.expected_yield,
+                      (SELECT report_text FROM report_detail WHERE id_plant = fp.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
-                    LEFT JOIN (
-                      SELECT id_farm_house, id, name_plant, state_status, expected_yield
-                      FROM formplant 
-                      WHERE (id_farm_house, id) IN (
-                        SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
-                      )
-                    ) p ON h.id_farm_house = p.id_farm_house
-                    WHERE h.location IS NOT NULL AND f.station = ?
+                    INNER JOIN formplant fp ON h.id_farm_house = fp.id_farm_house
+                    WHERE h.location IS NOT NULL AND f.station = ? AND fp.state_status IN (0, 1)
                 `;
                 let params = [auth['data'].station_doctor];
                 if (plant_type) {
-                    query += " AND p.name_plant = ?";
+                    query += " AND fp.name_plant = ?";
                     params.push(plant_type);
                 }
 
@@ -5598,7 +5592,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         return res.status(500).send("Database error");
                     }
 
-                    let filtered = result.filter(row => {
+                    // Group by greenhouse
+                    const grouped = {};
+                    result.forEach(row => {
                         let pass = true;
                         if (yield_range) {
                             let y = row.expected_yield || 0;
@@ -5611,18 +5607,184 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             if (disease_status === 'none' && hasDisease) pass = false;
                             if (disease_status === 'found' && !hasDisease) pass = false;
                         }
-                        return pass;
-                    }).map(row => ({
-                        id: row.id_farm_house,
-                        position: [row.lat, row.lng],
-                        status: row.disease ? 'red' : 'green',
-                        plant: row.name_plant || '-',
-                        name: row.name_house,
-                        disease: row.disease || '-',
-                        amount: row.expected_yield || 0
+                        if (!pass) return;
+
+                        if (!grouped[row.id_farm_house]) {
+                            grouped[row.id_farm_house] = {
+                                id: row.id_farm_house,
+                                position: [row.lat, row.lng],
+                                name: row.name_house,
+                                plants: [],
+                                hasDisease: false,
+                                totalAmount: 0
+                            };
+                        }
+                        const g = grouped[row.id_farm_house];
+                        g.plants.push({
+                            name: row.name_plant || '-',
+                            disease: row.disease || '-',
+                            amount: row.expected_yield || 0,
+                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต'
+                        });
+                        if (row.disease) g.hasDisease = true;
+                        g.totalAmount += (row.expected_yield || 0);
+                    });
+
+                    const pins = Object.values(grouped).map(g => ({
+                        ...g,
+                        status: g.hasDisease ? 'red' : 'green'
                     }));
 
-                    res.json(filtered);
+                    res.json(pins);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
+    // === Dashboard: แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก ===
+    app.post('/api/doctor/dashboard/overdue-plots', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+
+                const query = `
+                    SELECT 
+                        fp.id AS formplant_id,
+                        hf.name_house,
+                        fp.name_plant,
+                        s.title AS schedule_title,
+                        s.category,
+                        s.age_plant,
+                        fp.date_plant,
+                        DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) AS due_date,
+                        DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    INNER JOIN plant_list pl ON fp.name_plant = pl.name AND pl.is_use = 1
+                    INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) < CURDATE()
+                        AND (
+                            (s.category = 1 AND NOT EXISTS (
+                                SELECT 1 FROM formfertilizer ff 
+                                WHERE ff.id_plant = fp.id 
+                                AND ABS(DATEDIFF(ff.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                            OR
+                            (s.category = 2 AND NOT EXISTS (
+                                SELECT 1 FROM formchemical fc 
+                                WHERE fc.id_plant = fp.id 
+                                AND ABS(DATEDIFF(fc.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                        )
+                    GROUP BY fp.id, s.id
+                    ORDER BY overdue_days DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard overdue-plots error:', err);
+                        return res.json([]);
+                    }
+
+                    const plots = result.map(row => ({
+                        id: row.formplant_id,
+                        name: row.name_house || '-',
+                        type: row.name_plant || '-',
+                        schedule_title: row.schedule_title || '-',
+                        category: row.category, // 1=ปุ๋ย, 2=สารเคมี
+                        overdue: row.overdue_days || 0,
+                    }));
+
+                    res.json(plots);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
+    // === Dashboard: ประมาณการผลผลิต (รวมจากแต่ละใบ GAP ตามชนิดพืช + เดือน/ปีเก็บเกี่ยว) ===
+    app.post('/api/doctor/dashboard/production', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+                const { month, year } = req.body; // month: 0-indexed, year: พ.ศ.
+
+                // แปลง พ.ศ. เป็น ค.ศ.
+                const yearCE = year ? year - 543 : new Date().getFullYear();
+                // month 0-indexed → 1-indexed สำหรับ SQL
+                const monthSQL = month !== undefined && month !== null ? month + 1 : (new Date().getMonth() + 1);
+
+                const query = `
+                    SELECT 
+                        fp.name_plant AS type,
+                        SUM(IFNULL(fp.expected_yield, 0)) AS amount,
+                        COUNT(fp.id) AS plot_count
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND MONTH(fp.date_harvest) = ?
+                        AND YEAR(fp.date_harvest) = ?
+                    GROUP BY fp.name_plant
+                    ORDER BY amount DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station, monthSQL, yearCE], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard production error:', err);
+                        return res.json([]);
+                    }
+
+                    // หา max เพื่อใช้ทำ bar chart
+                    const maxAmount = result.length > 0
+                        ? Math.max(...result.map(r => Number(r.amount) || 0))
+                        : 1;
+
+                    // สีสำหรับแต่ละรายการ
+                    const colors = [
+                        '#C8863A', '#BFA04F', '#7EAA4F', '#3C9E6E', '#4FB8C7',
+                        '#8E6BBF', '#D4694A', '#5BA58B', '#C75B8E', '#6B8EC7',
+                        '#A4B84D', '#D99B3B', '#7ABFB0', '#C46CA3', '#6FA0D6',
+                        '#B5A33D', '#D47A5E', '#59B389', '#C287D1', '#7DB5C9'
+                    ];
+
+                    const production = result.map((row, idx) => ({
+                        id: idx + 1,
+                        type: row.type || '-',
+                        amount: Number(row.amount) || 0,
+                        max: maxAmount,
+                        plot_count: row.plot_count || 0,
+                        color: colors[idx % colors.length]
+                    }));
+
+                    res.json(production);
                 });
             }
         } catch (err) {
