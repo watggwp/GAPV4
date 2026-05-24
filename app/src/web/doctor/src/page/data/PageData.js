@@ -469,7 +469,7 @@ const PageData = ({setMain , session , socket , type = false , eleImageCover , L
                             <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload}/>
                     }
                     {
-                        TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={2}/> : <></>
+                        TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={1001}/> : <></>
                     }
                 </div>
             </section>
@@ -727,7 +727,7 @@ const ManageList = ({Data , session , fetch , setRow , Limit , Type , variety}) 
             <LoadOtherOffset Fetch={fetch} Data={Data} setRow={setRow} Limit={Limit}
                             style={{backgroundColor : "rgb(24 157 133)"}}/>
             <div id="popup-detail-form">
-                <PopupDom Ref={RefPop} Body={PopBody} zIndex={2}/>
+                <PopupDom Ref={RefPop} Body={PopBody} zIndex={1001}/>
             </div>
         </div>
         </>

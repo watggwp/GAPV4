@@ -119,7 +119,8 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
             const response = await clientMo.post("/api/doctor/farmhouse/get/HouseList", { id_farmer: farmerId });
             if (await checkAuth(response)) {
                 const houseList = JSON.parse(response);
-                setFarmerHouses(Array.isArray(houseList) ? houseList : []);
+                const openHouses = Array.isArray(houseList) ? houseList.filter(h => h.status === 1) : [];
+                setFarmerHouses(openHouses);
             }
         } catch (err) {
             console.error("Error fetching houses:", err);
@@ -507,9 +508,6 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 
                     {/* ─ Inner form ─ */}
                     <div className="gap-inner-form">
-                        <div className="head-form">
-                            <span>การปลูกของเกษตรกร</span>
-                        </div>
                         <div className="body-content">
                             <div ref={FormContent} className="frame-content" over="">
                                 <div className="content">
@@ -594,20 +592,15 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
                                             <div className="row">
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
-                                                    <Stack>
-                                                        <Stack direction={"row"}>
-                                                            <span>พื้นที่</span>
-                                                            <select onChange={Change} ref={System} defaultValue="">
-                                                                <option disabled value="">เลือก</option>
-                                                                <option value="โรงเรือน">โรงเรือน</option>
-                                                                <option value="ไร่">ไร่</option>
-                                                                <option value="ตารางเมตร">ตารางเมตร</option>
-                                                            </select>
-                                                        </Stack>
-                                                        <Stack marginTop={1} alignItems={"center"}>
-                                                            <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder} />
-                                                        </Stack>
-                                                    </Stack>
+                                                    <span>พื้นที่</span>
+                                                    <select onChange={Change} ref={System} defaultValue="">
+                                                        <option disabled value="">เลือก</option>
+                                                        <option value="โรงเรือน">โรงเรือน</option>
+                                                        <option value="ไร่">ไร่</option>
+                                                        <option value="ตารางเมตร">ตารางเมตร</option>
+                                                    </select>
+                                                    <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder="ตัวเลข" />
+
                                                 </label>
                                             </div>
                                             <div className="row">

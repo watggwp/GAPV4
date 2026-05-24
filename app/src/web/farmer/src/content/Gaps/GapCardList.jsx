@@ -201,11 +201,11 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
         if (type?.value && // generetion?.value && dateGlow?.value?.split("-")[0] &&
             datePlant?.value && // posiW?.value && posiH?.value && qty?.value && area?.value && 
             dateOut?.value // && system?.value && water?.value && waterStep?.value
-            ) {
-        // if (type?.value && generetion?.value && dateGlow?.value?.split("-")[0] &&
-        //     datePlant?.value && posiW?.value && posiH?.value && qty?.value &&
-        //     area?.value && dateOut?.value && system?.value && water?.value && waterStep?.value
-        //     ) {
+        ) {
+            // if (type?.value && generetion?.value && dateGlow?.value?.split("-")[0] &&
+            //     datePlant?.value && posiW?.value && posiH?.value && qty?.value &&
+            //     area?.value && dateOut?.value && system?.value && water?.value && waterStep?.value
+            //     ) {
             BTConfirm.current?.removeAttribute("no");
         } else {
             BTConfirm.current?.setAttribute("no", "");
@@ -303,70 +303,70 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
     const Confirm = async () => {
 
-    console.log("CLICK CONFIRM");
+        console.log("CLICK CONFIRM");
 
-    try {
+        try {
 
-        console.log("selectedHouseId =>", selectedHouseId);
+            console.log("selectedHouseId =>", selectedHouseId);
 
-        if (!selectedHouseId) {
-            console.log("ไม่มี selectedHouseId");
-            return;
-        }
+            if (!selectedHouseId) {
+                console.log("ไม่มี selectedHouseId");
+                return;
+            }
 
-        const type = TypePlantInput?.current;
+            const type = TypePlantInput?.current;
 
-        console.log("TYPE =>", type);
-        console.log("TYPE VALUE =>", type?.value);
+            console.log("TYPE =>", type);
+            console.log("TYPE VALUE =>", type?.value);
 
-        if (!type?.value) {
-            console.log("ยังไม่ได้เลือก type");
-            return;
-        }
-        console.log("DATE PLANT =>", DatePlant.current?.value);
-        console.log("DATE OUT =>", DateOut.current?.value);
+            if (!type?.value) {
+                console.log("ยังไม่ได้เลือก type");
+                return;
+            }
+            console.log("DATE PLANT =>", DatePlant.current?.value);
+            console.log("DATE OUT =>", DateOut.current?.value);
 
-        if (!DatePlant.current?.value) {
-            console.log("ไม่มีวันที่ปลูก");
-            return;
-        }
+            if (!DatePlant.current?.value) {
+                console.log("ไม่มีวันที่ปลูก");
+                return;
+            }
 
-        if (!DateOut.current?.value) {
-            console.log("ไม่มีวันที่เก็บเกี่ยว");
-            return;
-        }
+            if (!DateOut.current?.value) {
+                console.log("ไม่มีวันที่เก็บเกี่ยว");
+                return;
+            }
 
-        const data = {
-            id_farmhouse: selectedHouseId,
-            name_plant: type.value,
-            datePlant: convertThaiDateToISO(DatePlant.current.value),
-            dateOut: convertThaiDateToISO(DateOut.current.value),
-        };
+            const data = {
+                id_farmhouse: selectedHouseId,
+                name_plant: type.value,
+                datePlant: convertThaiDateToISO(DatePlant.current.value),
+                dateOut: convertThaiDateToISO(DateOut.current.value),
+            };
 
-        console.log("SEND DATA =>", data);
+            console.log("SEND DATA =>", data);
 
-        setWait(true);
+            setWait(true);
 
-        const response = await clientMo.post(
-            "/api/farmer/formplant/insert",
-            data
-        );
+            const response = await clientMo.post(
+                "/api/farmer/formplant/insert",
+                data
+            );
 
-        console.log("RESPONSE =>", response);
+            console.log("RESPONSE =>", response);
 
-        if (await CloseAccount(response)) {
-            onSuccess();
-        } else {
+            if (await CloseAccount(response)) {
+                onSuccess();
+            } else {
+                setWait(false);
+            }
+
+        } catch (err) {
+
+            console.log("CONFIRM ERROR =>", err);
+
             setWait(false);
         }
-
-    } catch (err) {
-
-        console.log("CONFIRM ERROR =>", err);
-
-        setWait(false);
-    }
-};
+    };
     /* ── JSX ── */
     return (
         <div className="gap-modal-overlay" onClick={onClose}>
@@ -391,7 +391,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                             }}
                         >
                             <option value="" disabled>กรุณาเลือกโรงเรือน</option>
-                            {houses.map((h) => (
+                            {houses.filter((h) => h.status === 1).map((h) => (
                                 <option key={h.id_farm_house} value={h.id_farm_house}>
                                     {h.name_house}
                                 </option>

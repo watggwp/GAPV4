@@ -19,21 +19,25 @@
     background: #d4ede1;
     border-radius: 30px;
     border: 2.5px solid #22c7a9;
-    width: 1100px !important; /* Increased width from 950px */
+    width: 1100px !important;
+    /* Increased width from 950px */
     max-width: 95vw;
     max-height: 92vh;
-    min-height: auto !important; /* Override min-height from GapCardList.scss */
+    min-height: auto !important;
+    /* Override min-height from GapCardList.scss */
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 45px 35px 30px 35px !important; /* Increased padding */
+    padding: 45px 35px 30px 35px !important;
+    /* Increased padding */
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     color: #123e35;
     box-sizing: border-box;
 }
 
 .gap-modal-title {
-    font-size: 28px !important; /* Increased from 20px */
+    font-size: 28px !important;
+    /* Increased from 20px */
     font-weight: 700;
     color: #123e35;
     text-align: center;
@@ -44,8 +48,10 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    width: 44px; /* Increased from 38px */
-    height: 44px; /* Increased from 38px */
+    width: 44px;
+    /* Increased from 38px */
+    height: 44px;
+    /* Increased from 38px */
     background: #468668;
     color: white;
     border: 2px solid white;
@@ -53,12 +59,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 22px; /* Increased from 18px */
+    font-size: 22px;
+    /* Increased from 18px */
     font-weight: bold;
     cursor: pointer;
     z-index: 11;
     transition: all 0.2s ease;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
 
     &:hover {
         background: #36664f;
@@ -78,8 +85,9 @@
 .gap-modal-scroll::-webkit-scrollbar {
     width: 10px;
 }
+
 .gap-modal-scroll::-webkit-scrollbar-thumb {
-    background: #22c7a9;
+    background: #cbcbcb;
     border-radius: 5px;
 }
 
@@ -90,26 +98,29 @@
     gap: 15px;
     width: 100%;
     margin-bottom: 12px;
-    
+
     .gap-modal-label {
-        font-size: 20px !important; /* Increased font size */
+        font-size: 20px !important;
+        /* Increased font size */
         font-weight: 600;
         color: #123e35;
         min-width: 130px;
         white-space: nowrap;
     }
-    
+
     .gap-modal-select {
         flex: 1;
-        height: 48px !important; /* Taller select box */
-        font-size: 19px !important; /* Larger select font */
+        height: 48px !important;
+        /* Taller select box */
+        font-size: 19px !important;
+        /* Larger select font */
         padding: 10px 18px !important;
         border-radius: 14px !important;
         border: 1.5px solid #bce1ce !important;
         background: white;
         outline: none;
         cursor: pointer;
-        
+
         &:focus {
             border-color: #22c7a9;
         }
@@ -132,8 +143,10 @@
 
     .head-form {
         padding: 15px 0 !important;
+
         span {
-            font-size: 22px !important; /* Increased from 0.95rem */
+            font-size: 22px !important;
+            /* Increased from 0.95rem */
             padding: 8px 24px !important;
             border-radius: 20px !important;
         }
@@ -141,15 +154,16 @@
 
     .body-content {
         padding: 25px 20px 15px !important;
-        
+
         .step {
             margin-bottom: 18px !important;
-            
+
             .num {
-                font-size: 21px !important; /* Increased */
+                font-size: 21px !important;
+                /* Increased */
                 padding-top: 8px !important;
             }
-            
+
             .body {
                 .row {
                     padding-top: 10px !important;
@@ -166,7 +180,8 @@
 
         span {
             width: 40% !important;
-            font-size: 19px !important; /* Increased from 0.85rem */
+            font-size: 19px !important;
+            /* Increased from 0.85rem */
             font-weight: 500 !important;
             color: #123e35 !important;
         }
@@ -174,9 +189,11 @@
         input,
         select,
         textarea {
-            font-size: 19px !important; /* Increased from 0.85rem */
+            font-size: 19px !important;
+            /* Increased from 0.85rem */
             padding: 10px 14px !important;
-            height: 48px !important; /* Taller input elements */
+            height: 48px !important;
+            /* Taller input elements */
             border-radius: 12px !important;
             border: 1.5px solid #bce1ce !important;
             box-sizing: border-box !important;
@@ -196,7 +213,7 @@
         .input-date {
             width: 55% !important;
             height: 48px !important;
-            
+
             input {
                 width: 100% !important;
                 height: 48px !important;
@@ -213,18 +230,18 @@
         .choose {
             gap: 10px !important;
             align-items: center !important;
-            
+
             label.choose {
                 font-size: 17px !important;
                 font-weight: 500 !important;
-                
+
                 input {
                     width: 100% !important;
                     height: 48px !important;
                     font-size: 19px !important;
                 }
             }
-            
+
             div {
                 font-size: 18px !important;
                 font-weight: bold !important;
@@ -255,17 +272,20 @@
 .gap-modal-btn {
     border: none;
     border-radius: 12px !important;
-    padding: 12px 55px !important; /* Increased padding */
-    font-size: 21px !important; /* Increased font size */
+    padding: 12px 55px !important;
+    /* Increased padding */
+    font-size: 21px !important;
+    /* Increased font size */
     font-weight: bold;
     cursor: pointer;
+    text-align: justify;
     font-family: inherit;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     &:active {
@@ -273,16 +293,16 @@
     }
 
     &--cancel {
-        background: #ff7675;
+        background: #ff5252;
         color: white;
 
         &:hover {
-            background: #ff5252;
+            background: #ff7675;
         }
     }
 
     &--confirm {
-        background: #2ecc71;
+        background: #0d8b41;
         color: white;
 
         &:hover {
