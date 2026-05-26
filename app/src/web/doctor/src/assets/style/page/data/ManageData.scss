@@ -469,6 +469,71 @@
         }
     }
 
+    .discard-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+
+        .discard-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            font-family: Sans-font;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            margin: 12px;
+
+            span {
+                font-size: 18px;
+                font-weight: 900;
+                text-align: center;
+            }
+
+            .discard-bt {
+                display: flex;
+                gap: 12px;
+
+                button {
+                    font-family: Sans-font;
+                    font-size: 16px;
+                    font-weight: 900;
+                    border: none;
+                    border-radius: 12px;
+                    padding: 0px 20px;
+                    height: 36px;
+                    cursor: pointer;
+                    color: white;
+                }
+
+                .cancel {
+                    background-color: #22C7A9;
+                    box-shadow: 0px 2px 2px #176f3f;
+
+                    &:hover {
+                        background-color: #49bea9;
+                    }
+                }
+
+                .confirm {
+                    background-color: rgb(211, 98, 98);
+                    box-shadow: 0px 2px 2px rgb(139, 0, 0);
+
+                    &:hover {
+                        background-color: rgb(237, 80, 80);
+                    }
+                }
+            }
+        }
+    }
+
     .bt-delete-confirm {
         border-top-color: rgb(180, 30, 30);
 

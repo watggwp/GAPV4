@@ -25,11 +25,21 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
     const [ErrReport, setErrReport] = useState(false)
     const [historyOpen, setHistoryOpen] = useState(false)
     const [because, setBecause] = useState("")
+    const [StateConfirmDiscard, setStateConfirmDiscard] = useState(false)
 
     useEffect(() => {
         Ref.current.style.opacity = 1
         Ref.current.style.visibility = "visible"
     }, [])
+
+    useEffect(() => {
+        const overlay = Ref.current
+        const handleClick = (e) => {
+            if (e.target === overlay) tryClose()
+        }
+        overlay.addEventListener('click', handleClick)
+        return () => overlay.removeEventListener('click', handleClick)
+    }, [StateEdit, StateDelete])
 
     const CheckEdit = (value, key) => {
         const data = new Map([...DataEdit])
@@ -132,6 +142,25 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
         setBecause("")
     }
 
+    const tryClose = () => {
+        if (StateEdit || StateDelete) {
+            setStateConfirmDiscard(true)
+        } else {
+            close()
+        }
+    }
+
+    const confirmDiscard = () => {
+        setStateConfirmDiscard(false)
+        setStateEdit(false)
+        setStateDelete(false)
+        ResetDataEdit()
+        setDeletePassword("")
+        if (Password.current) Password.current.value = ""
+        if (DeletePasswordRef.current) DeletePasswordRef.current.value = ""
+        close()
+    }
+
     const SubmitDelete = async () => {
         if (!DeletePassword) return
         const JsonData = {
@@ -159,9 +188,6 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
     return (
         <>
             <section className="manage-data-popup">
-                <button onClick={close} className="close" title="ปิด">
-                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
                 <div className="head-form">
                     <div className="head-title-row">
                         {!StateEdit && !StateDelete && (
@@ -268,6 +294,17 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                         </div>
                     </div>
                 }
+                {StateConfirmDiscard && (
+                    <div className="discard-overlay">
+                        <div className="discard-dialog">
+                            <span>ต้องการละทิ้งข้อมูลที่กรอก?</span>
+                            <div className="discard-bt">
+                                <button className="cancel" onClick={() => setStateConfirmDiscard(false)}>ยกเลิก</button>
+                                <button className="confirm" onClick={confirmDiscard}>ละทิ้ง</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </section>
             <Modal show={historyOpen} onHide={() => setHistoryOpen(false)} centered size="xl">
                 {historyOpen && (
