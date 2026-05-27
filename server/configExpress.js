@@ -226,7 +226,7 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use(express.static('build/farmer'))
 
     // services
-    ScheduleCorn(Pool)
+    ScheduleCorn(Pool, io)
     callServices(app, Pool)
 
     // router api url
