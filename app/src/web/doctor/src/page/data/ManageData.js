@@ -9,24 +9,37 @@ import DataHistoryModal from "./DataHistoryModal";
 const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, session }) => {
     const StatusRef = useRef()
     const Password = useRef()
+    const DeletePasswordRef = useRef()
 
     const [Data, setData] = useState({
         id: Type === "pest" ? DataOfPage.pest_id : DataOfPage.id,
         ...DataOfPage
     })
     const [StateEdit, setStateEdit] = useState(false)
+    const [StateDelete, setStateDelete] = useState(false)
     const [DataEdit, setDataEdit] = useState(new Map())
     const [Status, setStatus] = useState(DataOfPage.is_use)
     const [BtSubmit, setBtSubmit] = useState("")
+    const [DeletePassword, setDeletePassword] = useState("")
 
     const [ErrReport, setErrReport] = useState(false)
     const [historyOpen, setHistoryOpen] = useState(false)
     const [because, setBecause] = useState("")
+    const [StateConfirmDiscard, setStateConfirmDiscard] = useState(false)
 
     useEffect(() => {
         Ref.current.style.opacity = 1
         Ref.current.style.visibility = "visible"
     }, [])
+
+    useEffect(() => {
+        const overlay = Ref.current
+        const handleClick = (e) => {
+            if (e.target === overlay) tryClose()
+        }
+        overlay.addEventListener('click', handleClick)
+        return () => overlay.removeEventListener('click', handleClick)
+    }, [StateEdit, StateDelete])
 
     const CheckEdit = (value, key) => {
         const data = new Map([...DataEdit])
@@ -78,7 +91,7 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                 const dataJson = JSON.parse(newData)
                 if (dataJson.result === "pass") {
                     setData(dataJson.data[0])
-                    setStateEdit(0)
+                    setStateEdit(false)
                     ResetDataEdit()
 
                     Fetch(0, RowPresent)
@@ -129,22 +142,65 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
         setBecause("")
     }
 
+    const tryClose = () => {
+        if (StateEdit || StateDelete) {
+            setStateConfirmDiscard(true)
+        } else {
+            close()
+        }
+    }
+
+    const confirmDiscard = () => {
+        setStateConfirmDiscard(false)
+        setStateEdit(false)
+        setStateDelete(false)
+        ResetDataEdit()
+        setDeletePassword("")
+        if (Password.current) Password.current.value = ""
+        if (DeletePasswordRef.current) DeletePasswordRef.current.value = ""
+        close()
+    }
+
+    const SubmitDelete = async () => {
+        if (!DeletePassword) return
+        const JsonData = {
+            type: Type,
+            id_list: Data.id,
+            password: DeletePassword
+        }
+        const result = await clientMo.post("/api/doctor/data/delete", JsonData)
+        try {
+            const dataJson = JSON.parse(result)
+            if (dataJson.result === "pass") {
+                Fetch(0, RowPresent)
+                close()
+            } else if (dataJson.result === "password") {
+                DeletePasswordRef.current.setAttribute("placeholder", "รหัสผ่านไม่ถูกต้อง")
+                DeletePasswordRef.current.value = ""
+                setDeletePassword("")
+            } else session()
+        } catch (e) {
+            console.log(e)
+            session()
+        }
+    }
+
     return (
         <>
             <section className="manage-data-popup">
-                <a onClick={close} className="close">
-                    ปิด
-                </a>
                 <div className="head-form">
                     <div className="head-title-row">
-                        {!StateEdit && (
-                            <button className="btn-history-icon" onClick={() => setHistoryOpen(true)} title="ดูประวัติการแก้ไข">
-                                <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" /></svg>
+                        {!StateEdit && !StateDelete && (
+                            <button className="icon-btn edit" onClick={() => {
+                                setStateEdit(1)
+                                ResetDataEdit()
+                            }} title="แก้ไข">
+                                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                             </button>
                         )}
                         <div className="head-text">
                             <span>
-                                {!StateEdit ? "ข้อมูล" : "แก้ไข"}
+                                {StateEdit ? "แก้ไข" : StateDelete ? "ลบ" : "ข้อมูล"}
                                 {
                                     Type === "plant" ? "พืช" :
                                         Type === "pest" ? "โรคพืช / ศัตรูพืช" :
@@ -154,13 +210,19 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                                 }
                             </span>
                         </div>
+                        {!StateEdit && !StateDelete && (
+                            <div className="head-right-actions">
+                                <button className="icon-btn history" onClick={() => setHistoryOpen(true)} title="ดูประวัติการแก้ไข">
+                                    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                                </button>
+                                <button className="icon-btn delete" onClick={() => setStateDelete(true)} title="ลบข้อมูล">
+                                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                </button>
+                            </div>
+                        )}
                     </div>
                     {!StateEdit && (
                         <div className="manage-menu">
-                            <a className="edit" onClick={() => {
-                                setStateEdit(1)
-                                ResetDataEdit()
-                            }}>แก้ไข</a>
                             <a className="status-frame" onClick={() => ChangeStatusUSE(Status)} status={Status}>
                                 <div ref={StatusRef} className="status">
                                     <span>เปิด</span>
@@ -199,23 +261,50 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                 {/* <div className="detail" state={StateEdit ? "1" : "0"}>
                 
             </div> */}
-                {StateEdit ?
+                {StateEdit &&
                     <div className="bt-manage">
-
                         <div className="password">
                             <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" ref={Password} onChange={(e) => CheckEdit(e.target.value, "password")}></input>
-
                         </div>
                         <div className="bt">
                             <button onClick={() => {
-                                setStateEdit(0)
+                                setStateEdit(false)
                                 ResetDataEdit()
                             }} className="cancel">ยกเลิก</button>
                             <button onClick={Submit} className="submit" on={BtSubmit}>ยืนยัน</button>
                         </div>
                     </div>
-                    : <></>
                 }
+                {StateDelete &&
+                    <div className="bt-manage bt-delete-confirm">
+                        <div className="delete-warning">
+                            <span>ยืนยันการลบข้อมูลนี้?</span>
+                            <span className="delete-name">{Type === "pest" ? Data.pest_name : Data.name}</span>
+                        </div>
+                        <div className="password">
+                            <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" ref={DeletePasswordRef}
+                                onChange={(e) => setDeletePassword(e.target.value)}></input>
+                        </div>
+                        <div className="bt">
+                            <button onClick={() => {
+                                setStateDelete(false)
+                                setDeletePassword("")
+                            }} className="cancel">ยกเลิก</button>
+                            <button onClick={SubmitDelete} className="submit delete-btn" on={DeletePassword ? null : ""}>ยืนยันลบ</button>
+                        </div>
+                    </div>
+                }
+                {StateConfirmDiscard && (
+                    <div className="discard-overlay">
+                        <div className="discard-dialog">
+                            <span>ต้องการละทิ้งข้อมูลที่กรอก?</span>
+                            <div className="discard-bt">
+                                <button className="cancel" onClick={() => setStateConfirmDiscard(false)}>ยกเลิก</button>
+                                <button className="confirm" onClick={confirmDiscard}>ละทิ้ง</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </section>
             <Modal show={historyOpen} onHide={() => setHistoryOpen(false)} centered size="xl">
                 {historyOpen && (
@@ -262,7 +351,7 @@ const DetailPlant = ({ Data }) => {
                 </label>
             </div>
             <div className="row">
-                <label>
+                <label className="field-select">
                     <span className="important">จำนวนวันที่คาดว่าจะเก็บเกี่ยว</span>
                     <input readOnly defaultValue={Data.qty_harvest}></input>
                 </label>

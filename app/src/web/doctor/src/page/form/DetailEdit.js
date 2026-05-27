@@ -74,12 +74,8 @@ const DetailEdit = ({Ref , setRef , setDetailData , type , id_form , id_from_pla
         if(result) {
             const Data = JSON.parse(result)
             if(e) {
-                document.querySelector(".menu-edit .frame-menu a[select='']").removeAttribute("select")
-                // const prev = e.target.previousElementSibling
-                // const next = e.target.nextElementSibling
-                // if(prev) prev.style.borderBottomRightRadius = "10px";
-                // if(next) next.style.borderBottomLeftRadius = "10px";
-                // e.target.removeAttribute("style")
+                const prevSelected = document.querySelector(".menu-edit .frame-menu a[select='']")
+                if(prevSelected) prevSelected.removeAttribute("select")
                 e.target.setAttribute("select" , "")
             }
 
