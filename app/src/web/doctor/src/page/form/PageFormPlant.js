@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import AddGapModal from "./AddGapModal";
+import AddGapModal from "./formplant/AddGapModal";
 const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, LoadType, eleBody, setTextStatus }) => {
     // const [Body , setBody] = useState(<></>)
     const [Loading, setLoading] = useState(false)
@@ -523,9 +523,9 @@ const isDataIncomplete = (item) => {
     ];
 
     const hasEmptyField = requiredFields.some(val => val === null || val === undefined || val === "" || val === 0);
-    const hasNoChemicalOrFertilizer = (item.ctFer === 0 || item.ctChe === 0);
+    // const hasNoChemicalOrFertilizer = (item.ctFer === 0 || item.ctChe === 0);
 
-    return hasEmptyField || hasNoChemicalOrFertilizer;
+    return hasEmptyField;// || hasNoChemicalOrFertilizer//
 };
 
 const ManageList = ({ Data, session, fetch, count, setCount }) => {

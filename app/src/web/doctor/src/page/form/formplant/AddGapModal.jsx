@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { clientMo } from "../../../../../assets/js/moduleClient";
-import { DatePickerThai, DateSelect, Loading } from "../../../../../assets/js/module";
+import { clientMo } from "../../../../../../assets/js/moduleClient";
+import { DatePickerThai, DateSelect, Loading } from "../../../../../../assets/js/module";
 import { Stack } from "@mui/material";
-import RequestAPI from "../../../../../assets/js/requestAPI";
-import "../../../../farmer/src/content/Gaps/GapCardList.scss";
-import "./AddGapModal.scss";
+import RequestAPI from "../../../../../../assets/js/requestAPI";
+import "../../../../../farmer/src/content/Gaps/GapCardList.scss";
+import "../../../assets/style/page/form/AddGapModal.scss";
 
 const DEFAULT_IMG = "/plant_glow.jpg";
 
