@@ -698,7 +698,10 @@ const GapCardList = () => {
                 if (!formRaw || formRaw === "error auth" || formRaw === "close") continue;
                 const forms = JSON.parse(formRaw);
                 if (!Array.isArray(forms)) continue;
-                for (const gap of forms) allCards.push({ house, gap });
+                for (const gap of forms) {
+                    if (parseInt(gap.state_status) === 2) continue;
+                    allCards.push({ house, gap });
+                }
             }
             setCards(allCards);
         } catch (err) {
