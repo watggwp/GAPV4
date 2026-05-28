@@ -6,18 +6,18 @@ import { Modal } from "react-bootstrap";
 import { PageDataContext } from "../data/PageData";
 import "../../assets/style/page/PopupManage.scss";
 import "../../assets/style/page/PageGroup.scss";
- 
+
 const PageGroup = () => {
   const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageDataContext);
   const [groupData, setGroupData] = useState([]);
   const [groupMapping, setGroupMapping] = useState(new Map());
- 
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedToggleId, setSelectedToggleId] = useState(null);
   const [status, setStatus] = useState(null);
   const PasswordRef = useRef(null);
-  const [ stateOnBt, setStateOnBt ] = useState(true);
- 
+  const [stateOnBt, setStateOnBt] = useState(true);
+
   const [Open, setOpen] = useState(false);
   const [Text, setText] = useState("");
   const [Status, setStatusReport] = useState(null);
@@ -36,13 +36,13 @@ const PageGroup = () => {
     try {
       const response = await clientMo.post("/api/doctor/group/gets", { search: textSearch });
       const result = JSON.parse(response);
- 
+
       if (Array.isArray(result)) {
         setGroupData(result);
- 
+
         const initialMapping = new Map();
-        result.forEach((item , idx) => {
-          initialMapping.set(item.id , {...item , index : idx})
+        result.forEach((item, idx) => {
+          initialMapping.set(item.id, { ...item, index: idx })
         });
         setGroupMapping(initialMapping);
       } else {
@@ -52,11 +52,11 @@ const PageGroup = () => {
       console.error("Error fetching group data:", error);
     }
   }, [textSearch]);
- 
+
   useEffect(() => {
     fetchGroupData();
   }, [fetchGroupData]);
- 
+
   const handleEditClick = (item) => {
     setPopupDataManage({
       open: true,
@@ -64,20 +64,20 @@ const PageGroup = () => {
       metadata: { id: item.id },
     });
   };
- 
+
   const handleToggleClick = (id) => {
     setSelectedToggleId(id);
     setStatus(groupMapping.get(id)?.status ? 0 : 1);
     setShowConfirmModal(true);
   };
- 
+
   const handleToggleConfirm = async () => {
     const password = PasswordRef.current.value;
     if (!password) {
       alert("กรุณากรอกรหัสผ่าน");
       return;
     }
- 
+
     // รีเซ็ตค่า popup ทุกครั้งก่อนกด Submit
     setOpen(0);
     setText("");
@@ -89,11 +89,11 @@ const PageGroup = () => {
         status: status,
         password: password,
       });
- 
+
       const result = JSON.parse(response);
- 
-      switch(result.status) {
-        case 200 :
+
+      switch (result.status) {
+        case 200:
           fetchGroupData()
           // setGroupData((group) => {
           //   const { index } = groupMapping.get(selectedToggleId);
@@ -113,7 +113,7 @@ const PageGroup = () => {
           setText(`${status ? "เปิด" : "ปิด"}สถานะการจัดกลุ่มสำเร็จ`);
           setStatusReport(1);
           break;
-        default :
+        default:
           break;
       }
     } catch (error) {
@@ -123,7 +123,7 @@ const PageGroup = () => {
     setOpen(1);
     setShowConfirmModal(false);
   };
- 
+
   return (
     <div className="group-page">
       <div className="group-table-wrapper">
@@ -151,7 +151,7 @@ const PageGroup = () => {
                     {/* แก้ไข */}
                     <button className="btn-edit" title="แก้ไขข้อมูล" onClick={() => handleEditClick(item)}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                       </svg>
                       <span>แก้ไข</span>
                     </button>
@@ -161,28 +161,28 @@ const PageGroup = () => {
                       {item.status ? (
                         <>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                            <line x1="12" y1="2" x2="12" y2="12" />
                           </svg>
                           <span>เปิดใช้</span>
                         </>
                       ) : (
                         <>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                            <line x1="12" y1="2" x2="12" y2="12" />
                           </svg>
                           <span>ปิดใช้</span>
                         </>
                       )}
                     </button>
 
-                    <span className="btn-divider"></span>
+
 
                     {/* ประวัติ */}
                     <button className="btn-history" title="ดูประวัติ" onClick={() => handleHistoryClick(item)}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                       </svg>
                       <span className="btn-history-label">ประวัติ</span>
                     </button>
@@ -197,7 +197,7 @@ const PageGroup = () => {
           </tbody>
         </table>
       </div>
- 
+
       {showConfirmModal && (
         <div className="manage-overlay">
           <div className="manage-page">
@@ -215,7 +215,7 @@ const PageGroup = () => {
           </div>
         </div>
       )}
- 
+
       <Modal show={popupDataManage.open} onHide={() => setPopupDataManage((data) => ({ ...data, open: false }))} centered size="lg" scrollable>
         <ManageGroup fetchGroups={fetchGroupData} />
       </Modal>
@@ -237,6 +237,5 @@ const PageGroup = () => {
     </div>
   );
 };
- 
+
 export default PageGroup;
- 

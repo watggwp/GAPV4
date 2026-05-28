@@ -28,133 +28,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         if (apifunc.authCsurf("doctor", req, res)) res.redirect('/api/doctor/auth')
         else res.clearCookie(process.env.cookieName).send("")
     })
-    app.post('/api/doctor/formplant/insert', async (req, res) => {
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
 
-        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-            res.redirect('/api/logout')
-            return 0
-        }
-
-        let con = Database.createConnection(listDB)
-
-        apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
-            const data = req.body;
-            console.log("DOCTOR INSERT GAP BODY =>", data);
-            if (
-                !data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut
-            ) {
-                con.end();
-                return res.send("missing required fields");
-            }
-
-            const valueOrNull = (value) => {
-                return (value === undefined || value === "" || value === null) ? null : value;
-            };
-            const dateOrNull = (value) => {
-                if (value === undefined || value === "" || value === null) { return null; }
-                if (value.toString().indexOf("#") >= 0) { return null; }
-                const newDate = new Date(value);
-                if (newDate.toString() === "Invalid Date") { return null; }
-                return newDate;
-            };
-
-            con.query(`INSERT INTO formplant 
-                    ( 
-                        id, id_farm_house, name_plant, 
-                        generation, date_glow, date_plant,
-                        posi_w, posi_h,
-                        qty, area, unit, date_harvest, system_glow,
-                        water, water_flow,
-                        history, insect, qtyInsect,
-                        seft, state_status, date_success,
-                        expected_yield, default_yield
-                    ) VALUES (
-                        ?, ?, ?, 
-                        ?, ?, ?,
-                        ?, ?,
-                        ?, ?, ?, ?, ?,
-                        ?, ?,
-                        ?, ?, ?,
-                        ?, 0, "", ?, ?
-                    );
-                `, [
-                new Date().getTime(), data.id_farmhouse, data.name_plant,
-                valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
-                valueOrNull(data.posiW), valueOrNull(data.posiH),
-                valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
-                valueOrNull(data.water), valueOrNull(data.waterStep),
-                valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
-                valueOrNull(data.seft), null, null, valueOrNull(data.expectedYield), valueOrNull(data.defaultYield)
-            ], (err, insert) => {
-                if (err) {
-                    console.log("INSERT ERROR =>", err);
-                    con.end();
-                    return res.send("error");
-                }
-                con.end();
-                res.send("insert");
-            });
-        }).catch(err => {
-            console.log("AUTH ERROR =>", err);
-            con.end();
-            res.send("error auth");
-        });
-    });
-
-    app.post('/api/doctor/formplant/history', async (req, res) => {
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
-
-        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-            res.redirect('/api/logout')
-            return 0
-        }
-
-        let con = Database.createConnection(listDB)
-
-        apifunc.auth(con, username, password, res, "acc_doctor").then(async (result) => {
-            const QtyDate = await new Promise((resolve) => {
-                con.query(
-                    `SELECT qty_harvest FROM plant_list WHERE name = ?`,
-                    [req.body.name_plant_list],
-                    (err, result) => resolve(result)
-                );
-            });
-
-            const sqlQuery = `
-                SELECT 
-                    formplant.*, 
-                    GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
-                    GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
-                FROM formplant
-                LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
-                WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
-                GROUP BY formplant.id, formplant.generation
-                ORDER BY formplant.generation DESC
-            `;
-
-            const queryParams = [req.body.name_plant_list, req.body.id_farmhouse];
-
-            con.query(sqlQuery, queryParams, (err, result) => {
-                con.end();
-                if (!err) {
-                    res.send({
-                        FromHistory: result,
-                        qtyDate: QtyDate,
-                        insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : [],
-                        insect_generation: result.length > 0 && result[0]?.insect_generation ? result[0].insect_generation.split(',') : []
-                    });
-                } else {
-                    res.send("error auth");
-                }
-            });
-        }).catch(err => {
-            con.end();
-            res.send("error auth");
-        });
-    });
 
     // API: ดึงข้อมูลการแก้ไขฟอร์มการปลูกพืช
     app.post('/api/doctor/formplant/edit/select', async (req, res) => {
@@ -1631,7 +1505,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1675,7 +1549,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                   ORDER BY date_register DESC
                                   LIMIT 1
                               )
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1700,7 +1574,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1754,50 +1628,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         });
     });
 
-    app.post('/api/doctor/farmhouse/get/HouseList', async (req, res) => {
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
-
-        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-            res.redirect('/api/logout')
-            return 0
-        }
-
-        let con = Database.createConnection(listDB)
-        try {
-            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
-            if (result['result'] === "pass") {
-                const { id_farmer } = req.body;
-                con.query(
-                    `
-                    SELECT id_farm_house, name_house, img_house, location, status
-                    FROM housefarm
-                    WHERE link_user = ?
-                    `,
-                    [id_farmer],
-                    (err, resultQuery) => {
-                        con.end();
-                        if (!err) {
-                            if (resultQuery.length > 0) {
-                                const list = resultQuery.map(val => {
-                                    val.img_house = val.img_house ? val.img_house.toString() : "";
-                                    return val;
-                                });
-                                res.send(list);
-                            } else {
-                                res.send([]);
-                            }
-                        } else {
-                            res.send("error auth");
-                        }
-                    }
-                );
-            }
-        } catch (err) {
-            con.end();
-            res.send("error auth");
-        }
-    });
 
     app.post('/api/doctor/farmer/account/comfirm', async (req, res) => {
         let username = req.session.user_doctor
@@ -2292,7 +2122,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         WHERE id_table = ? OR link_user = ?
                     ) as farmer
                     WHERE message_user.uid_line_farmer = farmer.uid_line
-                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
                             and type = ""
                     ` , [req.body.id_table, req.body.link_user, result["data"].id_table_doctor],
                     (err, count) => {
@@ -2425,7 +2255,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             SELECT COUNT(*) as count_unread
                             FROM message_user
                             WHERE uid_line_farmer = ? 
-                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
+                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
                             ` , [req.body.uid_line, result['data']['id_table_doctor']],
                             (err, list_unread) => {
                                 resole(parseInt(list_unread[0].count_unread))
@@ -4988,6 +4818,81 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     })
 
+    app.post('/api/doctor/data/delete', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.body.password
+
+        if (username === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        try {
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            if (result['result'] === "pass") {
+                const data_id = req.body.id_list
+                const type_request = req.body.type
+                const From = (
+                    type_request == "plant" ? "plant_list" :
+                        type_request == "fertilizer" ? "fertilizer_list" :
+                            type_request == "chemical" ? "chemical_list" :
+                                type_request == "pest" ? "pests" :
+                                    type_request == "source" ? "source_list" : ""
+                )
+                const columnID = type_request == "pest" ? "pest_id" : "id"
+
+                if (!From || !data_id) {
+                    con.end()
+                    res.send(JSON.stringify({ result: "error" }))
+                    return
+                }
+
+                try {
+                    const oldData = await new Promise((resolve) => {
+                        con.query(
+                            `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                            [data_id], (err, rows) => {
+                                resolve(err ? null : (rows[0] || null))
+                            }
+                        )
+                    })
+
+                    await new Promise((resolve, reject) => {
+                        con.query(
+                            `DELETE FROM ${From} WHERE ${columnID} = ?`,
+                            [data_id], (err) => {
+                                if (err) reject(err)
+                                else resolve()
+                            }
+                        )
+                    })
+
+                    const editorId = result['data'].id_doctor
+                    const editorName = result['data'].fullname_doctor
+                    con.query(
+                        'INSERT INTO log_data (data_id, data_type, action_type, editor_id, editor_name, before_data, after_data) VALUES (?, ?, "delete", ?, ?, ?, ?)',
+                        [data_id, type_request, editorId, editorName, JSON.stringify(oldData), null],
+                        () => {
+                            con.end()
+                            res.send(JSON.stringify({ result: "pass" }))
+                        }
+                    )
+                } catch (err) {
+                    console.log(err)
+                    con.end()
+                    res.send(JSON.stringify({ result: "error" }))
+                }
+            }
+        } catch (err) {
+            con.end()
+            if (err == "not pass") {
+                res.send(JSON.stringify({ result: "password" }))
+            }
+        }
+    })
+
     app.post('/api/doctor/data/history', async (req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
@@ -5057,7 +4962,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         `
                         SELECT COUNT(id) as count
                         FROM notify_doctor
-                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 
+                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0 
                                 AND station = ?
                         ` , [result.data.id_table_doctor, result.data.station_doctor],
                         (err, COUNT) => {
@@ -5573,22 +5478,16 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      p.name_plant, p.state_status, p.expected_yield,
-                      (SELECT report_text FROM report_detail WHERE id_plant = p.id AND is_read = 0 LIMIT 1) as disease
+                      fp.name_plant, fp.state_status, fp.expected_yield,
+                      (SELECT report_text FROM report_detail WHERE id_plant = fp.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
-                    LEFT JOIN (
-                      SELECT id_farm_house, id, name_plant, state_status, expected_yield
-                      FROM formplant 
-                      WHERE (id_farm_house, id) IN (
-                        SELECT id_farm_house, MAX(id) FROM formplant GROUP BY id_farm_house
-                      )
-                    ) p ON h.id_farm_house = p.id_farm_house
-                    WHERE h.location IS NOT NULL AND f.station = ?
+                    INNER JOIN formplant fp ON h.id_farm_house = fp.id_farm_house
+                    WHERE h.location IS NOT NULL AND f.station = ? AND fp.state_status IN (0, 1)
                 `;
                 let params = [auth['data'].station_doctor];
                 if (plant_type) {
-                    query += " AND p.name_plant = ?";
+                    query += " AND fp.name_plant = ?";
                     params.push(plant_type);
                 }
 
@@ -5599,7 +5498,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         return res.status(500).send("Database error");
                     }
 
-                    let filtered = result.filter(row => {
+                    // Group by greenhouse
+                    const grouped = {};
+                    result.forEach(row => {
                         let pass = true;
                         if (yield_range) {
                             let y = row.expected_yield || 0;
@@ -5612,18 +5513,184 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             if (disease_status === 'none' && hasDisease) pass = false;
                             if (disease_status === 'found' && !hasDisease) pass = false;
                         }
-                        return pass;
-                    }).map(row => ({
-                        id: row.id_farm_house,
-                        position: [row.lat, row.lng],
-                        status: row.disease ? 'red' : 'green',
-                        plant: row.name_plant || '-',
-                        name: row.name_house,
-                        disease: row.disease || '-',
-                        amount: row.expected_yield || 0
+                        if (!pass) return;
+
+                        if (!grouped[row.id_farm_house]) {
+                            grouped[row.id_farm_house] = {
+                                id: row.id_farm_house,
+                                position: [row.lat, row.lng],
+                                name: row.name_house,
+                                plants: [],
+                                hasDisease: false,
+                                totalAmount: 0
+                            };
+                        }
+                        const g = grouped[row.id_farm_house];
+                        g.plants.push({
+                            name: row.name_plant || '-',
+                            disease: row.disease || '-',
+                            amount: row.expected_yield || 0,
+                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต'
+                        });
+                        if (row.disease) g.hasDisease = true;
+                        g.totalAmount += (row.expected_yield || 0);
+                    });
+
+                    const pins = Object.values(grouped).map(g => ({
+                        ...g,
+                        status: g.hasDisease ? 'red' : 'green'
                     }));
 
-                    res.json(filtered);
+                    res.json(pins);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
+    // === Dashboard: แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก ===
+    app.post('/api/doctor/dashboard/overdue-plots', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+
+                const query = `
+                    SELECT 
+                        fp.id AS formplant_id,
+                        hf.name_house,
+                        fp.name_plant,
+                        s.title AS schedule_title,
+                        s.category,
+                        s.age_plant,
+                        fp.date_plant,
+                        DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) AS due_date,
+                        DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    INNER JOIN plant_list pl ON fp.name_plant = pl.name AND pl.is_use = 1
+                    INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) < CURDATE()
+                        AND (
+                            (s.category = 1 AND NOT EXISTS (
+                                SELECT 1 FROM formfertilizer ff 
+                                WHERE ff.id_plant = fp.id 
+                                AND ABS(DATEDIFF(ff.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                            OR
+                            (s.category = 2 AND NOT EXISTS (
+                                SELECT 1 FROM formchemical fc 
+                                WHERE fc.id_plant = fp.id 
+                                AND ABS(DATEDIFF(fc.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            ))
+                        )
+                    GROUP BY fp.id, s.id
+                    ORDER BY overdue_days DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard overdue-plots error:', err);
+                        return res.json([]);
+                    }
+
+                    const plots = result.map(row => ({
+                        id: row.formplant_id,
+                        name: row.name_house || '-',
+                        type: row.name_plant || '-',
+                        schedule_title: row.schedule_title || '-',
+                        category: row.category, // 1=ปุ๋ย, 2=สารเคมี
+                        overdue: row.overdue_days || 0,
+                    }));
+
+                    res.json(plots);
+                });
+            }
+        } catch (err) {
+            con.end();
+            res.status(401).send("Unauthorized");
+        }
+    });
+
+    // === Dashboard: ประมาณการผลผลิต (รวมจากแต่ละใบ GAP ตามชนิดพืช + เดือน/ปีเก็บเกี่ยว) ===
+    app.post('/api/doctor/dashboard/production', async (req, res) => {
+        let username = req.session.user_doctor;
+        let password = req.session.pass_doctor;
+        if (!username || !password) { return res.status(401).send("Unauthorized"); }
+
+        let con = Database.createConnection(listDB);
+        try {
+            const auth = await apifunc.auth(con, username, password, res, "acc_doctor");
+            if (auth['result'] === "pass") {
+                const station = auth['data'].station_doctor;
+                const { month, year } = req.body; // month: 0-indexed, year: พ.ศ.
+
+                // แปลง พ.ศ. เป็น ค.ศ.
+                const yearCE = year ? year - 543 : new Date().getFullYear();
+                // month 0-indexed → 1-indexed สำหรับ SQL
+                const monthSQL = month !== undefined && month !== null ? month + 1 : (new Date().getMonth() + 1);
+
+                const query = `
+                    SELECT 
+                        fp.name_plant AS type,
+                        SUM(IFNULL(fp.expected_yield, 0)) AS amount,
+                        COUNT(fp.id) AS plot_count
+                    FROM formplant fp
+                    INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+                    INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
+                    WHERE 
+                        af.station = ?
+                        AND (fp.state_status = 0 OR fp.state_status = 1)
+                        AND MONTH(fp.date_harvest) = ?
+                        AND YEAR(fp.date_harvest) = ?
+                    GROUP BY fp.name_plant
+                    ORDER BY amount DESC
+                    LIMIT 20
+                `;
+
+                con.query(query, [station, monthSQL, yearCE], (err, result) => {
+                    con.end();
+                    if (err) {
+                        console.log('Dashboard production error:', err);
+                        return res.json([]);
+                    }
+
+                    // หา max เพื่อใช้ทำ bar chart
+                    const maxAmount = result.length > 0
+                        ? Math.max(...result.map(r => Number(r.amount) || 0))
+                        : 1;
+
+                    // สีสำหรับแต่ละรายการ
+                    const colors = [
+                        '#C8863A', '#BFA04F', '#7EAA4F', '#3C9E6E', '#4FB8C7',
+                        '#8E6BBF', '#D4694A', '#5BA58B', '#C75B8E', '#6B8EC7',
+                        '#A4B84D', '#D99B3B', '#7ABFB0', '#C46CA3', '#6FA0D6',
+                        '#B5A33D', '#D47A5E', '#59B389', '#C287D1', '#7DB5C9'
+                    ];
+
+                    const production = result.map((row, idx) => ({
+                        id: idx + 1,
+                        type: row.type || '-',
+                        amount: Number(row.amount) || 0,
+                        max: maxAmount,
+                        plot_count: row.plot_count || 0,
+                        color: colors[idx % colors.length]
+                    }));
+
+                    res.json(production);
                 });
             }
         } catch (err) {

@@ -95,6 +95,7 @@ module.exports = function appConfig(username, password, hostServer) {
     // if(mode != process.env.BUILD) reactServ(app)
 
     // set session
+    const isProduction = mode == process.env.BUILD
     const sessionMiddleware = sessions({
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
@@ -234,7 +235,7 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use(express.static('build/farmer'))
 
     // services
-    ScheduleCorn(Pool)
+    ScheduleCorn(Pool, io)
     callServices(app, Pool)
 
     // router api url

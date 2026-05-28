@@ -20,7 +20,7 @@ const apifunc = {
 
         const ORDER = roleAuth == "admin" ? "" : roleAuth == "acc_doctor" ? "ORDER BY status_delete ASC" : "";
         const ROLE = roleAuth == "admin" ? "" : roleAuth == "acc_doctor" ? (
-          role == "doctor" ? "AND doctor_role = 1" : role == "analyst" ? "AND analyst_role = 1" : role == "consultant" ? "AND consultant_role = 1" : ""
+          role == "doctor" ? "AND doctor_role = 1" : role == "analyst" ? "AND analyst_role = 1" : role == "consultant" ? "AND consultant_role = 1" : role == "protection" ? "AND protection_role = 1" : ""
         ) : "";
 
         connectDB.query(
