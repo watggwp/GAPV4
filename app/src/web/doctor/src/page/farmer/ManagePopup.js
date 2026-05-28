@@ -722,8 +722,8 @@ const ManagePopup = ({setPopup , RefPop , resultPage = {
                     </div>
                 : <></>
             }
-            <PopupDom Ref={PopRefConvert} Body={PopupConvert} zIndex={2}/>
-            <PopupDom Ref={RefPopCancel} Body={PopupCancel} zIndex={2}/>
+            <PopupDom Ref={PopRefConvert} Body={PopupConvert} zIndex={1001}/>
+            <PopupDom Ref={RefPopCancel} Body={PopupCancel} zIndex={1001}/>
             <ReportAction Open={OpenReport} setOpen={setOpen}
                             Status={StatusReport} setStatus={setStatus}
                             Text={TextReport} setText={setText}

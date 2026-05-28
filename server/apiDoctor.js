@@ -128,7 +128,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     }
 
                     const data = req.body;
-                    if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1) {
+                    if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                         con.query(`
                         INSERT INTO editform 
                             (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
@@ -160,12 +160,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         const current = data.dataChange[subject]
 
                                         insertDetailsEdit.push("(? , ? , ? , ?)")
-                                        insertDetailsEditParams.push([idEdit, subject, prev, data.dataChange[subject]])
+                                        insertDetailsEditParams.push([idEdit, subject, prev ?? "", current ?? ""])
 
                                         edits_content.push({
                                             name: RoyalGapEnv.fields[subject],
-                                            prev: prev,
-                                            current: current
+                                            prev: prev ?? "",
+                                            current: current ?? ""
                                         })
                                     }
 
@@ -2458,6 +2458,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT formplant.id , formplant.state_status , formplant.name_plant , formplant.date_plant ,
                         formplant.system_glow , formplant.insect , formplant.generation , formplant.qty , formplant.date_harvest ,
+                        formplant.date_glow , formplant.posi_w , formplant.posi_h , formplant.area , formplant.unit , formplant.water , formplant.water_flow , formplant.expected_yield , formplant.default_yield ,
                             (
                                 SELECT COUNT(id)
                                 FROM formfertilizer

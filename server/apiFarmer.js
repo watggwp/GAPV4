@@ -2690,7 +2690,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                                 for (const subject in change) {
                                     insertData.push(
-                                        [insertIdEdit, subject, factorData[subject], change[subject]]
+                                        [insertIdEdit, subject, factorData[subject] ?? "", change[subject] ?? ""]
                                     )
 
                                     queryUpdates.push(`${subject} = ?`)

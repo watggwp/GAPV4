@@ -304,118 +304,118 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
                             <path d="M200 71L136.36 134.64" stroke="#22C7A9" strokeWidth="35" strokeLinecap="round" />
                         </svg>
                     </a>
-            </div>
-            <div className="content-option">
-                <div className="field-option">
-                    {!TypeSelectMenu ?
-                        <>
-                            <div className="row">
-                                <input onChange={(e) => searchList(e, "textInput")} type="search" ref={SearchInput} placeholder="รหัสการเก็บเกี่ยว/รหัสแบบฟอร์ม" defaultValue={DataProcess.get("textInput")}></input>
-                            </div>
-                            <div className="row">
-                                <label className="field-select">
-                                    <span>ชนิดพืช :</span>
-                                    <select onChange={(e) => searchList(e, "typePlant")} defaultValue={DataProcess.get("typePlant")} className="width-100" ref={TypePlant}>
-                                        <option value={""}>ทั้งหมด</option>
-                                        {DataPlantList.map((data, key) => <option key={key} value={data.name}>{`${data.name} ${data.count}`}</option>
-                                        )}
-                                    </select>
-                                </label>
-                                <label className="field-select">
-                                    <span>สถานะแบบฟอร์ม :</span>
-                                    <select onChange={(e) => searchList(e, "statusForm")} defaultValue={DataProcess.get("statusForm")} className="width-100" ref={StatusForm}>
-                                        <option value={""}>ทั้งหมด</option>
-                                        <option value={0}>กำลังปลูก</option>
-                                        <option value={1}>ตรวจสอบผลผลิต</option>
-                                        <option value={2}>เก็บเกี่ยวแล้ว</option>
-                                    </select>
-                                </label>
-                            </div>
-                            <div className="row">
-                                <label className="field-select">
-                                    <span>สถานะผู้บันทึก :</span>
-                                    <select onChange={(e) => searchList(e, "statusFarmer")} defaultValue={DataProcess.get("statusFarmer")} className="width-100" ref={StatusFarmer}>
-                                        <option value={""}>ทั้งหมด</option>
-                                        <option value={1}>ตรวจสอบแล้ว</option>
-                                        <option value={0}>ยังไม่ตรวจสอบ</option>
-                                    </select>
-                                </label>
-                                <label className="field-select">
-                                    <span>ประเภทช่วงเวลา :</span>
-                                    <select onChange={(e) => searchList(e, "typeDate")} defaultValue={DataProcess.get("typeDate")} className="width-100" ref={TypeDate}>
-                                        <option value={""}>ทั้งหมด</option>
-                                        <option value={0}>วันที่เพาะปลูก</option>
-                                        <option value={1}>วันที่เก็บเกี่ยวผลผลิต</option>
-                                    </select>
-                                </label>
-                            </div>
-                            {/* select date */}
-                            {ShowDate ?
+                </div>
+                <div className="content-option">
+                    <div className="field-option">
+                        {!TypeSelectMenu ?
+                            <>
                                 <div className="row">
-                                    <div className="field-select">
-                                        <span>เลือกช่วงเวลา :</span>
-                                        <div>
-                                            <select value={defaultStartMount} ref={StartMount} onChange={ManageDateSelect}>
-                                                {Mount.map((val, index) => {
-                                                    if (index === 0) return <option disabled key={index} value={""}>{val}</option>;
-                                                    else {
-                                                        if (index <= OffsetMountStart) return <option className="on" key={index} value={(index >= 10) ? index : `0${index}`}>{val}</option>;
-                                                        else return <option key={index} disabled value={val}>{val}</option>;
-                                                    }
-                                                })}
-                                            </select>
-                                            <select value={defaultStartYear} ref={StartYear} onChange={ManageDateSelect}>
-                                                <option disabled value={""}>เลือกปี</option>
-                                                {Year.map((val, index) => (
-                                                    <option key={index} value={val - 543}>{val}</option>)
-                                                )}
-                                            </select>
-                                            ถึง
-                                            <select value={defaultEndMount} ref={EndMount} disabled={DataProcess.get("EndDate") ? false : true} onChange={ManageDateSelect}>
-                                                {Mount.map((val, index) => {
-                                                    if (index === 0) return <option disabled key={index} value={""}>{val}</option>;
-                                                    else {
-                                                        if (OffsetMountEnd[0] <= index && index <= OffsetMountEnd[1])
-                                                            return <option className="on" key={index} value={(index >= 10) ? index : `0${index}`}>{val}</option>;
-                                                        else return <option key={index} disabled value={val}>{val}</option>;
-                                                    }
-                                                })}
-                                            </select>
-                                            <select value={defaultEndYear} ref={EndYear} disabled={DataProcess.get("EndDate") ? false : true} onChange={ManageDateSelect}>
-                                                <option disabled value={""}>เลือกปี</option>
-                                                {YearContinue.map((val, index) => (
-                                                    <option key={index} value={val - 543}>{val}</option>)
-                                                )}
-                                            </select>
+                                    <input onChange={(e) => searchList(e, "textInput")} type="search" ref={SearchInput} placeholder="รหัสการเก็บเกี่ยว/รหัสแบบฟอร์ม" defaultValue={DataProcess.get("textInput")}></input>
+                                </div>
+                                <div className="row">
+                                    <label className="field-select">
+                                        <span>ชนิดพืช :</span>
+                                        <select onChange={(e) => searchList(e, "typePlant")} defaultValue={DataProcess.get("typePlant")} className="width-100" ref={TypePlant}>
+                                            <option value={""}>ทั้งหมด</option>
+                                            {DataPlantList.map((data, key) => <option key={key} value={data.name}>{`${data.name} ${data.count}`}</option>
+                                            )}
+                                        </select>
+                                    </label>
+                                    <label className="field-select">
+                                        <span>สถานะแบบฟอร์ม :</span>
+                                        <select onChange={(e) => searchList(e, "statusForm")} defaultValue={DataProcess.get("statusForm")} className="width-100" ref={StatusForm}>
+                                            <option value={""}>ทั้งหมด</option>
+                                            <option value={0}>กำลังปลูก</option>
+                                            <option value={1}>ตรวจสอบผลผลิต</option>
+                                            <option value={2}>เก็บเกี่ยวแล้ว</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div className="row">
+                                    <label className="field-select">
+                                        <span>สถานะผู้บันทึก :</span>
+                                        <select onChange={(e) => searchList(e, "statusFarmer")} defaultValue={DataProcess.get("statusFarmer")} className="width-100" ref={StatusFarmer}>
+                                            <option value={""}>ทั้งหมด</option>
+                                            <option value={1}>ตรวจสอบแล้ว</option>
+                                            <option value={0}>ยังไม่ตรวจสอบ</option>
+                                        </select>
+                                    </label>
+                                    <label className="field-select">
+                                        <span>ประเภทช่วงเวลา :</span>
+                                        <select onChange={(e) => searchList(e, "typeDate")} defaultValue={DataProcess.get("typeDate")} className="width-100" ref={TypeDate}>
+                                            <option value={""}>ทั้งหมด</option>
+                                            <option value={0}>วันที่เพาะปลูก</option>
+                                            <option value={1}>วันที่เก็บเกี่ยวผลผลิต</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                {/* select date */}
+                                {ShowDate ?
+                                    <div className="row">
+                                        <div className="field-select">
+                                            <span>เลือกช่วงเวลา :</span>
+                                            <div>
+                                                <select value={defaultStartMount} ref={StartMount} onChange={ManageDateSelect}>
+                                                    {Mount.map((val, index) => {
+                                                        if (index === 0) return <option disabled key={index} value={""}>{val}</option>;
+                                                        else {
+                                                            if (index <= OffsetMountStart) return <option className="on" key={index} value={(index >= 10) ? index : `0${index}`}>{val}</option>;
+                                                            else return <option key={index} disabled value={val}>{val}</option>;
+                                                        }
+                                                    })}
+                                                </select>
+                                                <select value={defaultStartYear} ref={StartYear} onChange={ManageDateSelect}>
+                                                    <option disabled value={""}>เลือกปี</option>
+                                                    {Year.map((val, index) => (
+                                                        <option key={index} value={val - 543}>{val}</option>)
+                                                    )}
+                                                </select>
+                                                ถึง
+                                                <select value={defaultEndMount} ref={EndMount} disabled={DataProcess.get("EndDate") ? false : true} onChange={ManageDateSelect}>
+                                                    {Mount.map((val, index) => {
+                                                        if (index === 0) return <option disabled key={index} value={""}>{val}</option>;
+                                                        else {
+                                                            if (OffsetMountEnd[0] <= index && index <= OffsetMountEnd[1])
+                                                                return <option className="on" key={index} value={(index >= 10) ? index : `0${index}`}>{val}</option>;
+                                                            else return <option key={index} disabled value={val}>{val}</option>;
+                                                        }
+                                                    })}
+                                                </select>
+                                                <select value={defaultEndYear} ref={EndYear} disabled={DataProcess.get("EndDate") ? false : true} onChange={ManageDateSelect}>
+                                                    <option disabled value={""}>เลือกปี</option>
+                                                    {YearContinue.map((val, index) => (
+                                                        <option key={index} value={val - 543}>{val}</option>)
+                                                    )}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
+                                    : <></>}
+                            </>
+                            :
+                            <div className="export">
+                                <div className="head">
+                                    <span>ส่งออกข้อมูล</span>
+                                    <div className="quesion_mask">
+                                        <div className="desciption">ส่งออกข้อมูลที่มีเงื่อนไขตรงกับการค้นหา <br></br> หากไม่กำหนดเงื่อนไข จะส่งออกข้อมูลทั้งหมด <br></br> ข้อมูลเฉพาะภายในศูนย์เท่านั้น</div>
+                                        <svg viewBox="0 0 93.936 93.936">
+                                            <g>
+                                                <path d="M80.179,13.758c-18.342-18.342-48.08-18.342-66.422,0c-18.342,18.341-18.342,48.08,0,66.421   c18.342,18.342,48.08,18.342,66.422,0C98.521,61.837,98.521,32.099,80.179,13.758z M44.144,83.117   c-4.057,0-7.001-3.071-7.001-7.305c0-4.291,2.987-7.404,7.102-7.404c4.123,0,7.001,3.044,7.001,7.404   C51.246,80.113,48.326,83.117,44.144,83.117z M54.73,44.921c-4.15,4.905-5.796,9.117-5.503,14.088l0.097,2.495   c0.011,0.062,0.017,0.125,0.017,0.188c0,0.58-0.47,1.051-1.05,1.051c-0.004-0.001-0.008-0.001-0.012,0h-7.867   c-0.549,0-1.005-0.423-1.047-0.97l-0.202-2.623c-0.676-6.082,1.508-12.218,6.494-18.202c4.319-5.087,6.816-8.865,6.816-13.145   c0-4.829-3.036-7.536-8.548-7.624c-3.403,0-7.242,1.171-9.534,2.913c-0.264,0.201-0.607,0.264-0.925,0.173   s-0.575-0.327-0.693-0.636l-2.42-6.354c-0.169-0.442-0.02-0.943,0.364-1.224c3.538-2.573,9.441-4.235,15.041-4.235   c12.36,0,17.894,7.975,17.894,15.877C63.652,33.765,59.785,38.919,54.73,44.921z" />
+                                            </g>
+                                        </svg>
+                                    </div>
                                 </div>
-                                : <></>}
-                        </>
-                        :
-                        <div className="export">
-                            <div className="head">
-                                <span>ส่งออกข้อมูล</span>
-                                <div className="quesion_mask">
-                                    <div className="desciption">ส่งออกข้อมูลที่มีเงื่อนไขตรงกับการค้นหา <br></br> หากไม่กำหนดเงื่อนไข จะส่งออกข้อมูลทั้งหมด <br></br> ข้อมูลเฉพาะภายในศูนย์เท่านั้น</div>
-                                    <svg viewBox="0 0 93.936 93.936">
-                                        <g>
-                                            <path d="M80.179,13.758c-18.342-18.342-48.08-18.342-66.422,0c-18.342,18.341-18.342,48.08,0,66.421   c18.342,18.342,48.08,18.342,66.422,0C98.521,61.837,98.521,32.099,80.179,13.758z M44.144,83.117   c-4.057,0-7.001-3.071-7.001-7.305c0-4.291,2.987-7.404,7.102-7.404c4.123,0,7.001,3.044,7.001,7.404   C51.246,80.113,48.326,83.117,44.144,83.117z M54.73,44.921c-4.15,4.905-5.796,9.117-5.503,14.088l0.097,2.495   c0.011,0.062,0.017,0.125,0.017,0.188c0,0.58-0.47,1.051-1.05,1.051c-0.004-0.001-0.008-0.001-0.012,0h-7.867   c-0.549,0-1.005-0.423-1.047-0.97l-0.202-2.623c-0.676-6.082,1.508-12.218,6.494-18.202c4.319-5.087,6.816-8.865,6.816-13.145   c0-4.829-3.036-7.536-8.548-7.624c-3.403,0-7.242,1.171-9.534,2.913c-0.264,0.201-0.607,0.264-0.925,0.173   s-0.575-0.327-0.693-0.636l-2.42-6.354c-0.169-0.442-0.02-0.943,0.364-1.224c3.538-2.573,9.441-4.235,15.041-4.235   c12.36,0,17.894,7.975,17.894,15.877C63.652,33.765,59.785,38.919,54.73,44.921z" />
-                                        </g>
-                                    </svg>
-                                </div>
-                            </div>
-                            <a className="pdf" title="ส่งออก PDF" onClick={() => SelectMenuExport("pdf", exportMode)}>PDF</a>
-                            <a className="excel" title="ส่งออก EXCEL" onClick={() => SelectMenuExport("excel", exportMode)}>EXCEL</a>
-                            {/* <select value={exportMode} onChange={(e) => setExportMode(e.target.value)}>
+                                <a className="pdf" title="ส่งออก PDF" onClick={() => SelectMenuExport("pdf", exportMode)}>PDF</a>
+                                <a className="excel" title="ส่งออก EXCEL" onClick={() => SelectMenuExport("excel", exportMode)}>EXCEL</a>
+                                {/* <select value={exportMode} onChange={(e) => setExportMode(e.target.value)}>
                     <option value="show">ตามที่แสดง</option>
                     <option value="all">ทั้งหมดจากค้นหา</option>
                 </select> */}
-                        </div>}
+                            </div>}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div className="data-list-content">
+            <div className="data-list-content">
                 <List session={session} socket={socket} DataFillter={DataProcess} setDataPlant={setDataPlantList} setDataId={setDataIdPlant} />
             </div>
 
@@ -506,6 +506,28 @@ const List = ({ session, socket, DataFillter, setDataId }) => {
         <ManageList Data={Data} session={session} fetch={FetchList} count={Count} setCount={setCount} />)
 }
 
+const isDataIncomplete = (item) => {
+    const requiredFields = [
+        item.name_plant,
+        item.generation,
+        item.date_plant,
+        item.posi_w,
+        item.posi_h,
+        item.qty,
+        item.area,
+        item.unit,
+        item.date_harvest,
+        item.system_glow,
+        item.water,
+        item.water_flow
+    ];
+
+    const hasEmptyField = requiredFields.some(val => val === null || val === undefined || val === "" || val === 0);
+    const hasNoChemicalOrFertilizer = (item.ctFer === 0 || item.ctChe === 0);
+
+    return hasEmptyField || hasNoChemicalOrFertilizer;
+};
+
 const ManageList = ({ Data, session, fetch, count, setCount }) => {
     const [Body, setBody] = useState(<></>)
     const RefPop = useRef()
@@ -549,25 +571,35 @@ const ManageList = ({ Data, session, fetch, count, setCount }) => {
             const body = Data.map((Data, keyRow) => {
                 const Ref = refData[keyRow]
                 const DateHarvestDiff = ((new Date(Data.date_harvest) - new Date()) / (24 * 60 * 60 * 1000)).toString().split(".")[0]
+                const isIncomplete = isDataIncomplete(Data);
+                const showHarvest = Data.state_status == 0 && (DateHarvestDiff <= 15 || DateHarvestDiff < 0);
+
                 return (
                     <a key={keyRow} className="list-some-data-on-page" title="เปิดแบบฟอร์ม"
                         ref={Ref} status={Data.state_status} onClick={() => showPopup(Data.id, Ref)}
                     >
-                        {Data.state_status == 0 && (DateHarvestDiff <= 15 || DateHarvestDiff < 0) ?
-                            <div className="report-list">
-                                <div className="text">
-                                    {
-                                        (DateHarvestDiff < 0) ?
-                                            `เลยกำหนดเก็บเกี่ยว ${Math.abs(DateHarvestDiff)} วัน` :
-                                            (DateHarvestDiff == 0) ?
-                                                "ครบกำหนดเก็บเกี่ยว" :
-                                                (DateHarvestDiff <= 15) ?
-                                                    `เก็บเกี่ยวในอีก ${DateHarvestDiff} วัน`
-                                                    : <></>
-                                    }
-                                </div>
-                            </div> : <></>
-                        }
+                        {(isIncomplete || showHarvest) ? (
+                            <div className="report-container">
+                                {isIncomplete && (
+                                    <div className="report-list incomplete">
+                                        <div className="text">ข้อมูลพื้นฐานยังไม่ครบ</div>
+                                    </div>
+                                )}
+                                {showHarvest && (
+                                    <div className="report-list">
+                                        <div className="text">
+                                            {
+                                                (DateHarvestDiff < 0) ?
+                                                    `เลยกำหนดเก็บเกี่ยว ${Math.abs(DateHarvestDiff)} วัน` :
+                                                    (DateHarvestDiff == 0) ?
+                                                        "ครบกำหนดเก็บเกี่ยว" :
+                                                        `เก็บเกี่ยวในอีก ${DateHarvestDiff} วัน`
+                                            }
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
                         <div className="frame-data-list">
                             <div className="inrow">
                                 <div className="column">
@@ -647,7 +679,7 @@ const ManageList = ({ Data, session, fetch, count, setCount }) => {
                 <LoadOtherDom Fetch={fetch} count={count} setCount={setCount} Limit={10}
                     style={{ backgroundColor: "rgb(24 157 133)" }} />
                 <div id="popup-detail-form">
-                    <PopupDom Ref={RefPop} Body={PopBody} zIndex={2} />
+                    <PopupDom Ref={RefPop} Body={PopBody} zIndex={1001} />
                 </div>
             </div>
         </>
