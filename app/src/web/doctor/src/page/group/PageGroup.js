@@ -132,8 +132,8 @@ const PageGroup = () => {
             <tr>
               <th>ลำดับ</th>
               <th>โรคพืช / ศัตรูพืช</th>
-              <th>สารเคมี</th>
               <th>พืช</th>
+              <th>สารเคมี</th>
               <th>วันที่ปลอดภัย</th>
               <th>จัดการข้อมูล</th>
             </tr>
@@ -144,8 +144,8 @@ const PageGroup = () => {
                 <tr key={item.id}>
                   <td className="td-center" data-label="ลำดับ">{index + 1}</td>
                   <td data-label="โรคพืช / ศัตรูพืช">{item.pest_name}</td>
-                  <td data-label="สารเคมี">{item.chemical_name}</td>
                   <td data-label="พืช">{item.plant_name}</td>
+                  <td data-label="สารเคมี">{item.chemical_name}</td>
                   <td className="td-center" data-label="วันที่ปลอดภัย">{item.safe_days}</td>
                   <td className="td-actions">
                     {/* แก้ไข */}
