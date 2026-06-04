@@ -1505,7 +1505,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1549,7 +1549,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                   ORDER BY date_register DESC
                                   LIMIT 1
                               )
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -1574,7 +1574,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     (
                         SELECT date FROM message_user
                         WHERE message_user.uid_line_farmer = acc_farmer.uid_line 
-                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', '$."?"'), 0) = 0
+                              AND COALESCE(JSON_CONTAINS(id_read, '"read"', CONCAT('$."', ?, '"')), 0) = 0
                               AND type = ""
                         ORDER BY message_user.date DESC
                         LIMIT 1
@@ -2122,7 +2122,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         WHERE id_table = ? OR link_user = ?
                     ) as farmer
                     WHERE message_user.uid_line_farmer = farmer.uid_line
-                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                            and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
                             and type = ""
                     ` , [req.body.id_table, req.body.link_user, result["data"].id_table_doctor],
                     (err, count) => {
@@ -2156,7 +2156,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 con.query(
                     `
                     UPDATE message_user
-                    SET id_read = JSON_SET(id_read, '$."?"', 'read')
+                    SET id_read = JSON_SET(id_read, CONCAT('$."', ?, '"'), 'read')
                     WHERE uid_line_farmer = ?
                     ` , [result["data"].id_table_doctor, req.body.uid_line],
                     (err, read) => {
@@ -2193,7 +2193,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.query(
                         `
                         INSERT INTO message_user
-                        ( message , uid_line_farmer , id_read , type , type_message ) VALUES ( ? , ? , '{"?" : "read"}' , ? , "text")
+                        ( message , uid_line_farmer , id_read , type , type_message ) VALUES ( ? , ? , JSON_OBJECT(?, 'read') , ? , "text")
                         ` , [TextSend, req.body.uid_line, result["data"].id_table_doctor, result["data"].id_table_doctor],
                         async (err, insertMsg) => {
                             if (err) con.end()
@@ -2255,7 +2255,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             SELECT COUNT(*) as count_unread
                             FROM message_user
                             WHERE uid_line_farmer = ? 
-                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0
+                                    and COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0
                             ` , [req.body.uid_line, result['data']['id_table_doctor']],
                             (err, list_unread) => {
                                 resole(parseInt(list_unread[0].count_unread))
@@ -4961,7 +4961,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         `
                         SELECT COUNT(id) as count
                         FROM notify_doctor
-                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , '$."?"') , 0) = 0 
+                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 
                                 AND station = ?
                         ` , [result.data.id_table_doctor, result.data.station_doctor],
                         (err, COUNT) => {
@@ -4996,7 +4996,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             con.query(
                                 `
                                 UPDATE notify_doctor
-                                SET id_read = JSON_SET(id_read, '$."?"', 'read')
+                                SET id_read = JSON_SET(id_read, CONCAT('$."', ?, '"'), 'read')
                                 WHERE id <= ?
                                 ` , [result["data"].id_table_doctor, list[0] ? list[0].id : 0],
                                 (err, read) => {
@@ -5042,7 +5042,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 con.query(
                     `
                     UPDATE notify_doctor
-                    SET id_read = JSON_SET(id_read, '$."?"', 'read')
+                    SET id_read = JSON_SET(id_read, CONCAT('$."', ?, '"'), 'read')
                     WHERE id <= ?
                     ` , [result["data"].id_table_doctor, req.body.id_notify],
                     (err, read) => {
