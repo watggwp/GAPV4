@@ -95,16 +95,17 @@ module.exports = function appConfig(username, password, hostServer) {
     // if(mode != process.env.BUILD) reactServ(app)
 
     // set session
+    const isProduction = mode == process.env.BUILD
     const sessionMiddleware = sessions({
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: true,
+            secure: isProduction,
             // maxAge: 1000 * 60 * 60 * 24,
             maxAge: null,
-            sameSite: "none"
+            sameSite: isProduction ? "none" : "lax"
         },
         resave: false
         // cookie: {
