@@ -229,6 +229,7 @@ module.exports = function appConfig(username, password, hostServer) {
     ScheduleCorn(Pool, io)
     callServices(app, Pool)
 
+
     // router api url
     if (mode === process.env.BUILD || mode === "router") router(app)
     apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, io)

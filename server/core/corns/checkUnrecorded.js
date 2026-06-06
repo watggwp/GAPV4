@@ -7,39 +7,50 @@ const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
         return await connectionPool.executeQuery(`
             SELECT
-                sh.id,
-                sh.schedule_id,
-                sh.greenhouse_id,
+                s.id AS schedule_id,
+                fp.id_farm_house AS greenhouse_id,
                 s.category,
                 s.title,
-                hf.name_house as greenhouse_name,
-                hf.uid_line as greenhouse_uid,
+                hf.name_house AS greenhouse_name,
+                hf.uid_line AS greenhouse_uid,
                 af.uid_line,
-                af.id_table as farmer_id,
+                af.id_table AS farmer_id,
                 af.fullname,
                 af.station
-            FROM schedules_history sh
-            JOIN schedules s  ON sh.schedule_id = s.id
-            JOIN housefarm hf ON sh.greenhouse_id = hf.id_farm_house
-            JOIN acc_farmer af ON (af.uid_line = hf.uid_line OR af.uid_line = hf.link_user)
+            FROM formplant fp
+            INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
+            INNER JOIN acc_farmer af ON (af.uid_line = hf.uid_line OR af.uid_line = hf.link_user)
                 AND af.register_auth IN (0, 1)
-            WHERE sh.date = CURDATE()
-              AND sh.notified_unrecorded = 0
+            INNER JOIN plant_list pl ON fp.name_plant = pl.name AND pl.is_use = 1
+            INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
+            WHERE (fp.state_status = 0 OR fp.state_status = 1)
+              AND (
+                (s.repeat = 0 AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) = s.age_plant)
+                OR
+                (s.repeat = 1 AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) > 0
+                               AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) % s.age_plant = 0)
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM schedules_history sh
+                WHERE sh.schedule_id = s.id
+                  AND sh.greenhouse_id = fp.id_farm_house
+                  AND sh.date = CURDATE()
+                  AND sh.notified_unrecorded = 1
+              )
               AND (
                 (s.category = 1 AND NOT EXISTS (
                     SELECT 1 FROM formfertilizer ff
-                    JOIN formplant fp ON ff.id_plant = fp.id
-                    WHERE fp.id_farm_house = sh.greenhouse_id
+                    WHERE ff.id_plant = fp.id
                       AND ff.date LIKE CONCAT(CURDATE(), '%')
                 ))
                 OR
                 (s.category = 2 AND NOT EXISTS (
                     SELECT 1 FROM formchemical fc
-                    JOIN formplant fp ON fc.id_plant = fp.id
-                    WHERE fp.id_farm_house = sh.greenhouse_id
+                    WHERE fc.id_plant = fp.id
                       AND fc.date LIKE CONCAT(CURDATE(), '%')
                 ))
               )
+            GROUP BY fp.id, s.id
         `)
     },
 
@@ -63,7 +74,7 @@ const checkUnrecorded = {
         return MessageLineTemplate.bubbleTemplateUrl(
             `แจ้งเตือน: ยังไม่พบการบันทึก${typeLabel}`,
             message,
-            `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/z?open-insert=true`,
+            `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${formSuffix}?open-insert=true`,
             { buttonLabel: `บันทึก${typeLabel}ที่นี่` }
         )
     },
