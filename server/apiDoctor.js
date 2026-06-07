@@ -1628,7 +1628,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 let queryType;
                 let queryParams;
 
-                if (req.body.approve === 0) {
+                if (req.body.approve === 0) { //1
                     queryType = `
                     SELECT filterFarmer.* , 
                     (
