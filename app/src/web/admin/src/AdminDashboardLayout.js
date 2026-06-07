@@ -206,7 +206,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                 <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)}>
                     <option value="">ทุกศูนย์</option>
                     {stations.map(st => (
-                        <option key={st.id} value={st.name}>{st.name}</option>
+                        <option key={st.id} value={st.name}>{st.name.replace('ศูนย์พัฒนาโครงการหลวง', '').trim()}</option> //ตัดคำว่าศูนย์พัฒนาโครงการหลวงออกไปจากชื่อศูนย์
                     ))}
                 </select>
                 <select value={selectedPlantType} onChange={e => setSelectedPlantType(e.target.value)}>
@@ -306,7 +306,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                         <div className="popup-header">
                                             <span className="popup-house-icon">🏠</span>
                                             <span className="popup-house-name">{pin.name}</span>
-                                            {pin.station && <span className="popup-station-badge">{pin.station}</span>}
+                                            {pin.station && <span className="popup-station-badge">{pin.station.replace('ศูนย์พัฒนาโครงการหลวง', '').trim()}</span>}
                                         </div>
                                         <div className="popup-plants-list">
                                             {pin.plants && pin.plants.map((plant, idx) => (
@@ -377,7 +377,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                                 <tr key={`${item.id}-${realIdx}`} className={idx % 2 === 1 ? 'row-highlight' : ''}>
                                                     <td>{realIdx + 1}</td>
                                                     <td>{item.name}</td>
-                                                    <td><span className="station-badge">{item.station}</span></td>
+                                                    <td><span className="station-badge">{item.station ? item.station.replace('ศูนย์พัฒนาโครงการหลวง', '').trim() : ''}</span></td>   {/*ตัดคำว่าศูนย์พัฒนาโครงการหลวงออกไปจากชื่อศูนย์*/}
                                                     <td>{item.type}</td>
                                                     <td>
                                                         <span style={{
@@ -405,17 +405,17 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                         </div>
                         {totalPagesUnfilled > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === 1}
                                     onClick={() => setPageUnfilled(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageUnfilled} จาก {totalPagesUnfilled}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === totalPagesUnfilled} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === totalPagesUnfilled}
                                     onClick={() => setPageUnfilled(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
@@ -497,17 +497,17 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                         </div>
                         {totalPagesProduction > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === 1}
                                     onClick={() => setPageProduction(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageProduction} จาก {totalPagesProduction}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === totalPagesProduction} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === totalPagesProduction}
                                     onClick={() => setPageProduction(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
