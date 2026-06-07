@@ -6,20 +6,20 @@ import { MenuItem, Select, Stack, TextField } from "@mui/material";
 export default function SchedulesPlan() {
     const navigator = useNavigate()
 
-    const [ search , setSearch ] = useState()
+    const [search, setSearch] = useState()
     const defferredSearch = useDeferredValue(search)
 
-    const [ hasTotalSchedule , setHasTotalSchedule ] = useState(true)
+    const [hasTotalSchedule, setHasTotalSchedule] = useState(true)
 
     const onClickSelectedPlan = useCallback((plant_id) => {
         navigator(`/doctor/schedules/${plant_id}`)
-    } , [navigator])
+    }, [navigator])
 
-    const onChangeSelectTypeSchedule = useCallback(({ target : { value } }) => {
+    const onChangeSelectTypeSchedule = useCallback(({ target: { value } }) => {
         setHasTotalSchedule(value)
-    } , [])
+    }, [])
 
-    return(
+    return (
         <Stack height={"100%"} width={"100%"} spacing={2} padding={2}>
             <Stack direction={"row"} justifyContent={"space-between"}>
                 <Select
@@ -33,7 +33,7 @@ export default function SchedulesPlan() {
                 <TextField
                     placeholder="ค้นหา"
                     size="small"
-                    onChange={({ target : { value } }) => setSearch(value)}
+                    onChange={({ target: { value } }) => setSearch(value)}
                 />
             </Stack>
             <SchedulesPlanManagement

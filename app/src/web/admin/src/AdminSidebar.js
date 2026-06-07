@@ -11,6 +11,7 @@ import iconGroup from "../../../assets/img/iconBt/icon-bt-group.png"; // For จ
 import iconPlan from "../../../assets/img/iconBt/icon-bt-plan.png"; // For แผนการปลูก
 import iconReport from "../../../assets/img/iconBt/icon-bt-report.png"; // For รายงานข้อมูล
 import iconStation from "../../../assets/img/iconBt/icon-bt-sensor.png"; // For สภาพอากาศ
+import iconForm from "../../../assets/img/iconBt/icon-bt-form.png"; // For แบบบันทึกการปลูก
 
 import { useNavigate } from "react-router";
 import { clientMo } from "../../../assets/js/moduleClient";
@@ -18,6 +19,7 @@ import { clientMo } from "../../../assets/js/moduleClient";
 // Import components used for navigation
 import PageTemplate from "./page/PageTemplate";
 import AdminDashboardLayout from "./AdminDashboardLayout";
+import PageFormPlantAdmin from "./page/form/PageFormPlantAdmin";
 
 const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefData, modifyMainPage, isCollapsed, toggleSidebar, setTitle }) => {
     const { profile } = useContext(AdminContext);
@@ -102,6 +104,21 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
         } else setSession();
     }, [auth, navigator, setSession, setTitle]);
 
+    const formPlant = async () => {
+        setTitle("แบบบันทึกการปลูก");
+        if (await auth(true)) {
+            navigator("/admin/form-plant");
+            setBodyFileAdmin(
+                <PageFormPlantAdmin
+                    setMain={setBodyFileAdmin}
+                    session={setSession}
+                    socket={socket}
+                    type={true}
+                />
+            );
+        } else setSession();
+    };
+
     const report = async () => {
         setTitle("รายงานข้อมูล");
         if (await auth(true)) {
@@ -142,6 +159,15 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
                     </a>
                 </li>
 
+                <li className="menu-item" onClick={formPlant}>
+                    <a onClick={(e) => e.preventDefault()}>
+                        <div className="icon-container-img">
+                            <img src={iconForm} alt="Form" />
+                        </div>
+                        <span>แบบบันทึกการปลูก</span>
+                    </a>
+                </li>
+
                 <li className="menu-item" onClick={data}>
                     <a onClick={(e) => e.preventDefault()}>
                         <div className="icon-container-img">
@@ -168,7 +194,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
                         <span>แผนการปลูก</span>
                     </a>
                 </li>
-                
+
                 <li className="menu-item" onClick={weather}>
                     <a onClick={(e) => e.preventDefault()}>
                         <div className="icon-container-img">

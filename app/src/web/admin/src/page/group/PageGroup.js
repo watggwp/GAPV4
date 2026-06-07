@@ -143,7 +143,7 @@ const PageGroup = () => {
                     {/* แก้ไข */}
                     <button className="btn-edit" title="แก้ไขข้อมูล" onClick={() => handleEditClick(item)}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                       </svg>
                       <span>แก้ไข</span>
                     </button>
@@ -155,8 +155,8 @@ const PageGroup = () => {
                       onClick={() => handleToggleClick(item.id)}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                        <line x1="12" y1="2" x2="12" y2="12"/>
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                        <line x1="12" y1="2" x2="12" y2="12" />
                       </svg>
                       <span>{item.status ? "เปิดใช้" : "ปิดใช้"}</span>
                     </button>
@@ -166,7 +166,7 @@ const PageGroup = () => {
                     {/* ประวัติ */}
                     <button className="btn-history" title="ดูประวัติ" onClick={() => setHistoryItem(item)}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                       </svg>
                       <span className="btn-history-label">ประวัติ</span>
                     </button>

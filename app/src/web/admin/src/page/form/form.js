@@ -1,10 +1,10 @@
 import { useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
-import "../../../assets/style/page/form/FormEdit.scss";
-import { clientMo } from "../../../../../../assets/js/moduleClient";
-import { DoctorContext } from "../../../Doctor";
+import { DateSelect, DayJSX, MapsJSX } from "../../../../../assets/js/module";
+import "../../../../doctor/src/assets/style/page/form/FormEdit.scss";
+import { clientMo } from "../../../../../assets/js/moduleClient";
+import { AdminContext } from "../../Admin";
 import { inputBaseClasses, MenuItem, Select, selectClasses, Stack, TextField, textFieldClasses } from "@mui/material";
-import RequestAPI from "../../../../../../assets/js/requestAPI";
+import RequestAPI from "../../../../../assets/js/requestAPI";
 
 export default function FormPlant({
     data,
@@ -23,13 +23,13 @@ export default function FormPlant({
     })
     const [loadingPlants, setLoadingPlants] = useState(false)
 
-    const { profile } = useContext(DoctorContext) //role
+    const { profile } = useContext(AdminContext) //role
 
     const [previousInsects, setPreviousInsects] = useState([]);
 
     const fetchInsectList = useCallback(async () => {
         try {
-            const res = await clientMo.post("/api/doctor/formplant/history", {
+            const res = await clientMo.post("/api/admin/formplant/history", {
                 id_farmhouse: data.id_farm_house,
                 name_plant_list: editValue.name_plant ?? data.name_plant
             });
@@ -116,7 +116,7 @@ export default function FormPlant({
 
     const fetchPlantList = useCallback(async () => {
         setLoadingPlants(true)
-        const { data, status } = await RequestAPI.get("/api/doctor/plant/list", {
+        const { data, status } = await RequestAPI.get("/api/admin/plant/list", {
             is_variety_name: true
         })
         setLoadingPlants(false)
@@ -192,7 +192,7 @@ export default function FormPlant({
         }
 
         try {
-            const stringData = await clientMo.post("/api/doctor/formplant/edit", {
+            const stringData = await clientMo.post("/api/admin/formplant/edit", {
                 id_plant: data.id,
                 id_farmhouse: data.id_farm_house,
                 because: because,
@@ -235,7 +235,7 @@ export default function FormPlant({
         <section className="detail-main-form">
 
             {
-                Boolean(profile?.doctor_role || profile?.consultant_role || profile?.analyzer_role || profile?.protection_role) && //role
+                Boolean(profile?.username || profile?.doctor_role || profile?.consultant_role || profile?.analyzer_role || profile?.protection_role) && //role
                 <div className="button-group">
                     {
                         localMode === "edit" ? (

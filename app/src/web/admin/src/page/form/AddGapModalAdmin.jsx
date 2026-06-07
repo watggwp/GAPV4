@@ -1,21 +1,44 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DatePickerThai, DateSelect, Loading } from "../../../../../assets/js/module";
-import { CloseAccount } from "../../method";
 import { Stack } from "@mui/material";
-import { useFarmer } from "../../main";
-import "./GapCardList.scss";
+import RequestAPI from "../../../../../assets/js/requestAPI";
+import "../../assets/style/page/form/AddGapModalAdmin.scss";
 
 const DEFAULT_IMG = "/plant_glow.jpg";
 
 /* ══════════════════════════════════════════════════════
    Modal: เพิ่มใบ GAP  (ฟอร์มเต็มเหมือน InsertPlant)
 ══════════════════════════════════════════════════════ */
-const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
-    /* ── House selection ── */
+const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor" }) => {
+
+    const checkAuth = async (result) => {
+        if (document.getElementById("loading") && document.getElementById("loading").classList[0] !== "hide") {
+            clientMo.unLoadingPage?.();
+        }
+        if (result === "close" || result === "error auth" || result === "not found" || !result) {
+            if (session) session();
+            return false;
+        }
+        return true;
+    };
+
+    /* ── Station selection ── */
+    const [stations, setStations] = useState([]);
+    const [selectedStationId, setSelectedStationId] = useState("");
+    const [stationsLoading, setStationsLoading] = useState(true);
+
+    /* ── Farmer selection ── */
+    const [farmers, setFarmers] = useState([]);
+    const [selectedFarmerId, setSelectedFarmerId] = useState("");
+    const [farmersLoading, setFarmersLoading] = useState(true);
+
+    /* ── House selection (filtered by farmer) ── */
+    const [farmerHouses, setFarmerHouses] = useState([]);
     const [selectedHouseId, setSelectedHouseId] = useState("");
+    const [housesLoading, setHousesLoading] = useState(false);
 
     /* ── Form state ── */
     const [DataPlant, setDataPlant] = useState([]);
@@ -65,12 +88,89 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
         });
     }, [previousInsects]);
 
+    const fetchStations = useCallback(async () => {
+        try {
+            setStationsLoading(true);
+            const res = await clientMo.post(`${apiPrefix}/station/list`);
+            if (res) {
+                const parsed = JSON.parse(res);
+                setStations(Array.isArray(parsed) ? parsed : []);
+            }
+        } catch (e) {
+            console.error("fetchStations error:", e);
+        } finally {
+            setStationsLoading(false);
+        }
+    }, [apiPrefix]);
+
     useEffect(() => {
         FetchPlant();
+        fetchStations();
+        FetchFarmers();
         return () => clearTimeout(timeout.current);
-    }, []);
+    }, [fetchStations]);
 
 
+
+    /* ── API: Fetch farmers from doctor's center ── */
+    const FetchFarmers = async (stationId = "") => {
+        try {
+            setFarmersLoading(true);
+            const body = { approve: 1 };
+            if (stationId) body.station_id = stationId;
+            const response = await clientMo.post(`${apiPrefix}/farmer/list`, body);
+            if (await checkAuth(response)) {
+                const farmerList = JSON.parse(response);
+                setFarmers(Array.isArray(farmerList) ? farmerList : []);
+            }
+        } catch (err) {
+            console.error("Error fetching farmers:", err);
+            setFarmers([]);
+        } finally {
+            setFarmersLoading(false);
+        }
+    };
+
+    /* ── API: Fetch houses for selected farmer ── */
+    const FetchHousesForFarmer = async (farmerId) => {
+        try {
+            setHousesLoading(true);
+            setSelectedHouseId("");
+            const response = await clientMo.post(`${apiPrefix}/farmhouse/get/HouseList`, { id_farmer: farmerId });
+            if (await checkAuth(response)) {
+                const houseList = JSON.parse(response);
+                const openHouses = Array.isArray(houseList) ? houseList.filter(h => h.status === 1) : [];
+                setFarmerHouses(openHouses);
+            }
+        } catch (err) {
+            console.error("Error fetching houses:", err);
+            setFarmerHouses([]);
+        } finally {
+            setHousesLoading(false);
+        }
+    };
+
+    /* ── Handle station selection ── */
+    const handleStationChange = (e) => {
+        const stationId = e.target.value;
+        setSelectedStationId(stationId);
+        setSelectedFarmerId("");
+        setSelectedHouseId("");
+        setFarmerHouses([]);
+        FetchFarmers(stationId);
+    };
+
+    /* ── Handle farmer selection ── */
+    const handleFarmerChange = (e) => {
+        const farmerId = e.target.value;
+        setSelectedFarmerId(farmerId);
+        if (farmerId) {
+            FetchHousesForFarmer(farmerId);
+        } else {
+            setFarmerHouses([]);
+            setSelectedHouseId("");
+        }
+    };
 
     // useEffect(() => {
     //     if (YearOut.current) YearOut.current.classList.add("report-not");
@@ -78,10 +178,16 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
     /* ── API: plant list ── */
     const FetchPlant = async () => {
-        const Data = await clientMo.post("/api/farmer/plant/list");
+        const Data = await clientMo.get("/api/doctor/plant/list");
         // if (YearOut.current) YearOut.current.classList.add("report-not");
-        if (await CloseAccount(Data)) {
-            setDataPlant(JSON.parse(Data));
+        if (await checkAuth(Data)) {
+            try {
+                const parsed = JSON.parse(Data);
+                setDataPlant(parsed.plants || []);
+            } catch (e) {
+                console.error("FetchPlant parse error:", e);
+                setDataPlant([]);
+            }
         }
     };
 
@@ -97,11 +203,11 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                 if (FormContent.current) FormContent.current.removeAttribute("over");
                 return;
             }
-            const Data = await clientMo.post("/api/farmer/formplant/history", {
+            const Data = await clientMo.post(`${apiPrefix}/formplant/history`, {
                 id_farmhouse: houseId,
                 name_plant_list,
             });
-            if (await CloseAccount(Data)) {
+            if (await checkAuth(Data)) {
                 try {
                     const obj = JSON.parse(Data);
                     // if (obj.qtyDate.length !== 0) {
@@ -216,13 +322,13 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             const selectedIdx = e.target.value;
             const selectedPlant = DataPlant[selectedIdx];
             const plantName = selectedPlant ? selectedPlant.name : "";
-            
+
             if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
                 const qtyHarvest = parseInt(selectedPlant.qty_harvest);
                 MathDateHarvest(DateNowOnForm, qtyHarvest);
                 setDateHarvest(qtyHarvest);
             }
-            
+
             FetchDataForm(plantName, selectedHouseId);
         }
         ChangeCHK();
@@ -359,13 +465,13 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             setWait(true);
 
             const response = await clientMo.post(
-                "/api/farmer/formplant/insert",
+                `${apiPrefix}/formplant/insert`,
                 data
             );
 
             console.log("RESPONSE =>", response);
 
-            if (await CloseAccount(response)) {
+            if (await checkAuth(response)) {
                 onSuccess();
             } else {
                 setWait(false);
@@ -384,30 +490,81 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             <div className="gap-modal-full" onClick={(e) => e.stopPropagation()}>
 
                 {/* Title */}
-                <h2 className="gap-modal-title">เพิ่มใบ GAP</h2>
+                <h2 className="gap-modal-title">เพิ่มใบ GAP ให้เกษตรกร</h2>
 
                 {/* Scrollable area */}
                 <div className="gap-modal-scroll">
 
+
+                    {/* ─ Station dropdown row ─ */}
+                    <div className="gap-modal-house-row">
+                        <span className="gap-modal-label">ศูนย์/สถานี</span>
+                        {stationsLoading ? (
+                            <span style={{ fontSize: "14px", color: "#666" }}>กำลังโหลดศูนย์/สถานี...</span>
+                        ) : (
+                            <select
+                                className="gap-modal-select"
+                                value={selectedStationId}
+                                onChange={handleStationChange}
+                            >
+                                <option value="">ทั้งหมด</option>
+                                {stations.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
+                    {/* ─ farmer dropdown row ─ */}
+                    <div className="gap-modal-house-row">
+                        <span className="gap-modal-label">เกษตรกร</span>
+                        {farmersLoading ? (
+                            <span style={{ fontSize: "14px", color: "#666" }}>กำลังโหลดรายชื่อเกษตรกร...</span>
+                        ) : (
+                            <select
+                                className="gap-modal-select"
+                                value={selectedFarmerId}
+                                onChange={handleFarmerChange}
+                            >
+                                <option value="" disabled>กรุณาเลือกเกษตรกร</option>
+                                {farmers.map((f) => (
+                                    <option key={f.link_user} value={f.link_user}>
+                                        {f.fullname}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    {!selectedFarmerId && (
+                        <p className="gap-modal-hint">* กรุณาเลือกเกษตรกร</p>
+                    )}
+
                     {/* ─ House dropdown row ─ */}
                     <div className="gap-modal-house-row">
                         <span className="gap-modal-label">โรงเรือน</span>
-                        <select
-                            className="gap-modal-select"
-                            value={selectedHouseId}
-                            onChange={(e) => {
-                                setSelectedHouseId(e.target.value);
-                                setHistory(true);
-                                if (FormContent.current) FormContent.current.setAttribute("over", "");
-                            }}
-                        >
-                            <option value="" disabled>กรุณาเลือกโรงเรือน</option>
-                            {houses.filter((h) => h.status === 1).map((h) => (
-                                <option key={h.id_farm_house} value={h.id_farm_house}>
-                                    {h.name_house}
-                                </option>
-                            ))}
-                        </select>
+                        {housesLoading ? (
+                            <span style={{ fontSize: "14px", color: "#666" }}>กำลังโหลดโรงเรือน...</span>
+                        ) : (
+                            <select
+                                className="gap-modal-select"
+                                value={selectedHouseId}
+                                onChange={(e) => {
+                                    setSelectedHouseId(e.target.value);
+                                    setHistory(true);
+                                    if (FormContent.current) FormContent.current.setAttribute("over", "");
+                                }}
+                                disabled={!selectedFarmerId}
+                            >
+                                <option value="" disabled>กรุณาเลือกโรงเรือน</option>
+                                {farmerHouses.map((h) => (
+                                    <option key={h.id_farm_house} value={h.id_farm_house}>
+                                        {h.name_house}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
                     {!selectedHouseId && (
                         <p className="gap-modal-hint">* กรุณาเลือกโรงเรือน</p>
@@ -415,9 +572,6 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
                     {/* ─ Inner form ─ */}
                     <div className="gap-inner-form">
-                        <div className="head-form">
-                            <span>การปลูกของฉัน</span>
-                        </div>
                         <div className="body-content">
                             <div ref={FormContent} className="frame-content" over="">
                                 <div className="content">
@@ -502,20 +656,15 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                             <div className="row">
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
-                                                    <Stack>
-                                                        <Stack direction={"row"}>
-                                                            <span>พื้นที่</span>
-                                                            <select onChange={Change} ref={System} defaultValue="">
-                                                                <option disabled value="">เลือก</option>
-                                                                <option value="โรงเรือน">โรงเรือน</option>
-                                                                <option value="ไร่">ไร่</option>
-                                                                <option value="ตารางเมตร">ตารางเมตร</option>
-                                                            </select>
-                                                        </Stack>
-                                                        <Stack marginTop={1} alignItems={"center"}>
-                                                            <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder} />
-                                                        </Stack>
-                                                    </Stack>
+                                                    <span>พื้นที่</span>
+                                                    <select onChange={Change} ref={System} defaultValue="">
+                                                        <option disabled value="">เลือก</option>
+                                                        <option value="โรงเรือน">โรงเรือน</option>
+                                                        <option value="ไร่">ไร่</option>
+                                                        <option value="ตารางเมตร">ตารางเมตร</option>
+                                                    </select>
+                                                    <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder="ตัวเลข" />
+
                                                 </label>
                                             </div>
                                             <div className="row">
@@ -683,111 +832,19 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 };
 
 
+
 /* ══════════════════════════════════════════════════════
-   Main Component: GapCardList
+   Main Component: AddGapModal
 ══════════════════════════════════════════════════════ */
-const GapCardList = () => {
-    const navigator = useNavigate();
-    const { uid } = useFarmer();
-
-    const [cards, setCards] = useState([]);
-    const [houses, setHouses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-
-    const fetchAll = useCallback(async () => {
-        setLoading(true);
-        try {
-            const houseRaw = await clientMo.get("/api/farmer/farmhouse/get/HouseList");
-            const allHouses = JSON.parse(houseRaw);
-            if (!Array.isArray(allHouses)) { setCards([]); setHouses([]); return; }
-            setHouses(allHouses);
-            const openHouses = allHouses.filter((h) => h.status === 1);
-            const allCards = [];
-            for (const house of openHouses) {
-                const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
-                if (!formRaw || formRaw === "error auth" || formRaw === "close") continue;
-                const forms = JSON.parse(formRaw);
-                if (!Array.isArray(forms)) continue;
-                for (const gap of forms) {
-                    if (parseInt(gap.state_status) === 2) continue;
-                    allCards.push({ house, gap });
-                }
-            }
-            setCards(allCards);
-        } catch (err) {
-            console.error("GapCardList fetchAll error:", err);
-            setCards([]);
-        } finally {
-            setLoading(false);
-            clientMo.unLoadingPage?.();
-        }
-    }, []);
-
-    useEffect(() => { fetchAll(); }, [fetchAll]);
-
-    const goGap = (houseId, gapId) => navigator(`/farmer/form/${houseId}/${gapId}/p`);
-    const goFertilizer = (houseId, gapId) => navigator(`/farmer/form/${houseId}/${gapId}/z?open-insert=1`);
-    const goChemical = (houseId, gapId) => navigator(`/farmer/form/${houseId}/${gapId}/c?open-insert=1`);
-
-    const handleSuccess = () => { setShowModal(false); fetchAll(); };
-
+const AddGapModal = ({ session, onClose, onSuccess, apiPrefix }) => {
     return (
-        <div className="gap-liff-page">
-            <header className="gap-liff-header">
-                <div className="header-logo">
-                    <div className="logo-circle">
-                        <img src="/logo2.png" alt="logo" width="35" height="35" />
-                    </div>
-                    <span className="logo-text">Good Agricultural Practices</span>
-                </div>
-            </header>
-
-            <div className="gap-liff-title-wrap">
-                <h1 className="gap-liff-title">GAP</h1>
-            </div>
-
-            {loading ? (
-                <div className="gap-liff-loading"><div className="spinner" /><p>กำลังโหลด…</p></div>
-            ) : cards.length === 0 ? (
-                <div className="gap-liff-empty">ไม่มีข้อมูลแปลง กรุณาสร้างแปลง</div>
-            ) : (
-                <div className="gap-card-grid">
-                    {cards.map(({ house, gap }) => (
-                        <div key={`${house.id_farm_house}-${gap.id}`} className="gap-card">
-                            <div className="gap-card-img-wrap">
-                                <img
-                                    src={house.img_house || DEFAULT_IMG} alt={house.name_house}
-                                    onError={(e) => { e.target.src = DEFAULT_IMG; }}
-                                    className="gap-card-img"
-                                />
-                                <span className="gap-house-badge">{'โรงเรือน ' + house.name_house}</span>
-                                {(gap.report || gap.form || gap.plant || gap.success) && gap.state_status < 2 && (
-                                    <span className="gap-card-badge">มีข้อความจากเจ้าหน้าที่</span>
-                                )}
-                            </div>
-                            <div className="gap-card-body">
-                                <p className="gap-card-plant-name">{gap.name_plant || `แปลง ${gap.id}`}</p>
-                                <button className="gap-btn" onClick={() => goGap(house.id_farm_house, gap.id)}>ข้อมูลพื้นฐาน</button>
-                                <button className="gap-btn" onClick={() => goFertilizer(house.id_farm_house, gap.id)}>บันทึกปุ๋ย</button>
-                                <button className="gap-btn" onClick={() => goChemical(house.id_farm_house, gap.id)}>บันทึกสารเคมี</button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
-
-            {showModal && (
-                <AddGapModal
-                    houses={houses}
-                    onClose={() => setShowModal(false)}
-                    onSuccess={handleSuccess}
-                />
-            )}
-        </div>
+        <AddGapModalForm
+            session={session}
+            onClose={onClose}
+            onSuccess={onSuccess}
+            apiPrefix={apiPrefix}
+        />
     );
-};
+}
 
-export default GapCardList;
+export default AddGapModal;
