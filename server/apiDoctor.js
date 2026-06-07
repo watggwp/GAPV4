@@ -1078,7 +1078,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
             con.query(
                 `
-                SELECT name,id_station
+                SELECT name,id_station, ST_X(location) as lat, ST_Y(location) as lng
                 FROM station_list
                 WHERE id = ?
                 ` , [result['data'].station_doctor],
@@ -1090,7 +1090,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     res.send({
                         ...result['data'],
                         name_station: station[0].name,
-                        id_station: station[0].id_station
+                        id_station: station[0].id_station,
+                        lat: station[0].lat,
+                        lng: station[0].lng
                     })
                 }
             )

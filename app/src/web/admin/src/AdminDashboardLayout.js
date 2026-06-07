@@ -4,6 +4,7 @@ import './assets/style/AdminDashboardLayout.scss';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useAdminContext } from "./Admin";
 
 // Fix for default Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -43,17 +44,18 @@ const THAI_MONTHS = [
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
-const CurrentLocationMarker = () => {
+const CenterToStationMarker = ({ center }) => {
     const map = useMap();
     useEffect(() => {
-        map.locate().on("locationfound", function (e) {
-            map.flyTo(e.latlng, map.getZoom());
-        });
-    }, [map]);
+        if (center && center.lat && center.lng) {
+            map.flyTo([center.lat, center.lng], 16);
+        }
+    }, [center, map]);
     return null;
 };
 
 const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
+    const { profile } = useAdminContext();
     const now = new Date();
     const [selectedStation, setSelectedStation] = useState('');
     const [selectedPlantType, setSelectedPlantType] = useState('');
@@ -244,11 +246,11 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                 <div className="map-section">
                     <MapContainer
                         center={center}
-                        zoom={11}
+                        zoom={16}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
                     >
-                        <CurrentLocationMarker />
+                        <CenterToStationMarker center={profile} />
                         <LayersControl position="topright">
                             <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
                                 <TileLayer

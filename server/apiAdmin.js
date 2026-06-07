@@ -1296,7 +1296,7 @@ app.get('/api/admin/profile/get', (req, res) => {
       .then((result) => {
           con.query(
               `
-              SELECT name,id_station
+              SELECT name,id_station, ST_X(location) as lat, ST_Y(location) as lng
               FROM station_list
               WHERE id = ?
               `, [result['data'].station_admin],
@@ -1315,7 +1315,9 @@ app.get('/api/admin/profile/get', (req, res) => {
                   const responsePayload = {
                       ...result['data'],
                       name_station: name_station,
-                      id_station: id_station
+                      id_station: id_station,
+                      lat: station[0] ? station[0].lat : null,
+                      lng: station[0] ? station[0].lng : null
                   };
 
                   console.log("Response payload:", responsePayload); 
