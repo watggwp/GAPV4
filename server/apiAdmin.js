@@ -467,6 +467,716 @@ app.post('/api/admin/role/update', async (req, res) => {
     })
 })
 
+  // ─────────────────────────────────────────────────────────────
+  // Admin Form Plant APIs (mirrors doctor endpoints with admin auth)
+  // ─────────────────────────────────────────────────────────────
+
+  app.post('/api/admin/form/list', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+
+    if (!username || !password) {
+      res.redirect('/api/logout');
+      return;
+    }
+
+    let con = Database.createConnection(listDB);
+
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+
+        const TextInsert = req.body.textInput ?? "";
+        const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
+        const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) && req.body.statusForm !== "" ? parseInt(req.body.statusForm) : null;
+        const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+        const SubStatusForm = req.body.subStatusForm ?? "";
+        let subStatusSql = "";
+
+        if (Submit === 0 && SubStatusForm) {
+          const incompleteSql = `(
+            formplant.name_plant IS NULL OR formplant.name_plant = '' OR
+            formplant.generation IS NULL OR formplant.generation = '' OR
+            formplant.date_plant IS NULL OR
+            formplant.posi_w IS NULL OR formplant.posi_w = 0 OR
+            formplant.posi_h IS NULL OR formplant.posi_h = 0 OR
+            formplant.qty IS NULL OR formplant.qty = 0 OR
+            formplant.area IS NULL OR formplant.area = 0 OR
+            formplant.unit IS NULL OR formplant.unit = '' OR
+            formplant.date_harvest IS NULL OR
+            formplant.system_glow IS NULL OR formplant.system_glow = '' OR
+            formplant.water IS NULL OR formplant.water = '' OR
+            formplant.water_flow IS NULL OR formplant.water_flow = ''
+          )`;
+          if (SubStatusForm === "1.1") {
+              subStatusSql = `and (${incompleteSql})`;
+          } else if (SubStatusForm === "1.2") {
+              subStatusSql = `and STR_TO_DATE(formplant.date_harvest, '%Y-%m-%d') between DATE_SUB(CURDATE(), INTERVAL 7 DAY) and CURDATE()`;
+          } else if (SubStatusForm === "1.3") {
+              subStatusSql = `and STR_TO_DATE(formplant.date_harvest, '%Y-%m-%d') = CURDATE()`;
+          } else if (SubStatusForm === "1.4") {
+              subStatusSql = `and STR_TO_DATE(formplant.date_harvest, '%Y-%m-%d') < CURDATE()`;
+          }
+        }
+
+        const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
+        const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
+        const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
+        const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
+        const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
+
+        // Admin station for filtering: restrict to admin's assigned station (station_admin) if configured.
+        // Otherwise, fallback to the user's selected station or null (all).
+        const userStationAdmin = result['data']['station_admin'] && result['data']['station_admin'] !== "0" && result['data']['station_admin'] !== ""
+            ? result['data']['station_admin']
+            : null;
+
+        const adminStation = userStationAdmin 
+            ? userStationAdmin 
+            : ((req.body.station !== undefined && req.body.station !== null)
+                ? (req.body.station && req.body.station !== "0" && req.body.station !== "" ? req.body.station : null)
+                : null);
+
+        con.query(
+          `
+          SELECT fromInsert.*
+          FROM formplant ,
+          (
+            SELECT formplant.id , formplant.state_status , formplant.name_plant , formplant.date_plant ,
+            formplant.system_glow , formplant.insect , formplant.generation , formplant.qty , formplant.date_harvest ,
+            formplant.date_glow , formplant.posi_w , formplant.posi_h , formplant.area , formplant.unit , formplant.water , formplant.water_flow , formplant.expected_yield , formplant.default_yield ,
+              (SELECT COUNT(id) FROM formfertilizer WHERE id_plant = formplant.id) as ctFer,
+              (SELECT COUNT(id) FROM formchemical WHERE id_plant = formplant.id) as ctChe,
+              (SELECT type_plant FROM plant_list WHERE name = formplant.name_plant LIMIT 1) as type_main,
+              (SELECT id_plant FROM success_detail WHERE id_plant = formplant.id and INSTR(id_success , ?) GROUP BY id_plant LIMIT 1) as success_id_plant,
+              (
+                SELECT acc_farmer.fullname
+                FROM acc_farmer
+                WHERE acc_farmer.link_user = house.link_user ${adminStation ? `AND station = ?` : ``} AND register_auth != 2
+                ORDER BY date_register DESC , register_auth DESC
+                LIMIT 1
+              ) as farmer
+            FROM formplant ,
+              (
+                SELECT id_farm_house , farmer.link_user
+                FROM housefarm ,
+                  (
+                    SELECT uid_line , link_user
+                    FROM acc_farmer
+                    WHERE ${StatusFarmer !== null ? `register_auth = ${StatusFarmer}` : "(register_auth = 0 OR register_auth = 1)"} ${adminStation ? `AND station = ?` : ``}
+                  ) as farmer
+                WHERE housefarm.uid_line = farmer.uid_line or housefarm.link_user = farmer.link_user
+              ) as house
+            WHERE formplant.id_farm_house = house.id_farm_house
+                    ${TypePlant.length == 1 ? `and formplant.name_plant = ?` : ""}
+                    ${Submit !== null ? `and formplant.state_status = ${Submit}` : ""}
+                    ${subStatusSql}
+                    ${(TypeDate !== null && StartDate !== null && EndDate !== null) ? `and ( UNIX_TIMESTAMP(formplant.${TypeDate}) >= UNIX_TIMESTAMP('${StartDate}') and UNIX_TIMESTAMP(formplant.${TypeDate}) <= UNIX_TIMESTAMP('${EndDate}') )` : ""}
+            ORDER BY ${OrderBy}
+          ) as fromInsert
+          WHERE formplant.id = fromInsert.id and ( INSTR(formplant.id , ?) or formplant.id = fromInsert.success_id_plant )
+          ORDER BY state_status ASC
+          ${(Limit !== null) ? `LIMIT ${Limit}` : ""}
+          `,
+          adminStation
+            ? [TextInsert, adminStation, adminStation, ...TypePlant, TextInsert]
+            : [TextInsert, ...TypePlant, TextInsert],
+          (err, listFarm) => {
+            if (err) {
+              dbpacket.dbErrorReturn(con, err, res);
+              console.log("admin select form err", err);
+              return;
+            }
+            con.end();
+            res.send(listFarm);
+          }
+        );
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") {
+        res.redirect('/api/logout');
+      }
+    }
+  });
+
+  app.get('/api/admin/plant/list', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+
+    if (!username || !password) {
+      res.redirect('/api/logout');
+      return;
+    }
+
+    let con = Database.createConnection(listDB);
+
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const { is_variety_name } = req.query;
+        let plants;
+        if (is_variety_name === "true" || is_variety_name === true) {
+          plants = await new Promise((resolve, reject) => {
+            con.query(
+              `
+              SELECT name, GROUP_CONCAT(COALESCE(variety_name, '')) as variety_names
+              FROM plant_list
+              WHERE is_use = 1
+              GROUP BY name
+              ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
+              `,
+              [],
+              (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+              }
+            );
+          });
+        } else {
+          const adminStation = result['data']['station_admin'] ?? null;
+          plants = await new Promise((resolve, reject) => {
+            con.query(
+              `
+              SELECT id, name, variety_name, qty_harvest,
+              (
+                SELECT COUNT(name_plant)
+                FROM formplant ,
+                  (
+                    SELECT id_farm_house
+                    FROM housefarm ,
+                      (
+                        SELECT uid_line , link_user
+                        FROM acc_farmer
+                        WHERE (register_auth = 0 OR register_auth = 1) ${adminStation ? `and station = ?` : ``}
+                      ) as farmer
+                    WHERE housefarm.uid_line = farmer.uid_line OR housefarm.link_user = farmer.link_user
+                  ) as house
+                WHERE formplant.name_plant = plant_list.name and house.id_farm_house = formplant.id_farm_house
+              ) as count
+              FROM plant_list
+              WHERE is_use = 1
+              ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
+              `,
+              adminStation ? [adminStation] : [],
+              (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+              }
+            );
+          });
+        }
+
+        con.end();
+        res.send({ plants });
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") {
+        res.redirect('/api/logout');
+      }
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Admin wrappers for AddGapModal & ManagePopup dependencies
+  // ─────────────────────────────────────────────────────────────
+
+  app.post('/api/admin/farmer/list', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const { textSearch = "", station_id = "" } = req.body;
+        const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit;
+        const adminStation = station_id || result['data']['station_admin'] || null;
+        if (req.body.approve === 1) {
+          con.query(`
+            SELECT acc_farmer.id_table, acc_farmer.img, acc_farmer.fullname, acc_farmer.link_user, acc_farmer.date_register,
+                   farmer_main.Count, acc_farmer.date_doctor_confirm, acc_farmer.uid_line
+            FROM acc_farmer,
+            (
+              SELECT MAX(date_register) as DateLast, link_user, COUNT(link_user) as Count
+              FROM acc_farmer
+              WHERE ${adminStation ? "station = ?" : "1=1"} AND register_auth = 1
+              GROUP BY link_user
+            ) as farmer_main
+            WHERE acc_farmer.link_user = farmer_main.link_user
+                  AND acc_farmer.date_register = farmer_main.DateLast
+                  AND (INSTR(acc_farmer.id_farmer, ?) OR INSTR(acc_farmer.fullname, ?))
+            ORDER BY date_register DESC
+            ${Limit ? `LIMIT ${Limit}` : ""};
+          `,
+          adminStation ? [adminStation, textSearch, textSearch] : [textSearch, textSearch],
+          (err, rows) => {
+            con.end();
+            if (!err) res.send(rows);
+            else res.send("error auth");
+          });
+        } else {
+          con.query(`
+            SELECT id_table, img, fullname, link_user, uid_line, date_register
+            FROM acc_farmer
+            WHERE ${adminStation ? "station = ? AND" : ""} register_auth = 1
+                  AND (INSTR(id_farmer, ?) OR INSTR(fullname, ?))
+            ORDER BY date_register DESC
+            ${Limit ? `LIMIT ${Limit}` : ""};
+          `,
+          adminStation ? [adminStation, textSearch, textSearch] : [textSearch, textSearch],
+          (err, rows) => {
+            con.end();
+            if (!err) res.send(rows);
+            else res.send("error auth");
+          });
+        }
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/farmhouse/get/HouseList', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const { id_farmer } = req.body;
+        con.query(`
+          SELECT id_farm_house, name_house, img_house, location, status
+          FROM housefarm
+          WHERE link_user = ?
+        `, [id_farmer], (err, rows) => {
+          con.end();
+          if (!err) {
+            const list = rows.map(val => {
+              val.img_house = val.img_house ? val.img_house.toString() : "";
+              return val;
+            });
+            res.send(list);
+          } else {
+            res.send("error auth");
+          }
+        });
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/formplant/insert', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const data = req.body;
+        if (!data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut) {
+          con.end(); return res.send("missing required fields");
+        }
+        const valueOrNull = (value) => (value === undefined || value === "" || value === null) ? null : value;
+        const dateOrNull = (value) => {
+          if (value === undefined || value === "" || value === null) return null;
+          if (value.toString().indexOf("#") >= 0) return null;
+          const newDate = new Date(value);
+          if (newDate.toString() === "Invalid Date") return null;
+          return newDate;
+        };
+        con.query(`INSERT INTO formplant
+          (id, id_farm_house, name_plant, generation, date_glow, date_plant, posi_w, posi_h, qty, area, unit, date_harvest, system_glow, water, water_flow, history, insect, qtyInsect, seft, state_status, date_success, expected_yield, default_yield, name_varieties)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, "", ?, ?, ?);
+        `, [
+          new Date().getTime(), data.id_farmhouse, data.name_plant,
+          valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
+          valueOrNull(data.posiW), valueOrNull(data.posiH),
+          valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
+          valueOrNull(data.water), valueOrNull(data.waterStep),
+          valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
+          valueOrNull(data.seft), valueOrNull(data.expectedYield), valueOrNull(data.defaultYield), valueOrNull(data.name_varieties)
+        ], (err) => {
+          con.end();
+          if (err) { console.log("admin INSERT ERROR =>", err); return res.send("error"); }
+          res.send("insert");
+        });
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/formplant/detail', async (req, res) => {
+    try {
+        const id_plant = req.body.id_plant;
+        if (!id_plant) return res.send({ fertilizers: [], chemicals: [] });
+ 
+        let con = Database.createConnection(listDB);
+ 
+        con.query(
+            `SELECT id, name, formula_name, use_is, volume, source, date
+             FROM formfertilizer
+             WHERE id_plant = ?
+             ORDER BY id ASC`,
+            [id_plant],
+            (err, fertilizers) => {
+                if (err) { con.end(); return res.send({ fertilizers: [], chemicals: [] }); }
+ 
+                con.query(
+                    `SELECT id, name, formula_name, insect, use_is, rate, volume, date_safe, date, source
+                     FROM formchemical
+                     WHERE id_plant = ?
+                     ORDER BY id ASC`,
+                    [id_plant],
+                    (err2, chemicals) => {
+                        con.end();
+                        if (err2) return res.send({ fertilizers, chemicals: [] });
+                        res.send({ fertilizers, chemicals });
+                    }
+                );
+            }
+        );
+    } catch (err) {
+        res.send({ fertilizers: [], chemicals: [] });
+    }
+});
+
+  // NEW: ดึงแผนการปลูก (schedules) + สิ่งที่บันทึกจริง (fertilizers/chemicals) พร้อมกัน
+  app.post('/api/admin/formplant/schedules', async (req, res) => {
+    try {
+      const { id_plant } = req.body;
+      if (!id_plant) return res.json({ formData: null, schedulePlans: [], fertilizers: [], chemicals: [] });
+
+      // 1. ดึงข้อมูลหลักของ formplant พร้อมหาศูนย์ (station_id)
+      const formResult = await pool.executeQuery(
+        `SELECT fp.id, fp.name_plant, fp.date_plant, fp.date_harvest, fp.date_success,
+                fp.id_farm_house,
+                pl.id AS plant_list_id,
+                (
+                  SELECT f.station 
+                  FROM acc_farmer f 
+                  WHERE (f.uid_line = hf.uid_line OR f.link_user = hf.link_user) AND f.register_auth != 2 
+                  ORDER BY f.date_register DESC, f.register_auth DESC 
+                  LIMIT 1
+                ) AS station_id
+         FROM formplant fp
+         LEFT JOIN plant_list pl ON pl.name = fp.name_plant AND IFNULL(pl.variety_name, '') = IFNULL(fp.name_varieties, '') AND pl.is_use = 1
+         LEFT JOIN housefarm hf ON hf.id_farm_house = fp.id_farm_house
+         WHERE fp.id = ?
+         LIMIT 1`,
+        [id_plant]
+      );
+
+      const formData = formResult?.[0] || null;
+      const plantListId = formData?.plant_list_id || null;
+      const stationId = formData?.station_id || null;
+
+      // 2. ดึง schedule plans จาก schedules table ตาม plant_list id และ station_id (ศูนย์)
+      let schedulePlans = [];
+      if (plantListId) {
+        const scheduleResult = await pool.executeQuery(
+          `SELECT s.id, s.category, s.title, s.age_plant, s.repeat,
+                  IF(s.category = 1,
+                    JSON_OBJECT(
+                      'name_fertilizer', IFNULL(sdf.fertilizer, ''),
+                      'formula_fertilizer', IFNULL(sdf.formula_fertilizer, ''),
+                      'volume', IFNULL(sdf.volume, ''),
+                      'unit_volume', IFNULL(sdf.unit_volume, ''),
+                      'how_use', IFNULL(sdf.how_use, '')
+                    ),
+                    JSON_OBJECT(
+                      'pest', IFNULL(sdd.pest, ''),
+                      'chemical', IFNULL(sdd.chemical, ''),
+                      'rate', IFNULL(sdd.rate, ''),
+                      'how_use', IFNULL(sdd.how_use, ''),
+                      'volume', IFNULL(sdd.volume, ''),
+                      'unit_volume', IFNULL(sdd.unit_volume, '')
+                    )
+                  ) AS details
+           FROM schedules s
+           LEFT JOIN schedules_detail_fertilizer sdf ON sdf.schedule_id = s.id
+           LEFT JOIN schedules_detail_disease sdd ON sdd.schedule_id = s.id
+           WHERE s.plant_id = ? ${stationId ? "AND (s.station_id = ? OR s.station_id = '' OR s.station_id IS NULL OR s.station_id = '0')" : ""}
+           GROUP BY s.id
+           ORDER BY s.age_plant ASC, s.repeat ASC`,
+          stationId ? [plantListId, stationId] : [plantListId]
+        );
+        schedulePlans = scheduleResult.map(row => ({
+          ...row,
+          details: typeof row.details === 'string' ? JSON.parse(row.details) : row.details
+        }));
+      }
+
+      // 3. ดึง fertilizers ที่บันทึกจริง
+      const fertilizers = await pool.executeQuery(
+        `SELECT id, name, formula_name, use_is, volume, source, date
+         FROM formfertilizer WHERE id_plant = ? ORDER BY id ASC`,
+        [id_plant]
+      );
+
+      // 4. ดึง chemicals ที่บันทึกจริง
+      const chemicals = await pool.executeQuery(
+        `SELECT id, name, formula_name, insect, use_is, rate, volume, date_safe, date, source
+         FROM formchemical WHERE id_plant = ? ORDER BY id ASC`,
+        [id_plant]
+      );
+
+      return res.json({ formData, schedulePlans, fertilizers, chemicals });
+    } catch (err) {
+      console.error('/api/admin/formplant/schedules error:', err);
+      return res.json({ formData: null, schedulePlans: [], fertilizers: [], chemicals: [] });
+    }
+  });
+
+  app.post('/api/admin/formplant/history', async (req, res) => {
+
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const QtyDate = await new Promise((resolve) => {
+          con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1`, [req.body.name_plant_list], (err, result) => resolve(result));
+        });
+        con.query(`
+          SELECT formplant.*,
+            GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
+            GROUP_CONCAT(DISTINCT formchemical.insect) AS insect_generation
+          FROM formplant
+          LEFT JOIN formchemical ON formplant.id = formchemical.id_plant
+          WHERE formplant.name_plant = ? AND formplant.id_farm_house = ?
+          GROUP BY formplant.id, formplant.generation
+          ORDER BY formplant.generation DESC
+        `, [req.body.name_plant_list, req.body.id_farmhouse], (err, result) => {
+          con.end();
+          if (!err) {
+            res.send({
+              FromHistory: result,
+              qtyDate: QtyDate,
+              insect: result.length > 0 && result[0]?.insect ? result[0].insect.split(',') : [],
+              insect_generation: result.length > 0 && result[0]?.insect_generation ? result[0].insect_generation.split(',') : []
+            });
+          } else res.send("error auth");
+        });
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/formplant/edit', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const admin_id = result['data'].id || 0;
+        const { id_plant } = req.body;
+        con.query(`
+            SELECT formplant.*
+            FROM formplant
+            WHERE formplant.id = ?
+            LIMIT 1
+        `, [id_plant],
+        (err, dataCurrent) => {
+            if (err) {
+                con.end();
+                res.send("error auth");
+                return;
+            }
+            if (!dataCurrent[0]) {
+                con.end();
+                res.send("not");
+                return;
+            }
+
+            const data = req.body;
+            if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
+                con.query(`
+                INSERT INTO editform 
+                    (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                VALUES 
+                    (?, ?, ?, ?, ?, ?, "plant")
+            `, [id_plant, "", admin_id, data.because || "", "", 1],
+                    async (err, resultEdit) => {
+                        if (err) {
+                            dbpacket.dbErrorReturn(con, err, res);
+                            console.log("insert editform");
+                            return;
+                        }
+
+                        const { insertId: idEdit } = resultEdit;
+
+                        if (idEdit > 0) {
+                            const updateDatasWhere = [];
+                            const updateDatasParams = [];
+
+                            const insertDetailsEdit = [];
+                            const insertDetailsEditParams = [];
+
+                            const edits_content = [];
+                            for (const subject in data.dataChange) {
+                                updateDatasWhere.push(`${subject.replace(" ", "")} = ?`);
+                                updateDatasParams.push(data.dataChange[subject]);
+
+                                const prev = dataCurrent[0][subject];
+                                const current = data.dataChange[subject];
+
+                                insertDetailsEdit.push("(? , ? , ? , ?)");
+                                insertDetailsEditParams.push([idEdit, subject, prev ?? "", current ?? ""]);
+
+                                edits_content.push({
+                                    name: RoyalGapEnv.fields[subject],
+                                    prev: prev ?? "",
+                                    current: current ?? ""
+                                });
+                            }
+
+                            const resultDetail = await new Promise((resolve) => {
+                                con.query(`
+                            INSERT INTO detailedit (id_edit, subject_form, old_content, new_content) 
+                            VALUES ${insertDetailsEdit.join(" , ")} 
+                        `, insertDetailsEditParams.flat(),
+                                    (err) => {
+                                        if (err) {
+                                            console.log(err);
+                                            resolve(false);
+                                        }
+                                        resolve(true);
+                                    });
+                            });
+
+                            if (!resultDetail) {
+                                await new Promise((resolve) => {
+                                    con.query(`DELETE FROM editform WHERE id_edit = ?`, [idEdit], () => resolve(true));
+                                });
+                                await new Promise((resolve) => {
+                                    con.query(`DELETE FROM detailedit WHERE id_edit = ?`, [idEdit], () => resolve(true));
+                                });
+                                con.end();
+                                return res.send("edit");
+                            }
+
+                            if (updateDatasWhere.length) {
+                                const where = updateDatasWhere.join(" , ");
+                                con.query(`
+                            UPDATE formplant 
+                            SET ${where}
+                            WHERE id = ?
+                        `, [...updateDatasParams, id_plant],
+                                    async (err) => {
+                                        if (err) {
+                                            dbpacket.dbErrorReturn(con, err, res);
+                                            return;
+                                        }
+
+                                        try {
+                                            const getGreenhouseIdByFromGapID = async (formGapId) => {
+                                                const greenhouse = await pool.executeQuery(
+                                                    `
+                                                        SELECT fp.id_farm_house
+                                                        FROM housefarm hf 
+                                                        LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
+                                                        WHERE fp.id = ?
+                                                        LIMIT 1
+                                                    ` ,
+                                                    [formGapId]
+                                                );
+                                                return greenhouse[0] ? greenhouse[0].id_farm_house : null;
+                                            };
+
+                                            const greenhouse_id = await getGreenhouseIdByFromGapID(id_plant);
+
+                                            const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                                id_plant,
+                                                pool,
+                                                (gapData) => {
+                                                    const { greenhouse_name, plant_name } = gapData || {};
+                                                    return [
+                                                        `โรงเรือน: ${greenhouse_name || ""}`,
+                                                        `แปลงปลูก: ${plant_name || ""}`,
+                                                        "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
+                                                        "",
+                                                        `แก้ไขรายการ:`,
+                                                        edits_content.map(({ name, prev, current }) =>
+                                                            `${name}: จาก ${prev} เป็น ${current}`
+                                                        )
+                                                    ];
+                                                },
+                                                {
+                                                    url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${id_plant}/d`
+                                                }
+                                            );
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                        con.end();
+                                        res.send("133");
+                                    });
+                            } else {
+                                con.end();
+                                res.send("133");
+                            }
+                        } else {
+                            con.end();
+                            res.send("error");
+                        }
+                    });
+            } else {
+                con.end();
+                res.send("not");
+            }
+        });
+      } else {
+        con.end();
+        res.send("error auth");
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/data/list', async (req, res) => {
+    const username = req.session.user_username;
+    const password = req.session.user_password;
+    if (!username || !password) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, username, password, res, "admin");
+      if (result['result'] === "pass") {
+        const data = req.body;
+        const type_data = (data.type === "plant" ? "plant_list" : data.type === "station" ? "station_list" : data.type === "chemical" ? "chemical_list" : data.type === "pest" ? "pests" : "");
+        const Limit = isNaN(parseInt(data.limit)) ? 0 : parseInt(data.limit);
+        const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
+        if (!type_data) { return res.send([]); }
+        const columnName = (data.type === "pest" ? "pest_name" : "name");
+        con.query(`SELECT * FROM ${type_data} WHERE INSTR(${columnName}, ?) ORDER BY is_use DESC, ${columnName} ASC LIMIT ${Limit} OFFSET ${StartRow}`,
+          [data.textSearch], (err, result) => {
+            if (err) { dbpacket.dbErrorReturn(con, err, res); return; }
+            con.end();
+            res.send(result);
+          });
+      }
+    } catch (err) {
+      con.end();
+      if (err == "not pass") res.redirect('/api/logout');
+    }
+  });
+
 	app.post('/api/admin/station/list' , (req , res)=>{
 		let con = Database.createConnection(listDB)
 		con.connect(( err )=>{
@@ -2192,6 +2902,8 @@ app.post('/api/admin/data/change', async (req, res) => {
             req.session.admin_id = auth['data'].id;
             req.session.user_username = username;
             req.session.user_password = password;
+            req.session.user_doctor = "666";
+            req.session.pass_doctor = "666";
             req.session.tokenSession = apifunc.getTokenCsurf(req);
 
             con.end();
@@ -2327,7 +3039,7 @@ app.post('/api/admin/data/change', async (req, res) => {
                   FROM formplant fp
                   INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                   INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
-                  INNER JOIN plant_list pl ON fp.name_plant = pl.name AND pl.is_use = 1
+                  INNER JOIN plant_list pl ON fp.name_plant = pl.name AND IFNULL(pl.variety_name, '') = IFNULL(fp.name_varieties, '') AND pl.is_use = 1
                   INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
                   WHERE 
                       (fp.state_status = 0 OR fp.state_status = 1)

@@ -969,10 +969,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con, req)
-                con.query(`SELECT name, id, qty_harvest
+                con.query(`SELECT id, name, variety_name, qty_harvest
                             FROM plant_list
                             WHERE is_use = 1
-                            AND id = (SELECT MAX(id) FROM plant_list p2 WHERE p2.name = plant_list.name)
                             ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
                             ` , (err, result) => {
                     con.end()
@@ -994,16 +993,16 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             try {
                 const auth = await authCheck(con, req)
                 const { plant_id, name_plant, name_varieties } = req.body
-                
+
                 let resolved_plant_id = plant_id;
-                
+
                 if (name_plant) {
                     const variety = name_varieties || "";
                     resolved_plant_id = await new Promise((resolve) => {
-                        con.query(`SELECT id FROM plant_list WHERE name = ? AND variety_name = ? LIMIT 1`, [name_plant, variety], (err, result) => {
+                        con.query(`SELECT id FROM plant_list WHERE name = ? AND variety_name = ? AND is_use = 1 LIMIT 1`, [name_plant, variety], (err, result) => {
                             if (!err && result.length > 0) resolve(result[0].id);
                             else {
-                                con.query(`SELECT id FROM plant_list WHERE name = ? LIMIT 1`, [name_plant], (e, r) => {
+                                con.query(`SELECT id FROM plant_list WHERE name = ? AND is_use = 1 LIMIT 1`, [name_plant], (e, r) => {
                                     if (!e && r.length > 0) resolve(r[0].id);
                                     else resolve(null);
                                 });
@@ -1011,19 +1010,19 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         });
                     });
                 }
-                
+
                 if (!resolved_plant_id) {
                     con.end()
                     return res.json({ schedule_plants: [] })
                 }
-                
+
                 con.query(`SELECT station FROM acc_farmer WHERE uid_line = ?`, [auth.data.uid_line], (err, stationResult) => {
                     if (err || !stationResult || stationResult.length === 0) {
                         con.end()
                         return res.json({ schedule_plants: [] })
                     }
                     const station_id = stationResult[0].station;
-                    
+
                     const query = `
                         SELECT s.id , s.uid , s.plant_id , s.station_id , s.category , s.title , s.age_plant , s.repeat , s.last_update ,
                             IF(s.category = 1 , 
@@ -1051,19 +1050,38 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         GROUP BY s.id, s.category, s.age_plant
                         ORDER BY s.age_plant ASC , s.repeat ASC
                     `;
-                    
+
                     console.log("Farmer Schedule API Called!");
                     console.log("plant_id:", resolved_plant_id);
                     console.log("station_id:", station_id);
-                    
+
                     con.query(query, [resolved_plant_id, station_id], (err, schedule_plants) => {
                         console.log("SQL Error:", err);
                         console.log("Result length:", schedule_plants ? schedule_plants.length : 0);
                         con.end()
                         if (!err) {
-                            res.json({ schedule_plants: schedule_plants || [] })
+                            res.json({
+                                schedule_plants: schedule_plants || [],
+                                debug: {
+                                    resolved_plant_id,
+                                    station_id,
+                                    name_plant,
+                                    name_varieties,
+                                    uid_line: auth.data.uid_line
+                                }
+                            })
                         } else {
-                            res.json({ schedule_plants: [] })
+                            res.json({
+                                schedule_plants: [],
+                                debug: {
+                                    error: err,
+                                    resolved_plant_id,
+                                    station_id,
+                                    name_plant,
+                                    name_varieties,
+                                    uid_line: auth.data.uid_line
+                                }
+                            })
                         }
                     })
                 })
@@ -1138,7 +1156,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 // ดึงข้อมูลจำนวนวันที่ใช้เก็บเกี่ยว
                 const QtyDate = await new Promise((resolve) => {
                     con.query(
-                        `SELECT qty_harvest FROM plant_list WHERE name = ?`,
+                        `SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1`,
                         [req.body.name_plant_list],
                         (err, result) => resolve(result)
                     );
@@ -1214,33 +1232,34 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         con.end();
                         return res.send("not");
                     }
-                        const data = req.body;
-                        console.log("BODY =>", data);
+                    const data = req.body;
+                    console.log("BODY =>", data);
+                    if (
+                        !data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut
+                    ) {
+                        con.end();
+                        return res.send("missing required fields");
+                    }
+
+                    const valueOrNull = (value) => {
+                        return (
+                            value === undefined || value === "" || value === null) ? null : value;
+                    };
+
+                    const dateOrNull = (value) => {
                         if (
-                            !data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut
-                        ) {
-                            con.end();
-                            return res.send("missing required fields");
-                        }
+                            value === undefined || value === "" || value === null) { return null; }
 
-                        const valueOrNull = (value) => {
-                            return (
-                            value === undefined || value === "" || value === null) ? null : value;};
+                        if (value.toString().indexOf("#") >= 0) { return null; }
 
-                        const dateOrNull = (value) => {
-                            if (
-                            value === undefined || value === "" || value === null) { return null ;}
-                            
-                            if (value.toString().indexOf("#") >= 0) { return null ;}
+                        const newDate = new Date(value);
+                        if (newDate.toString() === "Invalid Date") { return null; }
 
-                            const newDate = new Date(value);
-                            if (newDate.toString() === "Invalid Date") { return null ;}
+                        return newDate;
 
-                            return newDate;
+                    };
 
-                        };
-
-                        con.query(`INSERT INTO formplant 
+                    con.query(`INSERT INTO formplant 
                                 ( 
                                     id, id_farm_house, name_plant, 
                                     generation, date_glow, date_plant,
@@ -1249,7 +1268,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     water, water_flow,
                                     history, insect, qtyInsect,
                                     seft, state_status, date_success,
-                                    expected_yield, default_yield
+                                    expected_yield, default_yield, name_varieties
                                 ) VALUES (
                                     ?, ?, ?, 
                                     ?, ?, ?,
@@ -1257,43 +1276,43 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     ?, ?, ?, ?, ?,
                                     ?, ?,
                                     ?, ?, ?,
-                                    ?, 0, "", ?, ?
+                                    ?, 0, "", ?, ?, ?
                                 );
                             `, [
-                                new Date().getTime(), data.id_farmhouse, data.name_plant,
-                                valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
-                                valueOrNull(data.posiW), valueOrNull(data.posiH),
-                                valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
-                                valueOrNull(data.water), valueOrNull(data.waterStep),
-                                valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
-                                valueOrNull(data.seft), null, null, valueOrNull(data.expectedYield), valueOrNull(data.defaultYield)
-                            ], (err, insert) => {
-                                if (err) {
-                                    console.log("INSERT ERROR =>");
-                                    console.log(err);
-                                    //dbpacket.dbErrorReturn(con, err, res);
-                                    //console.log("select listform");
-                                    con.end();
-                                    return res.send("error");
-                                }
-                                con.end();
-                                try {
-                                    sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`);
-                                } catch (e) { console.log(e); }
-                                res.send("insert");
-                            });
-                        });
+                        new Date().getTime(), data.id_farmhouse, data.name_plant,
+                        valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
+                        valueOrNull(data.posiW), valueOrNull(data.posiH),
+                        valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
+                        valueOrNull(data.water), valueOrNull(data.waterStep),
+                        valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
+                        valueOrNull(data.seft), valueOrNull(data.expectedYield), valueOrNull(data.defaultYield), valueOrNull(data.name_varieties)
+                    ], (err, insert) => {
+                        if (err) {
+                            console.log("INSERT ERROR =>");
+                            console.log(err);
+                            //dbpacket.dbErrorReturn(con, err, res);
+                            //console.log("select listform");
+                            con.end();
+                            return res.send("error");
+                        }
+                        con.end();
+                        try {
+                            sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`);
+                        } catch (e) { console.log(e); }
+                        res.send("insert");
+                    });
+                });
             } catch (err) {
                 console.log("CATCH ERROR =>", err);
                 con.end();
-                if (err === "no" || err === "no account") { 
+                if (err === "no" || err === "no account") {
                     return res.send("close");
-                } 
+                }
                 res.send("error auth");
             }
         }
     });
-                
+
 
     // app.post('/api/farmer/formplant/edit', async (req, res) => {
     //     if (req.session.uidFarmer) {
@@ -1410,7 +1429,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
 
 
-// อันเก่าก่อนแก้ใหม่
+    // อันเก่าก่อนแก้ใหม่
     // app.post('/api/farmer/formplant/edit', async (req, res) => {
     //     if (req.session.uidFarmer) {
     //         let con = Database.createConnection(listDB);
@@ -1530,26 +1549,26 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
     app.post('/api/farmer/formplant/edit', async (req, res) => {
 
-    if (!req.session.uidFarmer) {
-        res.send("error auth");
-        return;
-    }
+        if (!req.session.uidFarmer) {
+            res.send("error auth");
+            return;
+        }
 
-    let con = Database.createConnection(listDB);
+        let con = Database.createConnection(listDB);
 
-    try {
+        try {
 
-        process.on("uncaughtException", (err) => {
-            console.log("UNCAUGHT EXCEPTION =>", err);
-        });
+            process.on("uncaughtException", (err) => {
+                console.log("UNCAUGHT EXCEPTION =>", err);
+            });
 
-        process.on("unhandledRejection", (err) => {
-            console.log("UNHANDLED REJECTION =>", err);
-        });
+            process.on("unhandledRejection", (err) => {
+                console.log("UNHANDLED REJECTION =>", err);
+            });
 
-        const auth = await authCheck(con, req);
+            const auth = await authCheck(con, req);
 
-        con.query(`
+            con.query(`
             SELECT formplant.*
             FROM formplant,
             (
@@ -1566,56 +1585,56 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 formplant.id_farm_house = houseFarm.id_farm_house
                 AND formplant.id = ?
         `,
-        [
-            auth.data.uid_line,
-            auth.data.link_user,
-            req.body.id_farmhouse,
-            req.body.id_plant
-        ],
-        (err, result) => {
+                [
+                    auth.data.uid_line,
+                    auth.data.link_user,
+                    req.body.id_farmhouse,
+                    req.body.id_plant
+                ],
+                (err, result) => {
 
-            if (err) {
+                    if (err) {
 
-                console.log("SELECT ERROR =>", err);
+                        console.log("SELECT ERROR =>", err);
 
-                con.end();
-                res.send("error auth");
-                return;
-            }
+                        con.end();
+                        res.send("error auth");
+                        return;
+                    }
 
-            if (!result[0]) {
+                    if (!result[0]) {
 
-                con.end();
-                res.send("not");
-                return;
-            }
+                        con.end();
+                        res.send("not");
+                        return;
+                    }
 
-            const data = req.body;
+                    const data = req.body;
 
-            console.log("EDIT DATA =>", data);
+                    console.log("EDIT DATA =>", data);
 
-            if (
-                !data.dataChange ||
-                typeof data.dataChange !== "object"
-            ) {
+                    if (
+                        !data.dataChange ||
+                        typeof data.dataChange !== "object"
+                    ) {
 
-                con.end();
-                res.send("no dataChange");
-                return;
-            }
+                        con.end();
+                        res.send("no dataChange");
+                        return;
+                    }
 
-            if (
-                result[0].state_status === 0 ||
-                result[0].state_status === 1
-            ) {
+                    if (
+                        result[0].state_status === 0 ||
+                        result[0].state_status === 1
+                    ) {
 
-                const isDoctor =
-                    auth.data.user_type === 'doctor';
+                        const isDoctor =
+                            auth.data.user_type === 'doctor';
 
-                const idDoctorEdit =
-                    isDoctor ? auth.data.id_user : null;
+                        const idDoctorEdit =
+                            isDoctor ? auth.data.id_user : null;
 
-                con.query(`
+                        con.query(`
                     INSERT INTO editform
                     (
                         id_form,
@@ -1631,45 +1650,45 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         ?, ?, ?, ?, ?, ?, "plant"
                     )
                 `,
-                [
-                    data.id_plant,
-                    "",
-                    idDoctorEdit,
-                    data.because ?? "",
-                    "",
-                    0
-                ],
-                (err, resultEdit) => {
+                            [
+                                data.id_plant,
+                                "",
+                                idDoctorEdit,
+                                data.because ?? "",
+                                "",
+                                0
+                            ],
+                            (err, resultEdit) => {
 
-                    if (err) {
+                                if (err) {
 
-                        console.log("INSERT EDITFORM ERROR =>", err);
+                                    console.log("INSERT EDITFORM ERROR =>", err);
 
-                        dbpacket.dbErrorReturn(con, err, res);
+                                    dbpacket.dbErrorReturn(con, err, res);
 
-                        return;
-                    }
+                                    return;
+                                }
 
-                    if (!resultEdit.insertId) {
+                                if (!resultEdit.insertId) {
 
-                        con.end();
-                        res.send("edit");
+                                    con.end();
+                                    res.send("edit");
 
-                        return;
-                    }
+                                    return;
+                                }
 
-                    const arrUpdate = [];
-                    const arrValue = [];
+                                const arrUpdate = [];
+                                const arrValue = [];
 
-                    const totalChange =
-                        Object.keys(data.dataChange).length;
+                                const totalChange =
+                                    Object.keys(data.dataChange).length;
 
-                    let finishCount = 0;
-                    let hasError = false;
+                                let finishCount = 0;
+                                let hasError = false;
 
-                    for (let subject in data.dataChange) {
+                                for (let subject in data.dataChange) {
 
-                        con.query(`
+                                    con.query(`
                             INSERT INTO detailedit
                             (
                                 id_edit,
@@ -1682,142 +1701,142 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                 ?, ?, ?, ?
                             )
                         `,
-                        [
-                            resultEdit.insertId,
-                            subject,
-                            result[0][subject] ?? "",
-                            data.dataChange[subject] ?? ""
-                        ],
-                        (err, Edit) => {
+                                        [
+                                            resultEdit.insertId,
+                                            subject,
+                                            result[0][subject] ?? "",
+                                            data.dataChange[subject] ?? ""
+                                        ],
+                                        (err, Edit) => {
 
-                            if (hasError) return;
+                                            if (hasError) return;
 
-                            if (err) {
+                                            if (err) {
 
-                                hasError = true;
+                                                hasError = true;
 
-                                console.log(
-                                    "DETAIL EDIT ERROR =>",
-                                    err
-                                );
+                                                console.log(
+                                                    "DETAIL EDIT ERROR =>",
+                                                    err
+                                                );
 
-                                dbpacket.dbErrorReturn(
-                                    con,
-                                    err,
-                                    res
-                                );
+                                                dbpacket.dbErrorReturn(
+                                                    con,
+                                                    err,
+                                                    res
+                                                );
 
-                                return;
-                            }
+                                                return;
+                                            }
 
-                            arrUpdate.push(`${subject} = ?`);
+                                            arrUpdate.push(`${subject} = ?`);
 
-                            arrValue.push(
-                                data.dataChange[subject] ?? null
-                            );
+                                            arrValue.push(
+                                                data.dataChange[subject] ?? null
+                                            );
 
-                            finishCount++;
+                                            finishCount++;
 
-                            console.log(
-                                "FINISH =>",
-                                finishCount,
-                                "/",
-                                totalChange
-                            );
+                                            console.log(
+                                                "FINISH =>",
+                                                finishCount,
+                                                "/",
+                                                totalChange
+                                            );
 
-                            if (finishCount === totalChange) {
+                                            if (finishCount === totalChange) {
 
-                                const strUpdate =
-                                    arrUpdate.join(",");
+                                                const strUpdate =
+                                                    arrUpdate.join(",");
 
-                                arrValue.push(data.id_plant);
+                                                arrValue.push(data.id_plant);
 
-                                console.log(
-                                    "UPDATE QUERY =>",
-                                    strUpdate
-                                );
+                                                console.log(
+                                                    "UPDATE QUERY =>",
+                                                    strUpdate
+                                                );
 
-                                console.log(
-                                    "UPDATE VALUE =>",
-                                    arrValue
-                                );
+                                                console.log(
+                                                    "UPDATE VALUE =>",
+                                                    arrValue
+                                                );
 
-                                con.query(`
+                                                con.query(`
                                     UPDATE formplant
                                     SET ${strUpdate}
                                     WHERE id = ?
                                 `,
-                                arrValue,
-                                (err, update) => {
+                                                    arrValue,
+                                                    (err, update) => {
 
-                                    if (err) {
+                                                        if (err) {
 
-                                        console.log(
-                                            "UPDATE ERROR =>",
-                                            err
-                                        );
+                                                            console.log(
+                                                                "UPDATE ERROR =>",
+                                                                err
+                                                            );
 
-                                        dbpacket.dbErrorReturn(
-                                            con,
-                                            err,
-                                            res
-                                        );
+                                                            dbpacket.dbErrorReturn(
+                                                                con,
+                                                                err,
+                                                                res
+                                                            );
 
-                                        return;
-                                    }
+                                                            return;
+                                                        }
 
-                                    con.end();
+                                                        con.end();
 
-                                    try {
+                                                        try {
 
-                                        sendNotifyToDoctor(
-                                            auth.data.id_table,
-                                            auth.data.station,
-                                            `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`
-                                        );
+                                                            sendNotifyToDoctor(
+                                                                auth.data.id_table,
+                                                                auth.data.station,
+                                                                `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`
+                                                            );
 
-                                    } catch (e) {
+                                                        } catch (e) {
 
-                                        console.log(
-                                            "NOTIFY ERROR =>",
-                                            e
-                                        );
-                                    }
+                                                            console.log(
+                                                                "NOTIFY ERROR =>",
+                                                                e
+                                                            );
+                                                        }
 
-                                    res.send("133");
-                                });
-                            }
-                        });
+                                                        res.send("133");
+                                                    });
+                                            }
+                                        });
+                                }
+                            });
+
+                    } else {
+
+                        con.end();
+
+                        res.send("submit");
                     }
                 });
 
+        } catch (err) {
+
+            console.log("CATCH ERROR =>", err);
+
+            con.end();
+
+            if (
+                err === "no" ||
+                err === "no account"
+            ) {
+
+                res.send("close");
+
             } else {
 
-                con.end();
-
-                res.send("submit");
+                res.send("error auth");
             }
-        });
-
-    } catch (err) {
-
-        console.log("CATCH ERROR =>", err);
-
-        con.end();
-
-        if (
-            err === "no" ||
-            err === "no account"
-        ) {
-
-            res.send("close");
-
-        } else {
-
-            res.send("error auth");
         }
-    }
-});
+    });
 
 
 

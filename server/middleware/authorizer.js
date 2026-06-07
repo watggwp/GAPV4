@@ -6,8 +6,8 @@ module.exports = function Authorizer(connectionPool = new ConnectPool()) {
 
         const { role_primary , role_doctor , uid_line } = req.session
 
-        const username = req.session.user_doctor || req.session.user_username;
-        const password = req.session.pass_doctor || req.session.user_password;
+        const username = role_primary === "admin" ? req.session.user_username : (req.session.user_doctor || req.session.user_username);
+        const password = role_primary === "admin" ? req.session.user_password : (req.session.pass_doctor || req.session.user_password);
 
         if(username === '' || password === '') {
             return res.redirect('/api/logout')
