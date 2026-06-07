@@ -1,0 +1,354 @@
+ @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+
+ .schedule-overlay {
+     position: fixed;
+     inset: 0;
+     background-color: rgba(0, 0, 0, 0.4);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     z-index: 9999;
+     padding: 16px;
+ }
+
+ .schedule-modal {
+     width: 100%;
+     max-width: 920px;
+     background-color: #ffffff;
+     border-radius: 12px;
+     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+     max-height: 90vh;
+     display: flex;
+     flex-direction: column;
+     overflow: hidden;
+     border: 1px solid #cbd5e1;
+ }
+
+ .schedule-modal * {
+     font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+     box-sizing: border-box;
+ }
+
+ .schedule-header {
+     background-color: #189D85;
+     padding: 16px 24px;
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     border-bottom: 2px solid #14806c;
+ }
+
+ .schedule-header-title {
+     font-size: 20px;
+     font-weight: 700;
+     color: #ffffff;
+ }
+
+ .schedule-close-btn {
+     width: 36px;
+     height: 36px;
+     border-radius: 4px;
+     border: none;
+     background-color: rgba(0, 0, 0, 0.1);
+     color: #ffffff;
+     font-size: 20px;
+     font-weight: bold;
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     transition: background-color 0.2s;
+ }
+
+ .schedule-close-btn:hover {
+     background-color: rgba(0, 0, 0, 0.2);
+ }
+
+ .schedule-body {
+     background-color: #f8fafc;
+     padding: 24px;
+     overflow-y: auto;
+     flex: 1;
+ }
+
+ .schedule-plant-header {
+     text-align: center;
+     margin-bottom: 20px;
+ }
+
+ .schedule-plant-name {
+     font-size: 24px;
+     font-weight: 700;
+     color: #1e293b;
+     margin: 0;
+ }
+
+ .schedule-plant-date-wrap {
+     display: flex;
+     justify-content: center;
+     margin-bottom: 20px;
+ }
+
+ .schedule-plant-date-card {
+     background-color: #ffffff;
+     border-radius: 8px;
+     padding: 12px 24px;
+     display: flex;
+     align-items: center;
+     gap: 16px;
+     border: 1px solid #cbd5e1;
+ }
+
+ .schedule-plant-date-card img {
+     width: 44px;
+     height: 44px;
+     object-fit: cover;
+     border-radius: 6px;
+ }
+
+ .schedule-plant-date-title {
+     font-size: 14px;
+     font-weight: bold;
+     color: #64748b;
+ }
+
+ .schedule-plant-date-value {
+     font-size: 16px;
+     font-weight: bold;
+     color: #0f172a;
+ }
+
+ .steps-container {
+     display: flex;
+     flex-direction: column;
+     gap: 16px;
+     margin-bottom: 20px;
+ }
+
+ .step-card {
+     background-color: #ffffff;
+     border: 1px solid #cbd5e1;
+     border-radius: 10px;
+     display: flex;
+     flex-direction: column;
+     padding: 18px;
+     gap: 12px;
+ }
+
+ .step-header-row {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     flex-wrap: wrap;
+     gap: 8px;
+     border-bottom: 1px solid #e2e8f0;
+     padding-bottom: 8px;
+ }
+
+ .step-main-title {
+     font-size: 18px;
+     font-weight: 700;
+     color: #0f172a;
+ }
+
+ .step-age-badge {
+     font-size: 14px;
+     font-weight: bold;
+     color: #1e293b;
+     background-color: #f1f5f9;
+     padding: 4px 12px;
+     border-radius: 4px;
+     border: 1px solid #cbd5e1;
+ }
+
+ .comparison-container {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 16px;
+ }
+
+ .comparison-box {
+     border-radius: 8px;
+     padding: 14px;
+     display: flex;
+     flex-direction: column;
+     gap: 8px;
+     background-color: #ffffff;
+     border: 1px solid #cbd5e1;
+ }
+
+ .plan-box {
+     border-top: 4px solid #189D85;
+ }
+
+ .actual-box {
+     border-top: 4px solid #10b981;
+ }
+
+ .actual-box.unrecorded {
+     border-top: 4px solid #94a3b8;
+     background-color: #f8fafc;
+ }
+
+ .box-header {
+     margin-bottom: 4px;
+ }
+
+ .box-title-label {
+     font-size: 15px;
+     font-weight: bold;
+ }
+
+ .plan-title-color {
+     color: #14806c;
+ }
+
+ .actual-title-color {
+     color: #0f766e;
+ }
+
+ .unrecorded-title-color {
+     color: #64748b;
+ }
+
+ .box-details {
+     display: flex;
+     flex-direction: column;
+     gap: 6px;
+ }
+
+ .detail-date {
+     font-size: 16px;
+     font-weight: bold;
+     color: #0f172a;
+     border-bottom: 1px solid #f1f5f9;
+     padding-bottom: 4px;
+     margin-bottom: 4px;
+ }
+
+ .detail-line {
+     font-size: 15px;
+     line-height: 1.5;
+ }
+
+ .empty-text {
+     font-size: 15px;
+     color: #64748b;
+     font-style: italic;
+ }
+
+ .actual-empty-text {
+     color: #64748b;
+     font-weight: 500;
+ }
+
+ .harvest-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 16px;
+     margin-bottom: 20px;
+ }
+
+ .harvest-card {
+     background-color: #ffffff;
+     border-radius: 8px;
+     padding: 16px;
+     display: flex;
+     align-items: center;
+     gap: 16px;
+     border: 1px solid #cbd5e1;
+ }
+
+ .harvest-card img {
+     width: 48px;
+     height: 48px;
+     object-fit: cover;
+     border-radius: 6px;
+ }
+
+ .harvest-title {
+     font-size: 14px;
+     font-weight: bold;
+     color: #64748b;
+ }
+
+ .harvest-date {
+     font-size: 16px;
+     font-weight: bold;
+     color: #0f172a;
+     margin-top: 2px;
+ }
+
+ .schedule-footer {
+     text-align: center;
+     margin-top: 20px;
+     border-top: 1px solid #cbd5e1;
+     padding-top: 20px;
+ }
+
+ .schedule-timestamp {
+     font-size: 14px;
+     color: #64748b;
+     margin-bottom: 16px;
+ }
+
+ .schedule-close-full-btn {
+     background-color: #189D85;
+     color: #ffffff;
+     border: none;
+     border-radius: 6px;
+     padding: 12px 48px;
+     font-size: 16px;
+     font-weight: bold;
+     cursor: pointer;
+     border-bottom: 2px solid #14806c;
+ }
+
+ .schedule-close-full-btn:hover {
+     background-color: #14806c;
+ }
+
+ @media (max-width: 768px) {
+     .schedule-modal {
+         width: 96%;
+         max-height: 95vh;
+     }
+
+     .schedule-body {
+         padding: 16px;
+     }
+
+     .schedule-plant-name {
+         font-size: 20px;
+     }
+
+     .comparison-container {
+         grid-template-columns: 1fr;
+         gap: 12px;
+     }
+
+     .harvest-grid {
+         grid-template-columns: 1fr;
+         gap: 12px;
+     }
+
+     .step-card {
+         padding: 14px;
+     }
+
+     .step-main-title {
+         font-size: 16px;
+     }
+
+     .box-title-label {
+         font-size: 14px;
+     }
+
+     .detail-date {
+         font-size: 15px;
+     }
+
+     .detail-line {
+         font-size: 14px;
+     }
+ }

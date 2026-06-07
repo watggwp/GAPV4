@@ -272,7 +272,7 @@ const ManageList = ({ Data, status, session, fetch, count, setCount, socket }) =
                 <LoadOtherDom Fetch={fetch} count={count} setCount={setCount} Limit={5}
                     style={{ backgroundColor: "rgb(24 157 133)" }} />
                 <div id="popup-detail-farmer">
-                    <PopupDom Ref={RefPop} Body={PopBody} zIndex={2} />
+                    <PopupDom Ref={RefPop} Body={PopBody} zIndex={1001} />
                 </div>
             </div>
         </>

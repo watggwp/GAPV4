@@ -10,6 +10,11 @@ module.exports = function Schedules(app, pool = new Pool()) {
     app.get('/api/schedules', async (req, res) => {
         const { profile: { station_doctor: station_id } = {} } = req.session
         const { station_id: station_id_payload = station_id, has_total_schedule } = req.query
+        console.log("=== GET /api/schedules ===");
+        console.log("Session profile:", req.session.profile);
+        console.log("Query:", req.query);
+        console.log("station_id_payload resolved:", station_id_payload);
+
 
         try {
             const schedule_plants = await pool.executeQuery(

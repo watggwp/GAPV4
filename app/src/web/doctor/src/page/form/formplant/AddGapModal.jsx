@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { clientMo } from "../../../../../assets/js/moduleClient";
-import { DatePickerThai, DateSelect, Loading } from "../../../../../assets/js/module";
+import { clientMo } from "../../../../../../assets/js/moduleClient";
+import { DatePickerThai, DateSelect, Loading } from "../../../../../../assets/js/module";
 import { Stack } from "@mui/material";
-import RequestAPI from "../../../../../assets/js/requestAPI";
-import "../../../../farmer/src/content/Gaps/GapCardList.scss";
-import "./AddGapModal.scss";
+import RequestAPI from "../../../../../../assets/js/requestAPI";
+import "../../../../../farmer/src/content/Gaps/GapCardList.scss";
+import "../../../assets/style/page/form/AddGapModal.scss";
 
 const DEFAULT_IMG = "/plant_glow.jpg";
 
@@ -13,7 +13,7 @@ const DEFAULT_IMG = "/plant_glow.jpg";
    Modal: เพิ่มใบ GAP  (ฟอร์มเต็มเหมือน InsertPlant)
 ══════════════════════════════════════════════════════ */
 
-const AddGapModalForm = ({ session, onClose, onSuccess }) => {
+const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor" }) => {
 
     const checkAuth = async (result) => {
         if (document.getElementById("loading") && document.getElementById("loading").classList[0] !== "hide") {
@@ -90,15 +90,13 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
         return () => clearTimeout(timeout.current);
     }, []);
 
-    useEffect(() => {
-        clearTimeout(timeout.current);
-    }, [getHistoryPlantLoad]);
+
 
     /* ── API: Fetch farmers from doctor's center ── */
     const FetchFarmers = async () => {
         try {
             setFarmersLoading(true);
-            const response = await clientMo.post("/api/doctor/farmer/list", { approve: 1 });
+            const response = await clientMo.post(`${apiPrefix}/farmer/list`, { approve: 1 });
             if (await checkAuth(response)) {
                 const farmerList = JSON.parse(response);
                 setFarmers(Array.isArray(farmerList) ? farmerList : []);
@@ -116,10 +114,11 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
         try {
             setHousesLoading(true);
             setSelectedHouseId("");
-            const response = await clientMo.post("/api/doctor/farmhouse/get/HouseList", { id_farmer: farmerId });
+            const response = await clientMo.post(`${apiPrefix}/farmhouse/get/HouseList`, { id_farmer: farmerId });
             if (await checkAuth(response)) {
                 const houseList = JSON.parse(response);
-                setFarmerHouses(Array.isArray(houseList) ? houseList : []);
+                const openHouses = Array.isArray(houseList) ? houseList.filter(h => h.status === 1) : [];
+                setFarmerHouses(openHouses);
             }
         } catch (err) {
             console.error("Error fetching houses:", err);
@@ -162,6 +161,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 
     /* ── API: history per plant name (uses selectedHouseId from closure) ── */
     const FetchDataForm = (name_plant_list, houseId) => {
+        clearTimeout(timeout.current);
         setHistory(true);
         if (FormContent.current) FormContent.current.setAttribute("over", "");
 
@@ -171,18 +171,18 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
                 if (FormContent.current) FormContent.current.removeAttribute("over");
                 return;
             }
-            const Data = await clientMo.post("/api/doctor/formplant/history", {
+            const Data = await clientMo.post(`${apiPrefix}/formplant/history`, {
                 id_farmhouse: houseId,
                 name_plant_list,
             });
             if (await checkAuth(Data)) {
                 try {
                     const obj = JSON.parse(Data);
-                    if (obj.qtyDate.length !== 0) {
-                        const qtyHarvest = parseInt(obj.qtyDate[0].qty_harvest);
-                        MathDateHarvest(DateNowOnForm, qtyHarvest);
-                        setDateHarvest(qtyHarvest);
-                    }
+                    // if (obj.qtyDate.length !== 0) {
+                    //     const qtyHarvest = parseInt(obj.qtyDate[0].qty_harvest);
+                    //     MathDateHarvest(DateNowOnForm, qtyHarvest);
+                    //     setDateHarvest(qtyHarvest);
+                    // }
                     if (obj.FromHistory.length !== 0) {
                         Generation.current.value = parseInt(obj.FromHistory[0].generation) + 1;
                         PositionW.current.value = obj.FromHistory[0].posi_w;
@@ -287,7 +287,17 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 
     const SetTextOnOther = (e) => {
         if (selectedHouseId) {
-            FetchDataForm(e.target.value, selectedHouseId);
+            const selectedIdx = e.target.value;
+            const selectedPlant = DataPlant[selectedIdx];
+            const plantName = selectedPlant ? selectedPlant.name : "";
+            
+            if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
+                const qtyHarvest = parseInt(selectedPlant.qty_harvest);
+                MathDateHarvest(DateNowOnForm, qtyHarvest);
+                setDateHarvest(qtyHarvest);
+            }
+            
+            FetchDataForm(plantName, selectedHouseId);
         }
         ChangeCHK();
     };
@@ -388,11 +398,12 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
             }
 
             const type = TypePlantInput?.current;
+            const selectedIdx = type ? type.value : "";
+            const selectedPlant = DataPlant[selectedIdx];
+            const selectedPlantName = selectedPlant ? selectedPlant.name : "";
+            const selectedVarietyName = selectedPlant ? selectedPlant.variety_name : "";
 
-            console.log("TYPE =>", type);
-            console.log("TYPE VALUE =>", type?.value);
-
-            if (!type?.value) {
+            if (!selectedPlantName) {
                 console.log("ยังไม่ได้เลือก type");
                 return;
             }
@@ -411,7 +422,8 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 
             const data = {
                 id_farmhouse: selectedHouseId,
-                name_plant: type.value,
+                name_plant: selectedPlantName,
+                name_varieties: selectedVarietyName,
                 datePlant: convertThaiDateToISO(DatePlant.current.value),
                 dateOut: convertThaiDateToISO(DateOut.current.value),
             };
@@ -421,7 +433,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
             setWait(true);
 
             const response = await clientMo.post(
-                "/api/doctor/formplant/insert",
+                `${apiPrefix}/formplant/insert`,
                 data
             );
 
@@ -507,9 +519,6 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 
                     {/* ─ Inner form ─ */}
                     <div className="gap-inner-form">
-                        <div className="head-form">
-                            <span>การปลูกของเกษตรกร</span>
-                        </div>
                         <div className="body-content">
                             <div ref={FormContent} className="frame-content" over="">
                                 <div className="content">
@@ -531,7 +540,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
                                                     >
                                                         <option disabled value="">เลือกพืช</option>
                                                         {DataPlant.map((p, i) => (
-                                                            <option key={i} value={p.name}>{p.name}</option>
+                                                            <option key={i} value={i}>{p.name} {p.variety_name ? `(${p.variety_name})` : ""}</option>
                                                         ))}
                                                     </select>
                                                 </label>
@@ -594,20 +603,15 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
                                             <div className="row">
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
-                                                    <Stack>
-                                                        <Stack direction={"row"}>
-                                                            <span>พื้นที่</span>
-                                                            <select onChange={Change} ref={System} defaultValue="">
-                                                                <option disabled value="">เลือก</option>
-                                                                <option value="โรงเรือน">โรงเรือน</option>
-                                                                <option value="ไร่">ไร่</option>
-                                                                <option value="ตารางเมตร">ตารางเมตร</option>
-                                                            </select>
-                                                        </Stack>
-                                                        <Stack marginTop={1} alignItems={"center"}>
-                                                            <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder} />
-                                                        </Stack>
-                                                    </Stack>
+                                                    <span>พื้นที่</span>
+                                                    <select onChange={Change} ref={System} defaultValue="">
+                                                        <option disabled value="">เลือก</option>
+                                                        <option value="โรงเรือน">โรงเรือน</option>
+                                                        <option value="ไร่">ไร่</option>
+                                                        <option value="ตารางเมตร">ตารางเมตร</option>
+                                                    </select>
+                                                    <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder="ตัวเลข" />
+
                                                 </label>
                                             </div>
                                             <div className="row">
@@ -779,12 +783,13 @@ const AddGapModalForm = ({ session, onClose, onSuccess }) => {
 /* ══════════════════════════════════════════════════════
    Main Component: AddGapModal
 ══════════════════════════════════════════════════════ */
-const AddGapModal = ({ session, onClose, onSuccess }) => {
+const AddGapModal = ({ session, onClose, onSuccess, apiPrefix }) => {
     return (
         <AddGapModalForm
             session={session}
             onClose={onClose}
             onSuccess={onSuccess}
+            apiPrefix={apiPrefix}
         />
     );
 }
