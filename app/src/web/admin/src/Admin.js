@@ -12,6 +12,7 @@ import SchedulesPlan from "./page/schedule/schedules";
 import SchedulePlants from "./page/schedule/schedulePlants";
 import env from "../../../env";
 import WeatherStation from "./page/station";
+import PageFormPlantAdmin from "./page/form/PageFormPlantAdmin";
 
 // New Components
 import AdminSidebar from "./AdminSidebar";
@@ -272,6 +273,16 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         />
                     );
                 }
+            } else if (seconPath[0] === "form-plant") {
+                setPageTitle("แบบบันทึกการปลูก");
+                setBody(
+                    <PageFormPlantAdmin
+                        setMain={setBody}
+                        session={sessionoff}
+                        socket={socket}
+                        type={true}
+                    />
+                );
             } else if (query.indexOf("group") === 0) {
                 setPageTitle("จัดกลุ่มข้อมูล");
                 Href.set(`group?default${type}`);
@@ -394,6 +405,14 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                                             <></>
                                         }>
                                         </Route>
+                                        <Route path="/admin/form-plant" element={
+                                            <PageFormPlantAdmin
+                                                setMain={setBody}
+                                                session={sessionoff}
+                                                socket={socket}
+                                                type={true}
+                                            />
+                                        } />
                                         <Route path="*" element={body} />
                                     </Routes>
                                 </bot-content>

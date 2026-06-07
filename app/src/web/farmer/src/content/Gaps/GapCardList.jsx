@@ -70,9 +70,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
         return () => clearTimeout(timeout.current);
     }, []);
 
-    useEffect(() => {
-        clearTimeout(timeout.current);
-    }, [getHistoryPlantLoad]);
+
 
     // useEffect(() => {
     //     if (YearOut.current) YearOut.current.classList.add("report-not");
@@ -89,6 +87,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
     /* ── API: history per plant name (uses selectedHouseId from closure) ── */
     const FetchDataForm = (name_plant_list, houseId) => {
+        clearTimeout(timeout.current);
         setHistory(true);
         if (FormContent.current) FormContent.current.setAttribute("over", "");
 
@@ -105,11 +104,11 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             if (await CloseAccount(Data)) {
                 try {
                     const obj = JSON.parse(Data);
-                    if (obj.qtyDate.length !== 0) {
-                        const qtyHarvest = parseInt(obj.qtyDate[0].qty_harvest);
-                        MathDateHarvest(DateNowOnForm, qtyHarvest);
-                        setDateHarvest(qtyHarvest);
-                    }
+                    // if (obj.qtyDate.length !== 0) {
+                    //     const qtyHarvest = parseInt(obj.qtyDate[0].qty_harvest);
+                    //     MathDateHarvest(DateNowOnForm, qtyHarvest);
+                    //     setDateHarvest(qtyHarvest);
+                    // }
                     if (obj.FromHistory.length !== 0) {
                         Generation.current.value = parseInt(obj.FromHistory[0].generation) + 1;
                         PositionW.current.value = obj.FromHistory[0].posi_w;
@@ -214,7 +213,17 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
     const SetTextOnOther = (e) => {
         if (selectedHouseId) {
-            FetchDataForm(e.target.value, selectedHouseId);
+            const selectedIdx = e.target.value;
+            const selectedPlant = DataPlant[selectedIdx];
+            const plantName = selectedPlant ? selectedPlant.name : "";
+            
+            if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
+                const qtyHarvest = parseInt(selectedPlant.qty_harvest);
+                MathDateHarvest(DateNowOnForm, qtyHarvest);
+                setDateHarvest(qtyHarvest);
+            }
+            
+            FetchDataForm(plantName, selectedHouseId);
         }
         ChangeCHK();
     };
@@ -315,11 +324,12 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             }
 
             const type = TypePlantInput?.current;
+            const selectedIdx = type ? type.value : "";
+            const selectedPlant = DataPlant[selectedIdx];
+            const selectedPlantName = selectedPlant ? selectedPlant.name : "";
+            const selectedVarietyName = selectedPlant ? selectedPlant.variety_name : "";
 
-            console.log("TYPE =>", type);
-            console.log("TYPE VALUE =>", type?.value);
-
-            if (!type?.value) {
+            if (!selectedPlantName) {
                 console.log("ยังไม่ได้เลือก type");
                 return;
             }
@@ -338,7 +348,8 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
 
             const data = {
                 id_farmhouse: selectedHouseId,
-                name_plant: type.value,
+                name_plant: selectedPlantName,
+                name_varieties: selectedVarietyName,
                 datePlant: convertThaiDateToISO(DatePlant.current.value),
                 dateOut: convertThaiDateToISO(DateOut.current.value),
             };
@@ -428,7 +439,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                     >
                                                         <option disabled value="">เลือกพืช</option>
                                                         {DataPlant.map((p, i) => (
-                                                            <option key={i} value={p.name}>{p.name}</option>
+                                                            <option key={i} value={i}>{p.name} {p.variety_name ? `(${p.variety_name})` : ""}</option>
                                                         ))}
                                                     </select>
                                                 </label>

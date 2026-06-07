@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { clientMo } from "../../../../../../assets/js/moduleClient";
-import { DatePickerThai, DateSelect, Loading } from "../../../../../../assets/js/module";
+import { clientMo } from "../../../../../assets/js/moduleClient";
+import { DatePickerThai, DateSelect, Loading } from "../../../../../assets/js/module";
 import { Stack } from "@mui/material";
-import RequestAPI from "../../../../../../assets/js/requestAPI";
-import "../../../../../farmer/src/content/Gaps/GapCardList.scss";
-import "../../../assets/style/page/form/AddGapModal.scss";
+import RequestAPI from "../../../../../assets/js/requestAPI";
+import "../../assets/style/page/form/AddGapModalAdmin.scss";
 
 const DEFAULT_IMG = "/plant_glow.jpg";
 
@@ -25,6 +24,11 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
         }
         return true;
     };
+
+    /* ── Station selection ── */
+    const [stations, setStations] = useState([]);
+    const [selectedStationId, setSelectedStationId] = useState("");
+    const [stationsLoading, setStationsLoading] = useState(true);
 
     /* ── Farmer selection ── */
     const [farmers, setFarmers] = useState([]);
@@ -84,19 +88,37 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
         });
     }, [previousInsects]);
 
+    const fetchStations = useCallback(async () => {
+        try {
+            setStationsLoading(true);
+            const res = await clientMo.post(`${apiPrefix}/station/list`);
+            if (res) {
+                const parsed = JSON.parse(res);
+                setStations(Array.isArray(parsed) ? parsed : []);
+            }
+        } catch (e) {
+            console.error("fetchStations error:", e);
+        } finally {
+            setStationsLoading(false);
+        }
+    }, [apiPrefix]);
+
     useEffect(() => {
         FetchPlant();
+        fetchStations();
         FetchFarmers();
         return () => clearTimeout(timeout.current);
-    }, []);
+    }, [fetchStations]);
 
 
 
     /* ── API: Fetch farmers from doctor's center ── */
-    const FetchFarmers = async () => {
+    const FetchFarmers = async (stationId = "") => {
         try {
             setFarmersLoading(true);
-            const response = await clientMo.post(`${apiPrefix}/farmer/list`, { approve: 1 });
+            const body = { approve: 1 };
+            if (stationId) body.station_id = stationId;
+            const response = await clientMo.post(`${apiPrefix}/farmer/list`, body);
             if (await checkAuth(response)) {
                 const farmerList = JSON.parse(response);
                 setFarmers(Array.isArray(farmerList) ? farmerList : []);
@@ -126,6 +148,16 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
         } finally {
             setHousesLoading(false);
         }
+    };
+
+    /* ── Handle station selection ── */
+    const handleStationChange = (e) => {
+        const stationId = e.target.value;
+        setSelectedStationId(stationId);
+        setSelectedFarmerId("");
+        setSelectedHouseId("");
+        setFarmerHouses([]);
+        FetchFarmers(stationId);
     };
 
     /* ── Handle farmer selection ── */
@@ -290,13 +322,13 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
             const selectedIdx = e.target.value;
             const selectedPlant = DataPlant[selectedIdx];
             const plantName = selectedPlant ? selectedPlant.name : "";
-            
+
             if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
                 const qtyHarvest = parseInt(selectedPlant.qty_harvest);
                 MathDateHarvest(DateNowOnForm, qtyHarvest);
                 setDateHarvest(qtyHarvest);
             }
-            
+
             FetchDataForm(plantName, selectedHouseId);
         }
         ChangeCHK();
@@ -463,6 +495,27 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                 {/* Scrollable area */}
                 <div className="gap-modal-scroll">
 
+
+                    {/* ─ Station dropdown row ─ */}
+                    <div className="gap-modal-house-row">
+                        <span className="gap-modal-label">ศูนย์/สถานี</span>
+                        {stationsLoading ? (
+                            <span style={{ fontSize: "14px", color: "#666" }}>กำลังโหลดศูนย์/สถานี...</span>
+                        ) : (
+                            <select
+                                className="gap-modal-select"
+                                value={selectedStationId}
+                                onChange={handleStationChange}
+                            >
+                                <option value="">ทั้งหมด</option>
+                                {stations.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
 
                     {/* ─ farmer dropdown row ─ */}
                     <div className="gap-modal-house-row">
