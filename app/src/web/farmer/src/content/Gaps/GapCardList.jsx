@@ -327,7 +327,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             const selectedIdx = type ? type.value : "";
             const selectedPlant = DataPlant[selectedIdx];
             const selectedPlantName = selectedPlant ? selectedPlant.name : "";
-            const selectedVarietyName = selectedPlant ? selectedPlant.variety_name : "";
+            // const selectedVarietyName = selectedPlant ? selectedPlant.variety_name : "";
 
             if (!selectedPlantName) {
                 console.log("ยังไม่ได้เลือก type");
@@ -349,7 +349,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             const data = {
                 id_farmhouse: selectedHouseId,
                 name_plant: selectedPlantName,
-                name_varieties: selectedVarietyName,
+                // name_varieties: selectedVarietyName,
                 datePlant: convertThaiDateToISO(DatePlant.current.value),
                 dateOut: convertThaiDateToISO(DateOut.current.value),
             };
@@ -439,7 +439,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                     >
                                                         <option disabled value="">เลือกพืช</option>
                                                         {DataPlant.map((p, i) => (
-                                                            <option key={i} value={i}>{p.name} {p.variety_name ? `(${p.variety_name})` : ""}</option>
+                                                            <option key={i} value={i}>{p.name}</option>
                                                         ))}
                                                     </select>
                                                 </label>
@@ -777,7 +777,7 @@ const GapCardList = () => {
                 </div>
             )}
 
-            {houses.length > 0 && (
+            {houses.some((h) => h.status === 1) && (
                 <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
             )}
 

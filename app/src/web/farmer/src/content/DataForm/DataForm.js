@@ -152,14 +152,14 @@ const DataForm = () => {
 
 
     const FetchVarieties = async (plantId) => {
-        try {
-            const response = await clientMo.post("/api/farmer/varieties", { plant_id: plantId })
-            const data = JSON.parse(response);
-            setVarieties(data);
-            console.log(data)
-        } catch (error) {
-            console.error(error);
-        }
+        // try {
+        //     const response = await clientMo.post("/api/farmer/varieties", { plant_id: plantId })
+        //     const data = JSON.parse(response);
+        //     setVarieties(data);
+        //     console.log(data)
+        // } catch (error) {
+        //     console.error(error);
+        // }
     };
 
     const FetchPlant = async () => {
@@ -274,7 +274,7 @@ const DataForm = () => {
     const validateInputs = () => {
         const requiredRefs = [
             TypePlantInput,
-            VarietyInput,
+            // VarietyInput,
             Generation,
             DateGlow,
             DatePlant,
@@ -314,7 +314,7 @@ const DataForm = () => {
         // };
         if (BtConfirm.current.getAttribute("no") == null) {
             const type = TypePlantInput.current;
-            const variety = VarietyInput.current;
+            // const variety = VarietyInput.current;
             const generetion = Generation.current;
             const dateGlow = DateGlow.current;
             const datePlant = DatePlant.current;
@@ -338,7 +338,7 @@ const DataForm = () => {
 
             const CheckChange = [
                 type.value != (Data.name_plant ?? ""),
-                variety.value != (Data.name_varieties ?? ""),
+                // variety.value != (Data.name_varieties ?? ""),
                 generetion.value != (Data.generation ?? ""),
                 (convertThaiDateToISO(dateGlow.value) ?? "") != ((Data.date_glow?.split(" ")[0]) ?? ""),
                 (convertThaiDateToISO(datePlant.value) ?? "") != ((Data.date_plant?.split(" ")[0]) ?? ""),
@@ -470,7 +470,7 @@ const DataForm = () => {
 
         const CheckChange = [
             type !== Data.name_plant,
-            variety !== Data.name_varieties,
+            // variety !== Data.name_varieties,
             generetion !== Data.generation,
             ConvertDate(dateGlow).christDate !== Data.date_glow?.split(" ")[0],
             ConvertDate(datePlant).christDate !== Data.date_plant?.split(" ")[0],
@@ -563,20 +563,25 @@ const DataForm = () => {
                                                         DataPlant.length !== 0 ?
                                                             <select style={{ width: "100%" }} onChange={handlePlantChange} ref={TypePlantInput} defaultValue={Data.name_plant}>
                                                                 <option disabled value={""}>เลือกพืช</option>
-                                                                {
-                                                                    DataPlant.map((plant, key) =>
-                                                                        <option key={key} value={plant.name}>{plant.name}</option>
-
-
-                                                                    )
-                                                                }
+                                                                {(() => {
+                                                                    const seen = new Set();
+                                                                    return DataPlant.map((plant, key) => {
+                                                                        if (!plant.name) return null;
+                                                                        const trimmedName = plant.name.trim();
+                                                                        if (seen.has(trimmedName)) return null;
+                                                                        seen.add(trimmedName);
+                                                                        return (
+                                                                            <option key={key} value={trimmedName}>{trimmedName}</option>
+                                                                        );
+                                                                    });
+                                                                })()}
                                                             </select> : <></>
                                                         : <input readOnly defaultValue={Data.name_plant}></input>
                                                     }
                                                 </div>
                                             </label>
                                         </div>
-                                        <div className="row">
+                                        {/* <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.name_varieties == 2 ? " not" : ""}`}>
                                                 <span>สายพันธุ์พืช</span>
                                                 <div className="input-select-popup">
@@ -593,7 +598,7 @@ const DataForm = () => {
                                                     }
                                                 </div>
                                             </label>
-                                        </div>
+                                        </div> */}
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.generation == 2 ? " not" : ""}`}>
                                                 <span>รุ่นที่ปลูก</span>

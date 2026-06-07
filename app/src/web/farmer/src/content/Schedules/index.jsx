@@ -39,6 +39,9 @@ export default function SchedulesPage() {
 
     const [loading, setLoading] = useState(true);
     const [plantName, setPlantName] = useState("");
+    const [plantVariety, setPlantVariety] = useState("");
+    const [hasVarieties, setHasVarieties] = useState(false);
+    const [resolvedPlantId, setResolvedPlantId] = useState(null);
     const [datePlant, setDatePlant] = useState("");
     const [dateHarvest, setDateHarvest] = useState("");
     const [schedules, setSchedules] = useState([]);
@@ -57,6 +60,7 @@ export default function SchedulesPage() {
             const plant_name = formData[0].name_plant;
             const plant_variety = formData[0].name_varieties;
             setPlantName(plant_name);
+            setPlantVariety(plant_variety || "");
             setDatePlant(formData[0].date_plant?.split(" ")[0]);
             setDateHarvest(formData[0].date_harvest?.split(" ")[0]);
 
@@ -68,34 +72,39 @@ export default function SchedulesPage() {
             const scheduleData = typeof res === "string" ? JSON.parse(res) : res;
             console.log("SCHEDULE DATA:", scheduleData);
 
-            if (scheduleData && scheduleData.schedule_plants) {
-                const uniqueSchedules = [];
-                const seenKeys = new Set();
+            if (scheduleData) {
+                setHasVarieties(scheduleData.has_varieties || false);
+                setResolvedPlantId(scheduleData.resolved_plant_id || null);
 
-                for (const schedule of scheduleData.schedule_plants) {
-                    const key = `${schedule.id}_${schedule.category}_${schedule.age_plant}`;
-                    if (!seenKeys.has(key)) {
-                        seenKeys.add(key);
-                        uniqueSchedules.push(schedule);
+                if (scheduleData.schedule_plants) {
+                    const uniqueSchedules = [];
+                    const seenKeys = new Set();
+
+                    for (const schedule of scheduleData.schedule_plants) {
+                        const key = `${schedule.id}_${schedule.category}_${schedule.age_plant}`;
+                        if (!seenKeys.has(key)) {
+                            seenKeys.add(key);
+                            uniqueSchedules.push(schedule);
+                        }
                     }
+
+                    uniqueSchedules.sort((a, b) => {
+                        if (a.category !== b.category) return a.category - b.category;
+                        return (Number(a.age_plant) || 0) - (Number(b.age_plant) || 0);
+                    });
+
+                    const repeatCountByCategory = {};
+                    const schedulesWithRepeat = uniqueSchedules.map((schedule) => {
+                        const categoryKey = schedule.category;
+                        repeatCountByCategory[categoryKey] = (repeatCountByCategory[categoryKey] || 0) + 1;
+                        return {
+                            ...schedule,
+                            repeat_count: repeatCountByCategory[categoryKey]
+                        };
+                    });
+
+                    setSchedules(schedulesWithRepeat);
                 }
-
-                uniqueSchedules.sort((a, b) => {
-                    if (a.category !== b.category) return a.category - b.category;
-                    return (Number(a.age_plant) || 0) - (Number(b.age_plant) || 0);
-                });
-
-                const repeatCountByCategory = {};
-                const schedulesWithRepeat = uniqueSchedules.map((schedule) => {
-                    const categoryKey = schedule.category;
-                    repeatCountByCategory[categoryKey] = (repeatCountByCategory[categoryKey] || 0) + 1;
-                    return {
-                        ...schedule,
-                        repeat_count: repeatCountByCategory[categoryKey]
-                    };
-                });
-
-                setSchedules(schedulesWithRepeat);
             }
         } catch (error) {
             console.error("Fetch Schedule Error:", error);
@@ -145,9 +154,37 @@ export default function SchedulesPage() {
                         }}
                     >
                         {/* Title */}
-                        <Typography textAlign="center" fontSize="24px" fontWeight="bold" color="#2c2c2c" mb={2}>
+                        <Typography textAlign="center" fontSize="24px" fontWeight="bold" color="#2c2c2c" mb={plantVariety ? 0.5 : 2}>
                             {plantName || "ไม่พบข้อมูลพืช"}
                         </Typography>
+                        {plantVariety ? (
+                            <></>
+                        ) : (!resolvedPlantId && hasVarieties) ? (
+                            <Box
+                                sx={{
+                                    backgroundColor: '#fff3cd',
+                                    border: '1px solid #ffeeba',
+                                    borderRadius: '8px',
+                                    p: 1.5,
+                                    mb: 2,
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <Typography color="#856404" fontSize="14px" fontWeight="bold">
+                                    ⚠️ หมอพืชยังไม่ได้ระบุสายพันธุ์พืช
+                                </Typography>
+                                <Typography fontSize="12px" color="#856404" mt={0.5}>
+                                    กรุณารอเจ้าหน้าที่ระบุสายพันธุ์เพื่อความถูกต้องของแผนการปลูก
+                                </Typography>
+                            </Box>
+                        ) : null}
+
+                        {/* 'ยังไม่มีแผนการปลูก' displayed above planting date if schedules length is 0 */}
+                        {resolvedPlantId && schedules.length === 0 && (
+                            <Box sx={{ my: 1, mb: 2, textAlign: 'center' }}>
+                                <Typography color="#888" fontSize="15px">ยังไม่มีแผนการปลูก</Typography>
+                            </Box>
+                        )}
 
                         {/* Planting Item */}
                         {datePlant && (
@@ -160,7 +197,7 @@ export default function SchedulesPage() {
                         )}
 
                         {/* Schedule Items */}
-                        {schedules.map((sch, idx) => {
+                        {resolvedPlantId && schedules.length > 0 && schedules.map((sch, idx) => {
                             const isFertilizer = sch.category === 1;
                             const isChemical = sch.category === 2;
                             const img = isFertilizer ? imgFertilizer : imgChemical;

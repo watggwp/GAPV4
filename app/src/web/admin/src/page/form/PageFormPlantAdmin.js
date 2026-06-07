@@ -232,6 +232,10 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
         fetchPlantList();
     }, [fetchPlantList]);
 
+    const selectedStationId = DataProcess.get("station");
+    const selectedStation = stations.find(s => String(s.id) === String(selectedStationId));
+    const selectedStationName = selectedStation ? selectedStation.name : "";
+
     return (
         <><section className="data-list-content-page form-page admin-form-plant">
             <div className="search-form" ref={Search}>
@@ -268,7 +272,7 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
                         }
                         .view-switch.active .view-switch-handle { left: 36px; background-color: #189D85; }
                         .view-switch-text {
-                            font-size: 11px;
+                            font-size: 30px;
                             font-weight: bold;
                             user-select: none;
                             position: absolute;
@@ -280,16 +284,21 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
                         .view-switch-text.off { right: 8px; color: #999; opacity: 1; }
                         .view-switch.active .view-switch-text.off { opacity: 0; }
                     `}</style>
-                    <div className="view-switch-container">
-                        <div
-                            className={`view-switch ${viewMode === "table" ? "active" : ""}`}
-                            onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}
-                        >
-                            <span className="view-switch-text on">เปิด</span>
-                            <span className="view-switch-text off">ปิด</span>
-                            <div className="view-switch-handle"></div>
-                        </div>
-                    </div>
+                    <a
+                        title={viewMode === "card" ? "แสดงแบบตาราง" : "แสดงแบบการ์ด"}
+                        className="bt-search-show"
+                        onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}
+                    >
+                        {viewMode === "card" ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 4h18v2H3zm0 7h18v2H3zm0 7h18v2H3z" />
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 3h8v8H3zm0 10h8v8H3zm10-10h8v8h-8zm0 10h8v8h-8z" />
+                            </svg>
+                        )}
+                    </a>
                     <a title="เพิ่มใบ GAP" className="bt-search-show" onClick={() => setShowAddModal(true)}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                             <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -476,6 +485,11 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
                 </div>
             </div>
             <div className="data-list-content">
+                {selectedStationName && (
+                    <div style={{ textAlign: "center", margin: "15px 0 5px 0", fontSize: "20px", fontWeight: "bold", color: "#189D85" }}>
+                        {selectedStationName}
+                    </div>
+                )}
                 <ListAdmin session={session} socket={socket} DataFillter={DataProcess} setDataPlant={setDataPlantList} setDataId={setDataIdPlant} viewMode={viewMode} />
             </div>
 
@@ -845,46 +859,92 @@ const ManageListAdmin = ({ Data, session, fetch, count, setCount, viewMode }) =>
                                         <th style={{ padding: "14px 16px" }}>สารเคมี (ครั้ง)</th>
                                         <th style={{ padding: "14px 16px" }}>ศัตรูพืช</th>
                                         <th style={{ padding: "14px 16px" }}>ชื่อเกษตรกร</th>
+                                        <th style={{ padding: "14px 16px" }}>หมายเหตุ</th>
                                         <th style={{ padding: "14px 16px" }}>จัดการข้อมูล</th>
                                     </tr>
                                 </thead>
                                 <tbody style={{ fontSize: "14px", color: "#333" }}>
-                                    {Data.length > 0 ? Data.map((item, index) => (
-                                        <tr key={index}
-                                            onClick={() => showPopup(item.id, React.createRef())}
-                                            className="table-row-hover"
-                                            style={{ borderBottom: "1px solid #eef2f0", cursor: "pointer", transition: "background-color 0.2s" }}
-                                        >
-                                            <td data-label="ชนิดพืช" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.type_main || "-"}</td>
-                                            <td data-label="ชื่อพืช" style={{ padding: "14px 16px" }}>{item.name_plant || "-"}</td>
-                                            <td data-label="รุ่น" style={{ padding: "14px 16px" }}>{item.generation || "-"}</td>
-                                            <td data-label="วันที่ปลูก" style={{ padding: "14px 16px" }}><DayJSX DATE={item.date_plant} TYPE="SMALL" /></td>
-                                            <td data-label="จำนวนต้น" style={{ padding: "14px 16px" }}>{item.qty !== null && item.qty !== undefined && item.qty !== "" ? item.qty : "-"}</td>
-                                            <td data-label="รูปแบบการปลูก" style={{ padding: "14px 16px" }}>{item.system_glow || "-"}</td>
-                                            <td data-label="ปุ๋ย (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctFer !== null && item.ctFer !== undefined && item.ctFer !== "" ? item.ctFer : "-"}</td>
-                                            <td data-label="สารเคมี (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctChe !== null && item.ctChe !== undefined && item.ctChe !== "" ? item.ctChe : "-"}</td>
-                                            <td data-label="ศัตรูพืช" style={{ padding: "14px 16px" }}>{item.insect || "-"}</td>
-                                            <td data-label="ชื่อเกษตรกร" style={{ padding: "14px 16px" }}>{item.farmer || "-"}</td>
-                                            <td data-label="จัดการข้อมูล" style={{ padding: "10px 16px", textAlign: "center" }}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        e.preventDefault();
+                                    {Data.length > 0 ? Data.map((item, index) => {
+                                        const dateHarvest = parseDateStr(item.date_harvest);
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        dateHarvest.setHours(0, 0, 0, 0);
+                                        const DateHarvestDiff = Math.ceil((dateHarvest - today) / (24 * 60 * 60 * 1000));
+                                        const isIncomplete = isDataIncomplete(item);
+                                        const showHarvest = item.state_status == 0 && item.date_harvest && !isNaN(DateHarvestDiff);
 
-                                                        setSchedulesId(item.id);
-                                                    }}
-                                                    style={{
-                                                        backgroundColor: "#F5E642", color: "#333", border: "none",
-                                                        borderRadius: "20px", padding: "6px 14px", fontFamily: "Sans-font",
-                                                        fontSize: "13px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap"
-                                                    }}
-                                                >
-                                                    ดูแผนการปลูก
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colSpan={11} style={{ padding: "20px", textAlign: "center", color: "#666" }}>ไม่พบข้อมูล</td></tr>
+                                        const tags = [];
+                                        if (isIncomplete) tags.push({ label: "ข้อมูลพื้นฐานยังไม่ครบ", cls: "incomplete" });
+                                        if (showHarvest) {
+                                            let harvestText = null;
+                                            if (DateHarvestDiff < 0) {
+                                                harvestText = `เลยกำหนดเก็บเกี่ยว ${Math.abs(DateHarvestDiff)} วัน`;
+                                            } else if (DateHarvestDiff === 0) {
+                                                harvestText = "ครบกำหนดเก็บเกี่ยว";
+                                            } else if (DateHarvestDiff <= 7) {
+                                                harvestText = `เก็บเกี่ยวในอีก ${DateHarvestDiff} วัน`;
+                                            }
+                                            if (harvestText) tags.push({ label: harvestText, cls: "" });
+                                        }
+
+                                        return (
+                                            <tr key={index}
+                                                onClick={() => showPopup(item.id, React.createRef())}
+                                                className="table-row-hover"
+                                                style={{ borderBottom: "1px solid #eef2f0", cursor: "pointer", transition: "background-color 0.2s" }}
+                                            >
+                                                <td data-label="ชนิดพืช" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.type_main || "-"}</td>
+                                                <td data-label="ชื่อพืช" style={{ padding: "14px 16px" }}>{item.name_plant || "-"}</td>
+                                                <td data-label="รุ่น" style={{ padding: "14px 16px" }}>{item.generation || "-"}</td>
+                                                <td data-label="วันที่ปลูก" style={{ padding: "14px 16px" }}><DayJSX DATE={item.date_plant} TYPE="SMALL" /></td>
+                                                <td data-label="จำนวนต้น" style={{ padding: "14px 16px" }}>{item.qty !== null && item.qty !== undefined && item.qty !== "" ? item.qty : "-"}</td>
+                                                <td data-label="รูปแบบการปลูก" style={{ padding: "14px 16px" }}>{item.system_glow || "-"}</td>
+                                                <td data-label="ปุ๋ย (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctFer !== null && item.ctFer !== undefined && item.ctFer !== "" ? item.ctFer : "-"}</td>
+                                                <td data-label="สารเคมี (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctChe !== null && item.ctChe !== undefined && item.ctChe !== "" ? item.ctChe : "-"}</td>
+                                                <td data-label="ศัตรูพืช" style={{ padding: "14px 16px" }}>{item.insect || "-"}</td>
+                                                <td data-label="ชื่อเกษตรกร" style={{ padding: "14px 16px" }}>{item.farmer || "-"}</td>
+                                                <td data-label="หมายเหตุ" style={{ padding: "14px 16px" }}>
+                                                    {tags.length > 0 ? (
+                                                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center" }}>
+                                                            {tags.map((t, idx) => (
+                                                                <span key={idx} style={{
+                                                                    backgroundColor: t.cls === "incomplete" ? "#ffbebe" : "rgb(230, 247, 134)",
+                                                                    color: t.cls === "incomplete" ? "#d63031" : "#E53935",
+                                                                    padding: "4px 10px",
+                                                                    borderRadius: "8px",
+                                                                    fontSize: "12px",
+                                                                    fontWeight: "bold",
+                                                                    whiteSpace: "nowrap"
+                                                                }}>
+                                                                    {t.label}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        "-"
+                                                    )}
+                                                </td>
+                                                <td data-label="จัดการข้อมูล" style={{ padding: "10px 16px", textAlign: "center" }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+
+                                                            setSchedulesId(item.id);
+                                                        }}
+                                                        style={{
+                                                            backgroundColor: "#F5E642", color: "#333", border: "none",
+                                                            borderRadius: "20px", padding: "6px 14px", fontFamily: "Sans-font",
+                                                            fontSize: "13px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap"
+                                                        }}
+                                                    >
+                                                        ดูแผนการปลูก
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr><td colSpan={12} style={{ padding: "20px", textAlign: "center", color: "#666" }}>ไม่พบข้อมูล</td></tr>
                                     )}
                                 </tbody>
                             </table>
