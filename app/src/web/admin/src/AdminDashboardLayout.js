@@ -226,7 +226,6 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                     <option value="none">ไม่พบ</option>
                     <option value="found">พบโรค/ศัตรูพืช</option>
                 </select>
-                <button className="filter-btn">ค้นหา</button>
 
                 <div className="legend">
                     <div className="legend-item">
