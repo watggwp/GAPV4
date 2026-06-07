@@ -43,7 +43,7 @@ const DataForm = () => {
     const [getDateOut, setDateOut] = useState("");
     const [QtyDate, setQtyDate] = useState(0);
     const [getWait, setWait] = useState(false);
-    // const [varieties, setVarieties] = useState([]);
+    const [varieties, setVarieties] = useState([]);
     const [selectedPlantId, setSelectedPlantId] = useState(null); // ประกาศ state อย่างถูกต้อง
     const [previousInsects, setPreviousInsects] = useState([]); // เก็บข้อมูลโรค/แมลงที่พบ
     const [selectedInsect, setSelectedInsect] = useState("");
@@ -84,18 +84,18 @@ const DataForm = () => {
     const expected_yield = useRef();
     const default_yield = useRef();
 
-    // useEffect(() => {
-    //     if (Data.id_plant) {
-    //         FetchVarieties(Data.id_plant);
-    //     }
-    //     console.log(Data.id_plant)
-    // }, [Data.id_plant]);
+    useEffect(() => {
+        if (Data.id_plant) {
+            FetchVarieties(Data.id_plant);
+        }
+        console.log(Data.id_plant)
+    }, [Data.id_plant]);
 
-    // useEffect(() => {
-    //     if (selectedPlantId) {
-    //         FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
-    //     }
-    // }, [selectedPlantId]);
+    useEffect(() => {
+        if (selectedPlantId) {
+            FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
+        }
+    }, [selectedPlantId]);
     useEffect(() => {
         if (Data.insect) {
             setSelectedInsect(Data.insect); // ตั้งค่าเริ่มต้นเป็นค่าที่เคยเลือก
@@ -151,16 +151,16 @@ const DataForm = () => {
 
 
 
-    // const FetchVarieties = async (plantId) => {
-    //     try {
-    //         const response = await clientMo.post("/api/farmer/varieties" , { plant_id: plantId })
-    //         const data = JSON.parse(response);
-    //         setVarieties(data);
-    //         console.log(data)
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // };
+    const FetchVarieties = async (plantId) => {
+        try {
+            const response = await clientMo.post("/api/farmer/varieties", { plant_id: plantId })
+            const data = JSON.parse(response);
+            setVarieties(data);
+            console.log(data)
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const FetchPlant = async () => {
         setDataPlant([]);
@@ -237,7 +237,7 @@ const DataForm = () => {
     const EditForm = async () => {
         const plants = await FetchPlant();
         const selectedPlant = plants.find((plant) => plant.name === Data.name_plant)
-        // await FetchVarieties(selectedPlant?.id);
+        await FetchVarieties(selectedPlant?.id);
         DataContent.current.setAttribute("edit", "");
         setStatusEdit(true);
         document.querySelectorAll("#data-form-page *[readonly='']").forEach((val) => {
@@ -314,7 +314,7 @@ const DataForm = () => {
         // };
         if (BtConfirm.current.getAttribute("no") == null) {
             const type = TypePlantInput.current;
-            // const variety = VarietyInput.current;
+            const variety = VarietyInput.current;
             const generetion = Generation.current;
             const dateGlow = DateGlow.current;
             const datePlant = DatePlant.current;
@@ -338,7 +338,7 @@ const DataForm = () => {
 
             const CheckChange = [
                 type.value != (Data.name_plant ?? ""),
-                // variety.value != Data.name_varieties,
+                variety.value != (Data.name_varieties ?? ""),
                 generetion.value != (Data.generation ?? ""),
                 (convertThaiDateToISO(dateGlow.value) ?? "") != ((Data.date_glow?.split(" ")[0]) ?? ""),
                 (convertThaiDateToISO(datePlant.value) ?? "") != ((Data.date_plant?.split(" ")[0]) ?? ""),
@@ -366,14 +366,14 @@ const DataForm = () => {
                 because.value &&
                 CheckChange.some(val => val)
 
-            // if (
-            //     (type.value && generetion.value && dateGlow.value && datePlant.value &&
-            //         posiW.value && posiH.value && qty.value && area.value && unit.value && dateOut.value && system.value &&
-            //         water.value && waterStep.value && because.value,expectedYield.value && defaultYield.value)
-            //     &&
-            //     (
-            //         CheckChange.filter(val => val)
-            //     )
+                // if (
+                //     (type.value && generetion.value && dateGlow.value && datePlant.value &&
+                //         posiW.value && posiH.value && qty.value && area.value && unit.value && dateOut.value && system.value &&
+                //         water.value && waterStep.value && because.value,expectedYield.value && defaultYield.value)
+                //     &&
+                //     (
+                //         CheckChange.filter(val => val)
+                //     )
             ) {
                 const Key = [
                     "name_plant", "generation", "date_glow", "date_plant",
@@ -447,7 +447,7 @@ const DataForm = () => {
         // }
 
         const type = TypePlantInput.current.value || '';
-        // const variety = VarietyInput.current.value || '';
+        const variety = VarietyInput.current ? VarietyInput.current.value : '';
         const generetion = Generation.current ? Generation.current.value : '';
         const dateGlow = DateGlow.current ? DateGlow.current.value : '';
         const datePlant = DatePlant.current ? DatePlant.current.value : '';
@@ -470,7 +470,7 @@ const DataForm = () => {
 
         const CheckChange = [
             type !== Data.name_plant,
-            // variety !== Data.name_varieties,
+            variety !== Data.name_varieties,
             generetion !== Data.generation,
             ConvertDate(dateGlow).christDate !== Data.date_glow?.split(" ")[0],
             ConvertDate(datePlant).christDate !== Data.date_plant?.split(" ")[0],
@@ -576,12 +576,12 @@ const DataForm = () => {
                                                 </div>
                                             </label>
                                         </div>
-                                        {/* <div className="row">
+                                        <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.name_varieties == 2 ? " not" : ""}`}>
-                                            <span>สายพันธุ์พืช</span>
+                                                <span>สายพันธุ์พืช</span>
                                                 <div className="input-select-popup">
                                                     {StatusEdit ?
-                                                       (varieties) && varieties.length !== 0 ?
+                                                        (varieties) && varieties.length !== 0 ?
                                                             <select style={{ width: "100%" }} ref={VarietyInput} defaultValue={Data.name_varieties} onChange={ChangeEdit}>
                                                                 <option disabled value="">เลือกสายพันธุ์พืช</option>
                                                                 {varieties.map((variety, key) =>
@@ -593,8 +593,7 @@ const DataForm = () => {
                                                     }
                                                 </div>
                                             </label>
-                                        </div> */}
-
+                                        </div>
                                         <div className="row">
                                             <label className={`frame-textbox${Data.subjectResult.generation == 2 ? " not" : ""}`}>
                                                 <span>รุ่นที่ปลูก</span>

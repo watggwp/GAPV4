@@ -216,13 +216,13 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
             const selectedIdx = e.target.value;
             const selectedPlant = DataPlant[selectedIdx];
             const plantName = selectedPlant ? selectedPlant.name : "";
-            
+
             if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
                 const qtyHarvest = parseInt(selectedPlant.qty_harvest);
                 MathDateHarvest(DateNowOnForm, qtyHarvest);
                 setDateHarvest(qtyHarvest);
             }
-            
+
             FetchDataForm(plantName, selectedHouseId);
         }
         ChangeCHK();
@@ -777,7 +777,9 @@ const GapCardList = () => {
                 </div>
             )}
 
-            <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
+            {houses.length > 0 && (
+                <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
+            )}
 
             {showModal && (
                 <AddGapModal

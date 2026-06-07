@@ -796,6 +796,29 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     //     });
     // });
 
+    app.post('/api/farmer/varieties', async (req, res) => {
+        if (req.session.uidFarmer) {
+            let con = Database.createConnection(listDB);
+            try {
+                const auth = await authCheck(con, req);
+                const plantId = req.body.plant_id;
+                con.query(`SELECT variety_id, plant_id, variety_name, dates FROM varieties WHERE plant_id = ?`, [plantId], (err, result) => {
+                    con.end();
+                    if (!err) {
+                        res.json(result);
+                    } else {
+                        console.error('Query error:', err);
+                        res.status(500).send("Database query error");
+                    }
+                });
+            } catch (err) {
+                con.end();
+                res.status(403).send("error auth");
+            }
+        } else {
+            res.status(401).send("error auth");
+        }
+    });
 
 
     app.post('/api/farmer/pests', async (req, res) => {
