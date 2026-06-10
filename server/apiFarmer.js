@@ -796,6 +796,29 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     //     });
     // });
 
+    // app.post('/api/farmer/varieties', async (req, res) => {
+    //     if (req.session.uidFarmer) {
+    //         let con = Database.createConnection(listDB);
+    //         try {
+    //             const auth = await authCheck(con, req);
+    //             const plantId = req.body.plant_id;
+    //             con.query(`SELECT variety_id, plant_id, variety_name, dates FROM varieties WHERE plant_id = ?`, [plantId], (err, result) => {
+    //                 con.end();
+    //                 if (!err) {
+    //                     res.json(result);
+    //                 } else {
+    //                     console.error('Query error:', err);
+    //                     res.status(500).send("Database query error");
+    //                 }
+    //             });
+    //         } catch (err) {
+    //             con.end();
+    //             res.status(403).send("error auth");
+    //         }
+    //     } else {
+    //         res.status(401).send("error auth");
+    //     }
+    // });
 
 
     app.post('/api/farmer/pests', async (req, res) => {
@@ -969,9 +992,10 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con, req)
-                con.query(`SELECT id, name, variety_name, qty_harvest
+                con.query(`SELECT id, name, qty_harvest
                             FROM plant_list
                             WHERE is_use = 1
+                            GROUP BY name
                             ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
                             ` , (err, result) => {
                     con.end()
@@ -995,25 +1019,28 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 const { plant_id, name_plant, name_varieties } = req.body
 
                 let resolved_plant_id = plant_id;
+                let has_varieties = false;
 
                 if (name_plant) {
                     const variety = name_varieties || "";
                     resolved_plant_id = await new Promise((resolve) => {
-                        con.query(`SELECT id FROM plant_list WHERE name = ? AND variety_name = ? AND is_use = 1 LIMIT 1`, [name_plant, variety], (err, result) => {
+                        con.query(`SELECT id FROM plant_list WHERE name = ? AND (variety_name = ? OR (variety_name IS NULL AND ? = '')) LIMIT 1`, [name_plant, variety, variety], (err, result) => {
                             if (!err && result.length > 0) resolve(result[0].id);
-                            else {
-                                con.query(`SELECT id FROM plant_list WHERE name = ? AND is_use = 1 LIMIT 1`, [name_plant], (e, r) => {
-                                    if (!e && r.length > 0) resolve(r[0].id);
-                                    else resolve(null);
-                                });
-                            }
+                            else resolve(null);
+                        });
+                    });
+
+                    has_varieties = await new Promise((resolve) => {
+                        con.query(`SELECT COUNT(*) as cnt FROM plant_list WHERE name = ? AND variety_name != '' AND variety_name IS NOT NULL AND is_use = 1`, [name_plant], (err, result) => {
+                            if (!err && result.length > 0 && result[0].cnt > 0) resolve(true);
+                            else resolve(false);
                         });
                     });
                 }
 
                 if (!resolved_plant_id) {
                     con.end()
-                    return res.json({ schedule_plants: [] })
+                    return res.json({ schedule_plants: [], has_varieties, resolved_plant_id: null })
                 }
 
                 con.query(`SELECT station FROM acc_farmer WHERE uid_line = ?`, [auth.data.uid_line], (err, stationResult) => {
@@ -1062,6 +1089,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         if (!err) {
                             res.json({
                                 schedule_plants: schedule_plants || [],
+                                has_varieties,
+                                resolved_plant_id,
                                 debug: {
                                     resolved_plant_id,
                                     station_id,
@@ -1073,6 +1102,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         } else {
                             res.json({
                                 schedule_plants: [],
+                                has_varieties,
+                                resolved_plant_id: null,
                                 debug: {
                                     error: err,
                                     resolved_plant_id,
