@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { clientMo } from "../../../assets/js/moduleClient";
 import './assets/style/AdminDashboardLayout.scss';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useAdminContext } from "./Admin";
@@ -44,15 +44,7 @@ const THAI_MONTHS = [
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
-const CenterToStationMarker = ({ center }) => {
-    const map = useMap();
-    useEffect(() => {
-        if (center && center.lat && center.lng) {
-            map.flyTo([center.lat, center.lng], 16);
-        }
-    }, [center, map]);
-    return null;
-};
+
 
 const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     const { profile } = useAdminContext();
@@ -176,7 +168,6 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
         fetchProduction();
     }, [selectedStation, selectedMonth, selectedYear]);
 
-    const center = [18.810, 98.980];
 
     const getBadgeStyle = (overdueDays) => {
         if (overdueDays >= 10) return { backgroundColor: '#e53935', color: '#fff' };
@@ -244,12 +235,12 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                 {/* Map Section */}
                 <div className="map-section">
                     <MapContainer
-                        center={center}
+                        key={`${profile?.lat}-${profile?.lng}`}
+                        center={profile?.lat && profile?.lng ? [profile.lat, profile.lng] : [18.810, 98.980]}
                         zoom={16}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
                     >
-                        <CenterToStationMarker center={profile} />
                         <LayersControl position="topright">
                             <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
                                 <TileLayer
@@ -263,7 +254,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                                 />
                             </LayersControl.BaseLayer>
-                            <LayersControl.BaseLayer name="สะอาดตา (Clean)">
+                            {/* <LayersControl.BaseLayer name="สะอาดตา (Clean)">
                                 <TileLayer
                                     attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -292,7 +283,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                                     attribution='&copy; <a href="https://www.cyclosm.org">CyclOSM</a>'
                                     url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
                                 />
-                            </LayersControl.BaseLayer>
+                            </LayersControl.BaseLayer> */}
                         </LayersControl>
 
                         {mapPins.map(pin => (
