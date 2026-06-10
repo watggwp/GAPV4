@@ -63,7 +63,8 @@
             z-index: 1;
             gap: 10px;
 
-            .bt-search-show, .bt-export-show {
+            .bt-search-show,
+            .bt-export-show {
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -556,7 +557,7 @@
                     background-color: white;
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 
                     thead tr {
                         background-color: #189D85;
@@ -606,16 +607,21 @@
             @media (max-width: 1024px) {
                 .table-responsive {
                     padding: 0 !important;
-                    
-                    table, thead, tbody, th, td, tr {
+
+                    table,
+                    thead,
+                    tbody,
+                    th,
+                    td,
+                    tr {
                         display: block !important;
                         width: 100% !important;
                     }
-                    
+
                     thead {
                         display: none !important;
                     }
-                    
+
                     tr {
                         border: 1px solid #eef2f0 !important;
                         margin-bottom: 20px !important;
@@ -625,7 +631,7 @@
                         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
                         box-sizing: border-box !important;
                     }
-                    
+
                     td {
                         border: none !important;
                         border-bottom: 1px dashed #eef2f0 !important;
@@ -656,7 +662,7 @@
                             border-bottom: none !important;
                             padding: 16px 0 8px 0 !important;
                             justify-content: center !important;
-                            
+
                             &::before {
                                 display: none !important;
                             }
@@ -666,4 +672,4 @@
             }
         }
     }
-}
+}

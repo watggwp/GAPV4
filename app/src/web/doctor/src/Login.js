@@ -49,6 +49,20 @@ list.forEach((item) =>
         } else {
             Body.current.setAttribute("mobile" , "")
         }
+
+        // ซ่อน #loading splash screen ทันทีที่ Login component mount
+        clientMo.unLoadingPage()
+
+        // แนบ event listener หลังจาก DOM mount แล้ว
+        const list = document.querySelectorAll('.list');
+        function activeLink() {
+            list.forEach((item) => item.classList.remove('active'));
+            this.classList.add('active');
+        }
+        list.forEach((item) => item.addEventListener('click', activeLink));
+        return () => {
+            list.forEach((item) => item.removeEventListener('click', activeLink));
+        }
     } , [])
 
     const FetchProfile = () => {
@@ -151,7 +165,7 @@ list.forEach((item) =>
     return (
         <>
             <PopupDom Ref={Personal} Body={formPersonal} zIndex={5} />
-            <div style={{backgroundImage : `url(${env.Background})`}} onLoad={()=>clientMo.unLoadingPage()} ref={Body} className="login-doctor">
+            <div style={{backgroundImage : `url(${env.Background})`}} ref={Body} className="login-doctor">
                 <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
                     <div className="Logo-App">
                         <img src={`${env.subpath_server}/logo2.png`}></img>

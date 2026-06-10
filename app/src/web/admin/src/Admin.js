@@ -329,6 +329,9 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         FetchProfile();
         ChkPath(null, "web")
 
+        // ซ่อน #loading splash screen ทันทีที่ Admin component mount (onLoad บน <div> ไม่ทำงาน)
+        clientMo.unLoadingPage();
+
         window.addEventListener("popstate", ChkPath);
         window.addEventListener("resize", Resize);
         socket.emit("connect-account", username, password);
@@ -350,7 +353,6 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
         >
             <BrowserRouter basename={env.subpath_server}>
                 <div
-                    onLoad={clientMo.unLoadingPage}
                     className="admin"
                     style={{ flexDirection: 'row', overflow: 'hidden', display: 'flex', width: '100%', height: '100vh' }}
                 >
