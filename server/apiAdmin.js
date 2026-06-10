@@ -10,9 +10,15 @@ require('dotenv').config().parsed
 const axios = require('axios').default;
 
 module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , socket) {
-  
-  app.post('/api/admin/check' , (req , res)=>{
-    res.redirect('/api/admin/auth');
+  app.post('/api/admin/check', (req, res) => {
+    const username = req.session.user_username
+    const password = req.session.user_password
+    // ถ้าไม่มี session → หมด session → ส่ง "" กลับ
+    if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
+      return res.clearCookie(process.env.cookieName).send("")
+    }
+    // session ยังอยู่ → ส่ง "pass" กลับ
+    return res.send("pass")
   })
   
 // doctor page

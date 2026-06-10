@@ -23,10 +23,15 @@ function generateMessageTitle(greenhouse_name, plant_name) {
 }
 
 module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), apifunc, dbpacket, listDB, UrlApi, socket = io) {
-
     app.post('/api/doctor/check', (req, res) => {
-        if (apifunc.authCsurf("doctor", req, res)) res.redirect('/api/doctor/auth')
-        else res.clearCookie(process.env.cookieName).send("")
+        const username = req.session.user_doctor
+        const password = req.session.pass_doctor
+        // ถ้าไม่มี session หรือ password → session หมด → ส่ง "" กลับ
+        if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
+            return res.clearCookie(process.env.cookieName).send("")
+        }
+        // session ยังอยู่ → ส่ง "pass" กลับ (ชัดเจน ไม่ใช่ redirect)
+        return res.send("pass")
     })
 
     app.post('/api/doctor/formplant/insert', async (req, res) => {

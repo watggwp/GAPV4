@@ -349,7 +349,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
                     {/* Widget 1: แปลงที่ยังไม่กรอกข้อมูล */}
                     <div className="widget">
                         <div className="widget-title">
-                            แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ยหรือสารเคมีตามแผนการปลูก
+                            แปลงที่รอการบันทึกข้อมูลตามแผน
                         </div>
                         <div className="table-responsive">
                             <table className="dash-table">

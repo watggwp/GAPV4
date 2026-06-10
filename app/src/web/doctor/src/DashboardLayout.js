@@ -322,7 +322,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                     {/* Widget 1: แปลงที่ยังไม่กรอกข้อมูล */}
                     <div className="widget">
                         <div className="widget-title">
-                            แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ยหรือสารเคมีตามแผนการปลูก
+                            แปลงที่รอการบันทึกข้อมูลตามแผน
                         </div>
                         <table className="dash-table">
                             <thead>
@@ -374,17 +374,17 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         </table>
                         {totalPagesUnfilled > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === 1}
                                     onClick={() => setPageUnfilled(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageUnfilled} จาก {totalPagesUnfilled}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === totalPagesUnfilled} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === totalPagesUnfilled}
                                     onClick={() => setPageUnfilled(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
@@ -464,17 +464,17 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         </table>
                         {totalPagesProduction > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === 1}
                                     onClick={() => setPageProduction(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageProduction} จาก {totalPagesProduction}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === totalPagesProduction} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === totalPagesProduction}
                                     onClick={() => setPageProduction(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
