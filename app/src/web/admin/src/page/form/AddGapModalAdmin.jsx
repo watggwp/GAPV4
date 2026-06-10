@@ -33,7 +33,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
     /* ── Farmer selection ── */
     const [farmers, setFarmers] = useState([]);
     const [selectedFarmerId, setSelectedFarmerId] = useState("");
-    const [farmersLoading, setFarmersLoading] = useState(true);
+    const [farmersLoading, setFarmersLoading] = useState(false);
 
     /* ── House selection (filtered by farmer) ── */
     const [farmerHouses, setFarmerHouses] = useState([]);
@@ -106,7 +106,6 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
     useEffect(() => {
         FetchPlant();
         fetchStations();
-        FetchFarmers();
         return () => clearTimeout(timeout.current);
     }, [fetchStations]);
 
@@ -507,7 +506,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                 value={selectedStationId}
                                 onChange={handleStationChange}
                             >
-                                <option value="">ทั้งหมด</option>
+                                <option value="" disabled>กรุณาเลือกศูนย์/สถานี</option>
                                 {stations.map((s) => (
                                     <option key={s.id} value={s.id}>
                                         {s.name}
@@ -516,6 +515,9 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                             </select>
                         )}
                     </div>
+                    {!selectedStationId && (
+                        <p className="gap-modal-hint">* กรุณาเลือกศูนย์/สถานี</p>
+                    )}
 
                     {/* ─ farmer dropdown row ─ */}
                     <div className="gap-modal-house-row">
@@ -527,6 +529,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                 className="gap-modal-select"
                                 value={selectedFarmerId}
                                 onChange={handleFarmerChange}
+                                disabled={!selectedStationId}
                             >
                                 <option value="" disabled>กรุณาเลือกเกษตรกร</option>
                                 {farmers.map((f) => (

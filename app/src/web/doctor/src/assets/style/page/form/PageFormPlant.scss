@@ -56,57 +56,45 @@
 
         .bt-select-option {
             display: flex;
-            // flex-direction: column;
             align-items: center;
             justify-content: center;
             position: absolute;
             right: 100%;
-            // margin-right: 5px;
             z-index: 1;
+            gap: 10px;
 
-            .bt-search-show {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                // font-family: Sans-font;
-                // font-weight: 900;
-                // font-size: 20px; //media query
-                color: #22C7A9;
-                width: 40px;
-                height: 40px;
-                padding: 0px 5px 5px 0px;
-                background-color: white;
-                border-radius: 50%;
-                box-shadow: 0px 2px 4px rgb(192, 192, 192);
-                outline: 2px solid #22C7A9;
-                margin: 0px 4px;
-
-                svg {
-                    width: 35px;
-                }
-            }
-
+            .bt-search-show,
             .bt-export-show {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                // font-family: Sans-font;
-                // font-weight: 900;
-                // font-size: 20px; //media query
                 color: #22C7A9;
                 width: 40px;
                 height: 40px;
-                padding: 2px;
-                padding-right: 0px;
+                padding: 0px;
                 background-color: white;
                 border-radius: 50%;
-                box-shadow: 0px 2px 4px rgb(192, 192, 192);
-                outline: 2px solid #22C7A9;
-                margin: 0px 4px;
+                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.08);
+                border: 2px solid #22C7A9;
+                box-sizing: border-box;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
                 svg {
-                    width: 35px;
-                    fill: #22C7A9;
+                    width: 20px;
+                    height: 20px;
+                    transition: transform 0.3s ease;
+                }
+
+                &:hover {
+                    background-color: #22C7A9;
+                    color: white !important;
+                    box-shadow: 0px 6px 15px rgba(34, 199, 169, 0.35);
+                    transform: scale(1.1);
+
+                    svg {
+                        transform: scale(1.05);
+                    }
                 }
             }
         }
@@ -296,9 +284,9 @@
         transform: translateX(0%);
 
         .bt-select-option {
-            justify-content: space-between;
             flex-direction: column;
-            height: 90px;
+            gap: 10px;
+            height: auto;
         }
     }
 
@@ -310,12 +298,23 @@
                 .bt-search-show {
                     width: 30px;
                     height: 30px;
-                    padding: 0px 3px 3px 0px;
+                    padding: 0px;
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
                 }
 
                 .bt-export-show {
                     width: 30px;
                     height: 30px;
+                    padding: 0px;
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
                 }
             }
         }
@@ -564,12 +563,11 @@
                         background-color: #189D85;
                         color: white;
                         text-align: center;
-                        font-size: 20px;
+                        font-size: 15px;
 
                         th {
                             padding: 14px 16px;
                             font-weight: 600;
-
                         }
                     }
 
@@ -585,7 +583,7 @@
                         td {
                             padding: 14px 16px;
                             text-align: center;
-                            font-size: 20px;
+                            font-size: 14px;
                             color: #333;
 
                             input {

@@ -2910,8 +2910,8 @@ app.post('/api/admin/data/change', async (req, res) => {
             req.session.admin_id = auth['data'].id;
             req.session.user_username = username;
             req.session.user_password = password;
-            req.session.user_doctor = "666";
-            req.session.pass_doctor = "666";
+            // req.session.user_doctor = "666";
+            // req.session.pass_doctor = "666";
             req.session.tokenSession = apifunc.getTokenCsurf(req);
 
             con.end();
