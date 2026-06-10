@@ -4,6 +4,7 @@ import './assets/style/DashboardLayout.scss';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useDoctor } from "./Doctor";
 
 // Fix for default Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -43,17 +44,18 @@ const THAI_MONTHS = [
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
 
-const CurrentLocationMarker = () => {
+const CenterToStationMarker = ({ center }) => {
     const map = useMap();
     useEffect(() => {
-        map.locate().on("locationfound", function (e) {
-            map.flyTo(e.latlng, map.getZoom());
-        });
-    }, [map]);
+        if (center && center.lat && center.lng) {
+            map.flyTo([center.lat, center.lng], 16);
+        }
+    }, [center, map]);
     return null;
 };
 
 const DashboardLayout = ({ setMain, socket, setSession }) => {
+    const { profile } = useDoctor();
     const now = new Date();
     const [selectedPlantType, setSelectedPlantType] = useState('');
     const [selectedYield, setSelectedYield] = useState('');
@@ -198,7 +200,6 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                     <option value="none">ไม่พบ</option>
                     <option value="found">พบโรค/ศัตรูพืช</option>
                 </select>
-                <button className="filter-btn">ค้นหา</button>
 
                 <div className="legend">
                     <div className="legend-item">
@@ -218,11 +219,11 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                 <div className="map-section">
                     <MapContainer
                         center={center}
-                        zoom={11}
+                        zoom={16}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
                     >
-                        <CurrentLocationMarker />
+                        <CenterToStationMarker center={profile} />
                         <LayersControl position="topright">
                             <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
                                 <TileLayer
@@ -321,7 +322,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                     {/* Widget 1: แปลงที่ยังไม่กรอกข้อมูล */}
                     <div className="widget">
                         <div className="widget-title">
-                            แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ยหรือสารเคมีตามแผนการปลูก
+                            แปลงที่รอการบันทึกข้อมูลตามแผน
                         </div>
                         <table className="dash-table">
                             <thead>
@@ -373,17 +374,17 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         </table>
                         {totalPagesUnfilled > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === 1}
                                     onClick={() => setPageUnfilled(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageUnfilled} จาก {totalPagesUnfilled}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageUnfilled === totalPagesUnfilled} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageUnfilled === totalPagesUnfilled}
                                     onClick={() => setPageUnfilled(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
@@ -463,17 +464,17 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         </table>
                         {totalPagesProduction > 1 && (
                             <div className="pagination-controls">
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === 1} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === 1}
                                     onClick={() => setPageProduction(p => p - 1)}
                                 >
                                     &laquo; ก่อนหน้า
                                 </button>
                                 <span className="page-info">หน้า {pageProduction} จาก {totalPagesProduction}</span>
-                                <button 
-                                    className="page-btn" 
-                                    disabled={pageProduction === totalPagesProduction} 
+                                <button
+                                    className="page-btn"
+                                    disabled={pageProduction === totalPagesProduction}
                                     onClick={() => setPageProduction(p => p + 1)}
                                 >
                                     ถัดไป &raquo;
