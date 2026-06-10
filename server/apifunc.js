@@ -114,7 +114,11 @@ const apifunc = {
 
   getTokenCsurf: (request) => {
     const headers = request.headers
+    //---------------------------------------------------------------------------------------------------------------------------------
     const patternCsurf = `${headers["user-agent"]} ${headers["sec-ch-ua"]} ${headers["x-forwarded-for"]} ${headers["sec-ch-ua-platform"]}`
+    // ไม่ใช้ x-forwarded-for เพราะ IP เปลี่ยนเมื่อ ngrok restart หรือเปลี่ยน network
+    // const patternCsurf = `${headers["user-agent"]} ${headers["sec-ch-ua"]} ${headers["sec-ch-ua-platform"]}`
+    //---------------------------------------------------------------------------------------------------------------------------------
     const modiText = `${patternCsurf}`.replaceAll("undefined", "").replaceAll(" ", "").trim()
     const hashedText = crypto.createHmac('sha256', process.env.KEY_SESSION).update(modiText).digest('hex')
     return hashedText
@@ -125,7 +129,9 @@ const apifunc = {
     const password = (authType === "admin") ? request.session.user_password : (authType === "doctor") ? request.session.pass_doctor : "";
     const token = request.session.tokenSession
 
-    if ((username || password) && token !== apifunc.getTokenCsurf(request)) return false
+    if ((username || password) && token !== apifunc.getTokenCsurf(request)) {
+      return false;
+    }
     else return true
   },
 
