@@ -2,9 +2,11 @@ import { useCallback, useDeferredValue, useState } from "react";
 import { useNavigate } from "react-router";
 import SchedulesPlanManagement from "../../../../../assets/components/schedule-management/schedules";
 import { MenuItem, Select, Stack, TextField } from "@mui/material";
+import { useDoctor } from "../../Doctor";
 
 export default function SchedulesPlan() {
     const navigator = useNavigate()
+    const { profile } = useDoctor()
 
     const [search, setSearch] = useState()
     const defferredSearch = useDeferredValue(search)
@@ -37,6 +39,7 @@ export default function SchedulesPlan() {
                 />
             </Stack>
             <SchedulesPlanManagement
+                station_id={profile?.station_doctor}
                 onClickOpenSchedule={onClickSelectedPlan}
                 hasTotalSchedule={hasTotalSchedule}
                 searchText={defferredSearch}

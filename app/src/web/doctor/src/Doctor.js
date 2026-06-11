@@ -55,6 +55,9 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
     useEffect(() => {
         if (isClick === 1) window.history.replaceState({}, "", "/doctor")
 
+        // ซ่อน #loading splash screen เมื่อ Doctor component mount
+        clientMo.unLoadingPage()
+
         // Listener to handle auto-collapse on resize
         const handleResize = () => {
             setResponsive(window.innerWidth);

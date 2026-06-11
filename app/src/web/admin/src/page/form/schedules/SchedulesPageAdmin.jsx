@@ -44,20 +44,98 @@ function getPlanDateAndRemaining(datePlantStr, agePlant) {
     return { dateText, remainingText };
 }
 
-function renderDetailLine(line, idx) {
+function getMismatches(plan, actual, isFertilizer) {
+    const mismatches = [];
+    if (!plan || !actual) return mismatches;
+    const det = plan.details || {};
+
+    const normalize = (val) => String(val ?? "").replace(/\s+/g, "").toLowerCase();
+
+    if (isFertilizer) {
+        // Compare fertilizer name + formula
+        const planName = normalize(det.name_fertilizer);
+        const planFormula = normalize(det.formula_fertilizer);
+        const actualName = normalize(actual.name);
+        const actualFormula = normalize(actual.formula_name);
+
+        if (planName && actualName && !actualName.includes(planName) && !planName.includes(actualName)) {
+            mismatches.push("name");
+        } else if (planFormula && actualFormula && !actualFormula.includes(planFormula) && !planFormula.includes(actualFormula)) {
+            mismatches.push("name");
+        }
+
+        // Compare volume
+        const planVol = normalize(det.volume);
+        const actualVol = normalize(actual.volume);
+        if (planVol && actualVol && !actualVol.includes(planVol) && !planVol.includes(actualVol)) {
+            mismatches.push("volume");
+        }
+
+        // Compare how use
+        const planUse = normalize(det.how_use);
+        const actualUse = normalize(actual.use_is);
+        if (planUse && actualUse && !actualUse.includes(planUse) && !planUse.includes(actualUse)) {
+            mismatches.push("how_use");
+        }
+    } else {
+        // Chemical
+        // Compare pest
+        const planPest = normalize(det.pest);
+        const actualInsect = normalize(actual.insect);
+        if (planPest && actualInsect && !actualInsect.includes(planPest) && !planPest.includes(actualInsect)) {
+            mismatches.push("pest");
+        }
+
+        // Compare chemical name
+        const planName = normalize(det.chemical);
+        const actualName = normalize(actual.name);
+        if (planName && actualName && !actualName.includes(planName) && !planName.includes(actualName)) {
+            mismatches.push("name");
+        }
+
+        // Compare rate
+        const planRate = normalize(det.rate);
+        const actualRate = normalize(actual.rate);
+        if (planRate && actualRate && !actualRate.includes(planRate) && !planRate.includes(actualRate)) {
+            mismatches.push("rate");
+        }
+
+        // Compare volume
+        const planVol = normalize(det.volume);
+        const actualVol = normalize(actual.volume);
+        if (planVol && actualVol && !actualVol.includes(planVol) && !planVol.includes(actualVol)) {
+            mismatches.push("volume");
+        }
+
+        // Compare how use
+        const planUse = normalize(det.how_use);
+        const actualUse = normalize(actual.use_is);
+        if (planUse && actualUse && !actualUse.includes(planUse) && !planUse.includes(actualUse)) {
+            mismatches.push("how_use");
+        }
+    }
+    return mismatches;
+}
+
+function renderDetailLine(lineObj, idx, isMismatched) {
+    if (!lineObj) return null;
+    const line = lineObj.text;
     const colonIndex = line.indexOf(":");
+    const style = isMismatched ? { color: '#e11d48' } : {};
+    const valueStyle = isMismatched ? { color: '#e11d48', fontWeight: 'bold' } : { color: '#0f172a', fontWeight: 'bold' };
+
     if (colonIndex !== -1) {
         const label = line.substring(0, colonIndex + 1);
         const value = line.substring(colonIndex + 1).trim();
         return (
-            <div key={idx} className="detail-line" style={{ display: 'flex', gap: '8px', margin: '6px 0' }}>
-                <span style={{ color: '#475569', fontWeight: '600', minWidth: '85px', display: 'inline-block' }}>{label}</span>
-                <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{value}</span>
+            <div key={idx} className="detail-line" style={{ display: 'flex', gap: '8px', margin: '6px 0', ...style }}>
+                <span style={{ color: isMismatched ? '#e11d48' : '#475569', fontWeight: '600', minWidth: '85px', display: 'inline-block' }}>{label}</span>
+                <span style={valueStyle}>{value}</span>
             </div>
         );
     }
     return (
-        <div key={idx} className="detail-line" style={{ margin: '6px 0', color: '#0f172a', fontWeight: 'bold' }}>
+        <div key={idx} className="detail-line" style={{ margin: '6px 0', color: isMismatched ? '#e11d48' : '#0f172a', fontWeight: 'bold' }}>
             {line}
         </div>
     );
@@ -75,16 +153,18 @@ function buildPlanItem(plan, index, datePlantStr) {
         repeatLabel: plan.title || (plan.age_plant ? `อายุ ${plan.age_plant} วัน` : ""),
         date: dateText ? `${dateText} ${remainingText}` : "",
         detailLines: isFertilizer ? [
-            det.name_fertilizer ? `ปุ๋ย: ${det.name_fertilizer}${det.formula_fertilizer ? ` (${det.formula_fertilizer})` : ""}` : "",
-            det.volume ? `ปริมาณ: ${det.volume}${det.unit_volume ? ` ${det.unit_volume}` : ""}` : "",
-            det.how_use ? `วิธีใช้: ${det.how_use}` : "",
+            det.name_fertilizer ? { field: "name", text: `ปุ๋ย: ${det.name_fertilizer}${det.formula_fertilizer ? ` (${det.formula_fertilizer})` : ""}` } : null,
+            det.volume ? { field: "volume", text: `ปริมาณ: ${det.volume}${det.unit_volume ? ` ${det.unit_volume}` : ""}` } : null,
+            det.how_use ? { field: "how_use", text: `วิธีใช้: ${det.how_use}` } : null,
         ].filter(Boolean) : [
-            det.pest ? `ศัตรูพืช: ${det.pest}` : "",
-            det.chemical ? `สาร: ${det.chemical}${det.rate ? ` อัตรา ${det.rate}` : ""}` : "",
-            det.volume ? `ปริมาณ: ${det.volume}${det.unit_volume ? ` ${det.unit_volume}` : ""}` : "",
-            det.how_use ? `วิธีใช้: ${det.how_use}` : "",
+            det.pest ? { field: "pest", text: `ศัตรูพืช: ${det.pest}` } : null,
+            det.chemical ? { field: "name", text: `สาร: ${det.chemical}` } : null,
+            det.rate ? { field: "rate", text: `อัตราส่วนผสม: ${det.rate} CC/น้ำ20ลิตร` } : null,
+            det.volume ? { field: "volume", text: `ปริมาณ: ${det.volume}${det.unit_volume ? ` ${det.unit_volume}` : ""}` } : null,
+            det.how_use ? { field: "how_use", text: `วิธีใช้: ${det.how_use}` } : null,
         ].filter(Boolean),
         isEmpty: false,
+        raw: plan,
     };
 }
 
@@ -97,11 +177,12 @@ function buildActualFertilizerItem(f, index) {
         repeatLabel: `ครั้งที่ ${index + 1}`,
         date: formatThaiDate(f.date),
         detailLines: [
-            f.name ? `ปุ๋ย: ${f.name}${f.formula_name ? ` สูตร ${f.formula_name}` : ""}` : "",
-            f.volume ? `ปริมาณ: ${f.volume}` : "",
-            f.use_is ? `วิธีใช้: ${f.use_is}` : "",
+            f.name ? { field: "name", text: `ปุ๋ย: ${f.name}${f.formula_name ? ` สูตร ${f.formula_name}` : ""}` } : null,
+            f.volume ? { field: "volume", text: `ปริมาณ: ${f.volume}` } : null,
+            f.use_is ? { field: "how_use", text: `วิธีใช้: ${f.use_is}` } : null,
         ].filter(Boolean),
         isEmpty: false,
+        raw: f,
     };
 }
 
@@ -113,12 +194,14 @@ function buildActualChemicalItem(c, index) {
         repeatLabel: `ครั้งที่ ${index + 1}`,
         date: formatThaiDate(c.date),
         detailLines: [
-            c.insect ? `โรค/แมลง: ${c.insect}` : "",
-            c.name ? `${c.name}${c.formula_name ? ` สูตร ${c.formula_name}` : ""}${c.rate ? ` อัตรา ${c.rate} CC/น้ำ20ลิตร` : ""}` : "",
-            c.volume ? `ปริมาณ: ${c.volume}` : "",
-            c.use_is ? `วิธีใช้: ${c.use_is}` : "",
+            c.insect ? { field: "pest", text: `โรค/แมลง: ${c.insect}` } : null,
+            c.name ? { field: "name", text: `ชื่อ: ${c.name}${c.formula_name ? `สูตร ${c.formula_name}` : ""}` } : null,
+            c.rate ? { field: "rate", text: `อัตราส่วนผสม: ${c.rate} CC/น้ำ20ลิตร` } : null,
+            c.volume ? { field: "volume", text: `ปริมาณ: ${c.volume}` } : null,
+            c.use_is ? { field: "how_use", text: `วิธีใช้: ${c.use_is}` } : null,
         ].filter(Boolean),
         isEmpty: false,
+        raw: c,
     };
 }
 
@@ -216,25 +299,26 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                     {allRows.map((row, i) => {
                                         const mainTitle = row.left.isEmpty ? row.right.title : row.left.title;
                                         const isFertilizer = mainTitle.includes("ปุ๋ย");
+                                        const mismatches = getMismatches(row.left.raw, row.right.raw, isFertilizer);
 
                                         return (
                                             <div key={i} className="step-card">
                                                 <div className="step-header-row">
                                                     <span className="step-main-title">
-                                                        {isFertilizer ? "การใส่ปุ๋ย" : "การใช้สารเคมี"} (ขั้นตอนที่ {i + 1})
+                                                        {isFertilizer ? "การใส่ปุ๋ย" : "การใช้สารเคมี"}
                                                     </span>
-                                                    {(!row.left.isEmpty && row.left.repeatLabel) && (
-                                                        <span className="step-age-badge">
-                                                            {row.left.repeatLabel}
-                                                        </span>
-                                                    )}
                                                 </div>
 
                                                 <div className="comparison-container">
                                                     {/* แผนการแนะนำ */}
-                                                    <div className="comparison-box plan-box">
-                                                        <div className="box-header">
-                                                            <span className="box-title-label plan-title-color">ตามแผนการปลูก</span>
+                                                    <div className="comparison-box plan-box" style={mismatches.length > 0 ? { borderTopColor: '#e11d48' } : {}}>
+                                                        <div className="box-header" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                            <span className="box-title-label plan-title-color" style={mismatches.length > 0 ? { color: '#e11d48' } : {}}>ตามแผนการปลูก</span>
+                                                            {(!row.left.isEmpty && row.left.repeatLabel) && (
+                                                                <span className="step-age-badge" style={{ fontSize: '12px', padding: '2px 8px' }}>
+                                                                    {row.left.repeatLabel}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {row.left.isEmpty ? (
                                                             <div className="empty-text">ไม่มีกำหนดในแผนการปลูก</div>
@@ -245,15 +329,18 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                                                         วันที่: {row.left.date}
                                                                     </div>
                                                                 )}
-                                                                {(row.left.detailLines || []).map((line, idx) => renderDetailLine(line, idx))}
+                                                                {(row.left.detailLines || []).map((line, idx) => {
+                                                                    const isMismatched = mismatches.includes(line.field);
+                                                                    return renderDetailLine(line, idx, isMismatched);
+                                                                })}
                                                             </div>
                                                         )}
                                                     </div>
 
                                                     {/* ผลการปฏิบัติจริง */}
-                                                    <div className={`comparison-box actual-box ${row.right.isEmpty ? "unrecorded" : ""}`}>
+                                                    <div className={`comparison-box actual-box ${row.right.isEmpty ? "unrecorded" : ""}`} style={mismatches.length > 0 ? { borderTopColor: '#e11d48' } : {}}>
                                                         <div className="box-header">
-                                                            <span className={`box-title-label ${row.right.isEmpty ? "unrecorded-title-color" : "actual-title-color"}`}>
+                                                            <span className={`box-title-label ${row.right.isEmpty ? "unrecorded-title-color" : mismatches.length > 0 ? "destructive-title-color" : "actual-title-color"}`} style={mismatches.length > 0 ? { color: '#e11d48' } : {}}>
                                                                 {row.right.isEmpty ? "ยังไม่ได้บันทึกกิจกรรม" : `บันทึกปฏิบัติจริง (${row.right.repeatLabel || ""})`}
                                                             </span>
                                                         </div>
@@ -266,11 +353,38 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                                                         วันที่บันทึก: {row.right.date}
                                                                     </div>
                                                                 )}
-                                                                {(row.right.detailLines || []).map((line, idx) => renderDetailLine(line, idx))}
+                                                                {(row.right.detailLines || []).map((line, idx) => {
+                                                                    const isMismatched = mismatches.includes(line.field);
+                                                                    return renderDetailLine(line, idx, isMismatched);
+                                                                })}
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                {/* Warning banner if mismatched */}
+                                                {(mismatches.length > 0 || (row.left.isEmpty && !row.right.isEmpty)) && (
+                                                    <div style={{
+                                                        marginTop: '12px',
+                                                        padding: '8px 12px',
+                                                        backgroundColor: '#fff1f2',
+                                                        borderLeft: '4px solid #e11d48',
+                                                        borderRadius: '4px',
+                                                        color: '#9f1239',
+                                                        fontSize: '14px',
+                                                        fontWeight: '600',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px'
+                                                    }}>
+                                                        <svg style={{ width: '16px', height: '16px', flexShrink: 0 }} viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        </svg>
+                                                        <span>
+                                                            {row.left.isEmpty ? "กิจกรรมนี้บันทึกอยู่นอกเหนือแผนการปลูกที่แนะนำ (ไม่ตรงตามแผน)" : "ข้อมูลบันทึกจริงไม่ตรงกับแผนการปลูกที่แนะนำ (ไม่เป็นไปตามแผน)"}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -284,7 +398,7 @@ export default function SchedulesPopup({ id_form, onClose }) {
                             {/* วันเก็บเกี่ยว */}
                             {(formData?.date_harvest || formData?.date_success) && (
                                 <div className="harvest-grid">
-                                    <div className="harvest-card">
+                                    <div className="harvest-card" style={{ borderTop: '4px solid #189D85' }}>
                                         <img src={imgHarvest} alt="" />
                                         <div>
                                             <div className="harvest-title">วันเก็บเกี่ยวตามแผน</div>

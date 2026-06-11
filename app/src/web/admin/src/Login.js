@@ -26,6 +26,9 @@ const Login = ({ setBodyFileMain, state = false, socket }) => {
         } else {
             Body.current.setAttribute("mobile", "");
         }
+
+        // ซ่อน #loading splash screen ทันทีที่ Login mount (onLoad บน <div> ไม่ทำงาน)
+        clientMo.unLoadingPage();
     }, [state]);
 
     const submitFrom = (e) => {
@@ -92,7 +95,7 @@ const Login = ({ setBodyFileMain, state = false, socket }) => {
     };
 
     return (
-        <div style={{ backgroundImage: `url(${env.Background})` }} onLoad={() => clientMo.unLoadingPage()} ref={Body} className="login-admin">
+        <div style={{ backgroundImage: `url(${env.Background})` }} ref={Body} className="login-admin">
             <form ref={Form} autoComplete="off" onSubmit={submitFrom}>
                 <div className="Logo-App">
                     <img src={`${env.subpath_server}/logo2.png`} alt="Logo"></img>
