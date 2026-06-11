@@ -1,7 +1,5 @@
 'use strict';
 
-const MessageLineTemplate = require('../messageLineTemplate');
-const RoyalGapEnv = require('../env');
 
 const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
@@ -9,6 +7,7 @@ const checkUnrecorded = {
             SELECT
                 s.id AS schedule_id,
                 fp.id_farm_house AS greenhouse_id,
+                fp.name_plant,
                 s.category,
                 s.title,
                 hf.name_house AS greenhouse_name,
@@ -25,7 +24,9 @@ const checkUnrecorded = {
             INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
             WHERE (fp.state_status = 0 OR fp.state_status = 1)
               AND (
-                (s.repeat = 0 AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) = s.age_plant)
+                (s.repeat = 0
+                    AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) >= s.age_plant
+                    AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) <= s.age_plant + 3)
                 OR
                 (s.repeat = 1 AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) > 0
                                AND DATEDIFF(CURDATE(), DATE(fp.date_plant)) % s.age_plant = 0)
@@ -54,34 +55,10 @@ const checkUnrecorded = {
         `)
     },
 
-    generateReminderMessage: (row) => {
-        const { category, title, greenhouse_name, greenhouse_id, farmer_id } = row
-        const typeLabel = category === 1 ? 'การใช้ปุ๋ย' : 'การใช้สารเคมี'
-        const formSuffix = category === 1 ? 'z' : 'c'
-
-        const date = new Date()
-        const dateString = `${date.getDate()} เดือน ${date.getMonth() + 1} ปี ${date.getFullYear() + 543}`
-
-        const message = [
-            `📋 แจ้งเตือน: ยังไม่พบการบันทึก${typeLabel}`,
-            `วันที่ ${dateString}`,
-            `กิจกรรม: ${title}`,
-            `โรงเรือน: ${greenhouse_name}`,
-            '',
-            'กรุณาบันทึกข้อมูลการใช้งานให้ครบถ้วน'
-        ]
-
-        return MessageLineTemplate.bubbleTemplateUrl(
-            `แจ้งเตือน: ยังไม่พบการบันทึก${typeLabel}`,
-            message,
-            `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${formSuffix}?open-insert=true`,
-            { buttonLabel: `บันทึก${typeLabel}ที่นี่` }
-        )
-    },
 
     notifyDoctorMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
-        return `เกษตรกร ${row.fullname} ยังไม่บันทึกการใช้${typeLabel}\nโรงเรือน: ${row.greenhouse_name}`
+        return `เกษตรกร ${row.fullname} ยังไม่บันทึกการใช้${typeLabel}\nพืช: ${row.name_plant}\nกิจกรรม: ${row.title}\nโรงเรือน: ${row.greenhouse_name}`
     }
 }
 
