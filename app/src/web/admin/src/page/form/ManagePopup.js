@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react"
 import { clientMo } from "../../../../../assets/js/moduleClient"
 import "../../../../doctor/src/assets/style/page/form/ManagePopup.scss"
 import { DayJSX, Loading, MapsJSX, PopupDom, ResizeImg } from "../../../../../assets/js/module"
-import DetailEdit from "../../../../doctor/src/page/form/DetailEdit"
+import DetailEdit from "./DetailEdit"
 import { ExportPDF } from "../../../../../assets/js/Export"
 import { DoctorDetail, ListCheckForm, ListCheckPlant, ListReport, ListSuccess } from "../../../../doctor/src/page/form/ListManageDoctor"
 import { AdminContext } from "../../Admin"
@@ -139,16 +139,10 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
         });
         return d;
     };
-    // กดปุ่มยกเลิก
-    const handleCancel = () => {
-        setEditMode(false);
-        setEditedData(data); // คืนค่าเดิม
-    };
-
     // กดปุ่มบันทึก
     const handleSave = async () => {
         try {
-            const response = await clientMo.post(`/api/doctor/form/edit`, {
+            const response = await clientMo.post(`/api/admin/formplant/edit`, {
                 ...editedData, // ส่งข้อมูลที่แก้ไขไป API
             });
             console.log("บันทึกสำเร็จ:", response.data);
@@ -163,15 +157,24 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
         setLoadContent(true);
         try {
             // โหลดรายละเอียดฟอร์ม
-            const Data = await clientMo.get(`/api/doctor/form/get/detail?id_form=${id_form}&type=${type_form}`);
+            const Data = await clientMo.get(`/api/admin/form/get/detail?id_form=${id_form}&type=${type_form}`);
             const JsonData = JSON.parse(Data);
+            if ((type_form === 1 || type_form === 2) && (!JsonData || JsonData.length === 0)) {
+                setContent(
+                    <div style={{ textAlign: "center", padding: "40px 20px", color: "#999", fontSize: "18px", fontFamily: "Sans-font" }}>
+                        ไม่มีข้อมูล
+                    </div>
+                );
+                setLoadContent(false);
+                return;
+            }
             const formData = JsonData[0];
             dbgDate('formData.date_plant (RECV)', formData.date_plant);
             dbgDate('formData.date_success (RECV)', formData.date_success);
             // โหลด sensor ของโรงเรือนนี้ แล้วเอา device_id มาใช้
             let deviceId = null;
             try {
-                const sensorRes = await clientMo.get(`/api/doctor/form/get/sensor?houseFarm=${formData.id_farm_house}`);
+                const sensorRes = await clientMo.get(`/api/admin/form/get/sensor?houseFarm=${formData.id_farm_house}`);
                 const rows = JSON.parse(sensorRes);   // server ส่งเป็น array
                 const deviceIdrow = Array.isArray(rows) ? rows[0] : rows;
                 deviceId = deviceIdrow?.device_id ?? null;
@@ -200,57 +203,124 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             console.log("✅ โหลดข้อมูลเรียบร้อย:", merged);
 
             // === ส่วน render เดิมไม่ต้องแก้ ===
-            setContent(
-                JsonData.map((data, key) => {
-                    if (type_form === 0) {
-                        setCountEdit(data.countStatus);
-                        return (
-                            <FormPlant
-                                key={key}
-                                data={data}
-                                mode={mode}
-                                setMode={setMode}
-                                setEditValue={setEditValue}
-                                getResize={getResize}
-                                FetchContent={FetchContent}
-                            />
-                        );
-                    } else if (type_form === 1) {
-                        return (
-                            <div key={key} className="row-factor">
-                                <div className="row-in">
-                                    <div className="in-data date">
-                                        <span>ว/ด/ป ที่ใช้</span>
-                                        <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+            if (JsonData.length === 0) {
+                setContent(
+                    <div style={{ textAlign: "center", padding: "40px 20px", color: "#999", fontSize: "18px", fontFamily: "Sans-font" }}>
+                        ไม่มีข้อมูล
+                    </div>
+                );
+            } else {
+                setContent(
+                    JsonData.map((data, key) => {
+                        if (type_form === 0) {
+                            setCountEdit(data.countStatus);
+                            return (
+                                <FormPlant
+                                    key={key}
+                                    data={data}
+                                    mode={mode}
+                                    setMode={setMode}
+                                    setEditValue={setEditValue}
+                                    getResize={getResize}
+                                    FetchContent={FetchContent}
+                                />
+                            );
+                        } else if (type_form === 1) {
+                            return (
+                                <div key={key} className="row-factor">
+                                    <div className="row-in">
+                                        <div className="in-data date">
+                                            <span>ว/ด/ป ที่ใช้</span>
+                                            <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>การค้า</span>
+                                            <div>{data.name}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>สูตร</span>
+                                            <div>{data.formula_name ? data.formula_name : "ไม่ระบุ"}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>วิธีการใช้</span>
+                                            <div>{data.use_is}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>ปริมาณ</span>
+                                            <div>{data.volume}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>แหล่งที่ซื้อ</span>
+                                            <div>{" " + data.source}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="bt-factor">
+                                            {data.countStatus ?
+                                                <div className="dot-report"></div> : <></>
+                                            }
+                                            <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>การค้า</span>
-                                        <div>{data.name}</div>
+                            )
+                        } else if (type_form === 2) {
+                            return (
+                                <div key={key} className="row-factor">
+                                    <div className="row-in">
+                                        <div className="in-data date">
+                                            <span>ว/ด/ป ที่พ่นสาร</span>
+                                            <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+                                        </div>
                                     </div>
-                                    <div className="in-data">
-                                        <span>สูตร</span>
-                                        <div>{data.formula_name ? data.formula_name : "ไม่ระบุ"}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>การค้า</span>
+                                            <div>{data.name}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>สามัญ</span>
+                                            <div>{data.formula_name}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>วิธีการใช้</span>
-                                        <div>{data.use_is}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>ศัตรูพืช</span>
+                                            <div>{data.insect}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>วิธีการใช้</span>
+                                            <div>{data.use_is}</div>
+                                        </div>
                                     </div>
-                                    <div className="in-data">
-                                        <span>ปริมาณ</span>
-                                        <div>{data.volume}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>อัตรา</span>
+                                            <div>{data.rate}/น้ำ20ล.</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>ปริมาณ</span>
+                                            {data.volume}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>แหล่งที่ซื้อ</span>
-                                        <div>{" " + data.source}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>แหล่งที่ซื้อ</span>
+                                            <div>{" " + data.source}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
+                                    <div className="row-in">
+                                        <div className="in-data safe">
+                                            <span>ปลอดภัย</span>
+                                            <DayJSX DATE={data.date_safe} TYPE="small" TEXT="วันที่" />
+                                        </div>
+                                    </div>
                                     <div className="bt-factor">
                                         {data.countStatus ?
                                             <div className="dot-report"></div> : <></>
@@ -258,75 +328,24 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                                         <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
                                     </div>
                                 </div>
-                            </div>
-                        )
-                    } else if (type_form === 2) {
-                        return (
-                            <div key={key} className="row-factor">
-                                <div className="row-in">
-                                    <div className="in-data date">
-                                        <span>ว/ด/ป ที่พ่นสาร</span>
-                                        <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>การค้า</span>
-                                        <div>{data.name}</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>สามัญ</span>
-                                        <div>{data.formula_name}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>ศัตรูพืช</span>
-                                        <div>{data.insect}</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>วิธีการใช้</span>
-                                        <div>{data.use_is}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>อัตรา</span>
-                                        <div>{data.rate}/น้ำ20ล.</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>ปริมาณ</span>
-                                        {data.volume}
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>แหล่งที่ซื้อ</span>
-                                        <div>{" " + data.source}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data safe">
-                                        <span>ปลอดภัย</span>
-                                        <DayJSX DATE={data.date_safe} TYPE="small" TEXT="วันที่" />
-                                    </div>
-                                </div>
-                                <div className="bt-factor">
-                                    {data.countStatus ?
-                                        <div className="dot-report"></div> : <></>
-                                    }
-                                    <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
-                                </div>
-                            </div>
-                        )
-                    } else return (<></>)
-                }
+                            )
+                        } else return (<></>)
+                    })
                 )
-            )
+            }
             setLoadContent(false)
         } catch (e) {
             console.error("❌ FetchContent error:", e);
-            session()
+            if (type_form === 1 || type_form === 2) {
+                setContent(
+                    <div style={{ textAlign: "center", padding: "40px 20px", color: "#999", fontSize: "18px", fontFamily: "Sans-font" }}>
+                        ไม่มีข้อมูล
+                    </div>
+                );
+                setLoadContent(false);
+            } else {
+                session();
+            }
         }
     }
 
@@ -339,14 +358,14 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     }
 
     const GetDetailEdit = async (id_form_edit, type) => {
-        const context = await clientMo.post('/api/doctor/check')
+        const context = await clientMo.post('/api/admin/check')
         if (context)
             setBodyPopupEdit(<DetailEdit Ref={PopRef} setRef={setBodyPopupEdit} setDetailData={FetchContent} type={type} id_form={id_form_edit} id_from_plant={id_form} session={session} />)
         else session()
     }
 
     const ChangeTypePage = async (type) => {
-        const context = await clientMo.post('/api/doctor/check')
+        const context = await clientMo.post('/api/admin/check')
         if (context) {
             setTypePage(type)
             switch (type) {
@@ -375,7 +394,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     //profile farmer
     const GetProfileFarmer = async () => {
         setLoadContent(true)
-        const profileGet = await clientMo.get(`/api/doctor/form/get/farmer?id_form=${id_form}`)
+        const profileGet = await clientMo.get(`/api/admin/form/get/farmer?id_form=${id_form}`)
         setTypePage(3)
         if (!profileGet) session()
         else {
@@ -445,7 +464,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
         CheckPlant: useRef()
     }
 
-    const [StatePage, SetStatePage] = useState("report")
+    const [StatePage, SetStatePage] = useState("success")
     const [DataFormManage, setDataFormManage] = useState([])
     const MenuManageFormByDoctor = async (type_page, e = "") => {
         const Type = type_page === "success" ? "success_detail"
@@ -454,7 +473,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                     : type_page === "CheckPlant" ? "check_plant_detail"
                         : "";
         Fecth();
-        const context = await clientMo.get(`/api/doctor/form/manage/get?id_plant=${id_form}&typePage=${Type}`);
+        const context = await clientMo.get(`/api/admin/form/manage/get?id_plant=${id_form}&typePage=${Type}`);
         if (context) {
 
             try {
@@ -497,7 +516,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     const [ManagePop, setManagePop] = useState(<></>)
 
     const SuccessResult = async (result) => {
-        const context = await clientMo.post('/api/doctor/check')
+        const context = await clientMo.post('/api/admin/check')
         if (context) {
             setManagePop(<PopupConfirmAction Ref={RefManagePopup} setPopup={setManagePop}
                 session={session} FetchData={() => MenuManageFormByDoctor("success")} Result={result} id_plant={id_form} />)
@@ -507,7 +526,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
 
     //popup manage
     const PopupReport = async (typeClick, statusCheck = "") => {
-        const context = await clientMo.get('/api/doctor/name')
+        const context = await clientMo.get('/api/admin/name')
         if (context) {
             setManagePop(<InsertManage Ref={RefManagePopup} setPopup={setManagePop}
                 session={session} FetchData={() => MenuManageFormByDoctor(typeClick)} NameDoctor={context} typeInsert={typeClick} id_plant={id_form} statusSuccess={statusCheck} />)
@@ -517,7 +536,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
 
     // report
     const PopupEditReport = async (Data, typeClick) => {
-        const context = await clientMo.get('/api/doctor/name')
+        const context = await clientMo.get('/api/admin/name')
         if (context) {
             setManagePop(<EditReport Ref={RefManagePopup} setPopup={setManagePop} session={session}
                 FetchData={() => MenuManageFormByDoctor(typeClick)} Data={Data} />)
@@ -536,7 +555,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             }));
         }
         await new Promise(requestAnimationFrame);
-        const ExportFetch = await clientMo.post('/api/doctor/form/export', { textInput: id_table });
+        const ExportFetch = await clientMo.post('/api/admin/form/export', { textInput: id_table });
         if (ExportFetch) {
             const DataExport = JSON.parse(ExportFetch);
             ExportPDF(DataExport, { range });
@@ -678,9 +697,9 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                             <g id="SVGRepo_iconCarrier"> <g> <path d="M113.986,209.155c-2.197,0-4.361,0.889-5.909,2.447c-1.558,1.558-2.457,3.723-2.457,5.919c0,2.196,0.899,4.351,2.457,5.919 c1.548,1.557,3.712,2.447,5.909,2.447c2.206,0,4.361-0.89,5.919-2.447c1.557-1.558,2.447-3.713,2.447-5.919 c0-2.207-0.89-4.361-2.447-5.919C118.347,210.043,116.192,209.155,113.986,209.155z" /> <path d="M267.206,185.582c-2.057-16.465-11.21-30.85-24.486-38.482l-49.029-28.182c10.546-11.153,17.033-26.182,17.033-42.707 c0-1.178-0.042-2.354-0.109-3.529h58.672c5.775,0,10.458-4.682,10.458-10.458s-4.682-10.458-10.458-10.458h-46.3 C211.528,20.982,181.782,0,148.5,0S85.472,20.982,74.013,51.766h-46.3c-5.775,0-10.458,4.682-10.458,10.458 s4.682,10.458,10.458,10.458h58.672c-0.067,1.175-0.109,2.352-0.109,3.529c0,16.525,6.487,31.554,17.033,42.707L54.28,147.1 c-13.274,7.63-22.428,22.016-24.487,38.482l-12.457,99.663c-0.372,2.976,0.553,5.969,2.537,8.218 c1.985,2.249,4.841,3.537,7.84,3.537h241.574c2.999,0,5.855-1.288,7.84-3.537c1.985-2.249,2.909-5.242,2.537-8.218L267.206,185.582 z M89.937,193.468h117.127v82.616H89.937V193.468z M107.192,172.553v-31.742l14.619-8.403c8.093,3.859,17.142,6.026,26.69,6.026 s18.596-2.167,26.69-6.026l14.619,8.403v31.742H107.192z M148.5,20.915c21.248,0,40.54,11.606,50.806,29.456H97.694 C107.96,32.521,127.252,20.915,148.5,20.915z M189.656,72.681c0.101,1.174,0.152,2.351,0.152,3.529 c0,22.777-18.531,41.308-41.308,41.308s-41.308-18.531-41.308-41.308c0-1.179,0.051-2.355,0.152-3.529H189.656z M50.547,188.176 c1.249-9.989,6.54-18.566,14.156-22.943l21.573-12.4v19.72h-6.798c-5.775,0-10.458,4.683-10.458,10.458v93.074H39.56 L50.547,188.176z M227.979,276.085v-93.074c0-5.775-4.682-10.458-10.458-10.458h-6.798v-19.72l21.573,12.4 c7.616,4.377,12.907,12.955,14.155,22.943l10.989,87.908H227.979z" /> <path d="M183.007,209.155c-2.197,0-4.361,0.889-5.909,2.447c-1.558,1.558-2.457,3.712-2.457,5.919c0,2.206,0.899,4.361,2.457,5.919 c1.548,1.557,3.712,2.447,5.909,2.447c2.206,0,4.361-0.89,5.919-2.447c1.557-1.558,2.447-3.724,2.447-5.919 c0-2.207-0.89-4.361-2.447-5.919C187.368,210.043,185.213,209.155,183.007,209.155z" /> </g> </g>
                         </svg>
                     </a>
-                    {/*<a title="ส่วนเจ้าหน้าที่" onClick={async () => {
+                    <a title="ส่วนเจ้าหน้าที่" onClick={async () => {
                         setLoadContent(true)
-                        await MenuManageFormByDoctor("report")
+                        await MenuManageFormByDoctor("success")
                         setStateMenuShow(false)
                         setLoadContent(false)
                     }}>
@@ -688,12 +707,12 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                             <path style={{ fillRule: "evenodd" }} d="M79.86,65.67a25,25,0,0,1,20.89,38.62l10.81,11.78-7.46,6.81L93.68,111.42A25,25,0,1,1,79.86,65.67Zm-42.65.26a2.74,2.74,0,0,1-2.6-2.84,2.71,2.71,0,0,1,2.6-2.84h15.4a2.76,2.76,0,0,1,2.6,2.84,2.71,2.71,0,0,1-2.6,2.84ZM22.44,57.22a5.67,5.67,0,1,1-5.67,5.67,5.67,5.67,0,0,1,5.67-5.67Zm2-18.58a2,2,0,0,1,2.85,0,2.07,2.07,0,0,1,0,2.89l-2,2,2,2a2,2,0,0,1,0,2.87,2,2,0,0,1-2.84,0l-2-2-2,2a2,2,0,0,1-2.86,0,2.07,2.07,0,0,1,0-2.89l2-2-2-2.05a2,2,0,0,1,2.87-2.86l2,2,2-2ZM16.85,21.52a2.29,2.29,0,0,1,3.16.63l1.13,1.36,4-5.05a2.27,2.27,0,1,1,3.51,2.88l-5.86,7.34a2.48,2.48,0,0,1-.55.52,2.28,2.28,0,0,1-3.16-.63l-2.84-3.89a2.28,2.28,0,0,1,.63-3.16Zm66.51-4.25h9.32a6.69,6.69,0,0,1,6.66,6.65v30.9c-.2,2.09-5.31,2.11-5.75,0V23.92a.93.93,0,0,0-.27-.67.91.91,0,0,0-.67-.27H83.32V54.82c-.49,1.89-4.75,2.18-5.71,0V6.66A1,1,0,0,0,77.34,6a.93.93,0,0,0-.67-.27h-70A.93.93,0,0,0,6,6a1,1,0,0,0-.27.68V85.79a1,1,0,0,0,.27.68.93.93,0,0,0,.67.27H44.74c2.88.29,3,5.27,0,5.71H21.66v10.61a.92.92,0,0,0,.94.94H44.74c2.09.24,2.76,5,0,5.71H22.64a6.54,6.54,0,0,1-4.7-2,6.63,6.63,0,0,1-2-4.7V92.45H6.66A6.69,6.69,0,0,1,0,85.79V6.66A6.54,6.54,0,0,1,2,2a6.61,6.61,0,0,1,4.7-2h70a6.55,6.55,0,0,1,4.7,2,6.65,6.65,0,0,1,2,4.7V17.27ZM37.18,26.44a2.75,2.75,0,0,1-2.6-2.84,2.71,2.71,0,0,1,2.6-2.84H63.86a2.74,2.74,0,0,1,2.6,2.84,2.71,2.71,0,0,1-2.6,2.84Zm0,19.74a2.74,2.74,0,0,1-2.6-2.83,2.71,2.71,0,0,1,2.6-2.84H63.86a2.74,2.74,0,0,1,2.6,2.84,2.7,2.7,0,0,1-2.6,2.83ZM70.45,93a3.46,3.46,0,0,1-.34-.44,3.4,3.4,0,0,1-.26-.5,3.18,3.18,0,0,1,4.57-4,2.93,2.93,0,0,1,.49.38h0c.87.83,1.15,1,2.11,1.87l.84.74,6.79-7.29c2.87-3,7.45,1.37,4.58,4.4l-8.47,9.06-.43.45a3.19,3.19,0,0,1-4.43.19l0,0c-.22-.19-.44-.4-.66-.6-.52-.46-1.06-.94-1.61-1.41-1.26-1.09-2-1.69-3.17-2.87Zm9.43-22.09A19.86,19.86,0,1,1,60,90.74,19.86,19.86,0,0,1,79.88,70.88Z" />
                         </svg>
                     </a>
-                    {/* <a title="ส่งออกข้อมูล" onClick={() => {
+                    <a title="ส่งออกข้อมูล" onClick={() => {
                         PdfExport(id_form)
                         setStateMenuShow(false)
                     }}><svg viewBox="0 0 24 24" className="menu-80">
-                        <path d="M20.92 15.62a1.15 1.15 0 0 0-.21-.33l-3-3a1 1 0 0 0-1.42 1.42l1.3 1.29H12a1 1 0 0 0 0 2h5.59l-1.3 1.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3-3a.93.93 0 0 0 .21-.33 1 1 0 0 0 0-.76ZM14 20H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5v3a3 3 0 0 0 3 3h4a1 1 0 0 0 .92-.62 1 1 0 0 0-.21-1.09l-6-6a1.07 1.07 0 0 0-.28-.19h-.09l-.28-.1H6a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h8a1 1 0 0 0 0-2ZM13 5.41 15.59 8H14a1 1 0 0 1-1-1Z"></path>
-                    </svg>
+                            <path d="M20.92 15.62a1.15 1.15 0 0 0-.21-.33l-3-3a1 1 0 0 0-1.42 1.42l1.3 1.29H12a1 1 0 0 0 0 2h5.59l-1.3 1.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3-3a.93.93 0 0 0 .21-.33 1 1 0 0 0 0-.76ZM14 20H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5v3a3 3 0 0 0 3 3h4a1 1 0 0 0 .92-.62 1 1 0 0 0-.21-1.09l-6-6a1.07 1.07 0 0 0-.28-.19h-.09l-.28-.1H6a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h8a1 1 0 0 0 0-2ZM13 5.41 15.59 8H14a1 1 0 0 1-1-1Z"></path>
+                        </svg>
                         <svg viewBox="0 0 400 400" style={{
                             width: "70%"
                         }}>
@@ -706,7 +725,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                             <path d="M365 295.64L312 348.64" stroke="#196658" strokeWidth="35" strokeLinecap="round" />
                             <path d="M365 295.64L301.36 232" stroke="#196658" strokeWidth="35" strokeLinecap="round" />
                         </svg>
-                    </a> */}
+                    </a>
                 </div>
                 <div className="content-detail">
                     {LoadContent ?
@@ -750,20 +769,26 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                                         <>
                                             <div className="menu-manage-form">
                                                 {
-                                                    Boolean(profile?.doctor_role || profile?.consultant_role) && //role
-                                                    <div className="flex-center" select="" onClick={(e) => MenuManageFormByDoctor("report", e)} ref={MenuBTManage.report}>
+                                                    Boolean(profile?.username) && //role
+                                                    <div className="flex-center" select="" onClick={(e) => MenuManageFormByDoctor("success", e)} ref={MenuBTManage.success}>
+                                                        <div>เก็บเกี่ยว</div>
+                                                    </div>
+                                                }
+                                                {
+                                                    Boolean(profile?.username) && //role
+                                                    <div className="flex-center" onClick={(e) => MenuManageFormByDoctor("report", e)} ref={MenuBTManage.report}>
                                                         <div>ข้อแนะนำ</div>
                                                     </div>
                                                 }
                                                 {
-                                                    Boolean(profile?.doctor_role) && //role
+                                                    Boolean(profile?.username) && //role
                                                     <div className="flex-center" onClick={(e) => MenuManageFormByDoctor("CheckForm", e)} ref={MenuBTManage.CheckForm}>
                                                         <div>ตรวจสอบ</div>
                                                         <div>แบบบันทึก</div>
                                                     </div>
                                                 }
                                                 {
-                                                    Boolean(profile?.analyst_role) && //role
+                                                    Boolean(profile?.username) && //role
                                                     <div className="flex-center" onClick={(e) => MenuManageFormByDoctor("CheckPlant", e)} ref={MenuBTManage.CheckPlant}>
                                                         <div>วิเคราะห์</div>
                                                         <div>ผลผลิต</div>
@@ -771,18 +796,38 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                                                 }
                                             </div>
                                             <div className="bt-add-content">
-                                                {StatePage === "report" ?
-                                                    <a onClick={() => PopupReport("report")}>เพิ่มข้อแนะนำ</a>
-                                                    : StatePage === "CheckForm" ?
-                                                        DataFormManage.list.length === 0 ?
-                                                            <a onClick={() => PopupReport("CheckForm")}>เพิ่มผลตรวจสอบ</a> : <></>
-                                                        : StatePage === "CheckPlant" ?
-                                                            !DataFormManage.option[0].check_plant_after ?
-                                                                <a not={!DataFormManage.option[0].check_success_before ? "" : null}
-                                                                    onClick={!DataFormManage.option[0].check_success_before ? null : () => PopupReport("CheckPlant", DataFormManage.option[0])}
-                                                                >เพิ่มผลวิเคราะห์</a>
+                                                {StatePage === "success" ?
+                                                    <>
+                                                        {
+                                                            Boolean(profile?.username) && //role
+                                                            <div className="item-2">
+                                                                <a className="success-0"
+                                                                    not={!DataFormManage.option[0].Check_success_after ? null : ""}
+                                                                    onClick={!DataFormManage.option[0].Check_success_after ? () => SuccessResult(0) : null}>
+                                                                    <div>สั่งเก็บผลผลิตตัวอย่าง</div>
+                                                                    {/* <div>ตัวอย่าง</div> */}
+                                                                </a>
+                                                                <a className="success-1"
+                                                                    not={(DataFormManage.option[0].check_plant_before && !DataFormManage.option[0].Check_success_after) ? null : ""}
+                                                                    onClick={(DataFormManage.option[0].check_plant_before && !DataFormManage.option[0].Check_success_after) ? () => SuccessResult(1) : null}>
+                                                                    <div>สั่งเก็บผลผลิตทั้งหมด</div>
+                                                                    {/* <div>ทั้งหมด</div> */}
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    </>
+                                                    : StatePage === "report" ?
+                                                        <a onClick={() => PopupReport("report")}>เพิ่มข้อแนะนำ</a>
+                                                        : StatePage === "CheckForm" ?
+                                                            DataFormManage.list.length === 0 ?
+                                                                <a onClick={() => PopupReport("CheckForm")}>เพิ่มผลตรวจสอบ</a> : <></>
+                                                            : StatePage === "CheckPlant" ?
+                                                                !DataFormManage.option[0].check_plant_after ?
+                                                                    <a not={!DataFormManage.option[0].check_success_before ? "" : null}
+                                                                        onClick={!DataFormManage.option[0].check_success_before ? null : () => PopupReport("CheckPlant", DataFormManage.option[0])}
+                                                                    >เพิ่มผลวิเคราะห์</a>
+                                                                    : <></>
                                                                 : <></>
-                                                            : <></>
                                                 }
                                             </div>
                                         </>
@@ -855,7 +900,7 @@ const PopupConfirmAction = ({ Ref, setPopup, session, FetchData, Result, id_plan
 
     const Confirm = async () => {
         if (CheckEmply()) {
-            const result = await clientMo.post("/api/doctor/form/manage/success/insert", {
+            const result = await clientMo.post("/api/admin/form/manage/success/insert", {
                 type: Result,
                 id_plant: id_plant,
                 password: Password.current.value
@@ -1010,7 +1055,7 @@ const InsertManage = ({ Ref, setPopup, session, FetchData, NameDoctor, typeInser
         const Data = await CheckData()
         console.log(Data)
         if (Data) {
-            const url = typeInsert === "report" ? '/api/doctor/form/manage/report/insert' : typeInsert === "CheckPlant" ? '/api/doctor/form/manage/checkplant/insert' : '/api/doctor/form/manage/checkform/insert';
+            const url = typeInsert === "report" ? '/api/admin/form/manage/report/insert' : typeInsert === "CheckPlant" ? '/api/admin/form/manage/checkplant/insert' : '/api/admin/form/manage/checkform/insert';
             const result = await clientMo.postForm(url, Data)
 
             console.log(result)
@@ -1181,7 +1226,7 @@ const EditReport = ({ Ref, setPopup, session, FetchData, Data }) => {
         const Data = await CheckData()
         if (Data) {
             console.log(Data)
-            const result = await clientMo.post("/api/doctor/form/manage/report/edit", Data)
+            const result = await clientMo.post("/api/admin/form/manage/report/edit", Data)
 
             console.log(result)
             if (result === "113") {

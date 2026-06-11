@@ -342,18 +342,18 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
                             opacity: 0;
                         }
                     `}</style>
-                    <a 
-                        title={viewMode === "card" ? "แสดงแบบตาราง" : "แสดงแบบการ์ด"} 
-                        className="bt-search-show" 
+                    <a
+                        title={viewMode === "card" ? "แสดงแบบตาราง" : "แสดงแบบการ์ด"}
+                        className="bt-search-show"
                         onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}
                     >
                         {viewMode === "card" ? (
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 4h18v2H3zm0 7h18v2H3zm0 7h18v2H3z"/>
+                                <path d="M3 4h18v2H3zm0 7h18v2H3zm0 7h18v2H3z" />
                             </svg>
                         ) : (
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 3h8v8H3zm0 10h8v8H3zm10-10h8v8h-8zm0 10h8v8h-8z"/>
+                                <path d="M3 3h8v8H3zm0 10h8v8H3zm10-10h8v8h-8zm0 10h8v8h-8z" />
                             </svg>
                         )}
                     </a>
@@ -769,7 +769,7 @@ function getSortPriority(item) {
 
         const diffDays = Math.ceil((dateHarvest - today) / (24 * 60 * 60 * 1000));
 
-        if (diffDays > 0) {
+        if (diffDays > 0 && diffDays <= 7) {
             return { group: 2, sub: diffDays }; // เก็บเกี่ยวในอีก...วัน
         } else if (diffDays === 0) {
             return { group: 3, sub: 0 };        // ครบกำหนดเก็บเกี่ยว

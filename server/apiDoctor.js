@@ -263,10 +263,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-                    SELECT editform.*, COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                    SELECT editform.*, 
+                           IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                     FROM editform
                     LEFT JOIN formplant ON editform.id_form = formplant.id
                     LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                    LEFT JOIN admin ON editform.id_admin = admin.id
                     WHERE formplant.id_farm_house = ?
                     AND formplant.id = ?
                     AND editform.type_form = "plant" \${where}
@@ -353,9 +355,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                         con.query(`
                         INSERT INTO editform 
-                            (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                            (id_form, id_doctor, id_doctor_edit, because, note, status, type_form, id_admin)
                         VALUES 
-                            (?, ?, ?, ?, ?, ?, "plant")
+                            (?, ?, ?, ?, ?, ?, "plant", 0)
                     `, [id_plant, "", id_table_doctor, data.because || "", "", 1],
                             async (err, resultEdit) => {
                                 if (err) {
@@ -2985,7 +2987,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
                 con.query(
                     ` 
-                        SELECT editform.${type} , editform.id_doctor_edit
+                        SELECT editform.${type} , editform.id_doctor_edit , editform.id_admin
                         FROM editform
                         WHERE editform.id_form = ? and type_form = ? ${queryParams.length == 1 ? `and editform.id_edit = ?` : ""}
                         ORDER BY date DESC
@@ -3683,20 +3685,27 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         `
                             SELECT * , 
                             (
-                                SELECT fullname_doctor
-                                FROM acc_doctor
-                                WHERE id_table_doctor = ${TypePage}.id_table_doctor
+                                IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                    (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
+                                    (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = ${TypePage}.id_table_doctor)
+                                )
                             ) as name_doctor ,
                             (
-                                SELECT id_doctor
-                                FROM acc_doctor
-                                WHERE id_table_doctor = ${TypePage}.id_table_doctor
+                                IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                    (SELECT username FROM admin WHERE id = ${TypePage}.id_admin),
+                                    (SELECT id_doctor FROM acc_doctor WHERE id_table_doctor = ${TypePage}.id_table_doctor)
+                                )
                             ) as id_doctor ,
                             (
-                                SELECT EXISTS (
-                                    SELECT id_table_doctor
-                                    FROM acc_doctor
-                                    WHERE id_table_doctor = ? and id_table_doctor = ${TypePage}.id_table_doctor
+                                IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                    (FALSE),
+                                    (
+                                        SELECT EXISTS (
+                                            SELECT id_table_doctor
+                                            FROM acc_doctor
+                                            WHERE id_table_doctor = ? and id_table_doctor = ${TypePage}.id_table_doctor
+                                        )
+                                    )
                                 )
                             ) as check_doctor
                             FROM ${TypePage}
@@ -3899,9 +3908,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.query(
                         `
                             INSERT success_detail
-                            ( id_plant , id_success , id_table_doctor , type_success , date_of_farmer )
+                            ( id_plant , id_success , id_table_doctor , type_success , date_of_farmer , id_admin )
                             VALUES 
-                            ( ? , ? , ? , ? , '')
+                            ( ? , ? , ? , ? , '' , 0)
                         ` , [req.body.id_plant, Random, result["data"].id_table_doctor, req.body.type],
                         async (err, result) => {
                             if (err) {
@@ -4031,9 +4040,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.query(
                         `
                             INSERT report_detail
-                            (id_plant , report_text , id_table_doctor , image_path)
+                            (id_plant , report_text , id_table_doctor , image_path , id_admin)
                             VALUES
-                            (? , ? , ? , ?)
+                            (? , ? , ? , ? , 0)
                         ` , [req.body.id_plant, req.body.report_text, result.data.id_table_doctor, name],
                         async (err, result) => {
                             if (!err) {
@@ -4242,9 +4251,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.query(
                         `
                             INSERT check_plant_detail
-                            (id_plant , status_check , state_check , note_text , id_table_doctor)
+                            (id_plant , status_check , state_check , note_text , id_table_doctor , id_admin)
                             VALUES
-                            (? , ? , ? , ? , ?)
+                            (? , ? , ? , ? , ? , 0)
                         ` , [id_plant, statusCheck, stateCheck, report_text, result.data.id_table_doctor],
                         async (err, result) => {
                             if (!err) {
@@ -4335,9 +4344,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             con.query(
                                 `
                                     INSERT check_form_detail
-                                    (id_plant , status_check , note_text , id_table_doctor)
+                                    (id_plant , status_check , note_text , id_table_doctor , id_admin)
                                     VALUES
-                                    (? , ? , ? , ?)
+                                    (? , ? , ? , ? , 0)
                                 ` , [id_plant, statusCheck, report_text, result.data.id_table_doctor],
                                 async (err, result) => {
                                     if (!err) {
@@ -4533,9 +4542,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         `
                                             SELECT * , 
                                             (
-                                                SELECT fullname_doctor
-                                                FROM acc_doctor
-                                                WHERE id_table_doctor = report_detail.id_table_doctor
+                                                IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                    (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                    (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = report_detail.id_table_doctor)
+                                                )
                                             ) as name_doctor
                                             FROM report_detail
                                             WHERE id_plant = ?
@@ -4555,9 +4565,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         `
                                             SELECT * , 
                                             (
-                                                SELECT fullname_doctor
-                                                FROM acc_doctor
-                                                WHERE id_table_doctor = check_form_detail.id_table_doctor
+                                                IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                    (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                    (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = check_form_detail.id_table_doctor)
+                                                )
                                             ) as name_doctor
                                             FROM check_form_detail
                                             WHERE id_plant = ?
@@ -4577,9 +4588,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         `
                                             SELECT * , 
                                             (
-                                                SELECT fullname_doctor
-                                                FROM acc_doctor
-                                                WHERE id_table_doctor = check_plant_detail.id_table_doctor
+                                                IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                    (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                    (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = check_plant_detail.id_table_doctor)
+                                                )
                                             ) as name_doctor
                                             FROM check_plant_detail
                                             WHERE id_plant = ?

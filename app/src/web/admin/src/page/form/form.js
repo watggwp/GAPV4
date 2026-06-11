@@ -152,14 +152,34 @@ export default function FormPlant({
     const formatDateThai = (dateString) => {
         if (!dateString) return "ยังไม่ระบุ";
 
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return "รูปแบบวันที่ไม่ถูกต้อง";
-
         const monthNamesThai = [
             "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
             "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
         ];
 
+        const str = String(dateString);
+
+        if (/^\d{4}$/.test(str)) {
+            return `ปี ${Number(str) + 543}`;
+        }
+
+        if (/^\d{4}-(\d{2}|##)$/.test(str)) {
+            const year = str.slice(0, 4);
+            const month = str.slice(5, 7);
+            if (month === "##") return `ปี ${Number(year) + 543}`;
+            return `เดือน ${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
+        }
+
+        if (/^\d{4}-(\d{2}|##)-(\d{2}|##)$/.test(str)) {
+            const year = str.slice(0, 4);
+            const month = str.slice(5, 7);
+            const day = str.slice(8, 10);
+            if (month === "##") return `ปี ${Number(year) + 543}`;
+            if (day === "##") return `เดือน ${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
+        }
+
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "รูปแบบวันที่ไม่ถูกต้อง";
         return `วันที่ ${date.getDate()} ${monthNamesThai[date.getMonth()]} ${date.getFullYear() + 543}`;
     };
 
@@ -235,7 +255,7 @@ export default function FormPlant({
         <section className="detail-main-form">
 
             {
-                Boolean(profile?.username || profile?.doctor_role || profile?.consultant_role || profile?.analyzer_role || profile?.protection_role) && //role
+                Boolean(profile?.username) && //role
                 <div className="button-group">
                     {
                         localMode === "edit" ? (

@@ -1674,11 +1674,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         because,
                         note,
                         status,
-                        type_form
+                        type_form,
+                        id_admin
                     )
                     VALUES
                     (
-                        ?, ?, ?, ?, ?, ?, "plant"
+                        ?, ?, ?, ?, ?, ?, "plant", 0
                     )
                 `,
                             [
@@ -1954,11 +1955,11 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 con.query(
                     `
                     SELECT editform.*, 
-
-                           COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                           IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                     FROM editform
                     LEFT JOIN formplant ON editform.id_form = formplant.id
                     LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                    LEFT JOIN admin ON editform.id_admin = admin.id
                     WHERE formplant.id_farm_house = (
                         SELECT id_farm_house FROM housefarm
                         WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) 
@@ -2724,9 +2725,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                             const editForm = await pool.executeQuery(
                                 `
                                     INSERT INTO editform 
-                                        (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                                        (id_form, id_doctor, id_doctor_edit, because, note, status, type_form, id_admin)
                                     VALUES 
-                                        (?, ?, ?, ?, ?, ?, ?)
+                                        (?, ?, ?, ?, ?, ?, ?, 0)
                                 `,
                                 [id_form, "", idDoctorEdit, because, "", 0, FactorType]
                             )
@@ -2912,11 +2913,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         `
                         SELECT editform.*, 
                                form${FactorType}.name AS form_name,
-                               COALESCE(acc_doctor.fullname_doctor, NULL) AS fullname_doctor
+                               IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                         FROM editform
                         LEFT JOIN form${FactorType} ON editform.id_form = form${FactorType}.id
                         LEFT JOIN formplant ON form${FactorType}.id_plant = formplant.id
                         LEFT JOIN acc_doctor ON editform.id_doctor_edit = acc_doctor.id_table_doctor
+                        LEFT JOIN admin ON editform.id_admin = admin.id
                         WHERE formplant.id_farm_house = (
                             SELECT id_farm_house FROM housefarm
                             WHERE (housefarm.uid_line = ? || housefarm.link_user = ?) 
@@ -3478,11 +3480,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         ` :
                             `SELECT 
                                 ${Type === "report_detail" ? `${Type}.date_report , ${Type}.report_text , ${Type}.image_path,${Type}.id,${Type}.is_read` : `${Type}.*`} , 
-                                acc_doctor.fullname_doctor AS name_doctor,
+                                IF(${Type}.id_admin != 0 AND ${Type}.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS name_doctor,
                                 acc_doctor.doctor_role,
                                 acc_doctor.consultant_role
                             FROM ${Type}
                             LEFT JOIN acc_doctor ON acc_doctor.id_table_doctor = ${Type}.id_table_doctor
+                            LEFT JOIN admin ON admin.id = ${Type}.id_admin
                             LEFT JOIN (
                                 SELECT formplant.id , houseFarm.name_station
                                 FROM formplant , 

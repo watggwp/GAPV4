@@ -9,7 +9,7 @@ const RoyalGapLine = require('./configLine');
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
-module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , socket) {
+module.exports = function apiAdmin (app , Database , pool = new ConnectionPool() , apifunc , dbpacket , listDB , hostServer , socket) {
   app.post('/api/admin/check', (req, res) => {
     const username = req.session.user_username
     const password = req.session.user_password
@@ -531,17 +531,11 @@ app.post('/api/admin/role/update', async (req, res) => {
         const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
         const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
 
-        // Admin station for filtering: restrict to admin's assigned station (station_admin) if configured.
-        // Otherwise, fallback to the user's selected station or null (all).
-        const userStationAdmin = result['data']['station_admin'] && result['data']['station_admin'] !== "0" && result['data']['station_admin'] !== ""
-            ? result['data']['station_admin']
+        // Ignore admin's assigned station_admin so they can view all stations by default.
+        // Fallback to the user's selected station or null (all).
+        const adminStation = (req.body.station !== undefined && req.body.station !== null)
+            ? (req.body.station && req.body.station !== "0" && req.body.station !== "" ? req.body.station : null)
             : null;
-
-        const adminStation = userStationAdmin 
-            ? userStationAdmin 
-            : ((req.body.station !== undefined && req.body.station !== null)
-                ? (req.body.station && req.body.station !== "0" && req.body.station !== "" ? req.body.station : null)
-                : null);
 
         con.query(
           `
@@ -558,22 +552,23 @@ app.post('/api/admin/role/update', async (req, res) => {
               (
                 SELECT acc_farmer.fullname
                 FROM acc_farmer
-                WHERE acc_farmer.link_user = house.link_user ${adminStation ? `AND station = ?` : ``} AND register_auth != 2
+                WHERE acc_farmer.link_user = house.link_user AND register_auth != 2
                 ORDER BY date_register DESC , register_auth DESC
                 LIMIT 1
               ) as farmer
             FROM formplant ,
               (
-                SELECT id_farm_house , farmer.link_user
+                SELECT housefarm.id_farm_house , farmer.link_user, farmer.station
                 FROM housefarm ,
                   (
-                    SELECT uid_line , link_user
+                    SELECT uid_line , link_user, station
                     FROM acc_farmer
-                    WHERE ${StatusFarmer !== null ? `register_auth = ${StatusFarmer}` : "(register_auth = 0 OR register_auth = 1)"} ${adminStation ? `AND station = ?` : ``}
+                    WHERE ${StatusFarmer !== null ? `register_auth = ${StatusFarmer}` : "(register_auth = 0 OR register_auth = 1)"}
                   ) as farmer
                 WHERE housefarm.uid_line = farmer.uid_line or housefarm.link_user = farmer.link_user
               ) as house
             WHERE formplant.id_farm_house = house.id_farm_house
+                    ${adminStation ? `and house.station = ?` : ""}
                     ${TypePlant.length == 1 ? `and formplant.name_plant = ?` : ""}
                     ${Submit !== null ? `and formplant.state_status = ${Submit}` : ""}
                     ${subStatusSql}
@@ -585,7 +580,7 @@ app.post('/api/admin/role/update', async (req, res) => {
           ${(Limit !== null) ? `LIMIT ${Limit}` : ""}
           `,
           adminStation
-            ? [TextInsert, adminStation, adminStation, ...TypePlant, TextInsert]
+            ? [TextInsert, adminStation, ...TypePlant, TextInsert]
             : [TextInsert, ...TypePlant, TextInsert],
           (err, listFarm) => {
             if (err) {
@@ -610,7 +605,7 @@ app.post('/api/admin/role/update', async (req, res) => {
     const username = req.session.user_username;
     const password = req.session.user_password;
 
-    if (!username || !password) {
+    if (username === '' || password === '' || !apifunc.authCsurf("admin", req, res)) {
       res.redirect('/api/logout');
       return;
     }
@@ -640,7 +635,7 @@ app.post('/api/admin/role/update', async (req, res) => {
             );
           });
         } else {
-          const adminStation = result['data']['station_admin'] ?? null;
+          const adminStation = null;
           plants = await new Promise((resolve, reject) => {
             con.query(
               `
@@ -698,7 +693,7 @@ app.post('/api/admin/role/update', async (req, res) => {
       if (result['result'] === "pass") {
         const { textSearch = "", station_id = "" } = req.body;
         const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit;
-        const adminStation = station_id || result['data']['station_admin'] || null;
+        const adminStation = station_id || null;
         if (req.body.approve === 1) {
           con.query(`
             SELECT acc_farmer.id_table, acc_farmer.img, acc_farmer.fullname, acc_farmer.link_user, acc_farmer.date_register,
@@ -1013,10 +1008,10 @@ app.post('/api/admin/role/update', async (req, res) => {
             if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                 con.query(`
                 INSERT INTO editform 
-                    (id_form, id_doctor, id_doctor_edit, because, note, status, type_form)
+                    (id_form, id_doctor, id_doctor_edit, because, note, status, type_form, id_admin)
                 VALUES 
-                    (?, ?, ?, ?, ?, ?, "plant")
-            `, [id_plant, "", admin_id, data.because || "", "", 1],
+                    (?, ?, ?, ?, ?, ?, "plant", ?)
+            `, [id_plant, "", 0, data.because || "", "", 1, admin_id],
                     async (err, resultEdit) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res);
@@ -3883,7 +3878,1318 @@ app.post('/api/admin/report/list', async(req, res) => {
 			}
 		})
 	}
+
+  // Helper to resolve greenhouse ID by form GAP ID
+  const getGreenhouseIdByFromGapID = async (formGapId) => {
+      const greenhouse = await pool.executeQuery(
+          `
+              SELECT fp.id_farm_house
+              FROM housefarm hf 
+              LEFT JOIN formplant fp ON fp.id_farm_house = hf.id_farm_house
+              WHERE fp.id = ?
+              LIMIT 1
+          ` ,
+          [formGapId]
+      )
+      return greenhouse[0].id_farm_house
+  }
+
+  // --- Admin duplicate of Doctor GAP Detail APIs ---
+
+  app.get('/api/admin/form/get/detail', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout');
+          return 0;
+      }
+
+      let con = Database.createConnection(listDB);
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin");
+          if (result['result'] === "pass") {
+              const TypeForm = (req.query.type === '0') ? "plant" : (req.query.type === '1') ? "fertilizer" : "chemical";
+              const subjectWhereID = (req.query.type === '0') ? "id" : (req.query.type === '1') ? "id_plant" : "id_plant";
+
+              con.query(
+                  `
+                  SELECT * ,
+                  (
+                      SELECT COUNT(status)
+                      FROM editform
+                      WHERE status = 0 and type_form = ? and id_form = form${TypeForm}.id
+                  ) as countStatus
+                  FROM form${TypeForm}
+                  WHERE ${subjectWhereID} = ?
+                  ` , [TypeForm, req.query.id_form],
+                  async (err, forms) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("select form");
+                      }
+
+                      const formsData = []
+
+                      if (!forms.length) {
+                          con.end()
+                          res.send(formsData)
+                      }
+
+                      forms.forEach(async (form) => {
+                          const userData = req.query.type === '0' ? await new Promise((resolve) => {
+                              con.query(
+                                  `
+                                      SELECT id_table as id_farmer , fullname as fullname
+                                      FROM acc_farmer , 
+                                      (
+                                          SELECT link_user
+                                          FROM housefarm
+                                          WHERE id_farm_house = ?
+                                      ) as house
+                                      WHERE acc_farmer.link_user = house.link_user
+                                      ORDER BY date_register
+                                      LIMIT 1
+                                  ` , [form.id_farm_house],
+                                  (err, users) => {
+                                      if (err) {
+                                          dbpacket.dbErrorReturn(con, err, res);
+                                          console.log("select user");
+                                      }
+
+                                      resolve(users[0] || {})
+                                  }
+                              )
+                          }) : {}
+
+                          const plantData = req.query.type === '0' ? await new Promise((resolve) => {
+                              con.query(
+                                  `
+                                      SELECT type_plant as type_main
+                                      FROM plant_list
+                                      WHERE name = ?
+                                      LIMIT 1
+                                  ` , [form.name_plant],
+                                  (err, plants) => {
+                                      if (err) {
+                                          dbpacket.dbErrorReturn(con, err, res);
+                                          console.log("select user");
+                                      }
+
+                                      resolve(plants[0] || {})
+                                  }
+                              )
+                          }) : {}
+
+                          const houseFarmData = req.query.type === '0' ? await new Promise((resolve) => {
+                              con.query(
+                                  `
+                                      SELECT location as location_house
+                                      FROM housefarm
+                                      WHERE id_farm_house = ?
+                                      LIMIT 1
+                                  ` , [form.id_farm_house],
+                                  (err, houseFarm) => {
+                                      if (err) {
+                                          dbpacket.dbErrorReturn(con, err, res);
+                                          console.log("select house");
+                                      }
+
+                                      resolve(houseFarm[0] || {})
+                                  }
+                              )
+                          }) : {}
+
+                          formsData.push({
+                              ...form,
+                              ...userData,
+                              ...plantData,
+                              ...houseFarmData
+                          })
+
+                          if (forms.length === formsData.length) {
+                              con.end()
+                              res.send(formsData)
+                          }
+                      })
+
+                  }
+              )
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
+
+  app.get('/api/admin/form/get/sensor', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout');
+          return 0;
+      }
+
+      const { houseFarm } = req.query;
+      if (!houseFarm) return res.status(400).json({ error: "missing_param", message: "houseFarm is required" });
+
+      const sql = `
+          SELECT swh.greenhouse_id, swh.device_id, swh.status, swh.create_timestamp
+          FROM sensor_weather_greenhouse swh
+          WHERE swh.greenhouse_id = ?
+          LIMIT 1;
+      `;
+      const [rows] = await pool.executeQuery(sql, [houseFarm]);
+
+      if (Array.isArray(rows)) {
+          if (!rows.length) return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+          return res.json(rows[0]);
+      } else if (rows) {
+          return res.json(rows);
+      } else {
+          return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+      }
+  });
+
+  app.get('/api/admin/form/get/farmer', async (req, res) => {
+      let username = req.session.user_username;
+      let password = req.session.user_password;
+
+      if (username === '' || password === '' || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, username, password, res, "admin")
+          if (result['result'] === "pass") {
+              con.query(
+                  `
+                  SELECT acc_farmer.*
+                  FROM acc_farmer , 
+                      (
+                          SELECT link_user
+                          FROM housefarm , 
+                          (
+                              SELECT id_farm_house
+                              FROM formplant
+                              WHERE id = ?
+                          ) as plant
+                          WHERE housefarm.id_farm_house = plant.id_farm_house
+                      ) as house
+                  WHERE acc_farmer.link_user = house.link_user AND register_auth != 2
+                  ORDER BY date_register DESC , register_auth DESC
+                  LIMIT 1
+                  ` , [req.query.id_form],
+                  (err, result) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("get profile");
+                          return 0;
+                      }
+
+                      result.map(val => {
+                          val.img = val.img.toString()
+                          return val
+                      })
+                      con.end()
+                      res.send(result)
+                  }
+              )
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
+
+  app.get('/api/admin/form/manage/get', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const TypePage = req.query.typePage === "success_detail" || req.query.typePage === "report_detail" || req.query.typePage === "check_form_detail" || req.query.typePage === "check_plant_detail" ?
+                  req.query.typePage : "";
+
+              const Order = req.query.typePage === "success_detail" ? "date_of_doctor DESC"
+                  : req.query.typePage === "report_detail" ? "date_report"
+                      : "date_check";
+
+              if (TypePage) {
+                  con.query(
+                      `
+                          SELECT * , 
+                          (
+                              IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                  (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
+                                  (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = ${TypePage}.id_table_doctor)
+                              )
+                          ) as name_doctor ,
+                          (
+                              IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                  (SELECT username FROM admin WHERE id = ${TypePage}.id_admin),
+                                  (SELECT id_doctor FROM acc_doctor WHERE id_table_doctor = ${TypePage}.id_table_doctor)
+                              )
+                          ) as id_doctor ,
+                          (
+                              IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
+                                  (${TypePage}.id_admin = ?),
+                                  (FALSE)
+                              )
+                          ) as check_doctor
+                          FROM ${TypePage}
+                          WHERE id_plant = ?
+                          ORDER BY ${Order}
+                      ` , [result.data.id, req.query.id_plant],
+                      (err, result) => {
+                          if (err) {
+                              dbpacket.dbErrorReturn(con, err, res);
+                              console.log("get manage");
+                              return 0;
+                          }
+
+                          if (TypePage === "success_detail" || TypePage === "check_plant_detail") {
+                              con.query(
+                                  `
+                                  SELECT 
+                                  ${TypePage === "success_detail" ?
+                                      `
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM check_plant_detail
+                                              WHERE id_plant = ? and state_check = 0
+                                              LIMIT 1
+                                          )
+                                      ) as check_plant_before 
+                                      , 
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM check_plant_detail
+                                              WHERE id_plant = ? and state_check = 1
+                                              LIMIT 1
+                                          )
+                                      ) as check_plant_after ,
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM success_detail
+                                              WHERE id_plant = ? and type_success = 1
+                                              LIMIT 1
+                                          )
+                                      ) as Check_success_after
+                                      ` :
+                                      TypePage === "check_plant_detail" ?
+                                          `
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM success_detail
+                                              WHERE id_plant = ? and type_success = 0
+                                              LIMIT 1
+                                          )
+                                      ) as check_success_before 
+                                      , 
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM success_detail
+                                              WHERE id_plant = ? and type_success = 1
+                                              LIMIT 1
+                                          )
+                                      ) as check_success_after ,
+                                      (
+                                          SELECT EXISTS (
+                                              SELECT id
+                                              FROM check_plant_detail
+                                              WHERE id_plant = ? and state_check = 1
+                                              LIMIT 1
+                                          )
+                                      ) as check_plant_after
+                                      `
+                                          : ""
+                                  }
+                                  ` , [req.query.id_plant, req.query.id_plant, req.query.id_plant],
+                                  (err, optionCheck) => {
+                                      if (err) {
+                                          dbpacket.dbErrorReturn(con, err, res);
+                                          console.log("get manage");
+                                          return 0;
+                                      }
+
+                                      con.end()
+                                      res.send({
+                                          list: result,
+                                          option: optionCheck
+                                      })
+                                  }
+                              )
+                          } else {
+                              con.end()
+                              res.send({
+                                  list: result,
+                                  option: []
+                              })
+                          }
+                      }
+                  )
+              }
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
+
+  app.get('/api/admin/name', (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      apifunc.auth(con, adminUsername, adminPassword, res, "admin").then((result) => {
+          con.end()
+          res.send(result['data'].fullname)
+      }).catch((err) => {
+          con.end()
+          res.redirect('/api/logout')
+      })
+  })
+
+  app.post('/api/admin/form/export', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const TextInsert = req.body.textInput ?? "";
+              const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
+              const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) ? req.body.statusForm : null;
+              const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+
+              const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
+              const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
+              const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
+
+              const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
+
+              con.query(
+                  `
+                  SELECT fromInsert.* 
+                  FROM formplant ,
+                  (
+                      SELECT formplant.* ,
+                          (
+                              SELECT type_plant
+                              FROM plant_list
+                              WHERE name = formplant.name_plant
+                              LIMIT 1
+                          ) as type_main ,
+                          (
+                              SELECT id_plant
+                              FROM success_detail
+                              WHERE id_plant = formplant.id and INSTR(id_success , ?)
+                              GROUP BY id_plant
+                              LIMIT 1
+                          ) as success_id_plant
+                      FROM formplant , 
+                          (
+                              SELECT id_farm_house
+                              FROM housefarm , 
+                                  (
+                                      SELECT uid_line , link_user
+                                      FROM acc_farmer
+                                      WHERE ${StatusFarmer !== null ? `register_auth = ${StatusFarmer}` : "(register_auth = 0 OR register_auth = 1)"}
+                                  ) as farmer
+                              WHERE housefarm.uid_line = farmer.uid_line or housefarm.link_user = farmer.link_user
+                          ) as house
+                      WHERE formplant.id_farm_house = house.id_farm_house
+                              ${TypePlant.length == 1 ? `and formplant.name_plant = ?` : ""}
+                              ${Submit !== null ? `and formplant.state_status = ${Submit}` : ""}
+                              ${(TypeDate !== null && StartDate !== null && EndDate !== null) ? `and ( UNIX_TIMESTAMP(formplant.${TypeDate}) >= UNIX_TIMESTAMP('${StartDate}') and UNIX_TIMESTAMP(formplant.${TypeDate}) <= UNIX_TIMESTAMP('${EndDate}') )` : ""}
+                      ORDER BY ${OrderBy}
+                  ) as fromInsert
+                  WHERE formplant.id = fromInsert.id and ( INSTR(formplant.id , ?) or formplant.id = fromInsert.success_id_plant )
+                  `
+                  , [TextInsert, ...TypePlant, TextInsert],
+                  async (err, listFarm) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("select form");
+                      }
+
+                      const wordcut = require('thai-wordcut');
+                      try { wordcut.init(); } catch (e) {}
+
+                      const DataExport = listFarm ? await new Promise(async (resole, reject) => {
+                          const Data = new Array
+                          for (let val of listFarm) {
+                              const Farmer = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                      SELECT acc_farmer.id_farmer , acc_farmer.fullname , 
+                                          (
+                                              SELECT name
+                                              FROM station_list
+                                              WHERE id = acc_farmer.station
+                                          ) as station
+                                      FROM acc_farmer , 
+                                          (
+                                              SELECT link_user
+                                              FROM housefarm , 
+                                              (
+                                                  SELECT id_farm_house
+                                                  FROM formplant
+                                                  WHERE id = ?
+                                              ) as plant
+                                              WHERE housefarm.id_farm_house = plant.id_farm_house
+                                          ) as house
+                                      WHERE acc_farmer.link_user = house.link_user AND register_auth != 2
+                                      ORDER BY date_register DESC , register_auth DESC
+                                      LIMIT 1
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          resole(result)
+                                      }
+                                  )
+                              })
+
+                              const Fertirizer = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                          SELECT * 
+                                          FROM formfertilizer
+                                          WHERE id_plant = ?
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          const ResultEx = result.map((val, key) => {
+                                              val.source = wordcut.cut(val.source)
+                                              return val
+                                          })
+                                          resole(ResultEx)
+                                      }
+                                  )
+                              })
+
+                              const chemical = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                          SELECT * 
+                                          FROM formchemical
+                                          WHERE id_plant = ?
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          const ResultEx = result.map((val, key) => {
+                                              val.source = wordcut.cut(val.source)
+                                              return val
+                                          })
+                                          resole(ResultEx)
+                                      }
+                                  )
+                              })
+
+                              const Report = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                          SELECT * , 
+                                          (
+                                              IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                  (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                  (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = report_detail.id_table_doctor)
+                                              )
+                                          ) as name_doctor
+                                          FROM report_detail
+                                          WHERE id_plant = ?
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          const ResultEx = result.map((val, key) => {
+                                              val.report_text = wordcut.cut(val.report_text)
+                                              return val
+                                          })
+                                          resole(ResultEx)
+                                      }
+                                  )
+                              })
+
+                              const CheckForm = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                          SELECT * , 
+                                          (
+                                              IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                  (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                  (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = check_form_detail.id_table_doctor)
+                                              )
+                                          ) as name_doctor
+                                          FROM check_form_detail
+                                          WHERE id_plant = ?
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          const ResultEx = result.map((val, key) => {
+                                              val.note_text = wordcut.cut(val.note_text)
+                                              return val
+                                          })
+                                          resole(ResultEx)
+                                      }
+                                  )
+                              })
+
+                              const CheckPlant = await new Promise((resole, reject) => {
+                                  con.query(
+                                      `
+                                          SELECT * , 
+                                          (
+                                              IF(id_admin != 0 AND id_admin IS NOT NULL,
+                                                  (SELECT fullname_admin FROM admin WHERE id = id_admin),
+                                                  (SELECT fullname_doctor FROM acc_doctor WHERE id_table_doctor = check_plant_detail.id_table_doctor)
+                                              )
+                                          ) as name_doctor
+                                          FROM check_plant_detail
+                                          WHERE id_plant = ?
+                                      ` , [val.id],
+                                      (err, result) => {
+                                          resole(result)
+                                      }
+                                  )
+                              })
+
+                              Data.push({
+                                  dataForm: val,
+                                  farmer: Farmer,
+                                  ferti: Fertirizer,
+                                  chemi: chemical,
+                                  report: Report,
+                                  checkForm: CheckForm,
+                                  checkPlant: CheckPlant
+                              })
+                          }
+                          con.end()
+                          resole(Data)
+                      }) : []
+
+                      res.send(DataExport)
+                  }
+              )
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
+
+  app.post('/api/admin/form/manage/success/insert', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.body.password;
+
+      if (!adminUsername || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const { id_plant } = req.body
+              const CheckInsert = req.body.type == 1 ? await new Promise((resole, reject) => {
+                  con.query(
+                      `
+                          SELECT (
+                              SELECT EXISTS (
+                                  SELECT id
+                                  FROM check_plant_detail
+                                  WHERE id_plant = ? and state_check = 0
+                              )
+                          ) as ResultAfter
+                      ` , [req.body.id_plant],
+                      (err, result) => {
+                          resole(parseInt(result[0].ResultAfter))
+                      }
+                  )
+              }) : req.body.type == 0 ? await new Promise((resole, reject) => {
+                  con.query(
+                      `
+                          SELECT (
+                              SELECT EXISTS (
+                                  SELECT id
+                                  FROM check_plant_detail
+                                  WHERE id_plant = ? and state_check = 1
+                              )
+                          ) as ResultBefore
+                      ` , [req.body.id_plant],
+                      (err, result) => {
+                          resole(!parseInt(result[0].ResultBefore))
+                      }
+                  )
+              }) : "";
+
+              const CheckSuccess = await new Promise((resole, reject) => {
+                  con.query(
+                      `
+                      SELECT
+                      (
+                          SELECT EXISTS (
+                              SELECT id
+                              FROM success_detail
+                              WHERE id_plant = ? and type_success = 1
+                              LIMIT 1
+                          )
+                      ) as Check_success_after
+                      ` , [req.body.id_plant],
+                      (err, resultCheck) => {
+                          resole(parseInt(resultCheck[0].Check_success_after))
+                      }
+                  )
+              })
+
+              if (CheckInsert && !CheckSuccess) {
+                  const Random = await new Promise(async (resole, reject) => {
+                      while (true) {
+                          let random = apifunc.generateID(4, "num")
+                          let resultFound = await new Promise((resole, reject) => {
+                              con.query(
+                                  `
+                                  SELECT id
+                                  FROM success_detail
+                                  WHERE id_success = ?
+                                  ` , [random],
+                                  (err, result) => {
+                                      resole(result)
+                                  }
+                              )
+                          })
+
+                          if (resultFound.length === 0) {
+                              resole(random)
+                              break;
+                          }
+                      }
+                  })
+
+                  con.query(
+                      `
+                          INSERT success_detail
+                          ( id_plant , id_success , id_table_doctor , type_success , date_of_farmer , id_admin )
+                          VALUES 
+                          ( ? , ? , ? , ? , '' , ?)
+                      ` , [req.body.id_plant, Random, 0, req.body.type, result.data.id],
+                      async (err, result) => {
+                          if (err) {
+                              dbpacket.dbErrorReturn(con, err, res);
+                              console.log("get manage");
+                              return 0;
+                          }
+
+                          await RoyalGapLine.pushMessageToFarmerByFormID(
+                              id_plant,
+                              pool,
+                              (gapData) => {
+                                  const { greenhouse_name, plant_name } = gapData || {}
+                                  return [
+                                      ...generateMessageTitle(greenhouse_name, plant_name),
+                                      `เจ้าหน้าที่สั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
+                                      `รหัสการเก็บเกี่ยว: ${Random}`
+                                  ]
+                              },
+                              {
+                                  url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
+                              }
+                          )
+
+                          if (req.body.type == 0) {
+                              con.query(
+                                  `
+                                  UPDATE formplant 
+                                  SET state_status = 1
+                                  WHERE id = ? and state_status = 0
+                                  ` , [req.body.id_plant],
+                                  (err, update) => {
+                                      con.end()
+                                      res.send("113")
+                                  }
+                              )
+                          } else if (req.body.type == 1) {
+                              con.end()
+                              res.send("113")
+                          }
+                      }
+                  )
+              } else {
+                  con.end()
+                  res.send("not")
+              }
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.send("password")
+          }
+      }
+  })
+
+  app.post('/api/admin/form/manage/report/insert', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.body.password;
+
+      if (!adminUsername || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const { id_plant } = req.body
+              try {
+                  const fs = require('fs');
+                  const name = req.body.img_report ?
+                      await new Promise((resole, reject) => {
+                          const name_image = `${result.data.id}${req.body.id_plant}${new Date().getTime()}.jpg`
+                          const Path = __dirname.replace("server", "app") + `/src/assets/img/doctor/report/${name_image}`
+                          const base64Data = req.body.img_report.replace("data:image/jpeg;base64,", "")
+                          const imageBuffer = Buffer.from(base64Data, 'base64');
+                          fs.writeFile(Path, imageBuffer, (err) => {
+                              console.log(err)
+                              if (err) reject("not image")
+                              else resole(name_image)
+                          })
+                      }) : ""
+
+                  con.query(
+                      `
+                          INSERT report_detail
+                          (id_plant , report_text , id_table_doctor , image_path , id_admin)
+                          VALUES
+                          (? , ? , ? , ? , ?)
+                      ` , [req.body.id_plant, req.body.report_text, 0, name, result.data.id],
+                      async (err, result) => {
+                          if (!err) {
+                              const { lineIds: arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                  id_plant,
+                                  pool,
+                                  (gapData) => {
+                                      const { greenhouse_name, plant_name } = gapData || {}
+                                      return [
+                                          ...generateMessageTitle(greenhouse_name, plant_name),
+                                          `มีคำแนะนำการปลูกจากเจ้าหน้าที่`,
+                                          '',
+                                          req.body.report_text
+                                      ]
+                                  },
+                                  {
+                                      url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                  }
+                              )
+                              if (name) {
+                                  const imageURL = `${hostServer}/doctor/report/${name}`;
+                                  try {
+                                      RoyalGapLine.multicast(
+                                          arrUID,
+                                          {
+                                              type: "image",
+                                              originalContentUrl: imageURL,
+                                              previewImageUrl: imageURL
+                                          }
+                                      )
+                                  } catch (e) { }
+                              }
+
+                              con.end()
+                              res.send("113")
+                          } else {
+                              con.end()
+                              res.send("not")
+                          }
+                      }
+                  )
+              } catch (e) {
+                  if (e === "not image") {
+                      con.end()
+                      res.send("not image")
+                  }
+              }
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.send("password")
+          }
+      }
+  })
+
+  app.post('/api/admin/form/manage/report/edit', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.body.password;
+
+      if (!adminUsername || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              try {
+                  const fs = require('fs');
+                  const img_path = req.body.image_object != undefined ?
+                      await new Promise((resole, reject) => {
+                          con.query(
+                              `
+                              SELECT image_path
+                              FROM report_detail
+                              WHERE id_plant = ? and id = ?
+                              ` , [req.body.id_plant, req.body.id],
+                              async (err, resoleImg) => {
+                                  if (!err) {
+                                      const Path = __dirname.replace("server", "src") + `/assets/img/doctor/report/`
+                                      if (resoleImg[0].image_path)
+                                          try { fs.rmSync(Path + `${resoleImg[0].image_path}`) } catch (e) { }
+
+                                      if (req.body.image_object) {
+                                          const name_image = `${result.data.id}${req.body.id_plant}${new Date().getTime()}.jpg`
+                                          const base64Data = req.body.image_object.replace("data:image/jpeg;base64,", "")
+                                          const imageBuffer = Buffer.from(base64Data, 'base64');
+                                          fs.writeFile(Path + name_image, imageBuffer, (err) => {
+                                              if (err) reject("not image")
+                                              else resole(name_image)
+                                          })
+                                      } else resole("")
+                                  } else reject("not update")
+                              }
+                          )
+                      }) : null;
+
+                  if (req.body.report_text || img_path != null) {
+                      const SET = new Array(
+                          req.body.report_text ? `report_text = '${req.body.report_text}'` : "", 
+                          img_path != null ? `image_path = '${img_path}'` : "",
+                          `id_admin = ${result.data.id}`,
+                          `id_table_doctor = 0`
+                      )
+                          .filter(val => val).join(",").replaceAll(" ", "")
+
+                      const old_report = await new Promise((resolve) => {
+                          con.query(
+                              `
+                              SELECT id , report_text , image_path
+                              FROM report_detail
+                              WHERE id = ? 
+                              LIMIT 1
+                              ` , [req.body.id],
+                              (err, oldData) => {
+                                  if (err) {
+                                      console.log("edit report");
+                                      return 0;
+                                  }
+
+                                  resolve(oldData[0])
+                              }
+                          )
+                      })
+
+                      con.query(
+                          `
+                          UPDATE report_detail
+                          SET ${SET}
+                          WHERE id_plant = ? and id = ?
+                          ` , [req.body.id_plant, req.body.id],
+                          (err, resultEdit) => {
+                              if (err) {
+                                  dbpacket.dbErrorReturn(con, err, res);
+                                  console.log("edit report");
+                                  return 0;
+                              }
+
+                              con.query(
+                                  `
+                                  INSERT INTO record_edit 
+                                      ( edit_date , report_text , image_path , id_report_detail ) VALUES 
+                                      ( ? , ? , ? , ? )
+                                  ` , [new Date(), old_report.report_text, old_report.image_path, old_report.id],
+                                  (err, resultEdit) => {
+                                      if (err) {
+                                          dbpacket.dbErrorReturn(con, err, res);
+                                          console.log("edit report");
+                                          return 0;
+                                      }
+
+                                      con.end()
+                                      res.send("113")
+                                  }
+                              )
+                          }
+                      )
+                  }
+              } catch (e) {
+                  console.log(e)
+                  con.end()
+                  res.send("not")
+              }
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.send("password")
+          }
+      }
+  })
+
+  app.post('/api/admin/form/manage/checkplant/insert', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.body.password;
+
+      if (!adminUsername || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const { id_plant } = req.body
+              const Check = await new Promise((resolve, reject) => {
+                  con.query(
+                      `
+                      SELECT (
+                          SELECT EXISTS (
+                              SELECT id
+                              FROM success_detail
+                              WHERE type_success = ? and id_plant = ?
+                          )
+                      ) as check_success
+                      ` , [req.body.stateCheck, id_plant],
+                      (err, result) => {
+                          resolve(result[0].check_success)
+                      }
+                  )
+              })
+
+              if (parseInt(Check)) {
+                  const { statusCheck, stateCheck, report_text } = req.body
+                  con.query(
+                      `
+                          INSERT check_plant_detail
+                          (id_plant , status_check , state_check , note_text , id_table_doctor , id_admin)
+                          VALUES
+                          (? , ? , ? , ? , ? , ?)
+                      ` , [id_plant, statusCheck, stateCheck, report_text, 0, result.data.id],
+                      async (err, result) => {
+                          if (!err) {
+                              const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                  id_plant,
+                                  pool,
+                                  (gapData) => {
+                                      const { greenhouse_name, plant_name } = gapData || {}
+                                      const messages = [
+                                          ...generateMessageTitle(greenhouse_name, plant_name),
+                                          `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
+                                          `คะแนนการประเมิน: ${statusCheck}`
+                                      ]
+
+                                      if (report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
+                                      return messages
+                                  },
+                                  {
+                                      url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
+                                  }
+                              )
+
+                              console.log(error)
+                              if (req.body.stateCheck == 1) {
+                                  con.query(
+                                      `
+                                      UPDATE formplant 
+                                      SET state_status = 2 , date_success = ?
+                                      WHERE id = ? and state_status = 1
+                                      ` , [new Date(), id_plant],
+                                      (err, update) => {
+                                          con.end()
+                                          res.send("113")
+                                      }
+                                  )
+                              } else {
+                                  con.end()
+                                  res.send("113")
+                              }
+                          }
+                      }
+                  )
+              } else {
+                  con.end()
+                  res.send("not")
+              }
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.send("password")
+          }
+      }
+  })
+
+  app.post('/api/admin/form/manage/checkform/insert', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.body.password;
+
+      if (!adminUsername || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const { id_plant } = req.body
+              con.query(
+                  `
+                  SELECT EXISTS (
+                      SELECT id
+                      FROM check_form_detail
+                      WHERE id_plant = ?
+                  ) as CheckResult
+                  ` , [id_plant],
+                  (err, check) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("insert form check");
+                          return 0;
+                      }
+
+                      if (!parseInt(check[0].CheckResult)) {
+                          const { statusCheck, report_text } = req.body
+                          con.query(
+                              `
+                                  INSERT check_form_detail
+                                  (id_plant , status_check , note_text , id_table_doctor , id_admin)
+                                  VALUES
+                                  (? , ? , ? , ? , ?)
+                              ` , [id_plant, statusCheck, report_text, 0, result.data.id],
+                              async (err, result) => {
+                                  if (!err) {
+                                      const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                          id_plant,
+                                          pool,
+                                          (gapData) => {
+                                              const { greenhouse_name, plant_name } = gapData || {}
+                                              const messages = [
+                                                  ...generateMessageTitle(greenhouse_name, plant_name),
+                                                  `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
+                                              ]
+
+                                              if (report_text) messages.push(
+                                                  `ข้อความจากเจ้าหน้าที่: ${report_text}`
+                                              )
+
+                                              return messages
+                                          },
+                                          {
+                                              url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
+                                          }
+                                      )
+
+                                      console.log(error)
+                                      con.end()
+                                      res.send("113")
+                                  } else {
+                                      con.end()
+                                      res.send("")
+                                  }
+                              }
+                          )
+                      } else {
+                          con.end()
+                          res.send("not")
+                      }
+                  }
+              )
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.send("password")
+          }
+      }
+  })
+
+  app.post('/api/admin/form/edit/get', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const type = req.body.id_edit ? "*" : "id_edit";
+              const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
+              con.query(
+                  ` 
+                      SELECT editform.${type} , editform.id_doctor_edit , editform.id_admin
+                      FROM editform
+                      WHERE editform.id_form = ? and type_form = ? ${queryParams.length == 1 ? `and editform.id_edit = ?` : ""}
+                      ORDER BY date DESC
+                  `
+                  , [req.body.id_form, req.body.type_form, ...queryParams],
+                  (err, result) => {
+                      if (err) {
+                          dbpacket.dbErrorReturn(con, err, res);
+                          console.log("select plant editform");
+                          return 0;
+                      }
+
+                      if (req.body.id_edit) {
+                          con.query(
+                              `
+                          SELECT * FROM detailedit
+                          WHERE id_edit = ?
+                          ` , [req.body.id_edit],
+                              (err, detail) => {
+                                  if (err) {
+                                      dbpacket.dbErrorReturn(con, err, res);
+                                      console.log("select detailedit");
+                                      return 0;
+                                  }
+
+                                  con.end()
+                                  res.send({
+                                      head: result[0],
+                                      detail: detail
+                                  })
+                              }
+                          )
+                      } else {
+                          con.end()
+                          res.send(result)
+                      }
+                  })
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
+
+  app.put('/api/admin/form/edit/change/status', async (req, res) => {
+      let adminUsername = req.session.user_username;
+      let adminPassword = req.session.user_password;
+
+      if (!adminUsername || !adminPassword || !apifunc.authCsurf("admin", req, res)) {
+          res.redirect('/api/logout')
+          return 0
+      }
+
+      let con = Database.createConnection(listDB)
+
+      try {
+          const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
+          if (result['result'] === "pass") {
+              const { id_plant, note, id_edit } = req.body
+              con.query(
+                  `
+                      UPDATE editform
+                      SET status = ? , note = ? , id_doctor = ? , id_admin = ?
+                      WHERE id_edit = ?
+                  ` , [req.body.status, note, 0, result.data.id, id_edit],
+                  async (err, result) => {
+                      if (!err) {
+                          if (req.body.status == 2) {
+                              const editDatas = await pool.executeQuery(
+                                  `
+                                      SELECT subject_form , old_content , new_content 
+                                      FROM detailedit 
+                                      WHERE id_edit = ?
+                                  ` ,
+                                  [id_edit]
+                              )
+
+                              await RoyalGapLine.pushMessageToFarmerByFormID(
+                                  id_plant,
+                                  pool,
+                                  (gapData) => {
+                                      const { greenhouse_name, plant_name } = gapData || {}
+                                      const messages = [
+                                          ...generateMessageTitle(greenhouse_name, plant_name),
+                                          `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
+                                          "",
+                                          "รายการ:",
+                                          editDatas.map(({ subject_form, old_content, new_content }) =>
+                                              `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
+                                          )
+                                      ]
+
+                                      if (note) messages.push(`หมายเหตุ: ${note}`)
+                                      return messages
+                                  },
+                                  {
+                                      url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
+                                  }
+                              )
+
+                              con.end()
+                          } else con.end()
+                          res.send("133")
+                      } else {
+                          con.end()
+                          res.send("")
+                      }
+                  }
+              )
+          }
+      } catch (err) {
+          con.end()
+          if (err == "not pass") {
+              res.redirect('/api/logout')
+          }
+      }
+  })
 }
+
 
   // app.post('/api/admin/chkOver' , (req , res)=>{
   //   let username = req.session.user_username

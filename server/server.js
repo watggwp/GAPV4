@@ -46,54 +46,8 @@ async function serverInitial() {
                         resolve(false)
                     } else {
                         console.log("Database connection success !!!");
-                        
-                        // Seed doctor 666 if it doesn't exist
-                        const checkQuery = "SELECT 1 FROM acc_doctor WHERE id_doctor = '666'";
-                        connection.query(checkQuery, (err, rows) => {
-                            if (!err && rows && rows.length === 0) {
-                                const insertQuery = `
-                                    INSERT INTO acc_doctor (
-                                        id_table_doctor,
-                                        id_doctor,
-                                        password_doctor,
-                                        fullname_doctor,
-                                        station_doctor,
-                                        img_doctor,
-                                        status_account,
-                                        status_delete,
-                                        doctor_role,
-                                        analyst_role,
-                                        consultant_role,
-                                        protection_role
-                                    ) VALUES (
-                                        666,
-                                        '666',
-                                        SHA2('666', 256),
-                                        'Admin (Doctor Mode)',
-                                        '1',
-                                        '',
-                                        1,
-                                        0,
-                                        1,
-                                        1,
-                                        1,
-                                        1
-                                    )
-                                `;
-                                connection.query(insertQuery, (insertErr) => {
-                                    if (insertErr) {
-                                        console.error("Failed to seed doctor 666:", insertErr);
-                                    } else {
-                                        console.log("Successfully seeded doctor 666 into acc_doctor!");
-                                    }
-                                    connection.end();
-                                    resolve(true);
-                                });
-                            } else {
-                                connection.end();
-                                resolve(true);
-                            }
-                        });
+                        connection.end();
+                        resolve(true);
                     };
                 })
             }, 10000);
