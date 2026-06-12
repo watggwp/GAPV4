@@ -32,7 +32,8 @@ const ListData = ({
   HrefPage,
   setStateOnPage,
   modify,
-  textSearch
+  textSearch,
+  viewMode = "card"
 }) => {
   // const [Body , setBody] = useState(<></>)
   // const [List , setList] = useState(<></>)
@@ -297,6 +298,7 @@ const ListData = ({
                     session={session}
                     RefBe={RefBe}
                     Fetch={() => fetchDataList(0, DataFetch.length)}
+                    viewMode={viewMode}
                   />
         }
       </div>
@@ -338,7 +340,8 @@ const ManageList = ({
   auth,
   RefBe,
   session,
-  Fetch
+  Fetch,
+  viewMode = "card"
 }) => {
   const [List, setList] = useState(<></>);
 
@@ -468,6 +471,39 @@ const ManageList = ({
           .querySelector(`#data-list-content-${id} action-bt bt-status .frame`)
           .getAttribute("status")
       );
+      setBecause(
+        <EditPage
+          RefOnPage={RefBe}
+          id_table={id}
+          type={typeStatus}
+          setBecause={setBecause}
+          TabOn={TabOn}
+          session={session}
+          ReloadData={Fetch}
+        />
+      );
+    }
+  };
+
+  const OpenConfirmDataDirect = async (id, typeStatus, dataStatus) => {
+    if (await auth(true)) {
+      setBecause(
+        <ManageDataPage
+          RefOnPage={RefBe}
+          id_table={id}
+          type={typeStatus}
+          status={dataStatus}
+          setBecause={setBecause}
+          TabOn={TabOn}
+          session={session}
+          ReloadData={Fetch}
+        />
+      );
+    }
+  };
+
+  const OpenEditDataDirect = async (id, typeStatus) => {
+    if (await auth(true)) {
       setBecause(
         <EditPage
           RefOnPage={RefBe}
@@ -991,6 +1027,85 @@ const ManageList = ({
 
 
   };
+
+  const isDataType = ["plant", "chemical", "pest", "station"].includes(status.status);
+
+  if (viewMode === "table" && isDataType) {
+    return (
+      <>
+        <style>{`
+          .admin-table-row:hover { background-color: #f5fbf9; }
+          .admin-data-table th, .admin-data-table td { text-align: center !important; vertical-align: middle !important; }
+          .admin-manage-btn {
+            background-color: #F5E642; color: #333; border: none;
+            border-radius: 20px; padding: 6px 14px;
+            font-family: "Sans-font"; font-size: 15px; font-weight: 700;
+            cursor: pointer; white-space: nowrap; margin: 2px;
+          }
+          .admin-manage-btn:hover { background-color: #e0d13b; }
+          .admin-status-badge {
+            display: inline-block; padding: 3px 12px; border-radius: 20px;
+            font-size: 13px; font-weight: 700; font-family: "Sans-font";
+          }
+          .admin-status-badge.on { background-color: #24f0cb; }
+          .admin-status-badge.off { background-color: #f48282; color: white; }
+        `}</style>
+        <div style={{ width: "100%", overflowX: "auto", padding: "8px 10px" }}>
+          <table className="admin-data-table" style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#189D85", color: "white", fontSize: "17px" }}>
+                {status.status === "plant" && (<><th style={{ padding: "16px 20px" }}>ชื่อพืช</th><th style={{ padding: "16px 20px" }}>ประเภท</th><th style={{ padding: "16px 20px" }}>สายพันธุ์พืช</th><th style={{ padding: "16px 20px" }}>วันเก็บเกี่ยว</th><th style={{ padding: "16px 20px" }}>สถานะ</th></>)}
+                {status.status === "chemical" && (<><th style={{ padding: "16px 20px" }}>ชื่อสารเคมี</th><th style={{ padding: "16px 20px" }}>ชื่อสามัญ</th><th style={{ padding: "16px 20px" }}>วิธีการใช้</th><th style={{ padding: "16px 20px" }}>วันปลอดภัย</th><th style={{ padding: "16px 20px" }}>สถานะ</th></>)}
+                {status.status === "pest" && (<><th style={{ padding: "16px 20px" }}>ชื่อโรคพืช / ศัตรูพืช</th><th style={{ padding: "16px 20px" }}>ประเภท</th><th style={{ padding: "16px 20px" }}>สถานะ</th></>)}
+                {status.status === "station" && (<><th style={{ padding: "16px 20px" }}>ชื่อศูนย์</th><th style={{ padding: "16px 20px" }}>รหัสศูนย์</th><th style={{ padding: "16px 20px" }}>สถานะ</th></>)}
+                <th style={{ padding: "16px 20px" }}>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody style={{ fontSize: "16px", color: "#333" }}>
+              {Data.length > 0 ? Data.map((item, index) => (
+                <tr key={index} className="admin-table-row" style={{ borderBottom: "1px solid #eef2f0", transition: "background-color 0.2s" }}>
+                  {status.status === "plant" && (<>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                  </>)}
+                  {status.status === "chemical" && (<>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                  </>)}
+                  {status.status === "pest" && (<>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                  </>)}
+                  {status.status === "station" && (<>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.id_station || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                  </>)}
+                  <td style={{ padding: "12px 16px" }}>
+                    {status.status === "station" && (
+                      <button className="admin-manage-btn" onClick={() => OpenEditDataDirect(item.id, status.status)}>แก้ไข</button>
+                    )}
+                    <button className="admin-manage-btn" onClick={() => OpenConfirmDataDirect(status.status === "pest" ? item.pest_id : item.id, status.status, item.is_use)}>
+                      เปิด/ปิด
+                    </button>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={status.status === "pest" ? 4 : status.status === "station" ? 4 : 6} style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "16px" }}>ไม่พบข้อมูล</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </>
+    );
+  }
 
   return List;
 };

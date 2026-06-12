@@ -65,10 +65,11 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                         [row.schedule_id, row.greenhouse_id]
                     )
                     if (updated.affectedRows === 0) {
+                        const detailsMessage = checkUnrecorded.notifyDoctorMessage(row);
                         await connectionPool.executeQuery(
                             `INSERT INTO schedules_history (schedule_id, greenhouse_id, details_message, notified_unrecorded)
-                             VALUES (?, ?, '', 1)`,
-                            [row.schedule_id, row.greenhouse_id]
+                             VALUES (?, ?, ?, 1)`,
+                            [row.schedule_id, row.greenhouse_id, detailsMessage]
                         )
                     }
                 } catch (err) {

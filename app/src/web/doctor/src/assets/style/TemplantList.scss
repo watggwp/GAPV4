@@ -10,10 +10,18 @@
         padding: 0px 1.5vw;
         margin: 1.5vw 0px;
         margin-bottom: 0.7vw;
-        // padding-bottom: 0.7vw;
+        -webkit-overflow-scrolling: touch;
 
         .body-page-content {
             width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .data-list-content {
+            padding: 0px 8px;
+            margin: 8px 0px;
+            margin-bottom: 4px;
         }
     }
 }

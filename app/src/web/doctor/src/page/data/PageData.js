@@ -56,6 +56,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
     const [StartData, setStartData] = useState(0)
     const [Limit, setLimit] = useState(MaxLimit)
     const [Reload, setReload] = useState(2)
+    const [viewMode, setViewMode] = useState("card") // "card" | "table"
 
 
     const Search = useRef()
@@ -301,30 +302,48 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                     // DataProcess.get("type") !== "report" &&
                     <div className="search-form" ref={Search}>
                         <div className="bt-select-option">
-
-
-
-                            <a title="ค้นหา" className="bt-search-show" onClick={() => { OpenOption(Search, 0, true); }}>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                                    <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-                                        <path d="m11.25 11.25l3 3" />
-                                        <circle cx="7.5" cy="7.5" r="4.75" />
-                                    </g>
-                                </svg>
-                            </a>
-
                             {
                                 (DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics" && DataProcess.get("type") !== "group") &&
-                                <a style={{ padding: "0" }} title="เพิ่มข้อมูล" className="bt-search-show" onClick={() => OpenOption(Search, 1)}>
-                                    <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z" /><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z" /></svg>
+                                <a title={viewMode === "card" ? "แสดงแบบตาราง" : "แสดงแบบการ์ด"} className="bt-search-show" onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}>
+                                    {viewMode === "card" ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                            <path d="M3 9h18M3 15h18M9 3v18"/>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                        </svg>
+                                    )}
+                                </a>
+                            }
+                            {
+                                (DataProcess.get("type") !== "report" && DataProcess.get("type") !== "listlocation" && DataProcess.get("type") !== "graph" && DataProcess.get("type") !== "statistics" && DataProcess.get("type") !== "group") &&
+                                <a title="เพิ่มข้อมูล" className="bt-search-show" onClick={() => OpenOption(Search, 1)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 8v8M8 12h8"/>
+                                    </svg>
                                 </a>
                             }
                             {
                                 (DataProcess.get("type") === "group") &&
-                                <a style={{ padding: "0" }} title="เพิ่มข้อมูล" className="bt-search-show" onClick={() => OpenOption()}>
-                                    <svg viewBox="0 0 32 32"><path fill="currentColor" d="M16 2A14.172 14.172 0 0 0 2 16a14.172 14.172 0 0 0 14 14a14.172 14.172 0 0 0 14-14A14.172 14.172 0 0 0 16 2Zm8 15h-7v7h-2v-7H8v-2h7V8h2v7h7Z" /><path fill="none" d="M24 17h-7v7h-2v-7H8v-2h7V8h2v7h7v2z" /></svg>
+                                <a title="เพิ่มข้อมูล" className="bt-search-show" onClick={() => OpenOption()}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 8v8M8 12h8"/>
+                                    </svg>
                                 </a>
                             }
+                            <a title="ค้นหา" className="bt-search-show" onClick={() => { OpenOption(Search, 0, true); }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                            </a>
                         </div>
 
                         <div className="content-option">
@@ -466,7 +485,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                                         </InsertStatisticsProvider> :
                                         DataProcess.get("type") === "listlocation" ?
                                             <ReportListLocation /> :
-                                            <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload} />
+                                            <List session={session} socket={socket} DataFillter={DataProcess} setTextStatus={setTextStatus} StartData={StartData} setStartData={setStartData} Limit={Limit} setLimit={setLimit} Reload={Reload} viewMode={viewMode} />
                     }
                     {
                         TypeSelectMenu ? <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={1001} /> : <></>
@@ -477,7 +496,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
     )
 }
 
-const List = ({ session, socket, DataFillter, setTextStatus, StartData, setStartData, Limit, setLimit, Reload }) => {
+const List = ({ session, socket, DataFillter, setTextStatus, StartData, setStartData, Limit, setLimit, Reload, viewMode }) => {
     const [Data, setData] = useState([])
     const [timeOut, setTimeOut] = useState()
     const [LoadingList, setLoadList] = useState(true)
@@ -542,10 +561,10 @@ const List = ({ session, socket, DataFillter, setTextStatus, StartData, setStart
             <Loading size={"45px"} border={"5px"} color="rgb(24 157 133)" animetion={true} />
         </div>
         :
-        <ManageList Data={Data} session={session} fetch={FetchList} setRow={setStartData} Limit={Limit} Type={DataFillter.get("type")} />)
+        <ManageList Data={Data} session={session} fetch={FetchList} setRow={setStartData} Limit={Limit} Type={DataFillter.get("type")} viewMode={viewMode} />)
 }
 
-const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety }) => {
+const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety, viewMode }) => {
     const [Body, setBody] = useState(<></>)
     const RefPop = useRef()
     const [PopBody, setPop] = useState(<></>)
@@ -721,7 +740,155 @@ const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety }) => {
     return (
         <>
             <div className="body-page-content">
-                {Body}
+                {viewMode === "table" ? (
+                    <>
+                        <style>{`
+                            .table-row-hover:hover {
+                                background-color: #f5fbf9;
+                            }
+                            table th, table td {
+                                text-align: center !important;
+                                vertical-align: middle !important;
+                            }
+                            .manage-btn {
+                                background-color: #F5E642;
+                                color: #333;
+                                border: none;
+                                border-radius: 20px;
+                                padding: 6px 14px;
+                                font-family: "Sans-font";
+                                font-size: 15px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                white-space: nowrap;
+                            }
+                            .manage-btn:hover {
+                                background-color: #e0d13b;
+                            }
+                        `}</style>
+                        <div className="table-responsive" style={{ width: "100%", overflowX: "auto", marginTop: "10px", padding: "0 10px" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                                <thead>
+                                    <tr style={{ backgroundColor: "#189D85", color: "white", textAlign: "center", fontSize: "17px" }}>
+                                        {Type === "plant" && (
+                                            <>
+                                                <th style={{ padding: "16px 20px" }}>ชนิดพืช</th>
+                                                <th style={{ padding: "16px 20px" }}>ประเภท</th>
+                                                <th style={{ padding: "16px 20px" }}>สายพันธุ์พืช</th>
+                                                <th style={{ padding: "16px 20px" }}>จำนวนวันที่จะเก็บเกี่ยว</th>
+                                                <th style={{ padding: "16px 20px" }}>จัดการข้อมูล</th>
+                                            </>
+                                        )}
+                                        {Type === "pest" && (
+                                            <>
+                                                <th style={{ padding: "16px 20px" }}>ชื่อโรคพืช / ศัตรูพืช</th>
+                                                <th style={{ padding: "16px 20px" }}>ประเภท</th>
+                                                <th style={{ padding: "16px 20px" }}>จัดการข้อมูล</th>
+                                            </>
+                                        )}
+                                        {Type === "fertilizer" && (
+                                            <>
+                                                <th style={{ padding: "16px 20px" }}>ชื่อปุ๋ย</th>
+                                                <th style={{ padding: "16px 20px" }}>สูตรปุ๋ย</th>
+                                                <th style={{ padding: "16px 20px" }}>วิธีการใช้</th>
+                                                <th style={{ padding: "16px 20px" }}>จัดการข้อมูล</th>
+                                            </>
+                                        )}
+                                        {Type === "chemical" && (
+                                            <>
+                                                <th style={{ padding: "16px 20px" }}>ชื่อสารเคมี</th>
+                                                <th style={{ padding: "16px 20px" }}>ชื่อสามัญสารเคมี</th>
+                                                <th style={{ padding: "16px 20px" }}>วิธีการใช้</th>
+                                                <th style={{ padding: "16px 20px" }}>จำนวนวันปลอดภัย</th>
+                                                <th style={{ padding: "16px 20px" }}>จัดการข้อมูล</th>
+                                            </>
+                                        )}
+                                        {Type === "source" && (
+                                            <>
+                                                <th style={{ padding: "16px 20px" }}>แหล่งที่ซื้อ</th>
+                                                <th style={{ padding: "16px 20px" }}>ตำแหน่งที่ตั้ง</th>
+                                                <th style={{ padding: "16px 20px" }}>จัดการข้อมูล</th>
+                                            </>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody style={{ fontSize: "16px", color: "#333" }}>
+                                    {Data.length > 0 ? Data.map((item, index) => {
+                                        return (
+                                            <tr key={index}
+                                                className="table-row-hover"
+                                                style={{
+                                                    borderBottom: "1px solid #eef2f0",
+                                                    transition: "background-color 0.2s"
+                                                }}
+                                            >
+                                                {Type === "plant" && (
+                                                    <>
+                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
+                                                    </>
+                                                )}
+                                                {Type === "pest" && (
+                                                    <>
+                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
+                                                    </>
+                                                )}
+                                                {Type === "fertilizer" && (
+                                                    <>
+                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                                                    </>
+                                                )}
+                                                {Type === "chemical" && (
+                                                    <>
+                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                                                        <td style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
+                                                    </>
+                                                )}
+                                                {Type === "source" && (
+                                                    <>
+                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td style={{ padding: "14px 16px", minWidth: "200px" }}>
+                                                            {item.location ? (
+                                                                <div style={{ display: "inline-block", width: "100%", maxWidth: "250px" }}>
+                                                                    <MapsJSX lat={item.location.x} lng={item.location.y} w={"100%"} h={"80px"} />
+                                                                </div>
+                                                            ) : (
+                                                                "ไม่พบตำแหน่ง"
+                                                            )}
+                                                        </td>
+                                                    </>
+                                                )}
+                                                <td style={{ padding: "10px 16px", textAlign: "center" }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+                                                            OpenManageData(item);
+                                                        }}
+                                                        className="manage-btn"
+                                                    >
+                                                        จัดการข้อมูล
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan={Type === "plant" ? 5 : Type === "chemical" ? 5 : Type === "fertilizer" ? 4 : Type === "pest" ? 3 : Type === "source" ? 3 : 5} style={{ padding: "20px", textAlign: "center", color: "#666" }}>ไม่พบข้อมูล</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                ) : Body}
             </div>
             <div className="footer">
                 <LoadOtherOffset Fetch={fetch} Data={Data} setRow={setRow} Limit={Limit}
