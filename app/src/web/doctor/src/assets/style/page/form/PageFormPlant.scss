@@ -290,8 +290,18 @@
         }
     }
 
+    @media only screen and (max-width: 480px) {
+        .search-form {
+            max-width: 200px;
+            width: 75%;
+        }
+    }
+
     @media only screen and (max-width : 400px) {
         .search-form {
+            max-width: 180px;
+            width: 70%;
+
             .bt-select-option {
                 right: 100%;
 
