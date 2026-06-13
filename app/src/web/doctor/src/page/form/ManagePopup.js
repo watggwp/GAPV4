@@ -165,6 +165,15 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             // โหลดรายละเอียดฟอร์ม
             const Data = await clientMo.get(`/api/doctor/form/get/detail?id_form=${id_form}&type=${type_form}`);
             const JsonData = JSON.parse(Data);
+            if ((type_form === 1 || type_form === 2) && (!JsonData || JsonData.length === 0)) {
+                setContent(
+                    <div style={{ textAlign: "center", padding: "40px 20px", color: "#999", fontSize: "18px", fontFamily: "Sans-font" }}>
+                        ไม่มีข้อมูล
+                    </div>
+                );
+                setLoadContent(false);
+                return;
+            }
             const formData = JsonData[0];
             dbgDate('formData.date_plant (RECV)', formData.date_plant);
             dbgDate('formData.date_success (RECV)', formData.date_success);
@@ -200,57 +209,118 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
             console.log("✅ โหลดข้อมูลเรียบร้อย:", merged);
 
             // === ส่วน render เดิมไม่ต้องแก้ ===
-            setContent(
-                JsonData.map((data, key) => {
-                    if (type_form === 0) {
-                        setCountEdit(data.countStatus);
-                        return (
-                            <FormPlant
-                                key={key}
-                                data={data}
-                                mode={mode}
-                                setMode={setMode}
-                                setEditValue={setEditValue}
-                                getResize={getResize}
-                                FetchContent={FetchContent}
-                            />
-                        );
-                    } else if (type_form === 1) {
-                        return (
-                            <div key={key} className="row-factor">
-                                <div className="row-in">
-                                    <div className="in-data date">
-                                        <span>ว/ด/ป ที่ใช้</span>
-                                        <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+        
+                setContent(
+                    JsonData.map((data, key) => {
+                        if (type_form === 0) {
+                            setCountEdit(data.countStatus);
+                            return (
+                                <FormPlant
+                                    key={key}
+                                    data={data}
+                                    mode={mode}
+                                    setMode={setMode}
+                                    setEditValue={setEditValue}
+                                    getResize={getResize}
+                                    FetchContent={FetchContent}
+                                />
+                            );
+                        } else if (type_form === 1) {
+                            return (
+                                <div key={key} className="row-factor">
+                                    <div className="row-in">
+                                        <div className="in-data date">
+                                            <span>ว/ด/ป ที่ใช้</span>
+                                            <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>การค้า</span>
+                                            <div>{data.name}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>สูตร</span>
+                                            <div>{data.formula_name ? data.formula_name : "ไม่ระบุ"}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>วิธีการใช้</span>
+                                            <div>{data.use_is}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>ปริมาณ</span>
+                                            <div>{data.volume}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>แหล่งที่ซื้อ</span>
+                                            <div>{" " + data.source}</div>
+                                        </div>
+                                    </div>
+                                    <div className="row-in">
+                                        <div className="bt-factor">
+                                            {data.countStatus ?
+                                                <div className="dot-report"></div> : <></>
+                                            }
+                                            <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>การค้า</span>
-                                        <div>{data.name}</div>
+                            )
+                        } else if (type_form === 2) {
+                            return (
+                                <div key={key} className="row-factor">
+                                    <div className="row-in">
+                                        <div className="in-data date">
+                                            <span>ว/ด/ป ที่พ่นสาร</span>
+                                            <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
+                                        </div>
                                     </div>
-                                    <div className="in-data">
-                                        <span>สูตร</span>
-                                        <div>{data.formula_name ? data.formula_name : "ไม่ระบุ"}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>การค้า</span>
+                                            <div>{data.name}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>สามัญ</span>
+                                            <div>{data.formula_name}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>วิธีการใช้</span>
-                                        <div>{data.use_is}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>ศัตรูพืช</span>
+                                            <div>{data.insect}</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>วิธีการใช้</span>
+                                            <div>{data.use_is}</div>
+                                        </div>
                                     </div>
-                                    <div className="in-data">
-                                        <span>ปริมาณ</span>
-                                        <div>{data.volume}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>อัตรา</span>
+                                            <div>{data.rate}/น้ำ20ล.</div>
+                                        </div>
+                                        <div className="in-data">
+                                            <span>ปริมาณ</span>
+                                            {data.volume}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>แหล่งที่ซื้อ</span>
-                                        <div>{" " + data.source}</div>
+                                    <div className="row-in">
+                                        <div className="in-data">
+                                            <span>แหล่งที่ซื้อ</span>
+                                            <div>{" " + data.source}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="row-in">
+                                    <div className="row-in">
+                                        <div className="in-data safe">
+                                            <span>ปลอดภัย</span>
+                                            <DayJSX DATE={data.date_safe} TYPE="small" TEXT="วันที่" />
+                                        </div>
+                                    </div>
                                     <div className="bt-factor">
                                         {data.countStatus ?
                                             <div className="dot-report"></div> : <></>
@@ -258,75 +328,24 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
                                         <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
                                     </div>
                                 </div>
-                            </div>
-                        )
-                    } else if (type_form === 2) {
-                        return (
-                            <div key={key} className="row-factor">
-                                <div className="row-in">
-                                    <div className="in-data date">
-                                        <span>ว/ด/ป ที่พ่นสาร</span>
-                                        <DayJSX DATE={data.date} TYPE="small" TEXT="วันที่" />
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>การค้า</span>
-                                        <div>{data.name}</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>สามัญ</span>
-                                        <div>{data.formula_name}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>ศัตรูพืช</span>
-                                        <div>{data.insect}</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>วิธีการใช้</span>
-                                        <div>{data.use_is}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>อัตรา</span>
-                                        <div>{data.rate}/น้ำ20ล.</div>
-                                    </div>
-                                    <div className="in-data">
-                                        <span>ปริมาณ</span>
-                                        {data.volume}
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data">
-                                        <span>แหล่งที่ซื้อ</span>
-                                        <div>{" " + data.source}</div>
-                                    </div>
-                                </div>
-                                <div className="row-in">
-                                    <div className="in-data safe">
-                                        <span>ปลอดภัย</span>
-                                        <DayJSX DATE={data.date_safe} TYPE="small" TEXT="วันที่" />
-                                    </div>
-                                </div>
-                                <div className="bt-factor">
-                                    {data.countStatus ?
-                                        <div className="dot-report"></div> : <></>
-                                    }
-                                    <button onClick={() => GetDetailEdit(data.id, type_form === 1 ? "fertilizer" : "chemical")}>ตรวจการแก้ไข</button>
-                                </div>
-                            </div>
-                        )
-                    } else return (<></>)
-                }
+                            )
+                        } else return (<></>)
+                    })
                 )
-            )
+            
             setLoadContent(false)
         } catch (e) {
             console.error("❌ FetchContent error:", e);
-            session()
+            if (type_form === 1 || type_form === 2) {
+                setContent(
+                    <div style={{ textAlign: "center", padding: "40px 20px", color: "#999", fontSize: "18px", fontFamily: "Sans-font" }}>
+                        ไม่มีข้อมูล
+                    </div>
+                );
+                setLoadContent(false);
+            } else {
+                session();
+            }
         }
     }
 

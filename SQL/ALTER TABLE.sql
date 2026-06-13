@@ -27,3 +27,18 @@ MODIFY unit varchar(30) NULL,
 MODIFY name_varieties varchar(50) NULL,
 MODIFY expected_yield decimal(10,2) NULL,
 MODIFY default_yield decimal(10,2) NULL;
+
+ALTER TABLE editform
+ADD id_admin int(11) NOT NULL;
+
+ALTER TABLE success_detail
+ADD id_admin int(11) NOT NULL;
+
+ALTER TABLE report_detail
+ADD id_admin int(11) NOT NULL;
+
+ALTER TABLE check_plant_detail
+ADD id_admin int(11) NOT NULL;
+
+ALTER TABLE check_form_detail
+ADD id_admin int(11) NOT NULL;

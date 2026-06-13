@@ -8,6 +8,7 @@ import { ExportExcel, ExportPDF } from "../../../../../assets/js/Export";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 import AddGapModal from "./AddGapModalAdmin";
 import Select from "react-select";
+import jsPDF from "jspdf";
 
 // ─────────────────────────────────────────────────────────────
 // Admin auth wrapper: ใช้ /api/admin/check แทน /api/doctor/check
@@ -211,7 +212,7 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
         }
     };
 
-    /* const SelectMenuExport = async (type) => {
+    const SelectMenuExport = async (type) => {
         let JsonData = {};
         DataProcess.forEach((data, key) => {
             if (key != "statusClick") { JsonData[key] = data; }
@@ -226,7 +227,7 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
             if (type === "pdf") ExportPDF(DataExport, { formsOnly: true, pages: [1, 2] });
             else if (type === "excel") ExportExcel(DataExport);
         } else session();
-    }; */
+    };
 
     useEffect(() => {
         fetchPlantList();
@@ -314,14 +315,14 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
                             </g>
                         </svg>
                     </a>
-                    {/* <a title="ส่งออกข้อมูล" className="bt-export-show" onClick={() => OpenOption(Search, 1)} style={{ padding: "0" }}>
+                    <a title="ส่งออกข้อมูล" className="bt-export-show" onClick={() => OpenOption(Search, 1)} style={{ padding: "0" }}>
                         <svg viewBox="0 0 400 400">
                             <path d="M360.069 200.5C367.211 200.5 373.05 206.298 372.516 213.419C369.436 254.444 351.767 293.185 322.476 322.476C290.126 354.826 246.25 373 200.5 373C154.75 373 110.874 354.826 78.5241 322.476C49.233 293.185 31.5637 254.444 28.4841 213.419C27.9495 206.298 33.7894 200.5 40.931 200.5V200.5C48.0726 200.5 53.8028 206.302 54.4315 213.415C57.4504 247.572 72.3722 279.75 96.8113 304.189C124.311 331.689 161.609 347.138 200.5 347.138C239.391 347.138 276.689 331.689 304.189 304.189C328.628 279.75 343.55 247.572 346.568 213.415C347.197 206.302 352.927 200.5 360.069 200.5V200.5Z" fill="#22C7A9" />
                             <path d="M200 71L200 284" stroke="#22C7A9" strokeWidth="35" strokeLinecap="round" />
                             <path d="M200 71L263.64 134.64" stroke="#22C7A9" strokeWidth="35" strokeLinecap="round" />
                             <path d="M200 71L136.36 134.64" stroke="#22C7A9" strokeWidth="35" strokeLinecap="round" />
                         </svg>
-                    </a> */}
+                    </a>
                 </div>
                 <div className="content-option">
                     <div className="field-option">
@@ -479,7 +480,21 @@ const PageFormPlantAdmin = ({ setMain, session, socket, type = false, setTextSta
                                     : <></>}
                             </>
                             :
-                            null
+                            <div className="export">
+                                <div className="head">
+                                    <span>ส่งออกข้อมูล</span>
+                                    <div className="quesion_mask">
+                                        <div className="desciption">ส่งออกข้อมูลที่มีเงื่อนไขตรงกับการค้นหา <br></br> หากไม่กำหนดเงื่อนไข จะส่งออกข้อมูลทั้งหมด <br></br> ข้อมูลเฉพาะภายในศูนย์เท่านั้น</div>
+                                        <svg viewBox="0 0 93.936 93.936">
+                                            <g>
+                                                <path d="M80.179,13.758c-18.342-18.342-48.08-18.342-66.422,0c-18.342,18.341-18.342,48.08,0,66.421   c18.342,18.342,48.08,18.342,66.422,0C98.521,61.837,98.521,32.099,80.179,13.758z M44.144,83.117   c-4.057,0-7.001-3.071-7.001-7.305c0-4.291,2.987-7.404,7.102-7.404c4.123,0,7.001,3.044,7.001,7.404   C51.246,80.113,48.326,83.117,44.144,83.117z M54.73,44.921c-4.15,4.905-5.796,9.117-5.503,14.088l0.097,2.495   c0.011,0.062,0.017,0.125,0.017,0.188c0,0.58-0.47,1.051-1.05,1.051c-0.004-0.001-0.008-0.001-0.012,0h-7.867   c-0.549,0-1.005-0.423-1.047-0.97l-0.202-2.623c-0.676-6.082,1.508-12.218,6.494-18.202c4.319-5.087,6.816-8.865,6.816-13.145   c0-4.829-3.036-7.536-8.548-7.624c-3.403,0-7.242,1.171-9.534,2.913c-0.264,0.201-0.607,0.264-0.925,0.173   s-0.575-0.327-0.693-0.636l-2.42-6.354c-0.169-0.442-0.02-0.943,0.364-1.224c3.538-2.573,9.441-4.235,15.041-4.235   c12.36,0,17.894,7.975,17.894,15.877C63.652,33.765,59.785,38.919,54.73,44.921z" />
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <a className="pdf" title="ส่งออก PDF" onClick={() => SelectMenuExport("pdf", exportMode)}>PDF</a>
+                                <a className="excel" title="ส่งออก EXCEL" onClick={() => SelectMenuExport("excel", exportMode)}>EXCEL</a>
+                            </div>
                         }
                     </div>
                 </div>
@@ -555,7 +570,7 @@ function getSortPriority(item) {
 
         const diffDays = Math.ceil((dateHarvest - today) / (24 * 60 * 60 * 1000));
 
-        if (diffDays > 0) {
+        if (diffDays > 0 && diffDays <= 7) {
             return { group: 2, sub: diffDays }; // เก็บเกี่ยวในอีก...วัน
         } else if (diffDays === 0) {
             return { group: 3, sub: 0 };        // ครบกำหนดเก็บเกี่ยว
@@ -577,13 +592,6 @@ function sortPlantData(list) {
 
         if (pA.group !== pB.group) {
             return pA.group - pB.group;
-        }
-        // Sub-sorting for groups 2 and 4 (remaining/overdue days)
-        if (pA.group === 2 && pA.sub !== pB.sub) {
-            return pA.sub - pB.sub; // Ascending: closer harvest first
-        }
-        if (pA.group === 4 && pA.sub !== pB.sub) {
-            return pA.sub - pB.sub; // Ascending: most overdue first (more negative days first)
         }
         // Secondary sort: latest added first (id descending)
         const idA = Number(a.id) || 0;
@@ -700,7 +708,7 @@ const ListAdmin = ({ session, socket, DataFillter, setDataId, viewMode }) => {
                     return false;
                 });
             }
-            filteredData = filteredData.slice(0, Limit);
+            // Show all records by default - do not slice
             setDataId(filteredData.map(val => val.id));
             setData(filteredData);
             setLoadList(false);
