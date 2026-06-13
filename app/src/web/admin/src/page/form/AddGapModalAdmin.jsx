@@ -177,7 +177,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
 
     /* ── API: plant list ── */
     const FetchPlant = async () => {
-        const Data = await clientMo.get("/api/doctor/plant/list");
+        const Data = await clientMo.get(`${apiPrefix}/plant/list`);
         // if (YearOut.current) YearOut.current.classList.add("report-not");
         if (await checkAuth(Data)) {
             try {
@@ -215,20 +215,20 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                     //     setDateHarvest(qtyHarvest);
                     // }
                     if (obj.FromHistory.length !== 0) {
-                        Generation.current.value = parseInt(obj.FromHistory[0].generation) + 1;
-                        PositionW.current.value = obj.FromHistory[0].posi_w;
-                        PositionH.current.value = obj.FromHistory[0].posi_h;
-                        Qty.current.value = obj.FromHistory[0].qty;
-                        Area.current.value = obj.FromHistory[0].area;
-                        System.current.value = obj.FromHistory[0].system_glow;
-                        Water.current.value = obj.FromHistory[0].water;
-                        WaterStep.current.value = obj.FromHistory[0].water_flow;
-                        History.current.value = obj.FromHistory[0].name_plant;
-                        Insect.current.value = obj.FromHistory[0].insect;
-                        QtyInsect.current.value = obj.FromHistory[0].qtyInsect;
-                        Seft.current.value = obj.FromHistory[0].seft;
-                        expected_yield.current.value = obj.FromHistory[0].expected_yield;
-                        default_yield.current.value = obj.FromHistory[0].default_yield;
+                        Generation.current.value = "";
+                        PositionW.current.value = "";
+                        PositionH.current.value = "";
+                        Qty.current.value = "";
+                        Area.current.value = "";
+                        System.current.value = "";
+                        Water.current.value = "";
+                        WaterStep.current.value = "";
+                        History.current.value = "";
+                        Insect.current.value = "";
+                        QtyInsect.current.value = "";
+                        Seft.current.value = "";
+                        expected_yield.current.value = "";
+                        default_yield.current.value = "";
                     }
                     if (obj.insect.length > 0) {
                         setPreviousInsects(obj.insect);

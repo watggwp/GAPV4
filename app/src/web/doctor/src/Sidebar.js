@@ -167,7 +167,7 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                     </a>
                 </li>
 
-                {hasRole(['doctor', 'consultant', 'analyzer', 'protection']) && (
+                {hasRole(['doctor', 'consultant', 'analyzer']) && (
                     <li className="menu-item" onClick={farmer}>
                         <a onClick={(e) => e.preventDefault()}>
                             <div className="icon-container-img">
@@ -178,7 +178,7 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                     </li>
                 )}
 
-                {hasRole(['doctor', 'consultant', 'analyzer', 'protection']) && (
+                {hasRole(['doctor', 'consultant', 'analyzer']) && (
                     <li className="menu-item" onClick={form}>
                         <a onClick={(e) => e.preventDefault()}>
                             <div className="icon-container-img">
@@ -214,7 +214,7 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                 )}
 
                 {/* Plan */}
-                {hasRole(['doctor', 'protection']) && (
+                {hasRole(['doctor']) && (
                     <li className="menu-item" onClick={schedules}>
                         <a onClick={(e) => e.preventDefault()}>
                             <div className="icon-container-img">

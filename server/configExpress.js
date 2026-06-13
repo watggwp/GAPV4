@@ -240,7 +240,7 @@ module.exports = function appConfig(username, password, hostServer) {
 
     // router api url
     if (mode === process.env.BUILD || mode === "router") router(app)
-    apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, io)
+    apiAdmin(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
     apiDoctor(app, db, Pool, apifunc, dbpackage, listDB, hostServer, io)
     apiFarmer(app, db, Pool, dbpackage, listDB, io)
     apiEcph(app, Pool)

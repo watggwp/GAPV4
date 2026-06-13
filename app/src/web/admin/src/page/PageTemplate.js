@@ -60,6 +60,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
     const [getTimeOut, setTimeOut] = useState(0)
     const [getTextSearchValue, setTextSearchValue] = useState("")
     const [getTextSearch, setTextSearch] = useState("")
+    const [viewMode, setViewMode] = useState("card")
 
     const [popupDataManage, setPopupDataManage] = useState({
         open: false,
@@ -85,6 +86,10 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
             clearTimeout(getTimeOut)
         })
     }, [getTimeOut])
+
+    useEffect(() => {
+        setViewMode("card")
+    }, [StateOnPage.status])
 
     const state = () => {
         const status =
@@ -158,6 +163,27 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     </svg>
                                 </div>
                             )}
+
+                        {/* ปุ่มสลับ card / table */}
+                        {["plant", "chemical", "pest", "station"].includes(StateOnPage.status) && (
+                            <div className="bt-view-toggle">
+                                <a
+                                    title={viewMode === "card" ? "แสดงแบบตาราง" : "แสดงแบบการ์ด"}
+                                    onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}
+                                >
+                                    {viewMode === "card" ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                                        </svg>
+                                    )}
+                                </a>
+                            </div>
+                        )}
 
                         {StateOnPage.status !== "group" && StateOnPage.status !== "env-station" && (
                             <select
@@ -269,6 +295,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     setStateOnPage={setStateOnPage}
                                     modify={modify}
                                     textSearch={getTextSearch}
+                                    viewMode={viewMode}
                                 />
                             </div>
                         )

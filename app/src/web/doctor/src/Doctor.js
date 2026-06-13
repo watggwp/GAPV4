@@ -172,6 +172,12 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
                         setTitle={setPageTitle}
                     />
 
+                    {/* Mobile overlay — ปิด sidebar เมื่อแตะนอก */}
+                    <div
+                        className={`sidebar-mobile-overlay${!isSidebarCollapsed ? ' active' : ''}`}
+                        onClick={() => setSidebarCollapsed(true)}
+                    />
+
                     <div className="main-content-wrapper" style={{
                         flexGrow: 1,
                         height: '100vh',
