@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { clientMo } from "../../../assets/js/moduleClient";
 import './assets/style/DashboardLayout.scss';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
@@ -73,6 +73,18 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
 
     const [mapPins, setMapPins] = useState([]);
     const [availablePlants, setAvailablePlants] = useState([]);
+
+    const [highlightedFarmId, setHighlightedFarmId] = useState(null);
+    const mapRef = useRef(null);
+
+    const handleRowClick = (item) => {
+        if (!item.id_farm_house) return;
+        setHighlightedFarmId(item.id_farm_house);
+        const pin = mapPins.find(p => p.id === item.id_farm_house);
+        if (pin && mapRef.current) {
+            mapRef.current.flyTo(pin.position, 18);
+        }
+    };
 
     // ดึงข้อมูลแปลงที่เกินกำหนดการใส่ปุ๋ย/สารเคมี
     useEffect(() => {
@@ -213,6 +225,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         zoom={16}
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%', zIndex: 0 }}
+                        ref={mapRef}
                     >
                         <LayersControl position="topright">
                             <LayersControl.BaseLayer name="แผนที่ทั่วไป (Street)">
@@ -227,36 +240,6 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                                 />
                             </LayersControl.BaseLayer>
-                            {/* <LayersControl.BaseLayer name="สะอาดตา (Clean)">
-                                <TileLayer
-                                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                                />
-                            </LayersControl.BaseLayer> */}
-                            {/* <LayersControl.BaseLayer name="โหมดมืด (Dark Matter)">
-                                <TileLayer
-                                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-                                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                                />
-                            </LayersControl.BaseLayer> */}
-                            {/* <LayersControl.BaseLayer name="ภูมิประเทศ (OpenTopoMap)">
-                                <TileLayer
-                                    attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
-                                    url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                                />
-                            </LayersControl.BaseLayer> */}
-                            {/* <LayersControl.BaseLayer name="ถนนและอาคารชัดเจน (OSM HOT)">
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                    url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-                                />
-                            </LayersControl.BaseLayer> */}
-                            {/* <LayersControl.BaseLayer name="เส้นทางรอง/สีเขียว (CyclOSM)">
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.cyclosm.org">CyclOSM</a>'
-                                    url="https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
-                                />
-                            </LayersControl.BaseLayer> */}
                         </LayersControl>
 
                         {mapPins.map(pin => (
@@ -264,6 +247,9 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 key={pin.id}
                                 position={pin.position}
                                 icon={pin.status === 'green' ? greenIcon : redIcon}
+                                eventHandlers={{
+                                    click: () => setHighlightedFarmId(pin.id)
+                                }}
                             >
                                 <Popup>
                                     <div className="map-popup">
@@ -335,7 +321,12 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                     paginatedUnfilled.map((item, idx) => {
                                         const realIdx = (pageUnfilled - 1) * ITEMS_PER_PAGE + idx;
                                         return (
-                                            <tr key={`${item.id}-${realIdx}`} className={idx % 2 === 1 ? 'row-highlight' : ''}>
+                                            <tr 
+                                                key={`${item.id}-${realIdx}`} 
+                                                className={`${idx % 2 === 1 ? 'row-highlight' : ''} ${highlightedFarmId === item.id_farm_house ? 'active-highlight' : ''}`}
+                                                onClick={() => handleRowClick(item)}
+                                                style={{ cursor: 'pointer', backgroundColor: highlightedFarmId === item.id_farm_house ? '#fff3e0' : undefined }}
+                                            >
                                                 <td>{realIdx + 1}</td>
                                                 <td>{item.name}</td>
                                                 <td>{item.type}</td>
@@ -349,12 +340,18 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span
-                                                        className="day-badge"
-                                                        style={getBadgeStyle(item.overdue)}
-                                                    >
-                                                        {item.overdue} วัน
-                                                    </span>
+                                                    {item.is_filled ? (
+                                                        <span className="day-badge" style={{ backgroundColor: '#e53935', color: '#fff' }}>
+                                                            ไม่ตรงตามแผน
+                                                        </span>
+                                                    ) : (
+                                                        <span
+                                                            className="day-badge"
+                                                            style={getBadgeStyle(item.overdue)}
+                                                        >
+                                                            {item.overdue} วัน
+                                                        </span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
