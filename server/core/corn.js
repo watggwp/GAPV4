@@ -10,7 +10,7 @@ const schedulePlan = require('./corns/schedulePlan');
 const checkUnrecorded = require('./corns/checkUnrecorded');
 
 module.exports = function Schedules(connectionPool = new ConnectPool(), socket) {
-    cron.schedule("*/2 * * * *", async () => {
+    cron.schedule("0 6 * * *", async () => {
         console.log("Start Schedules GAP")
         try {
             const schedule_plan = await schedulePlan.queryPlan(connectionPool)
@@ -40,10 +40,10 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                             if (result && result.length === 2) {
                                 const [bubbleMsg, details_message] = result;
                                 bubbles.push(bubbleMsg);
-                                chunkSentInfo.push({ 
-                                    schedule_id: schedule.id, 
-                                    greenhouse_id: schedule.greenhouse_id, 
-                                    details_message 
+                                chunkSentInfo.push({
+                                    schedule_id: schedule.id,
+                                    greenhouse_id: schedule.greenhouse_id,
+                                    details_message
                                 });
                             }
                         }
@@ -70,7 +70,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
         }
     })
     //ปรับเวลาแจ้งเตือนตรงนี้
-    cron.schedule("*/1 * * * *", async () => {
+    cron.schedule("0 6 * * *", async () => {
         console.log("Start Check Unrecorded GAP")
         try {
             const unrecorded = await checkUnrecorded.queryUnrecorded(connectionPool)

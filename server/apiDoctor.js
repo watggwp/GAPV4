@@ -5848,12 +5848,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         g.plants.push({
                             name: row.name_plant || '-',
                             disease: row.disease || '-',
-                            amount: row.expected_yield || 0,
+                            amount: parseFloat(row.expected_yield || 0),
                             status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต',
                             formplant_id: row.id
                         });
                         if (row.disease) g.hasDisease = true;
-                        g.totalAmount += (row.expected_yield || 0);
+                        g.totalAmount += parseFloat(row.expected_yield || 0);
                     });
 
                     const pins = Object.values(grouped).map(g => ({
