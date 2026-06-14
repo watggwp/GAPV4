@@ -247,13 +247,14 @@ const ListData = ({
           return List;
         } else {
           // session();
-          return 0;
+          return List;
         }
       } else {
         // session();
-        return 0;
+        return List;
       }
     }
+    return [];
   }
 
   return (
