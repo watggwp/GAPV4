@@ -535,35 +535,46 @@ const LoadOtherDom = ({Fetch , count , setCount , Limit , style = {
     sizeLoading : "31.2px",
 }}) => {
     const [Load , setLoad] = useState(true)
+    const [lastCount, setLastCount] = useState(null)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && Load) {
+                if (lastCount !== count) {
+                    Other()
+                }
+            }
+        }, { threshold: 0.1 })
+        
+        if (containerRef.current) observer.observe(containerRef.current)
+        return () => observer.disconnect()
+    }, [count, Load, lastCount])
+
     const Other = async () => {
         const newCount = count + Limit
         setLoad(false)
-        // if((await Fetch(newCount)).length === newCount) setCount(newCount)
-        setCount((await Fetch(newCount)).length)
+        const fetchedData = await Fetch(newCount)
+        const newLength = fetchedData.length
+        if (newLength === count) {
+            setLastCount(count)
+        } else {
+            setLastCount(null)
+        }
+        setCount(newLength)
         setLoad(true)
     }
 
     return (
-        <div style={{
+        <div ref={containerRef} style={{
             display : "flex",
             justifyContent : "center",
             alignItems : "center",
             width : "100%",
-            marginTop : "5px"
+            marginTop : "5px",
+            height: "40px"
         }}>
-            {Load ? 
-                <button style={{
-                    backgroundColor : style.backgroundColor,
-                    outline : 0,
-                    border : 0,
-                    borderRadius : "15px",
-                    color : "white",
-                    fontFamily : "Sans-font",
-                    fontWeight : "900",
-                    fontSize : style.fontSize ? style.fontSize : "18px",
-                    padding : "2px 15px"
-                }} onClick={Other}>โหลดเพิ่มเติม</button>
-                : 
+            {!Load && (
                 <div style={{
                     display : "flex",
                     justifyContent : "center",
@@ -573,8 +584,7 @@ const LoadOtherDom = ({Fetch , count , setCount , Limit , style = {
                 }}>
                     <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true}/>
                 </div>
-
-            }
+            )}
         </div>
     )
 }
@@ -585,36 +595,54 @@ const LoadOtherOffset = ({Fetch , Data , setRow , Limit , style = {
     sizeLoading : "31.2px",
 }}) => {
     const [Load , setLoad] = useState(true)
+    const [lastDataLength, setLastDataLength] = useState(null)
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && Load) {
+                if (lastDataLength !== Data.length) {
+                    Other()
+                }
+            }
+        }, { threshold: 0.1 })
+        
+        if (containerRef.current) observer.observe(containerRef.current)
+        return () => observer.disconnect()
+    }, [Data.length, Load, lastDataLength])
+
     const Other = async () => {
         setLoad(false)
         const Row = await Fetch(Data.length , Limit)
-        if(Row.length !== 0 && setRow) setRow(Row.length)
+        if (Row.length === 0) {
+            setLastDataLength(Data.length)
+        } else {
+            setLastDataLength(null)
+            if(setRow) setRow(Row.length)
+        }
         setLoad(true)
     }
 
     return (
-        <div style={{
+        <div ref={containerRef} style={{
             display : "flex",
             justifyContent : "center",
             alignItems : "center",
             width : "100%",
-            marginTop : "5px"
+            marginTop : "5px",
+            height: "40px"
         }}>
-            {Load ? 
-                <button style={{
-                    backgroundColor : style.backgroundColor,
-                    outline : 0,
-                    border : 0,
-                    borderRadius : "15px",
-                    color : "white",
-                    fontFamily : "Sans-font",
-                    fontWeight : "900",
-                    fontSize : style.fontSize ? style.fontSize : "18px",
-                    padding : "2px 15px"
-                }} onClick={Other}>โหลดเพิ่มเติม</button>
-                : <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true}/>
-
-            }
+            {!Load && (
+                <div style={{
+                    display : "flex",
+                    justifyContent : "center",
+                    alignItems : "center",
+                    width : "100%",
+                    overflow : "hidden"
+                }}>
+                    <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true}/>
+                </div>
+            )}
         </div>
     )
 }
