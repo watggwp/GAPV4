@@ -3,10 +3,12 @@ import "./ListFertilizer.scss";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import {
+  CloseDatePopup,
   DatePickerThaiApp,
   Loading
 } from "../../../../../assets/js/module";
-import { useParams } from "react-router";
+import { useParams, useLocation, useNavigate } from "react-router";
+import Swal from 'sweetalert2';
 import { useGreenhouse } from "..";
 import { Autocomplete, TextField } from "@mui/material";
 import RoyalGapFrontendUtil from "../../../../../assets/core/RoyalGapUtil";
@@ -23,6 +25,12 @@ export default function TemplatePopup({
     editDefaultField
 }) {
     const { greenhouse_id , gap_id } = useParams()
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // เก็บ schedule_id ครั้งแรกที่โหลดหน้าเว็บ เพราะ LIFF อาจจะเปลี่ยน URL ทิ้งภายหลัง
+    const scheduleIdRef = useRef(new URLSearchParams(location.search).get("schedule_id"));
+    
     const { setCurrentPage } = useGreenhouse()
 
     const endpointManage = useRef(
@@ -195,10 +203,11 @@ export default function TemplatePopup({
 
     const cancel = useCallback(() => {
         RefPop.current.removeAttribute("show");
+        navigate(location.pathname, { replace: true });
         setTimeout(() => {
         setPopup(<></>);
         }, 500);
-    } , [RefPop, setPopup])
+    } , [RefPop, setPopup, navigate, location.pathname])
 
     const validateInputs = useCallback(() => {
         let isValid = true;
@@ -296,10 +305,13 @@ export default function TemplatePopup({
         //     })
         // }
 
+        const schedule_id = scheduleIdRef.current;
+
         let requestData = {
             id_farmhouse: greenhouse_id,
             id_plant: gap_id,
-            type_request: type_path
+            type_request: type_path,
+            ...(schedule_id && { schedule_id })
         }
 
         if(!editDefaultField) {
@@ -342,10 +354,13 @@ export default function TemplatePopup({
         //     return;
         // }
     
+        const schedule_id = scheduleIdRef.current;
+
         let requestData = {
             id_farmhouse: greenhouse_id,
             id_plant: gap_id,
             type_request: type_path,
+            ...(schedule_id && { schedule_id })
         };
 
         if(!editDefaultField) {
@@ -450,7 +465,31 @@ export default function TemplatePopup({
         RefPop.current.setAttribute("show", "")
         fetchFactor(type_path === "z" ? "fertilizer" : "chemical");
         fetchSource()
-    }, [fetchFactor, fetchSource, RefPop, type_path]);
+
+        const checkSchedule = async () => {
+            const schedule_id = scheduleIdRef.current;
+            if (gap_id && schedule_id) {
+                try {
+                    const res = await clientMo.post("/api/farmer/check-schedule", { formplant_id: gap_id, schedule_id });
+                    const data = JSON.parse(res);
+                    if (data && data.recorded) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'แจ้งเตือน',
+                            text: 'คุณได้บันทึกข้อมูลตามแผนนี้เรียบร้อยแล้ว ไม่สามารถบันทึกซ้ำได้',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'ตกลง'
+                        }).then(() => {
+                            cancel();
+                        });
+                    }
+                } catch (e) {
+                    console.error("Check schedule error:", e);
+                }
+            }
+        };
+        checkSchedule();
+    }, [fetchFactor, fetchSource, RefPop, type_path, gap_id, cancel]);
 
     useEffect(() => {
         type_path !== "z" && fetchPestChemicalData()

@@ -2449,6 +2449,22 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                             try {
                                                 // ส่งแจ้งเตือนครั้งเดียว
                                                 sendNotifyToDoctor(auth.data.id_table, auth.data.station, notificationMessage);
+                                                
+                                                // ถ้ามี schedule_id ให้บันทึกการ Tracking
+                                                if (data.schedule_id) {
+                                                    const insertId = insert.insertId;
+                                                    const isFert = data.type_request === 'z';
+                                                    
+                                                    con.query(
+                                                        `INSERT INTO schedule_tracking (formplant_id, schedule_id, formfertilizer_id, formchemical_id) VALUES (?, ?, ?, ?)`,
+                                                        [data.id_plant, data.schedule_id, isFert ? insertId : null, !isFert ? insertId : null],
+                                                        (err2) => {
+                                                            if(err2) {
+                                                                console.error('Tracking insert error:', err2);
+                                                            }
+                                                        }
+                                                    );
+                                                }
                                             } catch (e) {
                                                 console.error('Error notifying doctor:', e);
                                             }
@@ -2485,6 +2501,28 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         }
     });
 
+    app.post('/api/farmer/check-schedule', async (req, res) => {
+        try {
+            const { formplant_id, schedule_id } = req.body;
+            if (!formplant_id || !schedule_id) {
+                return res.json({ recorded: false, error: 'Missing parameters' });
+            }
+            
+            const result = await pool.executeQuery(
+                `SELECT id FROM schedule_tracking WHERE formplant_id = ? AND schedule_id = ? LIMIT 1`,
+                [formplant_id, schedule_id]
+            );
+
+            if (result && result.length > 0) {
+                return res.json({ recorded: true });
+            } else {
+                return res.json({ recorded: false });
+            }
+        } catch (e) {
+            console.error(e);
+            return res.json({ recorded: false, error: 'Server error' });
+        }
+    });
 
 
     const checkPestChemicalRelation = (pest, chemical, formId, con) => {

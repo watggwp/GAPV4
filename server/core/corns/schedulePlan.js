@@ -58,7 +58,7 @@ const schedulePlan = {
         `)
     },
     generateMessage : (schedule) => {
-        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details } = schedule
+        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details, id: schedule_id } = schedule
         const details = JSON.parse(schedule_details)
         const date = new Date()
         const dateString = `${date.getDate()} เดือน ${date.getMonth()+1} ปี ${date.getFullYear()+543}`
@@ -88,7 +88,7 @@ const schedulePlan = {
                             ...generalMessage,
                             ...details_message
                         ],
-                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true`,
+                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
                         {
                             buttonLabel : "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
                         }
@@ -113,7 +113,7 @@ const schedulePlan = {
                             ...generalMessage,
                             ...details_message
                         ],
-                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true`,
+                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
                         {
                             buttonLabel : "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
                         }
