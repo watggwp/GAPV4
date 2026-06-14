@@ -5,6 +5,9 @@ import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useDoctor } from "./Doctor";
+import { PopupDom } from "../../../assets/js/module";
+import ManagePopup from "./page/form/ManagePopup";
+import './assets/style/page/form/PageFormPlant.scss';
 
 // Fix for default Leaflet marker icon
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -62,6 +65,35 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
 
     // ข้อมูลจริง — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมีตามแผนการปลูก
     const [unfilledPlots, setUnfilledPlots] = useState([]);
+
+    const [PopBody, setPop] = useState(<></>);
+    const RefPop = useRef();
+
+    const showPopup = async (id_form) => {
+        const context = await clientMo.post('/api/doctor/check');
+        if (context) {
+            setPop(
+                <div className="data-list-content-page form-page" style={{ width: '100%', height: '100%', background: 'transparent' }}>
+                    <ManagePopup
+                        RefData={{ current: null }}
+                        setPopup={setPop}
+                        RefPop={RefPop}
+                        id_form={id_form}
+                        session={setSession}
+                        Fecth={() => { }}
+                    />
+                </div>
+            );
+            setTimeout(() => {
+                if (RefPop.current) {
+                    RefPop.current.style.opacity = "1";
+                    RefPop.current.style.visibility = "visible";
+                }
+            }, 100);
+        } else {
+            setSession();
+        }
+    };
 
     // ข้อมูลจริง — ประมาณการผลผลิต (รวมจากแต่ละใบ GAP ตามชนิดพืช + เดือน/ปีเก็บเกี่ยว)
     const [productionData, setProductionData] = useState([]);
@@ -259,7 +291,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                         </div>
                                         <div className="popup-plants-list">
                                             {pin.plants && pin.plants.map((plant, idx) => (
-                                                <div key={idx} className="popup-plant-card">
+                                                <div key={idx} className="popup-plant-card" style={{ cursor: "pointer" }} onClick={() => showPopup(plant.formplant_id)}>
                                                     <div className="plant-card-header">
                                                         <span className="plant-icon">🌱</span>
                                                         <span className="plant-name">{plant.name}</span>
@@ -321,8 +353,8 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                     paginatedUnfilled.map((item, idx) => {
                                         const realIdx = (pageUnfilled - 1) * ITEMS_PER_PAGE + idx;
                                         return (
-                                            <tr 
-                                                key={`${item.id}-${realIdx}`} 
+                                            <tr
+                                                key={`${item.id}-${realIdx}`}
                                                 className={`${idx % 2 === 1 ? 'row-highlight' : ''} ${highlightedFarmId === item.id_farm_house ? 'active-highlight' : ''}`}
                                                 onClick={() => handleRowClick(item)}
                                                 style={{ cursor: 'pointer', backgroundColor: highlightedFarmId === item.id_farm_house ? '#fff3e0' : undefined }}
@@ -470,6 +502,9 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                         )}
                     </div>
                 </div>
+            </div>
+            <div id="popup-detail-form">
+                <PopupDom Ref={RefPop} Body={PopBody} zIndex={1001} />
             </div>
         </div>
     );

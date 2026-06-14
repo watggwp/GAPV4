@@ -5797,7 +5797,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      fp.name_plant, fp.state_status, fp.expected_yield,
+                      fp.id, fp.name_plant, fp.state_status, fp.expected_yield,
                       (SELECT report_text FROM report_detail WHERE id_plant = fp.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
@@ -5849,7 +5849,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             name: row.name_plant || '-',
                             disease: row.disease || '-',
                             amount: row.expected_yield || 0,
-                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต'
+                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต',
+                            formplant_id: row.id
                         });
                         if (row.disease) g.hasDisease = true;
                         g.totalAmount += (row.expected_yield || 0);
