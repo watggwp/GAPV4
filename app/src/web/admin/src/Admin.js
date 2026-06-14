@@ -30,7 +30,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
     const [TextPage, setTextPage] = useState([]);
     const [getProfile, setProfile] = useState([]);
     const [Responsive, setResponsive] = useState(window.innerWidth);
-    
+
     // Sidebar Collapse State
     const [isSidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
     // Page Title State

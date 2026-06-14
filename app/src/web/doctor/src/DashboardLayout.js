@@ -118,6 +118,17 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
         }
     };
 
+    const handlePinClick = (pin) => {
+        setHighlightedFarmId(pin.id);
+        // Find if this pin exists in the unfilledPlots table
+        const index = unfilledPlots.findIndex(item => item.id_farm_house === pin.id);
+        if (index !== -1) {
+            // Calculate which page it is on
+            const page = Math.floor(index / ITEMS_PER_PAGE) + 1;
+            setPageUnfilled(page);
+        }
+    };
+
     // ดึงข้อมูลแปลงที่เกินกำหนดการใส่ปุ๋ย/สารเคมี
     useEffect(() => {
         const fetchOverduePlots = async () => {
@@ -280,7 +291,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                 position={pin.position}
                                 icon={pin.status === 'green' ? greenIcon : redIcon}
                                 eventHandlers={{
-                                    click: () => setHighlightedFarmId(pin.id)
+                                    click: () => handlePinClick(pin)
                                 }}
                             >
                                 <Popup>
@@ -354,6 +365,7 @@ const DashboardLayout = ({ setMain, socket, setSession }) => {
                                         const realIdx = (pageUnfilled - 1) * ITEMS_PER_PAGE + idx;
                                         return (
                                             <tr
+                                                id={`row-${item.id}`}
                                                 key={`${item.id}-${realIdx}`}
                                                 className={`${idx % 2 === 1 ? 'row-highlight' : ''} ${highlightedFarmId === item.id_farm_house ? 'active-highlight' : ''}`}
                                                 onClick={() => handleRowClick(item)}
