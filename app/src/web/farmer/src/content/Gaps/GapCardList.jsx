@@ -807,7 +807,11 @@ const GapCardList = () => {
             {loading ? (
                 <div className="gap-liff-loading"><div className="spinner" /><p>กำลังโหลด…</p></div>
             ) : cards.length === 0 ? (
-                <div className="gap-liff-empty">ไม่มีข้อมูลแปลง กรุณาสร้างแปลง</div>
+                houses.some((h) => h.status === 1) ? (
+                    <div className="gap-liff-empty">ไม่มีใบ GAP กรุณาสร้างใบ GAP</div>
+                ) : (
+                    <div className="gap-liff-empty">ไม่มีข้อมูลแปลง กรุณาสร้างแปลง</div>
+                )
             ) : (
                 <div className="gap-card-grid">
                     {cards.map(({ house, gap }) => (

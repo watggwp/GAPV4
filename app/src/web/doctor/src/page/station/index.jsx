@@ -40,8 +40,9 @@ export default function WeatherStation() {
         textSearch: "",
       });
 
-      setStations(stationsResponse);
-      setSelectedStationData(stationsResponse.find(({ id_station }) => id_station === selectedStation) || {});
+      const activeStations = stationsResponse.filter(station => station.is_use === 1);
+      setStations(activeStations);
+      setSelectedStationData(activeStations.find(({ id_station }) => id_station === selectedStation) || {});
     } catch (error) {
       console.error("Error fetching station list:", error);
     }

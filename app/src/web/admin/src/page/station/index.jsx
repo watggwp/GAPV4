@@ -20,7 +20,7 @@ export default function WeatherStation() {
   const { profile, titlePageNested } = useAdminContext();
 
   const [stations, setStations] = useState([]);
-  const [selectedStation, setSelectedStation] = useState(profile.id_station);
+  const [selectedStation, setSelectedStation] = useState("");
   const [selectedStationData, setSelectedStationData] = useState({});
 
   // NEW: state สำหรับ greenhouse ที่ถูกเลือก
@@ -40,12 +40,12 @@ export default function WeatherStation() {
         textSearch: "",
       });
 
-      setStations(stationsResponse);
-      setSelectedStationData(stationsResponse.find(({ id_station }) => id_station === selectedStation) || {});
+      setStations(stationsResponse.filter(station => station.is_use === 1));
+      // ไม่ auto-select ศูนย์ใด รอให้ผู้ใช้เลือกเอง
     } catch (error) {
       console.error("Error fetching station list:", error);
     }
-  }, [selectedStation]);
+  }, []);
 
   const onUpdateRange = useCallback((startTimestamp, endTimestamp) => {
     setStartTime(startTimestamp);
@@ -58,11 +58,6 @@ export default function WeatherStation() {
     fetchStationList();
   }, [titlePageNested, fetchStationList]);
 
-  useEffect(() => {
-    if (profile?.id_station) {
-      setSelectedStation(profile.id_station);
-    }
-  }, [profile?.id_station]);
 
   // NEW: เมื่อเปลี่ยนศูนย์ ให้ล้าง greenhouse ที่เลือก เพื่อกลับไปโหมด station
   useEffect(() => {
@@ -108,6 +103,7 @@ export default function WeatherStation() {
           <Grid size={{ xs: 8, xl: 6 }}>
             <Stack direction={"row"}>
               <Select
+                displayEmpty
                 value={selectedStation}
                 onChange={(e) => {
                   setSelectedStation(e.target.value);
@@ -150,13 +146,19 @@ export default function WeatherStation() {
       </Stack>
 
       <Stack height={"calc(100% - 65px)"} minHeight={"350px"}>
-        <WeatherManagement
-          key={widgetKey}
-          endpointData={endpointData}
-          query={query}
-          columns={columns}
-          onChangeRange={onUpdateRange}
-        />
+        {selectedStation ? (
+          <WeatherManagement
+            key={widgetKey}
+            endpointData={endpointData}
+            query={query}
+            columns={columns}
+            onChangeRange={onUpdateRange}
+          />
+        ) : (
+          <Stack height={"100%"} alignItems={"center"} justifyContent={"space-between"} spacing={1}>
+            <Typography variant="h6" color="text.secondary">กรุณาเลือกศูนย์เพื่อดูข้อมูลสภาพแวดล้อม</Typography>
+          </Stack>
+        )}
       </Stack>
 
       <Modal open={openManageWeatherStation}>

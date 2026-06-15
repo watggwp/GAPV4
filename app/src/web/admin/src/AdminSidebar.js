@@ -193,7 +193,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
                         <div className="icon-container-img">
                             <img src={iconStation} alt="Station" />
                         </div>
-                        <span>สภาพอากาศ</span>
+                        <span>ข้อมูลสภาพแวดล้อม</span>
                     </a>
                 </li>
 

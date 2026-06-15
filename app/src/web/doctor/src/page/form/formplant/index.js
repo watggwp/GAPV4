@@ -130,9 +130,10 @@ export default function FormPlant({
                 const uniquePlantsMap = new Map();
                 const mappingPlants = new Map();
                 const qtyMap = new Map();
+                const typeMainMap = new Map();
 
                 plants.forEach(plant => {
-                    const { name, variety_name, qty_harvest } = plant;
+                    const { name, variety_name, qty_harvest, type_main } = plant;
                     if (!uniquePlantsMap.has(name)) {
                         uniquePlantsMap.set(name, { name });
                     }
@@ -143,12 +144,16 @@ export default function FormPlant({
                         mappingPlants.get(name).push(variety_name);
                     }
                     qtyMap.set(name + "|" + (variety_name || ""), qty_harvest);
+                    if (type_main && !typeMainMap.has(name)) {
+                        typeMainMap.set(name, type_main);
+                    }
                 });
 
                 return {
                     plants: Array.from(uniquePlantsMap.values()),
                     mapping_plants: mappingPlants,
-                    qty_map: qtyMap
+                    qty_map: qtyMap,
+                    type_main_map: typeMainMap
                 };
             })
         } catch (e) { }
@@ -220,7 +225,7 @@ export default function FormPlant({
         if (qty !== undefined && qty !== null) {
             const pDate = new Date(plantDate);
             if (!isNaN(pDate.getTime())) {
-                pDate.setDate(pDate.getDate() + parseInt(qty));
+                pDate.setDate(pDate.getDate() + parseInt(qty) + 1);
                 return pDate.toISOString().split('T')[0];
             }
         }
@@ -235,13 +240,25 @@ export default function FormPlant({
                 name_varieties: ""
             };
             const plantDate = updated.date_plant ?? data.date_plant;
-            const newHarvestDate = calculateHarvestDate(newPlantName, "", plantDate);
+
+            // auto-set type_main
+            const newTypeMain = plants.type_main_map?.get(newPlantName);
+            if (newTypeMain) {
+                updated.type_main = newTypeMain;
+            }
+
+            // auto-set name_varieties ถ้ามีสายพันธุ์เดียว
+            const varieties = plants.mapping_plants?.get(newPlantName) ?? [];
+            const autoVariety = varieties.length === 1 ? varieties[0] : "";
+            updated.name_varieties = autoVariety;
+
+            const newHarvestDate = calculateHarvestDate(newPlantName, autoVariety, plantDate);
             if (newHarvestDate) {
                 updated.date_harvest = newHarvestDate;
             }
             return updated;
         });
-    }, [data.date_plant, calculateHarvestDate]);
+    }, [data.date_plant, calculateHarvestDate, plants.type_main_map, plants.mapping_plants]);
 
     const handleVarietyChange = useCallback((newVarietyName) => {
         setLocalEditValue(editValue => {

@@ -218,18 +218,6 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                     </li>
                 )}
 
-                {/* Report */}
-                {hasRole(['doctor', 'consultant', 'protection']) && (
-                    <li className="menu-item" onClick={report}>
-                        <a onClick={(e) => e.preventDefault()}>
-                            <div className="icon-container-img">
-                                <img src={iconReport} alt="Report" />
-                            </div>
-                            <span>รายงานข้อมูล</span>
-                        </a>
-                    </li>
-                )}
-
                 {/* Environment */}
                 {hasRole(['doctor', 'consultant', 'protection']) && (
                     <li className="menu-item" onClick={station}>
@@ -238,6 +226,18 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                                 <img src={iconStation} alt="Station" />
                             </div>
                             <span>ข้อมูลสภาพแวดล้อม</span>
+                        </a>
+                    </li>
+                )}
+
+                {/* Report */}
+                {hasRole(['doctor', 'consultant', 'protection']) && (
+                    <li className="menu-item" onClick={report}>
+                        <a onClick={(e) => e.preventDefault()}>
+                            <div className="icon-container-img">
+                                <img src={iconReport} alt="Report" />
+                            </div>
+                            <span>รายงานข้อมูล</span>
                         </a>
                     </li>
                 )}

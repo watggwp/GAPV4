@@ -145,7 +145,7 @@
                         border-radius: 8px;
                         padding: 2px 8px;
                         font-family: Sans-font;
-                        font-size: 18px;
+                        font-size: 20px;
                         background-color: #22C7A9;
                         color: white;
                         border: 0;
@@ -162,19 +162,19 @@
                         justify-content: center;
                         align-items: start;
                         font-family: Sans-font;
-                        font-size: 16px; //media query
+                        font-size: 18px; //media query
                         margin: 4px 0px;
                         width: 100%;
 
                         span {
                             font-family: Sans-font;
                             font-weight: 900;
-                            font-size: 16px; //media query
+                            font-size: 18px; //media query
                         }
 
                         select {
                             font-family: Sans-font;
-                            font-size: 14px; //media query
+                            font-size: 16px; //media query
                             border-radius: 10px;
                             padding: 0px 2px;
                             margin: 0px 2px;
@@ -216,7 +216,7 @@
 
                         span {
                             font-family: Sans-font;
-                            font-size: 16px;
+                            font-size: 18px;
                             font-weight: 900;
                         }
 
@@ -234,7 +234,7 @@
                                 // backdrop-filter: blur(50px);
                                 z-index: 1;
                                 padding: 2px 4px;
-                                font-size: 15px;
+                                font-size: 17px;
                                 border-radius: 8px;
                                 box-shadow: 0px 2px 2px #0C7238;
                                 opacity: 0;
@@ -269,7 +269,7 @@
                         border-radius: 8px;
                         color: white;
                         font-weight: 900;
-                        font-size: 20px;
+                        font-size: 22px;
                         margin: 2px 0px;
                     }
 
@@ -365,16 +365,16 @@
                 .field-option {
                     .row {
                         input {
-                            font-size: 14px;
+                            font-size: 16px;
                         }
 
                         .field-select {
                             span {
-                                font-size: 11px;
+                                font-size: 13px;
                             }
 
                             select {
-                                font-size: 11px;
+                                font-size: 13px;
                             }
                         }
                     }
@@ -428,7 +428,7 @@
             .list-some-data-on-page {
                 display: inline-flex;
                 position: relative;
-                max-width: 260px;
+                max-width: 280px;
                 width: 97%;
                 padding: 1px 5px;
                 border-radius: 10px;
@@ -452,7 +452,7 @@
                     color: #E53935;
                     font-family: Sans-font;
                     font-weight: 900;
-                    font-size: 15px;
+                    font-size: 17px;
                     background-color: rgb(230, 247, 134);
                     padding: 2px 8px;
                     border-radius: 8px 8px 0px 0px;
@@ -477,7 +477,7 @@
                         align-items: start;
                         justify-content: space-between;
                         margin: 3px 0px;
-                        font-size: 13px;
+                        font-size: 15px;
                         font-family: Sans-font;
 
                         span {
@@ -491,12 +491,12 @@
 
                             .type-main {
                                 font-weight: 900;
-                                font-size: 16px;
+                                font-size: 18px;
                             }
 
                             .type {
                                 margin-left: 5px;
-                                font-size: 13px;
+                                font-size: 15px;
                                 text-decoration: underline;
                             }
                         }
@@ -511,13 +511,13 @@
                             background-color: white;
 
                             span {
-                                font-size: 13px;
+                                font-size: 15px;
                             }
 
                             input {
                                 font-family: Sans-font;
                                 text-align: end;
-                                font-size: 11px;
+                                font-size: 13px;
                                 padding: 2px;
                                 margin-top: 4px;
                                 border: 0px;
@@ -565,7 +565,7 @@
                             border-radius: 20px;
                             padding: 4px 12px;
                             font-family: Sans-font;
-                            font-size: 12px;
+                            font-size: 14px;
                             font-weight: 700;
                             cursor: pointer;
                             white-space: nowrap;
@@ -607,16 +607,17 @@
                         th {
                             padding: 10px 8px;
                             font-weight: 600;
-                            font-size: 14px;
+                            font-size: 16px;
                             word-break: break-word;
                             overflow-wrap: break-word;
 
                             @media (max-width: 1200px) {
-                                font-size: 12px;
+                                font-size: 14px;
                                 padding: 8px 4px;
                             }
+
                             @media (max-width: 991px) {
-                                font-size: 11px;
+                                font-size: 13px;
                                 padding: 6px 3px;
                             }
                         }
@@ -634,17 +635,18 @@
                         td {
                             padding: 10px 8px !important;
                             text-align: center;
-                            font-size: 13px;
+                            font-size: 16px;
                             color: #333;
                             word-break: break-word;
                             overflow-wrap: break-word;
 
                             @media (max-width: 1200px) {
-                                font-size: 12px;
+                                font-size: 14px;
                                 padding: 8px 4px !important;
                             }
+
                             @media (max-width: 991px) {
-                                font-size: 10px;
+                                font-size: 13px;
                                 padding: 6px 2px !important;
                             }
 
@@ -658,32 +660,28 @@
                                 font-size: inherit !important;
                                 font-family: inherit !important;
                                 color: inherit !important;
-                                width: auto !important;
+                                width: 100% !important;
+                                max-width: 100% !important;
                                 cursor: pointer;
+
+                                @media only screen and (max-width: 900px) {
+                                    text-align: right !important;
+                                }
                             }
 
                             button {
                                 @media (max-width: 1200px) {
-                                    font-size: 12px !important;
-                                    padding: 4px 8px !important;
+                                    font-size: 14px !important;
+                                    padding: 5px 10px !important;
                                 }
+
                                 @media (max-width: 991px) {
-                                    font-size: 10px !important;
-                                    padding: 3px 6px !important;
-                                    border-radius: 12px !important;
+                                    font-size: 16px !important;
+                                    padding: 5px 10px !important;
+                                    border-radius: 20px !important;
                                 }
                             }
 
-                            span {
-                                @media (max-width: 1200px) {
-                                    font-size: 11px !important;
-                                    padding: 3px 6px !important;
-                                }
-                                @media (max-width: 991px) {
-                                    font-size: 9px !important;
-                                    padding: 2px 4px !important;
-                                }
-                            }
                         }
                     }
                 }
@@ -693,7 +691,12 @@
                 .table-responsive {
                     padding: 0 !important;
 
-                    table, thead, tbody, th, td, tr {
+                    table,
+                    thead,
+                    tbody,
+                    th,
+                    td,
+                    tr {
                         display: block !important;
                         width: 100% !important;
                     }
@@ -723,7 +726,8 @@
                         align-items: center !important;
                         justify-content: space-between !important;
                         box-sizing: border-box !important;
-                        font-size: 15px !important;
+                        font-size: 17px !important;
+
 
                         &::before {
                             content: attr(data-label);
@@ -732,7 +736,7 @@
                             text-align: left;
                             margin-right: 15px;
                             flex-shrink: 0;
-                            font-size: 15px !important;
+                            font-size: 17px !important;
                         }
 
                         &:last-child {
