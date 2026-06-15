@@ -4,6 +4,7 @@ const cron = require('node-cron');
 
 const ConnectPool = require("../connectPool");
 const RoyalGapLine = require("../configLine");
+const MessageLineTemplate = require('./messageLineTemplate');
 
 const schedulePlan = require('./corns/schedulePlan');
 const checkUnrecorded = require('./corns/checkUnrecorded');
@@ -14,19 +15,49 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
         try {
             const schedule_plan = await schedulePlan.queryPlan(connectionPool)
 
-            const sendTasks = schedule_plan.map(async ({ uid_line, ...schedule }) => {
-                const { id: schedule_id, greenhouse_id } = schedule
-                try {
-                    const [messages, details_message] = schedulePlan.generateMessage(schedule)
-                    await RoyalGapLine.pushMessage(uid_line, messages)
-                    return { schedule_id, greenhouse_id, details_message }
-                } catch (err) {
-                    console.error(`Schedule plan error (schedule id: ${schedule_id}):`, err)
-                    return null
-                }
-            })
+            const groupedPlans = schedule_plan.reduce((acc, curr) => {
+                const uid = curr.uid_line;
+                if (!acc[uid]) acc[uid] = [];
+                acc[uid].push(curr);
+                return acc;
+            }, {});
 
-            const sent = (await Promise.all(sendTasks)).filter(Boolean)
+            const sent = [];
+
+            for (const [uid_line, schedules] of Object.entries(groupedPlans)) {
+                try {
+                    const chunks = [];
+                    for (let i = 0; i < schedules.length; i += 10) {
+                        chunks.push(schedules.slice(i, i + 10));
+                    }
+
+                    for (const chunk of chunks) {
+                        const bubbles = [];
+                        const chunkSentInfo = [];
+
+                        for (const schedule of chunk) {
+                            const result = schedulePlan.generateMessage(schedule);
+                            if (result && result.length === 2) {
+                                const [bubbleMsg, details_message] = result;
+                                bubbles.push(bubbleMsg);
+                                chunkSentInfo.push({ 
+                                    schedule_id: schedule.id, 
+                                    greenhouse_id: schedule.greenhouse_id, 
+                                    details_message 
+                                });
+                            }
+                        }
+
+                        if (bubbles.length > 0) {
+                            const carouselMsg = MessageLineTemplate.carouselTemplateUrl("แจ้งเตือนกิจกรรมการปลูก (GAP)", bubbles);
+                            await RoyalGapLine.pushMessage(uid_line, carouselMsg);
+                            sent.push(...chunkSentInfo);
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Schedule plan carousel error for uid: ${uid_line}:`, err);
+                }
+            }
 
             if (sent.length > 0) {
                 await connectionPool.executeQuery(

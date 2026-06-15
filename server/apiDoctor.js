@@ -5854,7 +5854,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT 
                       h.id_farm_house, h.name_house, 
                       ST_X(h.location) as lat, ST_Y(h.location) as lng, 
-                      fp.name_plant, fp.state_status, fp.expected_yield,
+                      fp.id, fp.name_plant, fp.state_status, fp.expected_yield,
                       (SELECT report_text FROM report_detail WHERE id_plant = fp.id AND is_read = 0 LIMIT 1) as disease
                     FROM housefarm h
                     JOIN acc_farmer f ON h.link_user = f.link_user
@@ -5906,7 +5906,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             name: row.name_plant || '-',
                             disease: row.disease || '-',
                             amount: row.expected_yield || 0,
-                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต'
+                            status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต',
+                            formplant_id: row.id
                         });
                         if (row.disease) g.hasDisease = true;
                         g.totalAmount += (row.expected_yield || 0);
@@ -5941,6 +5942,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const query = `
                     SELECT 
                         fp.id AS formplant_id,
+                        hf.id_farm_house,
                         hf.name_house,
                         fp.name_plant,
                         s.title AS schedule_title,
@@ -5948,27 +5950,51 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         s.age_plant,
                         fp.date_plant,
                         DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) AS due_date,
-                        DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days
+                        DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days,
+                        IF(st.id IS NOT NULL, 1, 0) AS is_filled,
+                        IF(s.category = 1, 
+                            IF(
+                                IFNULL(ff.name, '') = IFNULL(sdf.fertilizer, '') AND 
+                                IFNULL(ff.formula_name, '') = IFNULL(sdf.formula_fertilizer, '') AND
+                                TRIM(IFNULL(ff.volume, '')) = TRIM(CONCAT(IFNULL(sdf.volume, ''), ' ', IFNULL(sdf.unit_volume, ''))) AND
+                                TRIM(IFNULL(ff.use_is, '')) = TRIM(IFNULL(sdf.how_use, '')), 
+                            1, 0),
+                            IF(
+                                IFNULL(fc.name, '') = IFNULL(sdd.chemical, '') AND 
+                                IFNULL(fc.insect, '') = IFNULL(sdd.pest, '') AND
+                                TRIM(IFNULL(fc.rate, '')) = TRIM(IFNULL(sdd.rate, '')) AND
+                                TRIM(IFNULL(fc.volume, '')) = TRIM(CONCAT(IFNULL(sdd.volume, ''), ' ', IFNULL(sdd.unit_volume, ''))) AND
+                                TRIM(IFNULL(fc.use_is, '')) = TRIM(IFNULL(sdd.how_use, '')), 
+                            1, 0)
+                        ) AS is_match
                     FROM formplant fp
                     INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                     INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
                     INNER JOIN plant_list pl ON fp.name_plant = pl.name AND IFNULL(pl.variety_name, '') = IFNULL(fp.name_varieties, '') AND pl.is_use = 1
                     INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
+                    LEFT JOIN schedule_tracking st ON st.formplant_id = fp.id AND st.schedule_id = s.id
+                    LEFT JOIN formfertilizer ff ON st.formfertilizer_id = ff.id
+                    LEFT JOIN formchemical fc ON st.formchemical_id = fc.id
+                    LEFT JOIN schedules_detail_fertilizer sdf ON s.category = 1 AND sdf.schedule_id = s.id
+                    LEFT JOIN schedules_detail_disease sdd ON s.category = 2 AND sdd.schedule_id = s.id
                     WHERE 
                         af.station = ?
                         AND (fp.state_status = 0 OR fp.state_status = 1)
-                        AND DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) < CURDATE()
+                        AND DATE(DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) <= CURDATE()
                         AND (
-                            (s.category = 1 AND NOT EXISTS (
-                                SELECT 1 FROM formfertilizer ff 
-                                WHERE ff.id_plant = fp.id 
-                                AND ABS(DATEDIFF(ff.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            st.id IS NULL
+                            OR (s.category = 1 AND (
+                                IFNULL(ff.name, '') != IFNULL(sdf.fertilizer, '') OR 
+                                IFNULL(ff.formula_name, '') != IFNULL(sdf.formula_fertilizer, '') OR
+                                TRIM(IFNULL(ff.volume, '')) != TRIM(CONCAT(IFNULL(sdf.volume, ''), ' ', IFNULL(sdf.unit_volume, ''))) OR
+                                TRIM(IFNULL(ff.use_is, '')) != TRIM(IFNULL(sdf.how_use, ''))
                             ))
-                            OR
-                            (s.category = 2 AND NOT EXISTS (
-                                SELECT 1 FROM formchemical fc 
-                                WHERE fc.id_plant = fp.id 
-                                AND ABS(DATEDIFF(fc.date, DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY))) <= 3
+                            OR (s.category = 2 AND (
+                                IFNULL(fc.name, '') != IFNULL(sdd.chemical, '') OR 
+                                IFNULL(fc.insect, '') != IFNULL(sdd.pest, '') OR
+                                TRIM(IFNULL(fc.rate, '')) != TRIM(IFNULL(sdd.rate, '')) OR
+                                TRIM(IFNULL(fc.volume, '')) != TRIM(CONCAT(IFNULL(sdd.volume, ''), ' ', IFNULL(sdd.unit_volume, ''))) OR
+                                TRIM(IFNULL(fc.use_is, '')) != TRIM(IFNULL(sdd.how_use, ''))
                             ))
                         )
                     GROUP BY fp.id, s.id
@@ -5985,11 +6011,14 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                     const plots = result.map(row => ({
                         id: row.formplant_id,
+                        id_farm_house: row.id_farm_house,
                         name: row.name_house || '-',
                         type: row.name_plant || '-',
                         schedule_title: row.schedule_title || '-',
                         category: row.category, // 1=ปุ๋ย, 2=สารเคมี
                         overdue: row.overdue_days || 0,
+                        is_filled: row.is_filled === 1,
+                        is_match: row.is_match === 1
                     }));
 
                     res.json(plots);

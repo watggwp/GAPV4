@@ -58,66 +58,62 @@ const schedulePlan = {
         `)
     },
     generateMessage : (schedule) => {
-        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details } = schedule
+        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details, id: schedule_id } = schedule
         const details = JSON.parse(schedule_details)
         const date = new Date()
         const dateString = `${date.getDate()} เดือน ${date.getMonth()+1} ปี ${date.getFullYear()+543}`
 
-        const generalMessage = [
-            `วันที่ ${dateString}`,
-            `กิจกรรม: ${title}`,
-            `โรงเรือน: ${greenhouse_name}`,
-            `ชนิดพืช: ${name}`,
-            "",
-        ]
+        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่: ${dateString}`;
+        const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
+        const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
 
         switch(category) {
             case 1 : {
                 const { name_fertilizer , formula_fertilizer , volume , unit_volume , how_use } = details
-                const details_message = [
-                    `ปุ๋ย: ${name_fertilizer}`,
-                    `สูตร: ${formula_fertilizer}`,
-                    `ปริมาณ: ${volume} ${unit_volume}`,
-                    `วิธีใช้: ${how_use} (หากไม่แน่ใจ ให้ดูบนฉลาก)`
-                ]
+                
+                const details_list = [
+                    { label: "ปุ๋ย", value: name_fertilizer || "-" },
+                    { label: "สูตร", value: formula_fertilizer || "-" },
+                    { label: "ปริมาณ", value: `${volume || "-"} ${unit_volume || ""}`.trim() },
+                    { label: "วิธีใช้", value: `${how_use || "-"} (หากไม่แน่ใจ ให้ดูบนฉลาก)` }
+                ];
+                
+                const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
-                    MessageLineTemplate.bubbleTemplateUrl(
-                        title,
-                        [
-                            ...generalMessage,
-                            ...details_message
-                        ],
-                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true`,
-                        {
-                            buttonLabel : "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
-                        }
-                    ),
+                    MessageLineTemplate.beautifulBubbleUrl({
+                        title: title,
+                        subtitle: subtitle,
+                        imageUrl: greenhouseImage,
+                        details: details_list,
+                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
+                        buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
+                    }),
                     details_message
                 ]
             }
             case 2 : {
                 const { pest , chemical , rate , volume , unit_volume , how_use } = details
-                const details_message = [
-                    `โรคพืช: ${pest}`,
-                    `สารเคมี: ${chemical}`,
-                    `อัตราส่วนผสม: ${rate}`,
-                    `ปริมาณ: ${volume} ${unit_volume}`,
-                    `วิธีใช้: ${how_use} (หากไม่แน่ใจ ให้ดูบนฉลาก)`,
-                ]
+                
+                const details_list = [
+                    { label: "โรคพืช", value: pest || "-" },
+                    { label: "สารเคมี", value: chemical || "-" },
+                    { label: "อัตราส่วน", value: rate || "-" },
+                    { label: "ปริมาณ", value: `${volume || "-"} ${unit_volume || ""}`.trim() },
+                    { label: "วิธีใช้", value: `${how_use || "-"} (หากไม่แน่ใจ ให้ดูบนฉลาก)` }
+                ];
+                
+                const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
-                    MessageLineTemplate.bubbleTemplateUrl(
-                        title,
-                        [
-                            ...generalMessage,
-                            ...details_message
-                        ],
-                        `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true`,
-                        {
-                            buttonLabel : "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
-                        }
-                    ),
+                    MessageLineTemplate.beautifulBubbleUrl({
+                        title: title,
+                        subtitle: subtitle,
+                        imageUrl: greenhouseImage,
+                        details: details_list,
+                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
+                        buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
+                    }),
                     details_message
                 ]
             }
