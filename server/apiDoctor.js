@@ -5279,13 +5279,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const countUnRead = await new Promise((resole, reject) => {
                     con.query(
                         `
-                        SELECT COUNT(id) as count
+                        SELECT 
+                            COUNT(CASE WHEN COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 THEN id END) as count,
+                            COALESCE(MAX(id), 0) as maxId
                         FROM notify_doctor
-                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 
-                                AND station = ?
+                        WHERE station = ?
                         ` , [result.data.id_table_doctor, result.data.station_doctor],
                         (err, COUNT) => {
-                            resole(isNaN(parseInt(COUNT[0].count)) ? 0 : parseInt(COUNT[0].count))
+                            if (err) {
+                                console.error("Notify COUNT error:", err);
+                                return resole({ count: 0, maxId: 0 });
+                            }
+                            resole({
+                                count: isNaN(parseInt(COUNT[0].count)) ? 0 : parseInt(COUNT[0].count),
+                                maxId: isNaN(parseInt(COUNT[0].maxId)) ? 0 : parseInt(COUNT[0].maxId)
+                            })
                         }
                     )
                 })
@@ -5303,15 +5311,23 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         FROM notify_doctor
                         WHERE station = ? AND id ${Oparetor} ?
                         ORDER BY id DESC
-                        LIMIT ${req.query.type == "start" ? countUnRead != 0 ? countUnRead + 3 : 10 :
+                        LIMIT ${req.query.type == "start" ? countUnRead.count != 0 ? countUnRead.count + 3 : 10 :
                             req.query.type == "update" ? "999999" :
                                 req.query.type == "get" ? "10" : 0}
                         ` , [result.data.station_doctor, req.query.id],
                         (err, list) => {
+                            if (err) {
+                                console.error("Notify SELECT error:", err);
+                                return resole([]);
+                            }
                             if (list.length) list.map(val => {
                                 val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/acc_doctor.jpg"
                                 return val
                             })
+
+                            if (req.query.type === "update") {
+                                return resole(list);
+                            }
 
                             con.query(
                                 `
@@ -5329,7 +5345,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 const Send = {
                     List: getNotify,
-                    countUn: countUnRead,
+                    countUn: countUnRead.count,
+                    maxId: countUnRead.maxId,
                     station: result.data.station_doctor
                 }
 

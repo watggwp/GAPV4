@@ -20,55 +20,115 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
     const [getNotifyList, setNotifyList] = useState([]);
     const [getShowNotify, setShowNotify] = useState(false);
     const [getStation, setStation] = useState(0);
-    const [getFetchStart, setFetchStart] = useState(true);
 
-    // --- Notification Logic ---
-    const NotifyConnect = async (id) => {
-        if (getFetchStart) {
-            await FetchNotify(0, "count");
-            setFetchStart(false);
-        } else {
-            SocketConnect(id);
+    const latestNotifyIdRef = useRef(0);
+    const [toasts, setToasts] = useState([]);
+
+    const playNotificationSound = () => {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playNote = (freq, startTime, duration) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.2, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            };
+            const now = audioCtx.currentTime;
+            playNote(523.25, now, 0.15); // C5
+            playNote(659.25, now + 0.15, 0.3); // E5
+        } catch (e) {
+            console.log("Audio play failed", e);
         }
     };
 
-    const SocketConnect = (id) => {
-        socket.emit("connect_notify_doctor", getStation);
-        socket.on("update", () => {
-            FetchNotify(id, "update");
+    const addToast = (notifyData) => {
+        setToasts(prev => {
+            if (prev.find(t => t.id === notifyData.id)) return prev;
+            return [...prev, notifyData];
         });
+        setTimeout(() => {
+            setToasts(prev => prev.filter(t => t.id !== notifyData.id));
+        }, 7000);
     };
 
     const FetchNotify = async (id_focus, type) => {
-        const SelectDataOn = getNotifyContent ? type : "count";
+        const SelectDataOn = (type === "update") ? "update" : (getNotifyContent ? type : "count");
         const notify = await clientMo.get(`/api/doctor/notify/get?type=${SelectDataOn}&id=${id_focus}`);
         if (notify) {
             const notifyData = JSON.parse(notify);
-            setStation(notifyData.station);
+            
+            if (notifyData.station !== undefined) {
+                setStation(notifyData.station);
+            }
+
+            if (notifyData.maxId !== undefined) {
+                if (notifyData.maxId > latestNotifyIdRef.current) {
+                    latestNotifyIdRef.current = notifyData.maxId;
+                }
+            }
+            if (notifyData.List && notifyData.List.length > 0) {
+                const maxId = notifyData.List[0].id;
+                if (maxId > latestNotifyIdRef.current) {
+                    latestNotifyIdRef.current = maxId;
+                }
+            }
+
             if (SelectDataOn === "start") {
                 setNotifyList(notifyData.List);
                 setNotifyCount(0);
             } else if (SelectDataOn === "update") {
-                setNotifyList((prevent) => [...notifyData.List, ...prevent]);
-                setNotifyCount(0);
+                let addedItems = [];
+                setNotifyList((prevent) => {
+                    const newItems = notifyData.List.filter(item => !prevent.find(p => p.id === item.id));
+                    addedItems = newItems;
+                    return [...newItems, ...prevent];
+                });
+                setTimeout(() => {
+                    if (addedItems.length > 0 && !getNotifyContent) {
+                        playNotificationSound();
+                        addedItems.forEach(item => addToast(item));
+                    }
+                }, 0);
+                setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
             } else if (SelectDataOn === "get") {
                 setNotifyList((prevent) => [...prevent, ...notifyData.List]);
-            } else setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
+            } else {
+                setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
+            }
             return notifyData.List;
-        } else setSession();
+        } else {
+            setSession();
+        }
     };
 
+    // Initial load
     useEffect(() => {
-        if (socket) {
+        FetchNotify(0, "count");
+    }, []);
+
+    // Socket listeners setup
+    useEffect(() => {
+        if (!socket || getStation === 0) return;
+
+        socket.emit("connect_notify_doctor", getStation);
+
+        const handleUpdate = () => {
+            FetchNotify(latestNotifyIdRef.current, "update");
+        };
+
+        socket.on("update", handleUpdate);
+
+        return () => {
             socket.emit("disconnect_notify_doctor", getStation);
-            socket.removeListener("update");
-            NotifyConnect(getNotifyList.length === 0 ? 0 : getNotifyList[0].id);
-            return (() => {
-                socket.emit("disconnect_notify_doctor", getStation);
-                socket.removeListener("update");
-            });
-        }
-    }, [getNotifyList, getFetchStart, getNotifyContent, socket]);
+            socket.off("update", handleUpdate);
+        };
+    }, [socket, getStation]);
 
     // --- Profile Logic ---
     const Home = (e) => {
@@ -157,6 +217,34 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
     return (
         <div className="header-bar" style={{ width: '100%', marginBottom: '20px' }}>
             <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={999} />
+            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {toasts.map(toastNotify => (
+                    <div key={toastNotify.id} style={{
+                        background: 'white',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        animation: 'fadeIn 0.3s ease-out',
+                        cursor: 'pointer',
+                        width: '350px',
+                        borderLeft: '4px solid #22C7A9'
+                    }} onClick={() => {
+                        if ((toastNotify.type === 1 || toastNotify.type === 2) && toastNotify.ref_id) {
+                            showSchedulesPopup(toastNotify.ref_id);
+                        }
+                        setToasts(prev => prev.filter(t => t.id !== toastNotify.id));
+                    }}>
+                        <img src={toastNotify.img_farmer} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} alt="farmer" />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>การแจ้งเตือนใหม่</span>
+                            <span style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{toastNotify.notify}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button className="mobile-menu-btn" onClick={toggleSidebar}>
