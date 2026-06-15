@@ -24,9 +24,8 @@ export default function FormPlant({
     const [loadingPlants, setLoadingPlants] = useState(false)
 
     const { profile } = useContext(AdminContext) //role
-
     const [previousInsects, setPreviousInsects] = useState([]);
-
+ 
     const fetchInsectList = useCallback(async () => {
         try {
             const res = await clientMo.post("/api/admin/formplant/history", {
@@ -34,19 +33,21 @@ export default function FormPlant({
                 name_plant_list: editValue.name_plant ?? data.name_plant
             });
             if (res) {
-                const obj = JSON.parse(res);
-                setPreviousInsects(obj.insect || []);
+                const parsed = JSON.parse(res);
+                setPreviousInsects(parsed.insect || []);
             }
         } catch (e) {
             console.error("fetchInsectList error:", e);
         }
     }, [data.id_farm_house, data.name_plant, editValue.name_plant]);
-
+ 
     useEffect(() => {
         if (localMode === "edit") {
             fetchInsectList();
         }
     }, [localMode, editValue.name_plant, fetchInsectList]);
+
+
 
     const systemGlowOptions = useMemo(() => {
         const base = ["เลือก", "ขึ้นแปลงปลูกตามไหล่เขา", "ขึ้นแปลงปลูกที่ลุ่มหลังนา", "ปลูกแบบขึ้นค้าง", "ระบบ Hydroponic", "ปลูกในวัสดุปลูก", "ในโรงเรือน"];
@@ -83,7 +84,7 @@ export default function FormPlant({
         }
         return base;
     }, [editValue.qtyInsect, data.qtyInsect]);
-
+ 
     const insectOptions = useMemo(() => {
         const list = ["เลือก", ...previousInsects];
         const current = editValue.insect ?? data.insect;
@@ -92,6 +93,8 @@ export default function FormPlant({
         }
         return list;
     }, [previousInsects, editValue.insect, data.insect]);
+
+
 
     const DisabledButtonEdit = useMemo(() => {
         const { because, ...editDatas } = editValue;
@@ -128,17 +131,29 @@ export default function FormPlant({
             if (!Array.isArray(plants)) throw new Error("data error")
 
             setPlants((plantsData) => {
-                plantsData = {
-                    plants: [],
-                    mapping_plants: new Map()
-                }
-                plants.forEach(plant => {
-                    const { name, variety_names } = plant
-                    plantsData.plants.push(plant)
-                    plantsData.mapping_plants.set(name, variety_names.split(",").filter(name => name))
-                })
+                const uniquePlantsMap = new Map();
+                const mappingPlants = new Map();
+                const qtyMap = new Map();
 
-                return plantsData
+                plants.forEach(plant => {
+                    const { name, variety_name, qty_harvest } = plant;
+                    if (!uniquePlantsMap.has(name)) {
+                        uniquePlantsMap.set(name, { name });
+                    }
+                    if (!mappingPlants.has(name)) {
+                        mappingPlants.set(name, []);
+                    }
+                    if (variety_name && variety_name !== '' && variety_name !== '-') {
+                        mappingPlants.get(name).push(variety_name);
+                    }
+                    qtyMap.set(name + "|" + (variety_name || ""), qty_harvest);
+                });
+
+                return {
+                    plants: Array.from(uniquePlantsMap.values()),
+                    mapping_plants: mappingPlants,
+                    qty_map: qtyMap
+                };
             })
         } catch (e) { }
     }, [])
@@ -167,7 +182,7 @@ export default function FormPlant({
             const year = str.slice(0, 4);
             const month = str.slice(5, 7);
             if (month === "##") return `ปี ${Number(year) + 543}`;
-            return `เดือน ${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
+            return `${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
         }
 
         if (/^\d{4}-(\d{2}|##)-(\d{2}|##)$/.test(str)) {
@@ -175,7 +190,7 @@ export default function FormPlant({
             const month = str.slice(5, 7);
             const day = str.slice(8, 10);
             if (month === "##") return `ปี ${Number(year) + 543}`;
-            if (day === "##") return `เดือน ${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
+            if (day === "##") return `${monthNamesThai[Number(month) - 1]} ปี ${Number(year) + 543}`;
         }
 
         const date = new Date(dateString);
@@ -189,6 +204,79 @@ export default function FormPlant({
             [name]: value
         }));
     }, [])
+
+    const calculateHarvestDate = useCallback((plantName, varietyName, plantDate) => {
+        if (!plantName || !plantDate) return null;
+        const vName = varietyName || "";
+        let qty = plants.qty_map?.get(plantName + "|" + vName);
+        if (qty === undefined) {
+            qty = plants.qty_map?.get(plantName + "|");
+        }
+        if (qty === undefined) {
+            for (const [key, val] of plants.qty_map?.entries() || []) {
+                if (key.startsWith(plantName + "|")) {
+                    qty = val;
+                    break;
+                }
+            }
+        }
+        if (qty !== undefined && qty !== null) {
+            const pDate = new Date(plantDate);
+            if (!isNaN(pDate.getTime())) {
+                pDate.setDate(pDate.getDate() + parseInt(qty));
+                return pDate.toISOString().split('T')[0];
+            }
+        }
+        return null;
+    }, [plants.qty_map]);
+
+    const handlePlantChange = useCallback((newPlantName) => {
+        setLocalEditValue(editValue => {
+            const updated = {
+                ...editValue,
+                name_plant: newPlantName,
+                name_varieties: ""
+            };
+            const plantDate = updated.date_plant ?? data.date_plant;
+            const newHarvestDate = calculateHarvestDate(newPlantName, "", plantDate);
+            if (newHarvestDate) {
+                updated.date_harvest = newHarvestDate;
+            }
+            return updated;
+        });
+    }, [data.date_plant, calculateHarvestDate]);
+
+    const handleVarietyChange = useCallback((newVarietyName) => {
+        setLocalEditValue(editValue => {
+            const updated = {
+                ...editValue,
+                name_varieties: newVarietyName
+            };
+            const plantName = updated.name_plant ?? data.name_plant;
+            const plantDate = updated.date_plant ?? data.date_plant;
+            const newHarvestDate = calculateHarvestDate(plantName, newVarietyName, plantDate);
+            if (newHarvestDate) {
+                updated.date_harvest = newHarvestDate;
+            }
+            return updated;
+        });
+    }, [data.name_plant, data.date_plant, calculateHarvestDate]);
+
+    const handlePlantDateChange = useCallback((newPlantDate) => {
+        setLocalEditValue(editValue => {
+            const updated = {
+                ...editValue,
+                date_plant: newPlantDate
+            };
+            const plantName = updated.name_plant ?? data.name_plant;
+            const varietyName = updated.name_varieties ?? data.name_varieties ?? "";
+            const newHarvestDate = calculateHarvestDate(plantName, varietyName, newPlantDate);
+            if (newHarvestDate) {
+                updated.date_harvest = newHarvestDate;
+            }
+            return updated;
+        });
+    }, [data.name_plant, data.name_varieties, calculateHarvestDate]);
 
     useEffect(() => {
         setMode("view");
@@ -326,7 +414,7 @@ export default function FormPlant({
                                     :
                                     <Select
                                         value={editValue.name_plant ?? data.name_plant}
-                                        onChange={(event) => onEdit("name_plant", event.target.value)}
+                                        onChange={(event) => handlePlantChange(event.target.value)}
                                         size="small"
                                         sx={{
                                             [`& .${selectClasses.select}`]: {
@@ -364,7 +452,7 @@ export default function FormPlant({
                                         plants.mapping_plants?.get(editValue.name_plant ?? data.name_plant)?.length ?
                                             <Select
                                                 value={(editValue.name_varieties ?? data.name_varieties) || ""}
-                                                onChange={(event) => onEdit("name_varieties", event.target.value)}
+                                                onChange={(event) => handleVarietyChange(event.target.value)}
                                                 size="small"
                                                 sx={{
                                                     [`& .${selectClasses.select}`]: {
@@ -381,7 +469,7 @@ export default function FormPlant({
                                                     },
                                                 }}
                                             >
-                                                <MenuItem disabled value={""} >เลือกสายพันธุ์พืช</MenuItem>
+                                                <MenuItem value={""} >เลือกสายพันธุ์พืช</MenuItem>
                                                 {
                                                     plants.mapping_plants?.get(editValue.name_plant ?? data.name_plant)?.map((name) =>
                                                         <MenuItem value={name} >{name}</MenuItem>
@@ -415,7 +503,7 @@ export default function FormPlant({
                                 localMode === "view" ? (
                                     <span className="data-show">{formatDateThai(data.date_plant)}</span>
                                 ) : (
-                                    <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={(dateNew) => onEdit("date_plant", dateNew)} />
+                                    <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={handlePlantDateChange} />
                                 )
                             }
                         </div>
@@ -427,7 +515,7 @@ export default function FormPlant({
                             {localMode === "view" ? (
                                 <DayJSX className="data-show" TYPE="small" TEXT="วันที่" DATE={data.date_harvest} />
                             ) : (
-                                <DateSelect RefDateValue={DateHarvest} Value={data.date_harvest} onChangeDate={(dateNew) => onEdit("date_harvest", dateNew)} />
+                                <DateSelect RefDateValue={DateHarvest} Value={editValue.date_harvest ?? data.date_harvest} onChangeDate={(dateNew) => onEdit("date_harvest", dateNew)} />
                             )}
                         </div>
 

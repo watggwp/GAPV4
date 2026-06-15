@@ -4,6 +4,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 import { DatePickerThai, DateSelect, Loading } from "../../../../../assets/js/module";
 import { Stack } from "@mui/material";
 import RequestAPI from "../../../../../assets/js/requestAPI";
+import "../../../../farmer/src/content/Gaps/GapCardList.scss";
 import "../../assets/style/page/form/AddGapModalAdmin.scss";
 
 const DEFAULT_IMG = "/plant_glow.jpg";
@@ -42,6 +43,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
 
     /* ── Form state ── */
     const [DataPlant, setDataPlant] = useState([]);
+    const [insectsList, setInsectsList] = useState([]);
     const [getHistoryPlantLoad, setHistory] = useState(true);
     const [DateNowOnForm, setDateNowOnForm] = useState(
         `${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1)).slice(-2)}-${("0" + new Date().getDate()).slice(-2)}`
@@ -50,8 +52,6 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
     const [DateHarvest, setDateHarvest] = useState("");
     const [placeholder, setPlaceholder] = useState("");
     const [unit, setUnit] = useState("");
-    const [previousInsect, setPreviousInsect] = useState("");
-    const [previousInsects, setPreviousInsects] = useState([]);
     const [getWait, setWait] = useState(false);
 
     /* ── Refs ── */
@@ -81,12 +81,6 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
     const default_yield = useRef();
 
     /* keep "เลือก" always first in insect list */
-    useEffect(() => {
-        setPreviousInsects((prev) => {
-            if (!prev.includes("เลือก")) return ["เลือก", ...prev];
-            return prev;
-        });
-    }, [previousInsects]);
 
     const fetchStations = useCallback(async () => {
         try {
@@ -224,17 +218,23 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                         Water.current.value = "";
                         WaterStep.current.value = "";
                         History.current.value = "";
-                        Insect.current.value = "";
+                        if (Insect.current) Insect.current.value = "";
                         QtyInsect.current.value = "";
                         Seft.current.value = "";
                         expected_yield.current.value = "";
                         default_yield.current.value = "";
                     }
-                    if (obj.insect.length > 0) {
-                        setPreviousInsects(obj.insect);
-                        setPreviousInsect(obj.insect_generation[0]);
-                    } else {
-                        setPreviousInsects([]);
+                    const parsedInsects = [];
+                    if (obj.insect) {
+                        parsedInsects.push(...obj.insect);
+                    }
+                    if (obj.insect_generation) {
+                        parsedInsects.push(...obj.insect_generation);
+                    }
+                    const cleanInsects = [...new Set(parsedInsects.filter(val => val && val !== ""))];
+                    setInsectsList(cleanInsects);
+                    if (Insect.current) {
+                        Insect.current.value = cleanInsects.includes(obj.insect_generation?.[0]) ? obj.insect_generation[0] : "";
                     }
                 } catch (e) { console.error(e); }
             }
@@ -454,9 +454,25 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
             const data = {
                 id_farmhouse: selectedHouseId,
                 name_plant: selectedPlantName,
-                name_varieties: selectedVarietyName,
+                name_varieties: selectedVarietyName || null,
+                generetion: Generation.current?.value || null,
+                dateGlow: DateGlow.current?.value || null,
                 datePlant: convertThaiDateToISO(DatePlant.current.value),
-                dateOut: convertThaiDateToISO(DateOut.current.value),
+                posiW: PositionW.current?.value || null,
+                posiH: PositionH.current?.value || null,
+                qty: Qty.current?.value || null,
+                area: Area.current?.value || null,
+                unit: unit || null,
+                dateOut: DateOut.current?.value ? convertThaiDateToISO(DateOut.current.value) : null,
+                system: System.current?.value || null,
+                water: Water.current?.value || null,
+                waterStep: WaterStep.current?.value || null,
+                history: History.current?.value || null,
+                insect: Insect.current?.value || null,
+                qtyInsect: QtyInsect.current?.value || null,
+                seft: Seft.current?.value || null,
+                expectedYield: expected_yield.current?.value || null,
+                defaultYield: default_yield.current?.value || null,
             };
 
             console.log("SEND DATA =>", data);
@@ -660,13 +676,13 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>พื้นที่</span>
-                                                    <select onChange={Change} ref={System} defaultValue="">
+                                                    <select onChange={Change} defaultValue="">
                                                         <option disabled value="">เลือก</option>
                                                         <option value="โรงเรือน">โรงเรือน</option>
                                                         <option value="ไร่">ไร่</option>
                                                         <option value="ตารางเมตร">ตารางเมตร</option>
                                                     </select>
-                                                    <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder="ตัวเลข" />
+                                                    <input style={{ width: "calc(100% - 16px)" }} onInput={ChangeCHK} ref={Area} type="number" placeholder={placeholder || "ตัวเลข"} />
 
                                                 </label>
                                             </div>
@@ -681,7 +697,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>ปริมาณผลผลิต <br /> ที่คาดว่าจะได้รับ</span>
-                                                    <input onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
+                                                    <input onInput={ChangeCHK} ref={expected_yield} type="number" placeholder="ตัวเลข" />
                                                     กก.
                                                 </label>
                                             </div>
@@ -689,7 +705,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                                 {getHistoryPlantLoad ? <div className="block-wait" /> : <></>}
                                                 <label className="frame-textbox">
                                                     <span>ผลผลิตที่ได้จริง</span>
-                                                    <input onInput={ChangeCHK} ref={Qty} type="number" placeholder="ตัวเลข" />
+                                                    <input onInput={ChangeCHK} ref={default_yield} type="number" placeholder="ตัวเลข" />
                                                     กก.
                                                 </label>
                                             </div>
@@ -783,8 +799,9 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                                 <label className="frame-textbox">
                                                     <span>โรค/แมลงที่พบ</span>
                                                     <select onChange={ChangeCHK} ref={Insect} defaultValue="">
-                                                        {previousInsects.map((ins, i) => (
-                                                            <option selected={previousInsect === ins} key={i} value={ins}>{ins}</option>
+                                                        <option value="">เลือก</option>
+                                                        {insectsList.map((ins, idx) => (
+                                                            <option key={idx} value={ins}>{ins}</option>
                                                         ))}
                                                     </select>
                                                 </label>

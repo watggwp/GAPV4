@@ -7,6 +7,7 @@
     height: 100%;
     width: 100%;
     overflow: hidden;
+    overflow-x: hidden;
 
     // .bt-action {
     //     display: flex;
@@ -54,6 +55,24 @@
         transition: 0.5s transform;
         z-index: 1;
 
+        @media (max-width: 1399px) {
+            .bt-select-option {
+                gap: 8px;
+                margin-right: 15px;
+
+                .bt-search-show,
+                .bt-export-show {
+                    width: 32px;
+                    height: 32px;
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
+                }
+            }
+        }
+
         .bt-select-option {
             display: flex;
             align-items: center;
@@ -62,6 +81,7 @@
             right: 100%;
             z-index: 1;
             gap: 10px;
+            margin-right: 20px;
 
             .bt-search-show,
             .bt-export-show {
@@ -374,8 +394,15 @@
 
     .data-list-content {
         margin-top: 15px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
 
         .body-page-content {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             padding: 45px 0px 10px 0px;
             text-align: center;
 
@@ -559,10 +586,13 @@
 
             .table-responsive {
                 width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
                 margin-top: 15px;
 
                 table {
                     width: 100%;
+                    table-layout: fixed;
                     border-collapse: collapse;
                     background-color: white;
                     border-radius: 12px;
@@ -573,11 +603,22 @@
                         background-color: #189D85;
                         color: white;
                         text-align: center;
-                        font-size: 15px;
 
                         th {
-                            padding: 14px 16px;
+                            padding: 10px 8px;
                             font-weight: 600;
+                            font-size: 14px;
+                            word-break: break-word;
+                            overflow-wrap: break-word;
+
+                            @media (max-width: 1200px) {
+                                font-size: 12px;
+                                padding: 8px 4px;
+                            }
+                            @media (max-width: 991px) {
+                                font-size: 11px;
+                                padding: 6px 3px;
+                            }
                         }
                     }
 
@@ -591,10 +632,21 @@
                         }
 
                         td {
-                            padding: 14px 16px;
+                            padding: 10px 8px !important;
                             text-align: center;
-                            font-size: 14px;
+                            font-size: 13px;
                             color: #333;
+                            word-break: break-word;
+                            overflow-wrap: break-word;
+
+                            @media (max-width: 1200px) {
+                                font-size: 12px;
+                                padding: 8px 4px !important;
+                            }
+                            @media (max-width: 991px) {
+                                font-size: 10px;
+                                padding: 6px 2px !important;
+                            }
 
                             input {
                                 text-align: center !important;
@@ -609,21 +661,39 @@
                                 width: auto !important;
                                 cursor: pointer;
                             }
+
+                            button {
+                                @media (max-width: 1200px) {
+                                    font-size: 12px !important;
+                                    padding: 4px 8px !important;
+                                }
+                                @media (max-width: 991px) {
+                                    font-size: 10px !important;
+                                    padding: 3px 6px !important;
+                                    border-radius: 12px !important;
+                                }
+                            }
+
+                            span {
+                                @media (max-width: 1200px) {
+                                    font-size: 11px !important;
+                                    padding: 3px 6px !important;
+                                }
+                                @media (max-width: 991px) {
+                                    font-size: 9px !important;
+                                    padding: 2px 4px !important;
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            @media (max-width: 1024px) {
+            @media only screen and (max-width: 900px) {
                 .table-responsive {
                     padding: 0 !important;
 
-                    table,
-                    thead,
-                    tbody,
-                    th,
-                    td,
-                    tr {
+                    table, thead, tbody, th, td, tr {
                         display: block !important;
                         width: 100% !important;
                     }
@@ -646,25 +716,22 @@
                         border: none !important;
                         border-bottom: 1px dashed #eef2f0 !important;
                         position: relative !important;
-                        padding: 12px 0 12px 50% !important;
+                        padding: 10px 16px !important;
                         text-align: right !important;
                         min-height: 48px !important;
                         display: flex !important;
                         align-items: center !important;
-                        justify-content: flex-end !important;
+                        justify-content: space-between !important;
                         box-sizing: border-box !important;
-                        font-size: 16px !important;
+                        font-size: 15px !important;
 
                         &::before {
                             content: attr(data-label);
-                            position: absolute;
-                            left: 0;
-                            width: 45%;
-                            padding-right: 10px;
-                            white-space: nowrap;
-                            text-align: left;
                             font-weight: bold;
-                            color: #555;
+                            color: #189D85 !important;
+                            text-align: left;
+                            margin-right: 15px;
+                            flex-shrink: 0;
                             font-size: 15px !important;
                         }
 

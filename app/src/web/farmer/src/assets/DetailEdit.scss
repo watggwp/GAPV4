@@ -11,13 +11,14 @@
             border-radius: 10px 20px 10px 10px;
             overflow: hidden;
             box-shadow: 0px 4px 4px rgb(174, 174, 174);
-            
+
             .close {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 top: 0;
                 right: 0;
+
                 svg {
                     width: 15vw;
                     height: 15vw;
@@ -39,18 +40,20 @@
                     justify-content: flex-start;
                     align-items: center;
                     font-family: Sans-font;
-                    
+
                     overflow-x: scroll;
                     width: 100%;
                     height: 18vw;
-                    
+
                     .menu-list {
                         display: flex;
                         justify-content: flex-start;
                         align-items: center;
+
                         span {
                             display: flex;
-                            flex-direction: column; /* ทำให้หมายเลขอยู่ด้านบน */
+                            flex-direction: column;
+                            /* ทำให้หมายเลขอยู่ด้านบน */
                             justify-content: center;
                             align-items: center;
                             position: relative;
@@ -59,11 +62,11 @@
                             width: 18vw;
                             height: 18vw;
                         }
-    
+
                         span[select=""] {
                             background-color: #DAF1EE;
                         }
-    
+
                         span[select=""]::after {
                             content: url('data:image/svg+xml,%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2070%2070%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%200.5C1%2054.9%2046.6667%2068.8333%2069.5%2069H1V0.5Z%22%20fill%3D%22%23DAF1EE%22%20stroke%3D%22%23DAF1EE%22%2F%3E%3C%2Fsvg%3E');
                             position: absolute;
@@ -74,7 +77,7 @@
                             overflow: hidden;
                             z-index: 1;
                         }
-    
+
                         span[select=""]::before {
                             content: url('data:image/svg+xml,%3Csvg%20width%3D%22100%25%22%20height%3D%22100%25%22%20viewBox%3D%220%200%2070%2070%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%200.5C1%2054.9%2046.6667%2068.8333%2069.5%2069H1V0.5Z%22%20fill%3D%22%23DAF1EE%22%20stroke%3D%22%23DAF1EE%22%2F%3E%3C%2Fsvg%3E');
                             position: absolute;
@@ -93,11 +96,13 @@
             .body-edit {
                 width: 100%;
                 background-color: #DAF1EE;
+
                 .head-detail-edit {
                     margin: 2vw;
                     padding: 2vw 0px;
                     border-radius: 10px;
                     background-color: white;
+
                     .row-detail {
                         display: flex;
                         align-items: center;
@@ -141,6 +146,7 @@
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
+
                         span {
                             width: 100%;
                         }
@@ -157,20 +163,20 @@
                 .detail {
                     width: 100%;
                     background-color: #DAF1EE;
-    
+
                     .detail-body {
                         margin: 2vw;
                         padding: 2vw 0px;
                         border-radius: 10px;
                         background-color: white;
-    
+
                         .line {
                             width: 100%;
                             height: 1vw;
                             margin: 1vw 0px;
                             background-color: #DAF1EE;
                         }
-    
+
                         .head {
                             display: flex;
                             position: relative;
@@ -181,64 +187,68 @@
                             font-family: Sans-font;
                             width: 100%;
                             height: 10%;
+
                             .advice {
                                 font-size: 4vw;
                                 font-weight: 500;
-    
+
                                 .row-advice {
                                     display: flex;
                                     justify-content: flex-start;
                                     align-items: center;
-    
+
                                     .dot {
                                         width: 13px;
                                         height: 13px;
                                         border-radius: 50%;
                                         margin-right: 2px;
                                     }
-    
+
                                     .dot.old {
-                                        background-color: green;
-                                    }
-    
-                                    .dot.new {
                                         background-color: red;
+                                    }
+
+                                    .dot.new {
+                                        background-color: green;
                                     }
                                 }
                             }
+
                             justify-content: space-evenly;
                             font-size: 5vw;
                         }
-    
+
                         .body {
                             overflow-y: scroll;
                             height: 40vw;
+
                             .list-detail {
                                 display: flex;
                                 flex-direction: column;
                                 font-size: 4.5vw;
                                 font-family: Sans-font;
                                 padding: 0px 2vw;
+
                                 .subject {
                                     font-weight: 900;
                                 }
-    
+
                                 .content {
                                     display: flex;
                                     justify-content: space-evenly;
-    
+
                                     .old {
                                         padding: 1vw 2vw;
                                         width: 45%;
                                         border-radius: 10px;
-                                        border: 1.5px solid green;
+                                        border: 1.5px solid red;
                                     }
-    
+
                                     .new {
                                         padding: 1vw 2vw;
                                         width: 45%;
                                         border-radius: 10px;
-                                        border: 1.5px solid red;
+                                        border: 1.5px solid green;
                                     }
 
                                     input {

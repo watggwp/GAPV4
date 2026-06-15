@@ -6,7 +6,7 @@ import {
   DatePickerThaiApp,
   Loading
 } from "../../../../../assets/js/module";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useGreenhouse } from "..";
 import { Autocomplete, TextField } from "@mui/material";
 import RoyalGapFrontendUtil from "../../../../../assets/core/RoyalGapUtil";
@@ -20,9 +20,14 @@ export default function TemplatePopup({
     RefPop,
     type_path,
     ReloadData,
-    editDefaultField
+    editDefaultField,
+    greenhouse_id: propGreenhouseId,
+    gap_id: propGapId,
 }) {
-    const { greenhouse_id , gap_id } = useParams()
+    const params = useParams()
+    const greenhouse_id = propGreenhouseId || params.greenhouse_id
+    const gap_id = propGapId || params.gap_id
+    const navigator = useNavigate()
     const { setCurrentPage } = useGreenhouse()
 
     const endpointManage = useRef(
@@ -332,10 +337,14 @@ export default function TemplatePopup({
         const result = await clientMo.post(endpointManage.current , requestData)
         if (await CloseAccount(result, setCurrentPage)) {
             cancel();
-            ReloadData();
+            if (propGreenhouseId && propGapId) {
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/${type_path}`);
+            } else {
+                ReloadData();
+            }
             setWait(false);
         }
-    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume, navigator, propGreenhouseId, propGapId])
 
     const onConfirmChemical = useCallback(async () => {
         // if (!validateInputs()) {
@@ -384,10 +393,14 @@ export default function TemplatePopup({
         const result = await clientMo.post(endpointManage.current, requestData);
         if (await CloseAccount(result, setCurrentPage)) {
             cancel();
-            ReloadData();
+            if (propGreenhouseId && propGapId) {
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/${type_path}`);
+            } else {
+                ReloadData();
+            }
             setWait(false);
         }
-    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume, navigator, propGreenhouseId, propGapId])
 
     const onChangeHowUse = useCallback(() => {
         primaryName && secondaryName && setHowUse()

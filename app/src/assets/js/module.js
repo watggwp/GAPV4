@@ -13,44 +13,44 @@ import RoyalGapFrontendUtil from "../core/RoyalGapUtil";
 import CorrectIconGreen from "../icon/correct-icon-green.svg"
 import CorrectIconError from "../icon/error-cross-svgrepo-com.svg"
 
-const MapsJSX = ({lat , lng , w , h}) => {
-    const [latitude , setLag] = useState(0)
-    const [longtitude , setLng] = useState(0)
+const MapsJSX = ({ lat, lng, w, h }) => {
+    const [latitude, setLag] = useState(0)
+    const [longtitude, setLng] = useState(0)
 
-    useEffect(()=>{
+    useEffect(() => {
         setLag(lat)
         setLng(lng)
-    } , [lat , lng])
-    return(
-        <iframe src={`https://www.google.com/maps/embed/v1/place?key=${process.env.REACT_APP_KEY_MAP}&q=${latitude},${longtitude}&zoom=18&maptype=satellite`} 
-           frameBorder={0} width={w} height={h} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+    }, [lat, lng])
+    return (
+        <iframe src={`https://www.google.com/maps/embed/v1/place?key=${process.env.REACT_APP_KEY_MAP}&q=${latitude},${longtitude}&zoom=18&maptype=satellite`}
+            frameBorder={0} width={w} height={h} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
         ></iframe>
     )
 }
 
-const GetLinkUrlOfSearch = async (valueLocation , auth) => {
-    const Link = valueLocation.split(" ").filter(map=>map.indexOf("maps") >= 0)
-    if(Link.length != 0) {
+const GetLinkUrlOfSearch = async (valueLocation, auth) => {
+    const Link = valueLocation.split(" ").filter(map => map.indexOf("maps") >= 0)
+    if (Link.length != 0) {
         try {
-            const fecthOfGoogle = await clientMo.postForm(`/api/${auth}/google/maps/get` , {link : Link[0]})
-            
+            const fecthOfGoogle = await clientMo.postForm(`/api/${auth}/google/maps/get`, { link: Link[0] })
+
             try {
-                const result = await new Promise((resole , reject)=>{
+                const result = await new Promise((resole, reject) => {
                     const DataJson = String(JSON.parse(fecthOfGoogle).PathMap)
 
-                    if(DataJson.lastIndexOf("!8m2!3d") >= 0 && DataJson.lastIndexOf("!4d") >= 0) {
-                        const DataLocation = DataJson.slice(DataJson.lastIndexOf("!8m2!3d") + "!8m2!3d".length , DataJson.indexOf("?entry")).replaceAll("!4d" , "!")
-                        resole(DataLocation.split("!").slice(0 , 2))
-                    } else if(DataJson.indexOf("/maps/search/") >= 0) {
-                        const DataLocation = DataJson.slice(DataJson.indexOf("/maps/search/") + "/maps/search/".length , DataJson.indexOf("?entry")).replaceAll("+" , "")
+                    if (DataJson.lastIndexOf("!8m2!3d") >= 0 && DataJson.lastIndexOf("!4d") >= 0) {
+                        const DataLocation = DataJson.slice(DataJson.lastIndexOf("!8m2!3d") + "!8m2!3d".length, DataJson.indexOf("?entry")).replaceAll("!4d", "!")
+                        resole(DataLocation.split("!").slice(0, 2))
+                    } else if (DataJson.indexOf("/maps/search/") >= 0) {
+                        const DataLocation = DataJson.slice(DataJson.indexOf("/maps/search/") + "/maps/search/".length, DataJson.indexOf("?entry")).replaceAll("+", "")
                         resole(DataLocation.split(","))
                     } else {
                         const DataFecth = String(JSON.parse(fecthOfGoogle).DataMaps)
                         const MapsStart = DataFecth.slice(DataFecth.lastIndexOf("[null,null,null,null,[") + 22)
-                        const MapsData = MapsStart.slice(0 , MapsStart.indexOf("]") + 1)
-                        if(MapsData.indexOf("lore-rec") >= 0) {
+                        const MapsData = MapsStart.slice(0, MapsStart.indexOf("]") + 1)
+                        if (MapsData.indexOf("lore-rec") >= 0) {
                             const MapsReStart = DataFecth.slice(DataFecth.lastIndexOf(",null,null,null,null,null,[null,null,") + 37)
-                            const MapsReData = MapsReStart.slice(0 , MapsReStart.indexOf("]"))
+                            const MapsReData = MapsReStart.slice(0, MapsReStart.indexOf("]"))
                             const newLocation = eval(`[${MapsReData}]`)
                             newLocation.push(0)
                             resole(newLocation)
@@ -58,19 +58,19 @@ const GetLinkUrlOfSearch = async (valueLocation , auth) => {
                     }
                 })
                 return result
-            } catch(e) {
+            } catch (e) {
                 return []
             }
-        } catch(e) {}
+        } catch (e) { }
     } else {
         return valueLocation
     }
 }
 
-const DayJSX = ({REF , DATE , TYPE = "full" , TEXT = "" , className = ""}) => {
-    const [DateOut , setDATE] = useState("")
-    const DayWeek = [ 'วันอาทิตย์','วันจันทร์','วันอังคาร','วันพุธ','วันพฤหัสบดี','วันศุกร์','วันเสาร์'] 
-    const Mount = [ "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"] 
+const DayJSX = ({ REF, DATE, TYPE = "full", TEXT = "", className = "" }) => {
+    const [DateOut, setDATE] = useState("")
+    const DayWeek = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์']
+    const Mount = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
 
     useEffect(() => {
         if (!DATE) {
@@ -89,7 +89,7 @@ const DayJSX = ({REF , DATE , TYPE = "full" , TEXT = "" , className = ""}) => {
                 setDATE("");
                 return;
             }
-            if(TYPE === "full") {
+            if (TYPE === "full") {
                 setDATE(
                     `${DayWeek[DateIn.getDay()]} ที่ ${DateIn.getDate()} ${Mount[DateIn.getMonth()]} ปี พ.ศ. ${DateIn.getFullYear() + 543}`
                 );
@@ -129,25 +129,25 @@ const DayJSX = ({REF , DATE , TYPE = "full" , TEXT = "" , className = ""}) => {
     return (<input className={className} date_dom="" ref={REF} readOnly value={DateOut}></input>)
 }
 
-const TimeJSX = ({DATE , MAX = true}) => {
-    const [Time , setTime] = useState("")
+const TimeJSX = ({ DATE, MAX = true }) => {
+    const [Time, setTime] = useState("")
 
-    useEffect(()=>{
+    useEffect(() => {
         const clientTimezoneOffset = new Date().getTimezoneOffset();
         const TimeIn = new Date(new Date(DATE) - (clientTimezoneOffset * 60000));
-        
-        if(MAX) setTime(`เวลา ${TimeIn.getUTCHours()} นาฬิกา ${TimeIn.getMinutes()} นาที ${TimeIn.getSeconds()} วินาที`)
-        else setTime(`เวลา ${TimeIn.getUTCHours()}:${TimeIn.getMinutes() >= 10 ? TimeIn.getMinutes() : `0${TimeIn.getMinutes()}`}`)
-    } , [])
 
-    return(<input readOnly value={Time}></input>)
+        if (MAX) setTime(`เวลา ${TimeIn.getUTCHours()} นาฬิกา ${TimeIn.getMinutes()} นาที ${TimeIn.getSeconds()} วินาที`)
+        else setTime(`เวลา ${TimeIn.getUTCHours()}:${TimeIn.getMinutes() >= 10 ? TimeIn.getMinutes() : `0${TimeIn.getMinutes()}`}`)
+    }, [])
+
+    return (<input readOnly value={Time}></input>)
 }
 
-const TimeDiff = ({DATE , DivInput = true , textPresent = ""}) => {
-    const [Time , setTime] = useState("")
-    const Mount = [ "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"]
+const TimeDiff = ({ DATE, DivInput = true, textPresent = "" }) => {
+    const [Time, setTime] = useState("")
+    const Mount = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
 
-    useEffect(()=>{
+    useEffect(() => {
         // const clientTimezoneOffset = new Date().getTimezoneOffset();
         // const TimeIn = new Date(new Date(DATE) - (clientTimezoneOffset * 60000));
         const TimeIn = new Date(DATE)
@@ -155,54 +155,54 @@ const TimeDiff = ({DATE , DivInput = true , textPresent = ""}) => {
         const DiffTime = (NowTime - TimeIn.getTime())
         // console.log(TimeIn , new Date())
         const NewTime = parseInt(DiffTime / (1000)) < 60 ? `${parseInt(DiffTime / (1000))} วินาทีที่แล้ว` :
-                        parseInt(DiffTime / (1000 * 60)) < 60 ? `${parseInt(DiffTime / (1000 * 60))} นาทีที่แล้ว` :
-                        parseInt(DiffTime / (1000 * 60 * 60)) < 24 ? `${parseInt(DiffTime / (1000 * 60 * 60))} ชั่วโมงที่แล้ว` :
-                        parseInt(DiffTime / (1000 * 60 * 60 * 24)) < 3 ? `${parseInt(DiffTime / (1000 * 60 * 60 * 24))} วันที่แล้ว` :
+            parseInt(DiffTime / (1000 * 60)) < 60 ? `${parseInt(DiffTime / (1000 * 60))} นาทีที่แล้ว` :
+                parseInt(DiffTime / (1000 * 60 * 60)) < 24 ? `${parseInt(DiffTime / (1000 * 60 * 60))} ชั่วโมงที่แล้ว` :
+                    parseInt(DiffTime / (1000 * 60 * 60 * 24)) < 3 ? `${parseInt(DiffTime / (1000 * 60 * 60 * 24))} วันที่แล้ว` :
                         `วันที่ ${TimeIn.getDate()}-${Mount[TimeIn.getMonth()]}-${TimeIn.getFullYear()}`
         setTime(textPresent + NewTime)
-    } , [])
+    }, [])
 
-    return(DivInput ? <input readOnly value={Time}></input> : Time)
+    return (DivInput ? <input readOnly value={Time}></input> : Time)
 }
 
-const ClosePopUp = (e , id , stateChange , back=false) => {
-    if(e.target.id === id) {
+const ClosePopUp = (e, id, stateChange, back = false) => {
+    if (e.target.id === id) {
         document.getElementById(id).removeAttribute('show')
         stateChange()
     }
 
-    if(e.target.id === id && back) {
+    if (e.target.id === id && back) {
         window.history.back()
     }
 }
 
-const Socket = (eventSc , message) => {
+const Socket = (eventSc, message) => {
     const socket = new WebSocket(`ws://${window.location.href}:3000`);
 }
 
 const useLiff = (idLiff) => {
     const Liff = liff
-    const init = Liff.init({liffId:idLiff})
-    return [init , Liff];
+    const init = Liff.init({ liffId: idLiff })
+    return [init, Liff];
 }
 
 const Camera = (props) => { // ยังไม่เสร็จ
-    const [StatusCamera , setStatus] = useState(false)
-    const [BodyCamera , setBody] = useState(<></>)
+    const [StatusCamera, setStatus] = useState(false)
+    const [BodyCamera, setBody] = useState(<></>)
     const ContentCamera = useRef()
 
-    useEffect(()=>{
-        props.control.current.addEventListener('click' , CameraOnOff)
+    useEffect(() => {
+        props.control.current.addEventListener('click', CameraOnOff)
         console.log(props.img)
         return () => {
-            props.control.current.removeEventListener('click' , CameraOnOff)
+            props.control.current.removeEventListener('click', CameraOnOff)
         }
-    } , [])
+    }, [])
 
     const CameraOnOff = () => {
-        if(!StatusCamera) {
-            ContentCamera.current.setAttribute("show" , "")
-            setBody(<CameraOpen/>)
+        if (!StatusCamera) {
+            ContentCamera.current.setAttribute("show", "")
+            setBody(<CameraOpen />)
             setStatus(true)
         } else {
             ContentCamera.current.removeAttribute("show")
@@ -216,7 +216,7 @@ const Camera = (props) => { // ยังไม่เสร็จ
         let Stream = null
         const ObNavigor = navigator.mediaDevices
 
-        useEffect(()=>{
+        useEffect(() => {
             OpenCamera()
             return () => {
                 StopCamera()
@@ -225,22 +225,22 @@ const Camera = (props) => { // ยังไม่เสร็จ
 
         const OpenCamera = () => {
             ObNavigor.getUserMedia({
-                video:{
-                    width:{ideal: 260 },
-                    height: {ideal: 260}
+                video: {
+                    width: { ideal: 260 },
+                    height: { ideal: 260 }
                 },
-                audio:false
-            }).then((stream)=>{
+                audio: false
+            }).then((stream) => {
                 Stream = stream //set stream video
                 PreviewCamera.current.srcObject = Stream //add Object stream
                 stream = null //set stream off
-            }).catch((err)=>{
+            }).catch((err) => {
                 alert(err)
             })
         }
 
         const StopCamera = () => {
-            if(Stream) {
+            if (Stream) {
                 Stream.getTracks().forEach(track => {
                     track.stop();
                 })
@@ -248,7 +248,7 @@ const Camera = (props) => { // ยังไม่เสร็จ
             }
         }
 
-        return(
+        return (
             <section className="frame-camera">
                 <canvas id="result-camera-capture"></canvas>
                 <video ref={PreviewCamera} autoPlay></video>
@@ -256,7 +256,7 @@ const Camera = (props) => { // ยังไม่เสร็จ
         )
     }
 
-    return(
+    return (
         <div ref={ContentCamera} className="content-camera" onClick={CameraOnOff}>
             {BodyCamera}
             <button>CAPTURE</button>
@@ -264,24 +264,24 @@ const Camera = (props) => { // ยังไม่เสร็จ
     )
 }
 
-const ResizeImg = (file , MaxSize) => {
-    return new Promise((resole , reject)=>{
+const ResizeImg = (file, MaxSize) => {
+    return new Promise((resole, reject) => {
         const image = new Image();
 
         image.onload = function () {
             let width = image.width;
             let height = image.height;
-            
-            if(width > MaxSize || height > MaxSize) {
-                if(width < height) {
+
+            if (width > MaxSize || height > MaxSize) {
+                if (width < height) {
                     height = (MaxSize / width) * height;
                     width = MaxSize;
-                } else if(width > height) {
+                } else if (width > height) {
                     width = (MaxSize / height) * width
                     height = MaxSize
                 }
             }
-            
+
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
@@ -298,28 +298,28 @@ const ResizeImg = (file , MaxSize) => {
     })
 }
 
-const OpenImageMax = ({img , Ref , setPopup}) => {
-    const [getRatio , setRatio] = useState("")
+const OpenImageMax = ({ img, Ref, setPopup }) => {
+    const [getRatio, setRatio] = useState("")
     const RefImg = useRef()
 
-    useEffect(()=>{
-        window.addEventListener("resize" , setSizeImage)
+    useEffect(() => {
+        window.addEventListener("resize", setSizeImage)
 
         Ref.current.style.opacity = "1"
         Ref.current.style.visibility = "visible"
 
-        return(()=>{
-            window.removeEventListener("resize" , setSizeImage)
+        return (() => {
+            window.removeEventListener("resize", setSizeImage)
         })
-    } , [])
+    }, [])
 
     const close = () => {
         Ref.current.style.opacity = "0"
         Ref.current.style.visibility = "hidden"
 
-        setTimeout(()=>{
+        setTimeout(() => {
             setPopup(<></>)
-        } , 500)
+        }, 500)
     }
 
     // ปรับขนาดรูปตามอัตราส่วนจอ
@@ -331,7 +331,7 @@ const OpenImageMax = ({img , Ref , setPopup}) => {
         } else if (RefImg.current.clientWidth > window.innerWidth && RefImg.current.clientHeight > window.innerHeight) {
             const width = RefImg.current.clientWidth - window.innerWidth
             const height = RefImg.current.clientHeight - window.innerHeight
-            if(width > height) {
+            if (width > height) {
                 setRatio("w")
             } else {
                 setRatio("h")
@@ -344,10 +344,10 @@ const OpenImageMax = ({img , Ref , setPopup}) => {
             <div className="option-on-image">
                 <div onClick={close} className="close-image">
                     <svg viewBox="0 0 30 30" >
-                        <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
+                        <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z" />
                     </svg>
                 </div>
-                <DownLoadImage className={`download-image-on-msg`} stroke="#127261" fileName={new Date().getTime().toString()} DataImageBase64={img}/>
+                <DownLoadImage className={`download-image-on-msg`} stroke="#127261" fileName={new Date().getTime().toString()} DataImageBase64={img} />
             </div>
             <div onLoad={setSizeImage} className={`img ${getRatio}`} ref={RefImg}>
                 <img src={img}></img>
@@ -356,34 +356,34 @@ const OpenImageMax = ({img , Ref , setPopup}) => {
     )
 }
 
-const Loading = ({size , MaxSize = 0 , border , color="green" , animetion = false}) => {
+const Loading = ({ size, MaxSize = 0, border, color = "green", animetion = false }) => {
     return (
         <div className="loading-dom-module" style={{
-            display : "flex",
-            justifyContent : "center",
-            alignContent : "center",
-            width : isNaN(size) ? size : `${size}px`,
-            height : isNaN(size) ? size : `${size}px`,
-            maxWidth : MaxSize ? `${MaxSize}px` : "",
-            maxHeight : MaxSize ? `${MaxSize}px` : "",
+            display: "flex",
+            justifyContent: "center",
+            alignContent: "center",
+            width: isNaN(size) ? size : `${size}px`,
+            height: isNaN(size) ? size : `${size}px`,
+            maxWidth: MaxSize ? `${MaxSize}px` : "",
+            maxHeight: MaxSize ? `${MaxSize}px` : "",
             // overflow : "hidden"
         }}>
             <div className="curcle"
                 style={{
                     border: `${isNaN(border) ? border : `${border}px`} solid ${color}`,
-                    borderLeft : `${isNaN(border) ? border : `${border}px`} solid transparent`,
-                    borderRadius : "50%",
-                    width : "98%",
-                    height : "98%",
-                    animation : animetion ? "rotate-curcle 2s cubic-bezier(0, 0, 0, 0) 0s infinite" : "none"
+                    borderLeft: `${isNaN(border) ? border : `${border}px`} solid transparent`,
+                    borderRadius: "50%",
+                    width: "98%",
+                    height: "98%",
+                    animation: animetion ? "rotate-curcle 2s cubic-bezier(0, 0, 0, 0) 0s infinite" : "none"
                 }}
             ></div>
         </div>
     )
 }
 
-const ButtonMenu = ({type , textRow1 , textRow2 , action}) => {
-    return(
+const ButtonMenu = ({ type, textRow1, textRow2, action }) => {
+    return (
         <div onClick={action} className={`bt-menu-frame ${type}`}>
             <img src={RoyalGapFrontendUtil.withSubpath(`/iconBt/icon-bt-${type}.png`)}></img>
             <div className="text-one">{textRow1}</div>
@@ -395,46 +395,46 @@ const ButtonMenu = ({type , textRow1 , textRow2 , action}) => {
     )
 }
 
-const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , sizeLoad , BorderLoad , color , action = null}) => {
+const ReportAction = ({ Open, Text, Status, setText, setStatus, setOpen, sizeLoad, BorderLoad, color, action = null }) => {
     const Control = useRef()
     let Time = 0
 
-    useEffect(()=>{
+    useEffect(() => {
         clearTimeout(Time)
-    } , [Open])
+    }, [Open])
 
     const confirm = () => {
-        if(Status != 0) {
+        if (Status != 0) {
             setOpen(0)
-            Time = setTimeout(()=>{
+            Time = setTimeout(() => {
                 setText("")
                 setStatus(0)
-            } , 500)
+            }, 500)
         }
     }
 
     return (
         <report-dom ref={Control} style={{
-            display: "flex" ,
-            justifyContent : "center",
-            alignItems:"center",
-            flexDirection : "column" ,
-            zIndex : Open ? "9999" : -10 ,
-            width : "100%",
-            height : "100%",
-            position : "absolute" ,
-            backgroundColor : "transparent" ,
-            backdropFilter : "blur(8px)" ,
-            opacity : Open ? "1" : "0" ,
-            visibility : Open ? "visible" : "hidden",
-            top : 0,
-            transition : "0.5s opacity , 0.5s visibility , 0.5s z-index"
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            zIndex: Open ? "9999" : -10,
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            backgroundColor: "transparent",
+            backdropFilter: "blur(8px)",
+            opacity: Open ? "1" : "0",
+            visibility: Open ? "visible" : "hidden",
+            top: 0,
+            transition: "0.5s opacity , 0.5s visibility , 0.5s z-index"
         }}>
             <body-report style={{
-                display: "flex" ,
-                justifyContent : "center",
-                alignItems:"center",
-                flexDirection : "column" ,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
                 backgroundColor: "transparent",
                 // boxShadow : "0px 0px 15px green",
             }}>
@@ -444,28 +444,28 @@ const ReportAction = ({Open , Text , Status , setText , setStatus , setOpen , si
                     }
                 </text-report>
                 <status-report style={{
-                    display : "flex",
-                    justifyContent : "center",
-                    alignItems:"center",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
                 }}>
                     {
-                        Boolean(Status) && <StatusReport status={Status} sizeLoad={sizeLoad}/>
+                        Boolean(Status) && <StatusReport status={Status} sizeLoad={sizeLoad} />
                     }
                     <div style={{
-                        opacity : !Status ? 1 : "0",
-                        visibility : !Status ? "visible" : "hidden",
-                        transition : "0.5s opacity , 0.5s visibility"
+                        opacity: !Status ? 1 : "0",
+                        visibility: !Status ? "visible" : "hidden",
+                        transition: "0.5s opacity , 0.5s visibility"
                     }}>
-                        <Loading size={sizeLoad} border={BorderLoad} color={color} animetion={Open}/>
+                        <Loading size={sizeLoad} border={BorderLoad} color={color} animetion={Open} />
                     </div>
                 </status-report>
                 <box-button-report>
                     <button
                         style={{
-                            border : "0",
-                            opacity : (Status === 0) ? 0 : 1,
-                            visibility : (Status === 0) ? "hidden" : "visible",
-                            transition : "0.5s opacity , 0.5s visibility"
+                            border: "0",
+                            opacity: (Status === 0) ? 0 : 1,
+                            visibility: (Status === 0) ? "hidden" : "visible",
+                            transition: "0.5s opacity , 0.5s visibility"
                         }}
                         onClick={action ?? confirm}>ตกลง</button>
                 </box-button-report>
@@ -478,63 +478,63 @@ function StatusReport({
     status,
     sizeLoad
 }) {
-    const [ open , setOpen ] = useState(false)
+    const [open, setOpen] = useState(false)
 
     useEffect(() => {
         setOpen(true)
-    } , [])
-    return(
+    }, [])
+    return (
         status === 1 ?
             <img style={{
-                position : "absolute",
-                opacity : open ? 1 : "0",
-                width : sizeLoad ,
-                visibility : open ? "visible" : "hidden",
-                transition : "0.5s opacity , 0.5s visibility",
-                backgroundColor : "transparent",
-                backdropFilter : "blur(8px)",
-                borderRadius : "50%"
-            }} src={CorrectIconGreen}></img> 
+                position: "absolute",
+                opacity: open ? 1 : "0",
+                width: sizeLoad,
+                visibility: open ? "visible" : "hidden",
+                transition: "0.5s opacity , 0.5s visibility",
+                backgroundColor: "transparent",
+                backdropFilter: "blur(8px)",
+                borderRadius: "50%"
+            }} src={CorrectIconGreen}></img>
             :
             <img style={{
-                position : "absolute",
-                width : sizeLoad ,
-                opacity : open ? 1 : "0",
-                visibility : open ? "visible" : "hidden",
-                transition : "0.5s opacity , 0.5s visibility"
+                position: "absolute",
+                width: sizeLoad,
+                opacity: open ? 1 : "0",
+                visibility: open ? "visible" : "hidden",
+                transition: "0.5s opacity , 0.5s visibility"
             }} src={CorrectIconError} ></img>
     )
-} 
+}
 
-const PopupDom = ({Ref , Body , zIndex , positionEdit = false , Background = "transparent"}) => {
+const PopupDom = ({ Ref, Body, zIndex, positionEdit = false, Background = "transparent" }) => {
     return (
         <section ref={Ref} style={{
-            display : "flex",
-            justifyContent : positionEdit ? "normal" : "center" ,
-            alignItems : positionEdit ? "normal" : "center" ,
-            backgroundColor : Background ,
-            backdropFilter : "blur(8px)",
-            position : "fixed" ,
-            width : "100vw",
-            height : "100vh",
-            top : "0" ,
-            left : "0" ,
-            zIndex : zIndex ,
-            opacity : "0" ,
-            visibility : "hidden" ,
-            transition : "0.5s opacity , 0.5s visibility"
+            display: "flex",
+            justifyContent: positionEdit ? "normal" : "center",
+            alignItems: positionEdit ? "normal" : "center",
+            backgroundColor: Background,
+            backdropFilter: "blur(8px)",
+            position: "fixed",
+            width: "100vw",
+            height: "100vh",
+            top: "0",
+            left: "0",
+            zIndex: zIndex,
+            opacity: "0",
+            visibility: "hidden",
+            transition: "0.5s opacity , 0.5s visibility"
         }}>
             {Body}
         </section>
     )
 }
 
-const LoadOtherDom = ({Fetch , count , setCount , Limit , style = {
-    backgroundColor : "",
-    fontSize : "18px",
-    sizeLoading : "31.2px",
-}}) => {
-    const [Load , setLoad] = useState(true)
+const LoadOtherDom = ({ Fetch, count, setCount, Limit, style = {
+    backgroundColor: "",
+    fontSize: "18px",
+    sizeLoading: "31.2px",
+} }) => {
+    const [Load, setLoad] = useState(true)
     const Other = async () => {
         const newCount = count + Limit
         setLoad(false)
@@ -545,33 +545,33 @@ const LoadOtherDom = ({Fetch , count , setCount , Limit , style = {
 
     return (
         <div style={{
-            display : "flex",
-            justifyContent : "center",
-            alignItems : "center",
-            width : "100%",
-            marginTop : "5px"
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            marginTop: "5px"
         }}>
-            {Load ? 
+            {Load ?
                 <button style={{
-                    backgroundColor : style.backgroundColor,
-                    outline : 0,
-                    border : 0,
-                    borderRadius : "15px",
-                    color : "white",
-                    fontFamily : "Sans-font",
-                    fontWeight : "900",
-                    fontSize : style.fontSize ? style.fontSize : "18px",
-                    padding : "2px 15px"
+                    backgroundColor: style.backgroundColor,
+                    outline: 0,
+                    border: 0,
+                    borderRadius: "15px",
+                    color: "white",
+                    fontFamily: "Sans-font",
+                    fontWeight: "900",
+                    fontSize: style.fontSize ? style.fontSize : "18px",
+                    padding: "2px 15px"
                 }} onClick={Other}>โหลดเพิ่มเติม</button>
-                : 
+                :
                 <div style={{
-                    display : "flex",
-                    justifyContent : "center",
-                    alignItems : "center",
-                    width : "100%",
-                    overflow : "hidden"
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "100%",
+                    overflow: "hidden"
                 }}>
-                    <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true}/>
+                    <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true} />
                 </div>
 
             }
@@ -579,40 +579,40 @@ const LoadOtherDom = ({Fetch , count , setCount , Limit , style = {
     )
 }
 
-const LoadOtherOffset = ({Fetch , Data , setRow , Limit , style = {
-    backgroundColor : "",
-    fontSize : "18px",
-    sizeLoading : "31.2px",
-}}) => {
-    const [Load , setLoad] = useState(true)
+const LoadOtherOffset = ({ Fetch, Data, setRow, Limit, style = {
+    backgroundColor: "",
+    fontSize: "18px",
+    sizeLoading: "31.2px",
+} }) => {
+    const [Load, setLoad] = useState(true)
     const Other = async () => {
         setLoad(false)
-        const Row = await Fetch(Data.length , Limit)
-        if(Row.length !== 0 && setRow) setRow(Row.length)
+        const Row = await Fetch(Data.length, Limit)
+        if (Row.length !== 0 && setRow) setRow(Row.length)
         setLoad(true)
     }
 
     return (
         <div style={{
-            display : "flex",
-            justifyContent : "center",
-            alignItems : "center",
-            width : "100%",
-            marginTop : "5px"
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            marginTop: "5px"
         }}>
-            {Load ? 
+            {Load ?
                 <button style={{
-                    backgroundColor : style.backgroundColor,
-                    outline : 0,
-                    border : 0,
-                    borderRadius : "15px",
-                    color : "white",
-                    fontFamily : "Sans-font",
-                    fontWeight : "900",
-                    fontSize : style.fontSize ? style.fontSize : "18px",
-                    padding : "2px 15px"
+                    backgroundColor: style.backgroundColor,
+                    outline: 0,
+                    border: 0,
+                    borderRadius: "15px",
+                    color: "white",
+                    fontFamily: "Sans-font",
+                    fontWeight: "900",
+                    fontSize: style.fontSize ? style.fontSize : "18px",
+                    padding: "2px 15px"
                 }} onClick={Other}>โหลดเพิ่มเติม</button>
-                : <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true}/>
+                : <Loading size={style.sizeLoading ? style.sizeLoading : "31.2px"} border={7} color={style.backgroundColor} animetion={true} />
 
             }
         </div>
@@ -621,12 +621,12 @@ const LoadOtherOffset = ({Fetch , Data , setRow , Limit , style = {
 
 const PatternCheck = (value) => {
     return ({
-        fullname : /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(value),
-        thaiName : /^[ก-ฮะ-์]+$/.test(value)
+        fullname: /^[ก-ฮะ-์]+\s[ก-ฮะ-์]+$/.test(value),
+        thaiName: /^[ก-ฮะ-์]+$/.test(value)
     })
 }
 
-const DownLoadImage = ({className , stroke = "#000000" , fileName , DataImageBase64}) => {
+const DownLoadImage = ({ className, stroke = "#000000", fileName, DataImageBase64 }) => {
     const aTag = useRef()
 
     const DownLoad = () => {
@@ -640,211 +640,232 @@ const DownLoadImage = ({className , stroke = "#000000" , fileName , DataImageBas
         aTag.current.href = img.src
         aTag.current.download = `${fileName}_${date}.jpg`
         aTag.current.click()
-        img.removeEventListener("load" , ()=>Onload(img))
+        img.removeEventListener("load", () => Onload(img))
     }
 
     return (
         <>
-        <a className={className} title="ดาวโหลดรูปภาพ" onClick={DownLoad}>
-            <svg viewBox="0 0 24 24" fill="white">
-                <path d="M5.25589 16C3.8899 15.0291 3 13.4422 3 11.6493C3 9.20008 4.8 6.9375 7.5 6.5C8.34694 4.48637 10.3514 3 12.6893 3C15.684 3 18.1317 5.32251 18.3 8.25C19.8893 8.94488 21 10.6503 21 12.4969C21 14.0582 20.206 15.4339 19 16.2417M12 21V11M12 21L9 18M12 21L15 18" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-        </a>
-        <a hidden ref={aTag}></a>
+            <a className={className} title="ดาวโหลดรูปภาพ" onClick={DownLoad}>
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M5.25589 16C3.8899 15.0291 3 13.4422 3 11.6493C3 9.20008 4.8 6.9375 7.5 6.5C8.34694 4.48637 10.3514 3 12.6893 3C15.684 3 18.1317 5.32251 18.3 8.25C19.8893 8.94488 21 10.6503 21 12.4969C21 14.0582 20.206 15.4339 19 16.2417M12 21V11M12 21L9 18M12 21L15 18" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </a>
+            <a hidden ref={aTag}></a>
         </>
     )
 }
 
-const SetMaxLength = (e , setQty , max) => {
-    e.target.value = e.target.value.slice(0 , max)
+const SetMaxLength = (e, setQty, max) => {
+    e.target.value = e.target.value.slice(0, max)
     setQty(e.target.value.length)
 }
 
-const DateSelect = ({RefDateValue , Value = "" , methodCheckValue ,
-onChangeDate ,
-Ref = {
-    DayCK : null ,
-    MountCK : null ,
-    YearCK : null
-}} ,
+const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
+    onChangeDate,
+    Ref = {
+        DayCK: null,
+        MountCK: null,
+        YearCK: null
+    } },
 ) => {
-    {/* ใน server ทดลอง เดือนจะไม่ตรง แต่ใน  server จริง จะตรง ไม่จำเป็นต้องแก้หากเดือนเพี้ยน */}
- 
+    {/* ใน server ทดลอง เดือนจะไม่ตรง แต่ใน  server จริง จะตรง ไม่จำเป็นต้องแก้หากเดือนเพี้ยน */ }
+
     const RefDate = {
-        DayCK : useRef() ,
-        MountCK : useRef() ,
-        YearCK : useRef()
+        DayCK: useRef(),
+        MountCK: useRef(),
+        YearCK: useRef()
     }
- 
+
     RefDate.DayCK = Ref.DayCK ?? RefDate.DayCK
     RefDate.MountCK = Ref.MountCK ?? RefDate.MountCK
     RefDate.YearCK = Ref.YearCK ?? RefDate.YearCK
- 
-    const Mount = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"]
+
+    const Mount = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]
     const YearCurrent = new Date().getFullYear()
- 
-    const [getDefault , setDefault] = useState(-1)
-    const [getDay , setDay] = useState([])
-    const [getYearSelect , setYearSelect] = useState([])
-    const [getReady , setReady] = useState(false)
- 
+
+    const [getDefault, setDefault] = useState([])
+    const [getDay, setDay] = useState([])
+    const [getYearSelect, setYearSelect] = useState([])
+    const [getReady, setReady] = useState(false)
+
     // const RefDay = useRef()
     // const RefMount = useRef()
     // const RefYear = useRef()
- 
-    useEffect(()=>{
+
+    useEffect(() => {
         const newYear = new Array
-        for(let year = YearCurrent - 50; year <= YearCurrent; year++) {
+        for (let year = YearCurrent - 50; year <= YearCurrent; year++) {
             newYear.push(year)
         }
         setYearSelect(newYear.reverse())
- 
-        if(Value != null && Value.toString().indexOf("#") >= 0) {
-            setDefault(Value.split("-"))
-        } else if (new Date(Value) != "Invalid Date") {
+        setReady(true)
+    }, [])
+
+    useEffect(() => {
+        let parsed = ["", "", ""];
+        if (Value && Value.toString().indexOf("#") >= 0) {
+            parsed = Value.split("-").map(v => v === "##" ? "" : v);
+        } else if (Value && new Date(Value) != "Invalid Date" && !isNaN(new Date(Value).getTime())) {
             const clientTimezoneOffset = new Date().getTimezoneOffset();
             const DateIn = new Date(new Date(Value) - (clientTimezoneOffset * 60000));
-            setDefault([DateIn.getFullYear() , DateIn.getMonth() , DateIn.getDate()])
-        } else {
-            setDefault("")
+            parsed = [DateIn.getFullYear().toString(), DateIn.getMonth().toString(), DateIn.getDate().toString()];
         }
-        setReady(true)
-    } , [])
- 
-    useEffect(()=>{
+
+        setDefault(parsed);
+
+        // Manually update the selects if the refs exist and are mounted
+        if (RefDate.DayCK?.current) RefDate.DayCK.current.value = parsed[2] ?? "";
+        if (RefDate.MountCK?.current) RefDate.MountCK.current.value = parsed[1] ?? "";
+        if (RefDate.YearCK?.current) RefDate.YearCK.current.value = parsed[0] ?? "";
+    }, [Value])
+
+    useEffect(() => {
         SetDay()
-    } , [getDefault])
- 
+    }, [getDefault])
+
     const SetDay = () => {
-        const targetMonth = getDefault[1] ? parseInt(getDefault[1]) : "";
-        const targetYear = getDefault[0] ? parseInt(getDefault[0]) : "";
-        const startDate = new Date(targetYear, targetMonth, 1);
-        const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
- 
-        if(startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
-            const daysInMonth = (nextMonthDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-            const newDay = new Array
-            for(let day = 1; day <= daysInMonth; day++) {
-                newDay.push(day)
+        const targetMonth = getDefault[1] !== undefined && getDefault[1] !== "" ? parseInt(getDefault[1]) : NaN;
+        const targetYear = getDefault[0] !== undefined && getDefault[0] !== "" ? parseInt(getDefault[0]) : NaN;
+        if (!isNaN(targetMonth) && !isNaN(targetYear)) {
+            const startDate = new Date(targetYear, targetMonth, 1);
+            const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
+            if (startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
+                const daysInMonth = (nextMonthDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+                const newDay = new Array
+                for (let day = 1; day <= daysInMonth; day++) {
+                    newDay.push(day)
+                }
+                setDay(newDay)
+                return;
             }
-            setDay(newDay)
         }
+        const initialDays = []
+        for (let i = 1; i <= 31; i++) {
+            initialDays.push(i)
+        }
+        setDay(initialDays)
     }
- 
-    const SelectSetDay = (Mount , Year) => {
-        const targetMonth = parseInt(Mount);
-        const targetYear = parseInt(Year);
-        const startDate = new Date(targetYear, targetMonth, 1);
-        const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
-        // console.log((nextMonthDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-        if(startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
-            const daysInMonth = (nextMonthDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-            const newDay = new Array
-            for(let day = 1; day <= daysInMonth; day++) {
-                newDay.push(day)
+
+    const SelectSetDay = (Mount, Year) => {
+        const targetMonth = Mount !== undefined && Mount !== "" ? parseInt(Mount) : NaN;
+        const targetYear = Year !== undefined && Year !== "" ? parseInt(Year) : NaN;
+        if (!isNaN(targetMonth) && !isNaN(targetYear)) {
+            const startDate = new Date(targetYear, targetMonth, 1);
+            const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
+            if (startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
+                const daysInMonth = (nextMonthDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+                const newDay = new Array
+                for (let day = 1; day <= daysInMonth; day++) {
+                    newDay.push(day)
+                }
+                setDay(newDay)
+                return;
             }
-            setDay(newDay)
         }
+        const initialDays = []
+        for (let i = 1; i <= 31; i++) {
+            initialDays.push(i)
+        }
+        setDay(initialDays)
     }
- 
-    const ChangeDate = (day , mount , year) => {
+
+    const ChangeDate = (day, mount, year) => {
         const dateNew = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`
         RefDateValue && (RefDateValue.current.value = dateNew);
         onChangeDate && onChangeDate(dateNew)
         methodCheckValue && methodCheckValue()
     }
- 
-    return(
+
+    return (
         getReady ?
-        <div className="date-select">
-            { getDay.length !== 0 ?
-            <select className="list-date-select" defaultValue={getDefault[2] ?? ""} ref={RefDate.DayCK} onChange={(e)=>{
-                ChangeDate(e.target.value , RefDate.MountCK?.current?.value , RefDate.YearCK?.current?.value)
-            }}>
-                <option value={""}>วันที่</option>
-                {
-                    getDay.map((val , key)=>
-                        <option value={val} key={key}>{val}</option>
-                    )
-                }
-            </select> : <></>
-            }
-            <select className="list-date-select" defaultValue={getDefault[1] ?? ""} ref={RefDate.MountCK} onChange={(e)=>{
-                SelectSetDay(e.target.value , RefDate.YearCK.current?.value)
-                ChangeDate(RefDate.DayCK.current?.value , e.target.value , RefDate.YearCK.current?.value)
-            }}>
-                <option value={""}>เดือน</option>
-                {
-                    Mount.map((val , key)=>
+            <div className="date-select">
+                {getDay.length !== 0 ?
+                    <select className="list-date-select" defaultValue={getDefault[2] ?? ""} ref={RefDate.DayCK} onChange={(e) => {
+                        ChangeDate(e.target.value, RefDate.MountCK?.current?.value, RefDate.YearCK?.current?.value)
+                    }}>
+                        <option value={""}>วันที่</option>
                         {
+                            getDay.map((val, key) =>
+                                <option value={val} key={key}>{val}</option>
+                            )
+                        }
+                    </select> : <></>
+                }
+                <select className="list-date-select" defaultValue={getDefault[1] ?? ""} ref={RefDate.MountCK} onChange={(e) => {
+                    SelectSetDay(e.target.value, RefDate.YearCK.current?.value)
+                    ChangeDate(RefDate.DayCK.current?.value, e.target.value, RefDate.YearCK.current?.value)
+                }}>
+                    <option value={""}>เดือน</option>
+                    {
+                        Mount.map((val, key) => {
                             return <option value={key} key={key}>{val}</option>
                         }
-                    )
-                }
-            </select>
-            <select className="list-date-select" defaultValue={getDefault[0] ?? ""} ref={RefDate.YearCK} onChange={(e)=>{
-                SelectSetDay(RefDate.MountCK.current?.value , e.target.value)
-                ChangeDate(RefDate.DayCK.current?.value , RefDate.MountCK.current?.value , e.target.value)
-            }}>
-                <option disabled value={""}>ปี</option>
-                {
-                    getYearSelect.map((val , key)=>
-                        <option value={val} key={key}>{val + 543}</option>
-                    )
-                }
-            </select>
-            <input hidden ref={RefDateValue} defaultValue={Value}></input>
-        </div> : <></>
+                        )
+                    }
+                </select>
+                <select className="list-date-select" defaultValue={getDefault[0] ?? ""} ref={RefDate.YearCK} onChange={(e) => {
+                    SelectSetDay(RefDate.MountCK.current?.value, e.target.value)
+                    ChangeDate(RefDate.DayCK.current?.value, RefDate.MountCK.current?.value, e.target.value)
+                }}>
+                    <option disabled value={""}>ปี</option>
+                    {
+                        getYearSelect.map((val, key) =>
+                            <option value={val} key={key}>{val + 543}</option>
+                        )
+                    }
+                </select>
+                <input hidden ref={RefDateValue} defaultValue={Value}></input>
+            </div> : <></>
     )
 }
 
 const DatePickerThai = ({
-    defaultDate = "" , 
-    offsetQtyDate = undefined , 
-    refIn = undefined , 
-    onInputIn = (e , offset) => {} , 
-    onChange = (_christDate, _thaiDate) => {},
-    className = "" , 
+    defaultDate = "",
+    offsetQtyDate = undefined,
+    refIn = undefined,
+    onInputIn = (e, offset) => { },
+    onChange = (_christDate, _thaiDate) => { },
+    className = "",
     classNameMain = ""
 }) => {
     const refDataInput = useRef()
-    
+
     const RefDatePicker = useRef()
     const [selectedDate, setSelectedDate] = useState(defaultDate ? new Date(defaultDate).toString() != 'Invalid Date' ? defaultDate : new Date().toISOString() : new Date().toISOString());
-    const [getOffset , setOffset] = useState(offsetQtyDate)
+    const [getOffset, setOffset] = useState(offsetQtyDate)
 
-    useEffect(()=>{
+    useEffect(() => {
         // document.getElementById().childNodes
         RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].style.display = "none"
         RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[1].style.display = "none"
         // RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[1].style.display = "none"
-    } , [])
+    }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         setOffset(offsetQtyDate)
-    } , [offsetQtyDate])
+    }, [offsetQtyDate])
 
-    useEffect(()=>{
+    useEffect(() => {
         const safe = defaultDate ?? "";
-        setSelectedDate(safe ? new Date(safe).toString() != 'Invalid Date' ? safe : new Date().toISOString() : new Date().toISOString() )
-    } , [defaultDate])
+        setSelectedDate(safe ? new Date(safe).toString() != 'Invalid Date' ? safe : new Date().toISOString() : new Date().toISOString())
+    }, [defaultDate])
 
     const handleDatePickerChange = (christDate, buddhistDate) => {
         (refIn || refDataInput).current.value = buddhistDate ? buddhistDate.split("-").reverse().join("-") : "";
         (refIn || refDataInput).current.click();
         setSelectedDate(christDate);
-        onChange?.(christDate , buddhistDate)
+        onChange?.(christDate, buddhistDate)
     };
 
-    return(
+    return (
         <div className={classNameMain}>
-            <input className={className} 
-                onClick={(e)=>{
+            <input className={className}
+                onClick={(e) => {
                     e.preventDefault()
                     const picker = RefDatePicker.current.childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0]
                     picker.click()
-                    onInputIn?.(e , getOffset)
-                }} readOnly defaultValue={defaultDate ? defaultDate.split("-").map((val , index)=>index == 0 ? parseInt(val) + 543 : val).reverse().join("-") : ""} 
+                    onInputIn?.(e, getOffset)
+                }} readOnly defaultValue={defaultDate ? defaultDate.split("-").map((val, index) => index == 0 ? parseInt(val) + 543 : val).reverse().join("-") : ""}
                 ref={refIn || refDataInput} type="text" placeholder="วัน/เดือน/ปี"
             ></input>
             <div ref={RefDatePicker}>
@@ -860,37 +881,37 @@ const DatePickerThai = ({
 export function DatePickerThaiApp({
     className,
     value,
-    onChange = (christDate , buddhistDate) => {},
+    onChange = (christDate, buddhistDate) => { },
     format = "DD/MM/YYYY"
 }) {
     const refBox = useRef()
 
     const InputValue = useMemo(() => {
-        if(!value) return ""
+        if (!value) return ""
 
         try {
             const datetime = new Date(value)
-            const day = datetime.getDate().toString().padStart(2 , 0)
-            const mount = (datetime.getMonth() + 1).toString().padStart(2 , 0)
-            const year = (datetime.getFullYear() + 543).toString().padStart(2 , 0)
+            const day = datetime.getDate().toString().padStart(2, 0)
+            const mount = (datetime.getMonth() + 1).toString().padStart(2, 0)
+            const year = (datetime.getFullYear() + 543).toString().padStart(2, 0)
 
             return format
-                .replaceAll("DD" , day)
-                .replaceAll("MM" , mount)
-                .replaceAll("YYYY" , year)
-        } catch(err) {
+                .replaceAll("DD", day)
+                .replaceAll("MM", mount)
+                .replaceAll("YYYY", year)
+        } catch (err) {
             return ""
         }
-    } , [format, value])
+    }, [format, value])
 
-    return(
+    return (
         <Box
             ref={refBox}
             position={"relative"}
             className={className}
             sx={{
-                "& .react-datepicker-wrapper" : {
-                    display : "none"
+                "& .react-datepicker-wrapper": {
+                    display: "none"
                 }
             }}
         >
@@ -925,9 +946,9 @@ export function DatePickerThaiApp({
 }
 
 const ConvertDate = (date) => {
-    return({
-        buddhistDate : date ? date.split("-").map((val , key)=> key === 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
-        christDate : date ? date.split("-").reverse().map((val , key)=> key === 0 ? parseInt(val) - 543 : val).join("-") : ""
+    return ({
+        buddhistDate: date ? date.split("-").map((val, key) => key === 0 ? parseInt(val) + 543 : val).reverse().join("-") : "",
+        christDate: date ? date.split("-").reverse().map((val, key) => key === 0 ? parseInt(val) - 543 : val).join("-") : ""
     })
 }
 
@@ -938,7 +959,7 @@ class TabLoad {
     }
 
     start() {
-        this.timeOut.forEach(val=>{
+        this.timeOut.forEach(val => {
             clearTimeout(val)
         })
 
@@ -950,10 +971,10 @@ class TabLoad {
 
     end() {
         this.TabRef.current.style.width = `100%`
-        return setTimeout(()=>{
+        return setTimeout(() => {
             this.TabRef.current.removeAttribute("style")
             this.TabRef.current.style.display = `none`
-        } , 500)
+        }, 500)
     }
 
     addTimeOut(id) {

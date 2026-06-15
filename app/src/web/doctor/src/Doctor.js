@@ -180,6 +180,7 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
 
                     <div className="main-content-wrapper" style={{
                         flexGrow: 1,
+                        minWidth: 0,
                         height: '100vh',
                         display: 'flex',
                         flexDirection: 'column',

@@ -34,6 +34,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         return res.send("pass")
     })
 
+
     app.post('/api/doctor/formplant/insert', async (req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
@@ -366,9 +367,66 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     return;
                                 }
 
-                                const { insertId: idEdit } = resultEdit
+                                const { insertId: idEdit } = resultEdit;
 
                                 if (idEdit > 0) {
+                                    // Auto-calculate date_harvest if plant name, variety name, or planting date is specified/changed
+                                    const currentPlant = data.dataChange.hasOwnProperty('name_plant') ? data.dataChange.name_plant : dataCurrent[0].name_plant;
+                                    const currentVariety = data.dataChange.hasOwnProperty('name_varieties') ? data.dataChange.name_varieties : dataCurrent[0].name_varieties;
+                                    const currentPlantDate = data.dataChange.hasOwnProperty('date_plant') ? data.dataChange.date_plant : dataCurrent[0].date_plant;
+                                    const currentHarvestDate = dataCurrent[0].date_harvest;
+
+                                    const plantChanged = data.dataChange.hasOwnProperty('name_plant');
+                                    const varietyChanged = data.dataChange.hasOwnProperty('name_varieties');
+                                    const plantDateChanged = data.dataChange.hasOwnProperty('date_plant');
+                                    const isHarvestEmpty = !currentHarvestDate || currentHarvestDate === "";
+
+                                    if (!data.dataChange.hasOwnProperty('date_harvest') && (plantChanged || varietyChanged || plantDateChanged || isHarvestEmpty) && currentPlant && currentPlantDate) {
+                                        try {
+                                            let qtyResult = null;
+                                            // 1. Try matching by specific variety name if it is not empty/hyphen
+                                            if (currentVariety && currentVariety !== "" && currentVariety !== "-") {
+                                                qtyResult = await new Promise((resolve) => {
+                                                    con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND variety_name = ? AND is_use = 1 LIMIT 1`, [currentPlant, currentVariety], (err, result) => {
+                                                        if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                        else resolve(null);
+                                                    });
+                                                });
+                                            }
+
+                                            // 2. If not found or variety is empty/hyphen, try matching the variety-less entry
+                                            if (qtyResult === null) {
+                                                qtyResult = await new Promise((resolve) => {
+                                                    con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND (variety_name IS NULL OR variety_name = '' OR variety_name = '-') AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                        if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                        else resolve(null);
+                                                    });
+                                                });
+                                            }
+
+                                            // 3. Fallback: get the first active entry for this plant name
+                                            if (qtyResult === null) {
+                                                qtyResult = await new Promise((resolve) => {
+                                                    con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                        if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                        else resolve(null);
+                                                    });
+                                                });
+                                            }
+
+                                            if (qtyResult !== null) {
+                                                const pDate = new Date(currentPlantDate);
+                                                if (!isNaN(pDate.getTime())) {
+                                                    pDate.setDate(pDate.getDate() + parseInt(qtyResult));
+                                                    const calculatedHarvestStr = pDate.toISOString().split('T')[0];
+                                                    data.dataChange.date_harvest = calculatedHarvestStr;
+                                                }
+                                            }
+                                        } catch (e) {
+                                            console.error("Auto calculate harvest date error:", e);
+                                        }
+                                    }
+
                                     const updateDatasWhere = []
                                     const updateDatasParams = []
 
@@ -1384,10 +1442,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     if (is_variety_name === "true" || is_variety_name === true) {
                         plants = await pool.executeQuery(
                             `
-                            SELECT name, GROUP_CONCAT(COALESCE(variety_name, '')) as variety_names
+                            SELECT id, name, variety_name, qty_harvest
                             FROM plant_list
                             WHERE is_use = 1
-                            GROUP BY name
                             ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
                             `
                         );

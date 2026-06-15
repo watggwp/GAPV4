@@ -11,6 +11,7 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
     const { greenhouse_id, gap_id } = useParams()
 
     const timeout = useRef(0)
+    const requireHarvestDateRef = useRef(false)
 
     const [DateNowOnForm, setDateNowOnForm] = useState(`${new Date().getFullYear()}-${("0" + (new Date().getMonth() + 1).toString()).slice(-2)}-${("0" + new Date().getDate().toString()).slice(-2)}`)
     const [getDateOut, setDateOut] = useState("")
@@ -19,22 +20,6 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
     const [selectedPlant, setSelectedPlant] = useState("")
     const [placeholder, setPlaceholder] = useState('')
     const [unit, setUnit] = useState("")
-
-
-    const [previousInsect, setPreviousInsect] = useState("");
-    const [previousInsects, setPreviousInsects] = useState([]);
-
-
-
-
-    useEffect(() => {
-        setPreviousInsects((prev) => {
-            if (!prev.includes("เลือก")) {
-                return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
-            }
-            return prev;
-        });
-    }, [previousInsects]);
 
 
     const FormContent = useRef()
@@ -251,11 +236,8 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
                     }
 
                     // ดึงข้อมูลโรคพืชที่ปลูกก่อนหน้า
-                    if (Object.insect.length > 0) {
-                        setPreviousInsects(Object.insect);
-                        setPreviousInsect(Object.insect_generation[0])
-                    } else {
-                        setPreviousInsects([]); // กรณีไม่มีข้อมูล
+                    if (Insect.current) {
+                        Insect.current.value = (Object.insect_generation && Object.insect_generation[0]) || "";
                     }
 
 
@@ -301,8 +283,10 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
         const selectedPlantName = selectedPlant ? selectedPlant.name : "";
         const selectedVarietyName = selectedPlant ? selectedPlant.variety_name : "";
 
+        const harvestOk = requireHarvestDateRef.current ? !!dateOut.value : true;
+
         if (selectedPlantName && generetion.value && dateGlow.value.split("-")[0] && datePlant.value &&
-            posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
+            posiW.value && posiH.value && qty.value && area.value && harvestOk && system.value &&
             water.value && waterStep.value) {
 
             // const selectedPlant = DataPlant.find(plant => plant.id == type.value);
@@ -324,7 +308,7 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
                 qty: qty.value,
                 area: area.value,
                 unit: unit,
-                dateOut: dateOut.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-"),
+                dateOut: dateOut.value ? dateOut.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-") : null,
                 system: system.value,
                 water: water.value,
                 waterStep: waterStep.value,
@@ -404,7 +388,10 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
                     else current.classList.remove("report-not")
                 }
                 else {
-                    if (current == DateGlow.current) {
+                    if (current == DateOut.current && !requireHarvestDateRef.current) {
+                        current.classList.remove("report-not")
+                    }
+                    else if (current == DateGlow.current) {
                         YearOut.current.classList.add("report-not")
                     }
                     else current.classList.add("report-not")
@@ -412,8 +399,10 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
             }
         })
 
+        const harvestOk = requireHarvestDateRef.current ? !!dateOut.value : true;
+
         if (type.value && generetion.value && dateGlow.value.split("-")[0] && datePlant.value &&
-            posiW.value && posiH.value && qty.value && area.value && dateOut.value && system.value &&
+            posiW.value && posiH.value && qty.value && area.value && harvestOk && system.value &&
             water.value && waterStep.value
         ) {
             BTConfirm.current.removeAttribute("no")
@@ -429,10 +418,20 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
         const selectedPlant = DataPlant[selectedIndex];
         const plantName = selectedPlant ? selectedPlant.name : "";
         
-        if (selectedPlant && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
+        const isSingleVarietyLess = selectedPlant && 
+                                   parseInt(selectedPlant.variety_count) === 1 && 
+                                   parseInt(selectedPlant.has_variety_name_count) === 0;
+
+        if (isSingleVarietyLess && selectedPlant.qty_harvest !== undefined && selectedPlant.qty_harvest !== null) {
             const qtyHarvest = parseInt(selectedPlant.qty_harvest);
             MathDateHarvest(DateNowOnForm, qtyHarvest);
             setDateHarvest(qtyHarvest);
+            requireHarvestDateRef.current = true;
+        } else {
+            if (DateOut.current) DateOut.current.value = "";
+            setDateHarvest("");
+            setDateOut("");
+            requireHarvestDateRef.current = false;
         }
         
         await FetchDataForm(plantName)
@@ -761,14 +760,7 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
                                         }
                                         <label className="frame-textbox">
                                             <span>โรค/แมลงที่พบ</span>
-                                            <select onChange={ChangeCHK} ref={Insect} defaultValue="">
-                                                {/* <option disabled value="">เลือก</option> */}
-                                                {
-                                                    previousInsects.map((insect, index) => (
-                                                        <option selected={previousInsect === insect} key={index} value={insect}>{insect}</option>
-                                                    ))
-                                                }
-                                            </select>
+                                            <input onInput={ChangeCHK} ref={Insect} type="text" placeholder="กรอก" />
                                         </label>
                                     </div>
                                     <div className="row">

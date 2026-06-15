@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"; // NEW: useMemo
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { useDoctor } from "../../../../doctor/src/Doctor";
+import { useAdminContext } from "../../Admin";
 import { Button, MenuItem, Modal, Select, Stack, Typography } from "@mui/material";
 import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
@@ -17,7 +17,7 @@ const WeatherStationContext = createContext({
 });
 
 export default function WeatherStation() {
-  const { profile, bannerCoverRef, contentRef, setTextPage } = useDoctor();
+  const { profile, titlePageNested } = useAdminContext();
 
   const [stations, setStations] = useState([]);
   const [selectedStation, setSelectedStation] = useState(profile.id_station);
@@ -33,7 +33,7 @@ export default function WeatherStation() {
 
   const fetchStationList = useCallback(async () => {
     try {
-      const { data: stationsResponse } = await RequestAPI.post("/api/doctor/data/list", {
+      const { data: stationsResponse } = await RequestAPI.post("/api/admin/data/list", {
         limit: 100,
         startRow: 0,
         type: "station",
@@ -53,12 +53,16 @@ export default function WeatherStation() {
   }, []);
 
   useEffect(() => {
-    bannerCoverRef.current.style.height = "30%";
-    contentRef.current.style.height = "70%";
-    setTextPage(["หน้าหลัก", "ข้อมูลสภาพแวดล้อม"]);
+    titlePageNested(70, 30, ["หน้าหลัก", "ข้อมูลสภาพแวดล้อม"]);
     clientMo.unLoadingPage();
     fetchStationList();
-  }, [bannerCoverRef, contentRef, fetchStationList, setTextPage]);
+  }, [titlePageNested, fetchStationList]);
+
+  useEffect(() => {
+    if (profile?.id_station) {
+      setSelectedStation(profile.id_station);
+    }
+  }, [profile?.id_station]);
 
   // NEW: เมื่อเปลี่ยนศูนย์ ให้ล้าง greenhouse ที่เลือก เพื่อกลับไปโหมด station
   useEffect(() => {

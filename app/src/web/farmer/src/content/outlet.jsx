@@ -17,8 +17,8 @@ export default function GreenhouseOutlet() {
     const Nav = useRef()
 
     const HomeClick = useCallback(async () => {
-        navigator(`/farmer/form/${greenhouse_id}`)
-    } , [greenhouse_id, navigator])
+        navigator(`/farmer/gap`)
+    } , [navigator])
 
     const toInformation = useCallback(() => {
         navigator(`/farmer/form/${greenhouse_id}/information`)

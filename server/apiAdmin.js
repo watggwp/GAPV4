@@ -621,10 +621,9 @@ app.post('/api/admin/role/update', async (req, res) => {
           plants = await new Promise((resolve, reject) => {
             con.query(
               `
-              SELECT name, GROUP_CONCAT(COALESCE(variety_name, '')) as variety_names
+              SELECT id, name, variety_name, qty_harvest
               FROM plant_list
               WHERE is_use = 1
-              GROUP BY name
               ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
               `,
               [],
@@ -740,13 +739,48 @@ app.post('/api/admin/role/update', async (req, res) => {
     }
   });
 
-  app.post('/api/admin/farmhouse/get/HouseList', async (req, res) => {
-    const username = req.session.user_username;
-    const password = req.session.user_password;
-    if (!username || !password) { res.redirect('/api/logout'); return; }
+  app.get('/api/admin/station/:station_id/greenhouse', async (req, res) => {
+    const adminUser = req.session.user_username;
+    const adminPass = req.session.user_password;
+
+    if (!adminUser || !adminPass) {
+      res.redirect('/api/logout');
+      return;
+    }
+
     let con = Database.createConnection(listDB);
     try {
-      const result = await apifunc.auth(con, username, password, res, "admin");
+      const result = await apifunc.auth(con, adminUser, adminPass, res, "admin");
+      if (result['result'] === "pass") {
+        const { params: { station_id } } = req;
+        const station = await pool.executeQuery(
+          `
+            SELECT h.*
+            FROM acc_farmer ac_f
+            LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+            WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+            GROUP BY h.id_farm_house;
+          `,
+          [station_id]
+        );
+        con.end();
+        res.send({
+          houses: station
+        });
+      }
+    } catch (err) {
+      con.end();
+      res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/farmhouse/get/HouseList', async (req, res) => {
+    const adminUser = req.session.user_username;
+    const adminPass = req.session.user_password;
+    if (!adminUser || !adminPass) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, adminUser, adminPass, res, "admin");
       if (result['result'] === "pass") {
         const { id_farmer } = req.body;
         con.query(`
@@ -1022,6 +1056,63 @@ app.post('/api/admin/role/update', async (req, res) => {
                         const { insertId: idEdit } = resultEdit;
 
                         if (idEdit > 0) {
+                            // Auto-calculate date_harvest if plant name, variety name, or planting date is specified/changed
+                            const currentPlant = data.dataChange.hasOwnProperty('name_plant') ? data.dataChange.name_plant : dataCurrent[0].name_plant;
+                            const currentVariety = data.dataChange.hasOwnProperty('name_varieties') ? data.dataChange.name_varieties : dataCurrent[0].name_varieties;
+                            const currentPlantDate = data.dataChange.hasOwnProperty('date_plant') ? data.dataChange.date_plant : dataCurrent[0].date_plant;
+                            const currentHarvestDate = dataCurrent[0].date_harvest;
+
+                            const plantChanged = data.dataChange.hasOwnProperty('name_plant');
+                            const varietyChanged = data.dataChange.hasOwnProperty('name_varieties');
+                            const plantDateChanged = data.dataChange.hasOwnProperty('date_plant');
+                            const isHarvestEmpty = !currentHarvestDate || currentHarvestDate === "";
+
+                            if (!data.dataChange.hasOwnProperty('date_harvest') && (plantChanged || varietyChanged || plantDateChanged || isHarvestEmpty) && currentPlant && currentPlantDate) {
+                                try {
+                                    let qtyResult = null;
+                                    // 1. Try matching by specific variety name if it is not empty/hyphen
+                                    if (currentVariety && currentVariety !== "" && currentVariety !== "-") {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND variety_name = ? AND is_use = 1 LIMIT 1`, [currentPlant, currentVariety], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    // 2. If not found or variety is empty/hyphen, try matching the variety-less entry
+                                    if (qtyResult === null) {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND (variety_name IS NULL OR variety_name = '' OR variety_name = '-') AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    // 3. Fallback: get the first active entry for this plant name
+                                    if (qtyResult === null) {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    if (qtyResult !== null) {
+                                        const pDate = new Date(currentPlantDate);
+                                        if (!isNaN(pDate.getTime())) {
+                                            pDate.setDate(pDate.getDate() + parseInt(qtyResult));
+                                            const calculatedHarvestStr = pDate.toISOString().split('T')[0];
+                                            data.dataChange.date_harvest = calculatedHarvestStr;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Auto calculate harvest date error:", e);
+                                }
+                            }
+
                             const updateDatasWhere = [];
                             const updateDatasParams = [];
 

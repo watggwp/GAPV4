@@ -96,6 +96,7 @@ const DataForm = () => {
             FetchVarieties(selectedPlantId); // ดึง varieties เมื่อ selectedPlantId เปลี่ยน
         }
     }, [selectedPlantId]);
+
     useEffect(() => {
         if (Data.insect) {
             setSelectedInsect(Data.insect); // ตั้งค่าเริ่มต้นเป็นค่าที่เคยเลือก
@@ -110,15 +111,6 @@ const DataForm = () => {
     }, [Data.insect, previousInsects]);
 
 
-    useEffect(() => {
-        setPreviousInsects((prev) => {
-            if (!prev.includes("เลือก")) {
-                return ["เลือก", ...prev]; // เพิ่ม "เลือก" เป็นตัวเลือกแรกเสมอ
-            }
-            return prev;
-        });
-    }, [previousInsects]);
-
     const FetchData = useCallback(async () => {
         setLoad(false);
         setData({});
@@ -128,7 +120,7 @@ const DataForm = () => {
             const DataIn = JSON.parse(result);
             if (DataIn && DataIn[0]) {
                 setData(DataIn[0]);
-                setDateOut(DataIn[0].date_harvest.split(" ")[0]);
+                setDateOut(DataIn[0].date_harvest ? DataIn[0].date_harvest.split(" ")[0] : "");
                 if (DataIn[0].previousData) {
                     const insects = [];
                     DataIn[0].previousData.forEach(({ insect }) => {
@@ -249,7 +241,7 @@ const DataForm = () => {
 
     const CancelEdit = (cancel = true) => {
         setLoad(false);
-        setDateOut(Data.date_harvest.split(" ")[0]);
+        setDateOut(Data.date_harvest ? Data.date_harvest.split(" ")[0] : "");
         setStatusEdit(false);
         DataContent.current.removeAttribute("edit");
         if (cancel) {
@@ -626,7 +618,7 @@ const DataForm = () => {
                                                 <div className="full">
                                                     {
                                                         StatusEdit ?
-                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant.split(" ")[0]} offsetQtyDate={QtyDate} refIn={DatePlant} onInputIn={(e, qty) => {
+                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant ? Data.date_plant.split(" ")[0] : ""} offsetQtyDate={QtyDate} refIn={DatePlant} onInputIn={(e, qty) => {
                                                                 ChangeEdit();
                                                                 const DateChis = e.target.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-");
                                                                 const DatePlantQty = new Date(DateChis);
@@ -675,7 +667,7 @@ const DataForm = () => {
                                                     />
                                                     {StatusEdit ? (
                                                         <select onChange={ChangeEdit} ref={Unit} defaultValue={Data.unit} style={{ flex: 1, maxWidth: '150px' }}>
-                                                            <option disabled value="">เลือก</option>
+                                                            <option value="">เลือก</option>
                                                             <option value="โรงเรือน">โรงเรือน</option>
                                                             <option value="ไร่">ไร่</option>
                                                             <option value="ตารางเมตร">ตารางเมตร</option>
@@ -728,7 +720,7 @@ const DataForm = () => {
                                                 <span>รูปแบบการปลูก</span>
                                                 {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={System} defaultValue={Data.system_glow}>
-                                                        <option disabled value="">เลือก</option>
+                                                        <option value="">เลือก</option>
                                                         <option value={"ขึ้นแปลงปลูกตามไหล่เขา"}>ขึ้นแปลงปลูกตามไหล่เขา</option>
                                                         <option value={"ขึ้นแปลงปลูกที่ลุ่มหลังนา"}>ขึ้นแปลงปลูกที่ลุ่มหลังนา</option>
                                                         <option value={"ปลูกแบบขึ้นค้าง"}>ปลูกแบบขึ้นค้าง</option>
@@ -750,7 +742,7 @@ const DataForm = () => {
                                                 <span>แหล่งน้ำ</span>
                                                 {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={Water} defaultValue={Data.water}>
-                                                        <option disabled value="">เลือก</option>
+                                                        <option value="">เลือก</option>
                                                         <option value={"อาศัยน้ำฝน"}>อาศัยน้ำฝน</option>
                                                         <option value={"ลำธาร/คลองธรรมชาติ"}>ลำธาร/คลองธรรมชาติ</option>
                                                         <option value={"บ่อบาดาล"}>บ่อบาดาล</option>
@@ -772,7 +764,7 @@ const DataForm = () => {
                                                 <span>วิธีการให้น้ำ</span>
                                                 {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={WaterStep} defaultValue={Data.water_flow}>
-                                                        <option disabled value="">เลือก</option>
+                                                        <option value="">เลือก</option>
                                                         <option value={"สปริงเกอร์"}>สปริงเกอร์</option>
                                                         <option value={"ระบบน้ำหยด"}>ระบบน้ำหยด</option>
                                                         <option value={"ปล่อยตามร่อง"}>ปล่อยตามร่อง</option>
@@ -805,16 +797,18 @@ const DataForm = () => {
                                                 {StatusEdit ? (
                                                     <select
                                                         onChange={(e) => {
-                                                            setSelectedInsect(e.target.value); // อัปเดตค่าเมื่อเลือกใหม่
+                                                            setSelectedInsect(e.target.value);
                                                             ChangeEdit();
                                                         }}
-                                                        value={selectedInsect} // กำหนดค่าเริ่มต้นให้เป็นค่าที่เลือกไว้
+                                                        value={selectedInsect}
                                                         ref={Insect}
                                                     >
-                                                        {/* <option disabled value="">เลือก</option> */}
-                                                        {previousInsects.map((insect, index) => (
-                                                            <option key={index} value={insect}>{insect}</option>
-                                                        ))}
+                                                        {(() => {
+                                                            const list = ["เลือก", ...allInsects.filter(val => val && val !== "เลือก")];
+                                                            return list.map((pest, index) => (
+                                                                <option key={index} value={pest === "เลือก" ? "" : pest}>{pest}</option>
+                                                            ));
+                                                        })()}
                                                     </select>
                                                 ) : (
                                                     <input readOnly defaultValue={Data.insect}></input>
@@ -827,7 +821,7 @@ const DataForm = () => {
                                                 <span>ปริมาณการเกิดโรค และแมลงที่พบ</span>
                                                 {StatusEdit ?
                                                     <select onChange={ChangeEdit} ref={QtyInsect} defaultValue={Data.qtyInsect}>
-                                                        <option disabled value="">เลือก</option>
+                                                        <option value="">เลือก</option>
                                                         <option value={"น้อย"}>น้อย</option>
                                                         <option value={"ปานกลาง"}>ปานกลาง</option>
                                                         <option value={"มาก"}>มาก</option>
