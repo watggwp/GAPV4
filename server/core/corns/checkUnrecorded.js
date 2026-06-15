@@ -5,6 +5,7 @@ const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
         return await connectionPool.executeQuery(`
             SELECT
+                fp.id AS formplant_id,
                 s.id AS schedule_id,
                 fp.id_farm_house AS greenhouse_id,
                 fp.name_plant,

@@ -251,15 +251,7 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
 
             </ul>
 
-            <div className="sidebar-footer">
-                <div className="menu-item logout" onClick={logout}>
-                    <div className="icon-container-img" style={{ filter: 'grayscale(1)' }}>
-                        {/* Using a generic icon or the dashboard one for logout temporarily if no specific logout image */}
-                        <img src={iconDashboard} alt="Logout" style={{ transform: 'rotate(180deg)' }} />
-                    </div>
-                    <span>ออกจากระบบ</span>
-                </div>
-            </div>
+
         </div>
     );
 };

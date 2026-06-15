@@ -8,6 +8,7 @@ const MessageLineTemplate = require('./messageLineTemplate');
 
 const schedulePlan = require('./corns/schedulePlan');
 const checkUnrecorded = require('./corns/checkUnrecorded');
+const checkMismatch = require('./corns/checkMismatch');
 
 module.exports = function Schedules(connectionPool = new ConnectPool(), socket) {
     cron.schedule("0 6 * * *", async () => {
@@ -70,7 +71,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
         }
     })
     //ปรับเวลาแจ้งเตือนตรงนี้
-    cron.schedule("0 6 * * *", async () => {
+    cron.schedule("* * * * *", async () => {
         console.log("Start Check Unrecorded GAP")
         try {
             const unrecorded = await checkUnrecorded.queryUnrecorded(connectionPool)
@@ -80,9 +81,9 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                 try {
                     // แจ้งเตือน doctor บนเว็บ
                     await connectionPool.executeQuery(
-                        `INSERT INTO notify_doctor (id_table_farmer, id_read, notify, station)
-                         VALUES (?, '{}', ?, ?)`,
-                        [row.farmer_id, checkUnrecorded.notifyDoctorMessage(row), row.station]
+                        `INSERT INTO notify_doctor (id_table_farmer, id_read, notify, station, type, ref_id)
+                         VALUES (?, '{}', ?, ?, 2, ?)`,
+                        [row.farmer_id, checkUnrecorded.notifyDoctorMessage(row), row.station, row.formplant_id]
                     )
 
                     // real-time ไปยัง doctor
@@ -110,5 +111,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
         } catch (error) {
             console.error(`Check unrecorded error: ${error}`)
         }
+
+
     })
 }

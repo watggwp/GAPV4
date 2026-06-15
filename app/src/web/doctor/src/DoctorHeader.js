@@ -4,6 +4,9 @@ import { DoctorContext } from "./Doctor";
 import { clientMo } from "../../../assets/js/moduleClient";
 import { PopupDom, TimeDiff, Loading } from "../../../assets/js/module";
 import ProfilePage from "./page/profile/Profile";
+import ManagePopup from "./page/form/ManagePopup";
+import SchedulesPopup from "./page/form/schedules/SchedulesPageDoctor";
+import './assets/style/page/form/PageFormPlant.scss';
 
 const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTitle, toggleSidebar }) => {
     const { profile } = useContext(DoctorContext);
@@ -73,6 +76,58 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         setBodyPopup(<></>); // Close popup
     };
 
+    const showPopup = async (id_form) => {
+        const context = await clientMo.post('/api/doctor/check');
+        if (context) {
+            setBodyPopup(
+                <div className="data-list-content-page form-page" style={{ width: '100%', height: '100%', background: 'transparent' }}>
+                    <ManagePopup
+                        RefData={{ current: null }}
+                        setPopup={setBodyPopup}
+                        RefPop={RefPopup}
+                        id_form={id_form}
+                        session={setSession}
+                        Fecth={() => { }}
+                    />
+                </div>
+            );
+            setTimeout(() => {
+                if (RefPopup.current) {
+                    RefPopup.current.style.opacity = "1";
+                    RefPopup.current.style.visibility = "visible";
+                }
+            }, 100);
+        } else {
+            setSession();
+        }
+    };
+
+    const showSchedulesPopup = async (id_form) => {
+        const context = await clientMo.post('/api/doctor/check');
+        if (context) {
+            setBodyPopup(
+                <SchedulesPopup
+                    id_form={id_form}
+                    onClose={() => {
+                        setBodyPopup(<></>);
+                        if (RefPopup.current) {
+                            RefPopup.current.style.opacity = "0";
+                            RefPopup.current.style.visibility = "hidden";
+                        }
+                    }}
+                />
+            );
+            setTimeout(() => {
+                if (RefPopup.current) {
+                    RefPopup.current.style.opacity = "1";
+                    RefPopup.current.style.visibility = "visible";
+                }
+            }, 100);
+        } else {
+            setSession();
+        }
+    };
+
     const Profile = (e) => {
         if (e) e.preventDefault();
         setBodyPopup(<ProfilePage RefPop={RefPopup} setPopup={setBodyPopup} session={setSession} returnToHome={Home} FetchProfileReload={() => { }} FetchNotify={FetchNotify} />);
@@ -134,6 +189,8 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                                 FetchNotifyData={() => FetchNotify(0, "start")}
                                 dataNotification={getNotifyList}
                                 FetchNotify={() => FetchNotify(getNotifyList.length !== 0 ? getNotifyList[getNotifyList.length - 1].id : 0, "get")}
+                                showPopup={showPopup}
+                                showSchedulesPopup={showSchedulesPopup}
                             />
                             : <></>
                         }
@@ -154,7 +211,7 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
 };
 
 // Notification Component
-const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, FetchNotify, setCount, session }) => {
+const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, FetchNotify, setCount, session, showPopup, showSchedulesPopup }) => {
     const [getLoadGet, setLoadGet] = useState(true)
     const [getListNew, setListNew] = useState([0])
     const [getWaitContent, setWaitContent] = useState("w")
@@ -199,7 +256,13 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                     getWaitContent !== "w" ?
                         dataNotification.length ?
                             dataNotification.map(val =>
-                                <div className="content-notification" key={val.id} notify="">
+                                <div className="content-notification" key={val.id} notify="" 
+                                     onClick={() => { 
+                                         if ((val.type === 1 || val.type === 2) && val.ref_id) { 
+                                             showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
+                                         }
+                                     }}
+                                     style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
                                     <div className="box-left" notify="">
                                         <img notify="" src={val.img_farmer} alt="farmer"></img>
                                     </div>
