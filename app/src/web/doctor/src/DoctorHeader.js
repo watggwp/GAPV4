@@ -62,7 +62,7 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         const notify = await clientMo.get(`/api/doctor/notify/get?type=${SelectDataOn}&id=${id_focus}`);
         if (notify) {
             const notifyData = JSON.parse(notify);
-            
+
             if (notifyData.station !== undefined) {
                 setStation(notifyData.station);
             }
@@ -198,7 +198,16 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         setNotifyContent(true);
         setShowNotify(!getShowNotify);
     };
-
+    //ทดสอบ popup แจ้งเตือน
+    const handleTestNotification = async (e) => {
+        if (e) e.preventDefault();
+        try {
+            await clientMo.post('/api/doctor/notify/test');
+        } catch (err) {
+            console.error("Test notification failed:", err);
+        }
+    };
+    //-------------------------------------------------------------
     const logout = () => {
         clientMo.LoadingPage();
         setTimeout(() => {
@@ -256,6 +265,10 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
             </div>
 
             <div className="header-actions">
+                <a href="#" className="notification-link" onClick={handleTestNotification} style={{ color: '#22C7A9', marginRight: '15px' }}>
+                    <span className="hide-mobile">ทดสอบแจ้งเตือน</span>
+                    <span className="show-mobile-icon">🧪</span>
+                </a>
                 <div className="menu-content" style={{ position: 'relative' }}>
                     <a href="#" className="notification-link" onClick={Notify} notify="">
                         <span className="hide-mobile">การแจ้งเตือน</span>
@@ -344,13 +357,13 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                     getWaitContent !== "w" ?
                         dataNotification.length ?
                             dataNotification.map(val =>
-                                <div className="content-notification" key={val.id} notify="" 
-                                     onClick={() => { 
-                                         if ((val.type === 1 || val.type === 2) && val.ref_id) { 
-                                             showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
-                                         }
-                                     }}
-                                     style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
+                                <div className="content-notification" key={val.id} notify=""
+                                    onClick={() => {
+                                        if ((val.type === 1 || val.type === 2) && val.ref_id) {
+                                            showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
+                                        }
+                                    }}
+                                    style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
                                     <div className="box-left" notify="">
                                         <img notify="" src={val.img_farmer} alt="farmer"></img>
                                     </div>

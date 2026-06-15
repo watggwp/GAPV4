@@ -5397,6 +5397,63 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     })
 
+    //ทดสอบ popup แจ้งเตือน---------------------------
+    app.post('/api/doctor/notify/test', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        try {
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            if (result['result'] === "pass") {
+                const station = result.data.station_doctor;
+
+                // Find a farmer ID from this station to link to the notification
+                con.query(
+                    `
+                    SELECT id_table FROM acc_farmer WHERE station = ? LIMIT 1
+                    `, [station],
+                    (err, farmers) => {
+                        const farmerId = (farmers && farmers.length > 0) ? farmers[0].id_table : 0;
+                        const msg = `ระบบทดสอบการแจ้งเตือนสำหรับสถานีที่ ${station}`;
+
+                        con.query(
+                            `
+                            INSERT INTO notify_doctor 
+                            (id_table_farmer, id_read, notify, station, type, ref_id)
+                            VALUES (?, '{}', ?, ?, 0, 0)
+                            `, [farmerId, msg, station],
+                            (err, insertResult) => {
+                                con.end();
+                                if (err) {
+                                    console.error("Test Notify INSERT error:", err);
+                                    return res.status(500).send("Database error");
+                                }
+                                // Emit update event to the station room
+                                socket.to(`notify-${station}`).emit("update");
+                                res.send("OK");
+                            }
+                        );
+                    }
+                );
+            }
+        } catch (err) {
+            con.end();
+            if (err == "not pass") {
+                res.redirect('/api/logout');
+            } else {
+                res.status(500).send("Server error");
+            }
+        }
+    })
+    //-------------------------------------------------------------
+
     app.post('/api/doctor/google/maps/get', async (req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
