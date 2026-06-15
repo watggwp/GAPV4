@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
+const checkMismatch = require('./core/corns/checkMismatch');
 const io = new Server()
 
 module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbpacket, listDB, socket = io) {
@@ -2461,6 +2462,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                                         (err2) => {
                                                             if(err2) {
                                                                 console.error('Tracking insert error:', err2);
+                                                            } else {
+                                                                checkMismatch.triggerMismatchCheck(pool, data.id_plant, data.schedule_id, socket);
                                                             }
                                                         }
                                                     );
@@ -2835,6 +2838,20 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     await sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไข${FactorType == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nรหัสฟอร์ม ${id_form}`);
                                 } catch (e) {
                                     console.error(e);
+                                }
+
+                                try {
+                                    const stQuery = await pool.executeQuery(
+                                        `SELECT schedule_id, formplant_id FROM schedule_tracking WHERE form${FactorType}_id = ?`,
+                                        [id_form]
+                                    );
+                                    if (stQuery.length > 0) {
+                                        for (let st of stQuery) {
+                                            checkMismatch.triggerMismatchCheck(pool, st.formplant_id, st.schedule_id, socket);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Error triggering mismatch on edit:", e);
                                 }
                             } else {
                                 return res.send("edit")

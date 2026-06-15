@@ -845,12 +845,6 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
     useEffect(() => {
         refData = Data.map(() => React.createRef());
         ManageShow(Data)
-
-        // window.addEventListener("resize" , Resize)
-
-        // return () => {
-        //     window.removeEventListener("resize" , Resize)
-        // }
     }, [Data])
 
     // const Resize = () => ManageShow(Data)
