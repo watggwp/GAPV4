@@ -5336,13 +5336,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const countUnRead = await new Promise((resole, reject) => {
                     con.query(
                         `
-                        SELECT COUNT(id) as count
+                        SELECT 
+                            COUNT(CASE WHEN COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 THEN id END) as count,
+                            COALESCE(MAX(id), 0) as maxId
                         FROM notify_doctor
-                        WHERE COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) = 0 
-                                AND station = ?
+                        WHERE station = ?
                         ` , [result.data.id_table_doctor, result.data.station_doctor],
                         (err, COUNT) => {
-                            resole(isNaN(parseInt(COUNT[0].count)) ? 0 : parseInt(COUNT[0].count))
+                            if (err) {
+                                console.error("Notify COUNT error:", err);
+                                return resole({ count: 0, maxId: 0 });
+                            }
+                            resole({
+                                count: isNaN(parseInt(COUNT[0].count)) ? 0 : parseInt(COUNT[0].count),
+                                maxId: isNaN(parseInt(COUNT[0].maxId)) ? 0 : parseInt(COUNT[0].maxId)
+                            })
                         }
                     )
                 })
@@ -5360,15 +5368,23 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         FROM notify_doctor
                         WHERE station = ? AND id ${Oparetor} ?
                         ORDER BY id DESC
-                        LIMIT ${req.query.type == "start" ? countUnRead != 0 ? countUnRead + 3 : 10 :
+                        LIMIT ${req.query.type == "start" ? countUnRead.count != 0 ? countUnRead.count + 3 : 10 :
                             req.query.type == "update" ? "999999" :
                                 req.query.type == "get" ? "10" : 0}
                         ` , [result.data.station_doctor, req.query.id],
                         (err, list) => {
+                            if (err) {
+                                console.error("Notify SELECT error:", err);
+                                return resole([]);
+                            }
                             if (list.length) list.map(val => {
                                 val.img_farmer = val.img_farmer ? val.img_farmer.toString() : "/acc_doctor.jpg"
                                 return val
                             })
+
+                            if (req.query.type === "update") {
+                                return resole(list);
+                            }
 
                             con.query(
                                 `
@@ -5386,7 +5402,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 const Send = {
                     List: getNotify,
-                    countUn: countUnRead,
+                    countUn: countUnRead.count,
+                    maxId: countUnRead.maxId,
                     station: result.data.station_doctor
                 }
 
@@ -5436,6 +5453,63 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             }
         }
     })
+
+    //ทดสอบ popup แจ้งเตือน---------------------------
+    app.post('/api/doctor/notify/test', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
+            res.redirect('/api/logout')
+            return 0
+        }
+
+        let con = Database.createConnection(listDB)
+
+        try {
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            if (result['result'] === "pass") {
+                const station = result.data.station_doctor;
+
+                // Find a farmer ID from this station to link to the notification
+                con.query(
+                    `
+                    SELECT id_table FROM acc_farmer WHERE station = ? LIMIT 1
+                    `, [station],
+                    (err, farmers) => {
+                        const farmerId = (farmers && farmers.length > 0) ? farmers[0].id_table : 0;
+                        const msg = `ระบบทดสอบการแจ้งเตือนสำหรับสถานีที่ ${station}`;
+
+                        con.query(
+                            `
+                            INSERT INTO notify_doctor 
+                            (id_table_farmer, id_read, notify, station, type, ref_id)
+                            VALUES (?, '{}', ?, ?, 0, 0)
+                            `, [farmerId, msg, station],
+                            (err, insertResult) => {
+                                con.end();
+                                if (err) {
+                                    console.error("Test Notify INSERT error:", err);
+                                    return res.status(500).send("Database error");
+                                }
+                                // Emit update event to the station room
+                                socket.to(`notify-${station}`).emit("update");
+                                res.send("OK");
+                            }
+                        );
+                    }
+                );
+            }
+        } catch (err) {
+            con.end();
+            if (err == "not pass") {
+                res.redirect('/api/logout');
+            } else {
+                res.status(500).send("Server error");
+            }
+        }
+    })
+    //-------------------------------------------------------------
 
     app.post('/api/doctor/google/maps/get', async (req, res) => {
         let username = req.session.user_doctor
@@ -5905,12 +5979,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         g.plants.push({
                             name: row.name_plant || '-',
                             disease: row.disease || '-',
-                            amount: row.expected_yield || 0,
+                            amount: parseFloat(row.expected_yield || 0),
                             status: row.state_status === 0 ? 'กำลังปลูก' : 'ตรวจสอบผลผลิต',
                             formplant_id: row.id
                         });
                         if (row.disease) g.hasDisease = true;
-                        g.totalAmount += (row.expected_yield || 0);
+                        g.totalAmount += parseFloat(row.expected_yield || 0);
                     });
 
                     const pins = Object.values(grouped).map(g => ({
@@ -5951,52 +6025,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         fp.date_plant,
                         DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY) AS due_date,
                         DATEDIFF(CURDATE(), DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) AS overdue_days,
-                        IF(st.id IS NOT NULL, 1, 0) AS is_filled,
-                        IF(s.category = 1, 
-                            IF(
-                                IFNULL(ff.name, '') = IFNULL(sdf.fertilizer, '') AND 
-                                IFNULL(ff.formula_name, '') = IFNULL(sdf.formula_fertilizer, '') AND
-                                TRIM(IFNULL(ff.volume, '')) = TRIM(CONCAT(IFNULL(sdf.volume, ''), ' ', IFNULL(sdf.unit_volume, ''))) AND
-                                TRIM(IFNULL(ff.use_is, '')) = TRIM(IFNULL(sdf.how_use, '')), 
-                            1, 0),
-                            IF(
-                                IFNULL(fc.name, '') = IFNULL(sdd.chemical, '') AND 
-                                IFNULL(fc.insect, '') = IFNULL(sdd.pest, '') AND
-                                TRIM(IFNULL(fc.rate, '')) = TRIM(IFNULL(sdd.rate, '')) AND
-                                TRIM(IFNULL(fc.volume, '')) = TRIM(CONCAT(IFNULL(sdd.volume, ''), ' ', IFNULL(sdd.unit_volume, ''))) AND
-                                TRIM(IFNULL(fc.use_is, '')) = TRIM(IFNULL(sdd.how_use, '')), 
-                            1, 0)
-                        ) AS is_match
+                        0 AS is_filled,
+                        1 AS is_match
                     FROM formplant fp
                     INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                     INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
                     INNER JOIN plant_list pl ON fp.name_plant = pl.name AND IFNULL(pl.variety_name, '') = IFNULL(fp.name_varieties, '') AND pl.is_use = 1
                     INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
                     LEFT JOIN schedule_tracking st ON st.formplant_id = fp.id AND st.schedule_id = s.id
-                    LEFT JOIN formfertilizer ff ON st.formfertilizer_id = ff.id
-                    LEFT JOIN formchemical fc ON st.formchemical_id = fc.id
-                    LEFT JOIN schedules_detail_fertilizer sdf ON s.category = 1 AND sdf.schedule_id = s.id
-                    LEFT JOIN schedules_detail_disease sdd ON s.category = 2 AND sdd.schedule_id = s.id
                     WHERE 
                         af.station = ?
                         AND (fp.state_status = 0 OR fp.state_status = 1)
                         AND DATE(DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) <= CURDATE()
-                        AND (
-                            st.id IS NULL
-                            OR (s.category = 1 AND (
-                                IFNULL(ff.name, '') != IFNULL(sdf.fertilizer, '') OR 
-                                IFNULL(ff.formula_name, '') != IFNULL(sdf.formula_fertilizer, '') OR
-                                TRIM(IFNULL(ff.volume, '')) != TRIM(CONCAT(IFNULL(sdf.volume, ''), ' ', IFNULL(sdf.unit_volume, ''))) OR
-                                TRIM(IFNULL(ff.use_is, '')) != TRIM(IFNULL(sdf.how_use, ''))
-                            ))
-                            OR (s.category = 2 AND (
-                                IFNULL(fc.name, '') != IFNULL(sdd.chemical, '') OR 
-                                IFNULL(fc.insect, '') != IFNULL(sdd.pest, '') OR
-                                TRIM(IFNULL(fc.rate, '')) != TRIM(IFNULL(sdd.rate, '')) OR
-                                TRIM(IFNULL(fc.volume, '')) != TRIM(CONCAT(IFNULL(sdd.volume, ''), ' ', IFNULL(sdd.unit_volume, ''))) OR
-                                TRIM(IFNULL(fc.use_is, '')) != TRIM(IFNULL(sdd.how_use, ''))
-                            ))
-                        )
+                        AND st.id IS NULL
                     GROUP BY fp.id, s.id
                     ORDER BY overdue_days DESC
                     LIMIT 20
