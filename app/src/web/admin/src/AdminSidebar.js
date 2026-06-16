@@ -25,20 +25,6 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
     const { profile } = useContext(AdminContext);
     const navigator = useNavigate();
 
-    const logout = () => {
-        clientMo.LoadingPage();
-        setTimeout(() => {
-            clientMo.get('/api/logout')
-                .then(() => {
-                    setSession(true);
-                    clientMo.unLoadingPage();
-                })
-                .catch(() => {
-                    setSession(true);
-                    clientMo.unLoadingPage();
-                });
-        }, 2000);
-    };
 
     // --- Navigation Functions ---
 
@@ -131,13 +117,20 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src={`${env.subpath_server}/logo2.png`} alt="Logo" className="logo" />
-                    <span className="brand-name">ผู้ดูแลระบบ</span>
-                </div>
-                <button className="toggle-btn" onClick={toggleSidebar}>
-                    {isCollapsed ? '☰' : '✖'}
-                </button>
+                {isCollapsed ? (
+                    <button className="toggle-btn" onClick={toggleSidebar}>
+                        ☰
+                    </button>
+                ) : (
+                    <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                        onClick={toggleSidebar}
+                        className="brand-container"
+                    >
+                        <img src={`${env.subpath_server}/logo2.png`} alt="Logo" className="logo" />
+                        <span className="brand-name">ผู้ดูแลระบบ</span>
+                    </div>
+                )}
             </div>
 
             <ul className="sidebar-menu">
@@ -200,7 +193,7 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
                         <div className="icon-container-img">
                             <img src={iconStation} alt="Station" />
                         </div>
-                        <span>สภาพอากาศ</span>
+                        <span>ข้อมูลสภาพแวดล้อม</span>
                     </a>
                 </li>
 
@@ -215,14 +208,6 @@ const AdminSidebar = ({ setBodyFileAdmin, socket, setSession, auth, TabOn, HrefD
 
             </ul>
 
-            <div className="sidebar-footer">
-                <div className="menu-item logout" onClick={logout}>
-                    <div className="icon-container-img" style={{ filter: 'grayscale(1)' }}>
-                        <img src={iconDashboard} alt="Logout" style={{ transform: 'rotate(180deg)' }} />
-                    </div>
-                    <span>ออกจากระบบ</span>
-                </div>
-            </div>
         </div>
     );
 };

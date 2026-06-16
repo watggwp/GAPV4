@@ -6,75 +6,75 @@ import { DayJSX, Loading } from "../../../../assets/js/module";
 import { useGreenhouse } from ".";
 import { useParams } from "react-router";
 
-const DetailEdit = ({Ref , setRef , type , Data_on}) => {
+const DetailEdit = ({ Ref, setRef, type, Data_on }) => {
 
-    const { greenhouse_id , gap_id } = useParams()
+    const { greenhouse_id, gap_id } = useParams()
     const { setCurrentPage } = useGreenhouse()
 
-    const [Data , setData] = useState(null)
-    const [HeadEdit , setHead] = useState([])
-    const [BodyEdit , setBody] = useState(<></>)
-    const [LoadingData , setLoad] = useState(false)
-    const UrlFecth = type === "plant" ? "/api/farmer/formplant/edit/select" : "/api/farmer/factor/edit/select" ;
+    const [Data, setData] = useState(null)
+    const [HeadEdit, setHead] = useState([])
+    const [BodyEdit, setBody] = useState(<></>)
+    const [LoadingData, setLoad] = useState(false)
+    const UrlFecth = type === "plant" ? "/api/farmer/formplant/edit/select" : "/api/farmer/factor/edit/select";
     const DataFetch = (
-        type === "plant" ? 
+        type === "plant" ?
             {
-                id_farmhouse : greenhouse_id , 
-                id_plant : gap_id
-            } 
+                id_farmhouse: greenhouse_id,
+                id_plant: gap_id
+            }
             : {
-                id_farmhouse : greenhouse_id , 
-                id_plant : gap_id , 
-                id_form_factor : Data_on.id_factor , 
-                type_form : Data_on.type_form
+                id_farmhouse: greenhouse_id,
+                id_plant: gap_id,
+                id_form_factor: Data_on.id_factor,
+                type_form: Data_on.type_form
             }
     )
-    
-    const subject = type === "plant" ? 
-                    {
-                        name_plant : "ชนิดพืช" ,
-                        generation : "รุ่นที่ปลูก" ,
-                        date_glow : "วันที่เพราะกล้า" ,
-                        date_plant : "วันที่ปลูก",
-                        posi_w : "ระยะการปลูก ความกว้าง",
-                        posi_h : "ระยะการปลูก ความยาว",
-                        qty : "จำนวนต้น",
-                        area : "พื้นที่",
-                        date_harvest : "วันที่คาดว่าจะเก็บเกี่ยว",
-                        expected_yield : "ปริมาณผลผลิตที่คาดว่าจะได้รับ",
-                        default_yield : "ผลผลิตที่ได้จริง",
-                        system_glow : "รูปแบบการปลูก",
-                        water : "แหล่งน้ำ",
-                        water_flow : "วิธีการให้น้ำ",
-                        history : "ประวัติการใช้พื้นที่",
-                        insect : "โรคและแมลงที่พบ",
-                        qtyInsect : "ปริมาณการเกิดโรค และแมลงที่พบ",
-                        seft : "การป้องกัน กำจัด",
-                    } : 
-                    {
-                        name : type === "z" ? "ชื่อสิ่งที่ใช้" : "ชื่อสารเคมี" ,
-                        formula_name : type === "z" ? "ชื่อสูตรปุ๋ย" : "ชื่อสามัญสารเคมี" ,
-                        insect : "ศัตรูพืชที่พบ" ,
-                        use_is : "วิธีการใช้" ,
-                        rate : "อัตราที่ผสม" ,
-                        volume : "ปริมาณที่ใช้" ,
-                        source : "แหล่งที่ซื้อ" ,
-                        date_safe : "วันที่ปลอดภัย" ,
-                        date : type === "z" ? "ว/ด/ป ที่ใช้" : "ว/ด/ป ที่พ่นสาร" ,
-                    }
-    
-    useEffect(()=>{
-        Ref.current.setAttribute("s" , "")
+
+    const subject = type === "plant" ?
+        {
+            name_plant: "ชนิดพืช",
+            generation: "รุ่นที่ปลูก",
+            date_glow: "วันที่เพราะกล้า",
+            date_plant: "วันที่ปลูก",
+            posi_w: "ระยะการปลูก ความกว้าง",
+            posi_h: "ระยะการปลูก ความยาว",
+            qty: "จำนวนต้น",
+            area: "พื้นที่",
+            date_harvest: "วันที่คาดว่าจะเก็บเกี่ยว",
+            expected_yield: "ปริมาณผลผลิตที่คาดว่าจะได้รับ",
+            default_yield: "ผลผลิตที่ได้จริง",
+            system_glow: "รูปแบบการปลูก",
+            water: "แหล่งน้ำ",
+            water_flow: "วิธีการให้น้ำ",
+            history: "ประวัติการใช้พื้นที่",
+            insect: "โรคและแมลงที่พบ",
+            qtyInsect: "ปริมาณการเกิดโรค และแมลงที่พบ",
+            seft: "การป้องกัน กำจัด",
+        } :
+        {
+            name: type === "z" ? "ชื่อสิ่งที่ใช้" : "ชื่อสารเคมี",
+            formula_name: type === "z" ? "ชื่อสูตรปุ๋ย" : "ชื่อสามัญสารเคมี",
+            insect: "ศัตรูพืชที่พบ",
+            use_is: "วิธีการใช้",
+            rate: "อัตราที่ผสม",
+            volume: "ปริมาณที่ใช้",
+            source: "แหล่งที่ซื้อ",
+            date_safe: "วันที่ปลอดภัย",
+            date: type === "z" ? "ว/ด/ป ที่ใช้" : "ว/ด/ป ที่พ่นสาร",
+        }
+
+    useEffect(() => {
+        Ref.current.setAttribute("s", "")
         Fetch()
-    } , [])
+    }, [])
 
     const Fetch = async () => {
-        const result = await clientMo.post(UrlFecth , DataFetch)
-        if(await CloseAccount(result , setCurrentPage)) {
+        const result = await clientMo.post(UrlFecth, DataFetch)
+        if (await CloseAccount(result, setCurrentPage)) {
             const Data = JSON.parse(result)
             console.log("Data from API:", Data); // Debug ข้อมูล
             setData(Data)
-            if(Data[0]) SelectHead(Data[0].id_edit)
+            if (Data[0]) SelectHead(Data[0].id_edit)
         }
     }
 
@@ -105,7 +105,7 @@ const DetailEdit = ({Ref , setRef , type , Data_on}) => {
             console.error("id_table_edit is undefined or null");
             return;
         }
-    
+
         setLoad(false);
         const result = await clientMo.post(UrlFecth, { ...DataFetch, id_edit: id_table_edit });
         if (await CloseAccount(result, setCurrentPage)) {
@@ -125,11 +125,11 @@ const DetailEdit = ({Ref , setRef , type , Data_on}) => {
             }
         }
     };
-    
+
 
     const close = () => {
         Ref.current.removeAttribute("s")
-        setTimeout(()=>{
+        setTimeout(() => {
             setRef(<></>)
         }, 500)
     }
@@ -260,7 +260,7 @@ const DetailEdit = ({Ref , setRef , type , Data_on}) => {
     //             }
     //         </section>
 
-    
+
     return Data === null ? (
         <Loading size={"30vw"} border={"2.5vw"} color="#23dd36" animetion={true} />
     ) : (
@@ -281,7 +281,7 @@ const DetailEdit = ({Ref , setRef , type , Data_on}) => {
                                         ) : (
                                             <>
                                                 <div className="number">{key + 1}</div>
-                                                {val.fullname_doctor ? `หมอพืช` : ""}
+                                                {val.fullname_doctor ? `หมอพืช` : val.fullname_admin ? "ผู้ดูแลระบบ" : ""}
                                             </>
                                         )}
                                     </span>

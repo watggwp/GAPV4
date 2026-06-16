@@ -27,7 +27,7 @@ const Station = () => {
         textSearch: "",
       });
       const list = JSON.parse(response);
-      setStationList(list);
+      setStationList(list.filter(station => station.is_use === 1));
     } catch (error) {
       console.error("Error fetching station list:", error);
     }

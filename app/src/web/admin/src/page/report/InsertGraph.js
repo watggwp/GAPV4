@@ -5,14 +5,17 @@ import { PageTemplateContext } from "../PageTemplate";
 
 const InsertGraph = () => {
   const { TabOn } = useContext(AdminContext);
-  const { popupDataManage, setPopupDataManage, textSearch } = useContext(PageTemplateContext);
+  const { popupDataManage, setPopupDataManage, textSearch, selectedStation } = useContext(PageTemplateContext);
   const [plantData, setPlantData] = useState([]);
   const [farmerCount, setFarmerCount] = useState(0);
 
   const ListGraph = useCallback(async () => {
     console.log("Start fetch group");
     try {
-      const response = await clientMo.post("/api/admin/report/list", { search: textSearch });
+      const response = await clientMo.post("/api/admin/report/list", { 
+        search: textSearch,
+        station_id: selectedStation,
+      });
       const result = JSON.parse(response);
 
       if (result.data) {
@@ -40,22 +43,22 @@ const InsertGraph = () => {
     }
 
     TabOn.addTimeOut(TabOn.end());
-  }, [TabOn, textSearch]);
+  }, [TabOn, textSearch, selectedStation]);
 
   useEffect(() => {
     ListGraph();
   }, [ListGraph]);
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Sans-font" }}>
+    <div style={{ padding: "20px", width: "90%", margin: "0 auto", fontFamily: "Sans-font" }}>
       <div>
         <table
-          style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",}}
+          style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",tableLayout: "fixed",textAlign: "center",}}
         >
           <thead>
             <tr>
               <th
-                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",
+                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",width: "10%",
                 }}
               >
                 ลำดับ
@@ -75,39 +78,47 @@ const InsertGraph = () => {
             </tr>
           </thead>
           <tbody>
-            {plantData.map((plant, index) => (
-              <tr key={index}>
-                <td
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "8px",
-                    textAlign: "center",
-                    fontWeight: "900",
-                  }}
-                >
-                  {index + 1}
-                </td>
-                <td
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "8px",
-                    fontWeight: "900",
-                  }}
-                >
-                  {plant.plantName}
-                </td>
-                <td
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "8px",
-                    textAlign: "center",
-                    fontWeight: "900",
-                  }}
-                >
-                  {plant.farmersCount}
+            {plantData.length > 0 ? (
+              plantData.map((plant, index) => (
+                <tr key={index}>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                      fontWeight: "900",
+                    }}
+                  >
+                    {index + 1}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      fontWeight: "900",
+                    }}
+                  >
+                    {plant.plantName}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                      fontWeight: "900",
+                    }}
+                  >
+                    {plant.farmersCount}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="3" style={{ padding: "15px", textAlign: "center", fontWeight: "900", color: "gray" }}>
+                  ไม่พบข้อมูล
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

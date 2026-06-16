@@ -993,7 +993,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con, req)
-                con.query(`SELECT id, name, qty_harvest
+                con.query(`SELECT id, name, qty_harvest,
+                                  COUNT(*) as variety_count,
+                                  SUM(CASE WHEN variety_name IS NOT NULL AND variety_name != '' AND variety_name != '-' THEN 1 ELSE 0 END) as has_variety_name_count
                             FROM plant_list
                             WHERE is_use = 1
                             GROUP BY name
@@ -1024,19 +1026,44 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                 if (name_plant) {
                     const variety = name_varieties || "";
-                    resolved_plant_id = await new Promise((resolve) => {
-                        con.query(`SELECT id FROM plant_list WHERE name = ? AND (variety_name = ? OR (variety_name IS NULL AND ? = '')) LIMIT 1`, [name_plant, variety, variety], (err, result) => {
-                            if (!err && result.length > 0) resolve(result[0].id);
-                            else resolve(null);
+
+                    has_varieties = await new Promise((resolve) => {
+                        con.query(`
+                            SELECT 
+                                COUNT(*) as total_count,
+                                SUM(CASE WHEN variety_name IS NOT NULL AND variety_name != '' AND variety_name != '-' THEN 1 ELSE 0 END) as variety_name_count
+                            FROM plant_list 
+                            WHERE name = ? AND is_use = 1
+                        `, [name_plant], (err, result) => {
+                            if (!err && result.length > 0) {
+                                const total = result[0].total_count;
+                                const withVariety = result[0].variety_name_count;
+                                resolve(total > 1 || withVariety > 0);
+                            } else {
+                                resolve(false);
+                            }
                         });
                     });
 
-                    has_varieties = await new Promise((resolve) => {
-                        con.query(`SELECT COUNT(*) as cnt FROM plant_list WHERE name = ? AND variety_name != '' AND variety_name IS NOT NULL AND is_use = 1`, [name_plant], (err, result) => {
-                            if (!err && result.length > 0 && result[0].cnt > 0) resolve(true);
-                            else resolve(false);
+                    const isVarietyEmpty = !variety || variety === "" || variety === "-";
+                    const hasHarvestDate = req.body.date_harvest && req.body.date_harvest !== "";
+                    if (has_varieties && isVarietyEmpty && !hasHarvestDate) {
+                        resolved_plant_id = null;
+                    } else {
+                        resolved_plant_id = await new Promise((resolve) => {
+                            con.query(`
+                                SELECT id 
+                                FROM plant_list 
+                                WHERE name = ? 
+                                  AND (variety_name = ? OR (variety_name IS NULL AND ? = '') OR (variety_name = '-' AND ? = '-')) 
+                                  AND is_use = 1 
+                                LIMIT 1
+                            `, [name_plant, variety, variety, variety], (err, result) => {
+                                if (!err && result.length > 0) resolve(result[0].id);
+                                else resolve(null);
+                            });
                         });
-                    });
+                    }
                 }
 
                 if (!resolved_plant_id) {
@@ -1086,35 +1113,40 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                     con.query(query, [resolved_plant_id, station_id], (err, schedule_plants) => {
                         console.log("SQL Error:", err);
                         console.log("Result length:", schedule_plants ? schedule_plants.length : 0);
-                        con.end()
-                        if (!err) {
-                            res.json({
-                                schedule_plants: schedule_plants || [],
-                                has_varieties,
-                                resolved_plant_id,
-                                debug: {
+                        con.query(`SELECT qty_harvest FROM plant_list WHERE id = ? LIMIT 1`, [resolved_plant_id], (err2, qtyResult) => {
+                            const qty_harvest = (!err2 && qtyResult && qtyResult.length > 0) ? qtyResult[0].qty_harvest : null;
+                            con.end()
+                            if (!err) {
+                                res.json({
+                                    schedule_plants: schedule_plants || [],
+                                    has_varieties,
                                     resolved_plant_id,
-                                    station_id,
-                                    name_plant,
-                                    name_varieties,
-                                    uid_line: auth.data.uid_line
-                                }
-                            })
-                        } else {
-                            res.json({
-                                schedule_plants: [],
-                                has_varieties,
-                                resolved_plant_id: null,
-                                debug: {
-                                    error: err,
-                                    resolved_plant_id,
-                                    station_id,
-                                    name_plant,
-                                    name_varieties,
-                                    uid_line: auth.data.uid_line
-                                }
-                            })
-                        }
+                                    qty_harvest,
+                                    debug: {
+                                        resolved_plant_id,
+                                        station_id,
+                                        name_plant,
+                                        name_varieties,
+                                        uid_line: auth.data.uid_line
+                                    }
+                                })
+                            } else {
+                                res.json({
+                                    schedule_plants: [],
+                                    has_varieties,
+                                    resolved_plant_id: null,
+                                    qty_harvest: null,
+                                    debug: {
+                                        error: err,
+                                        resolved_plant_id,
+                                        station_id,
+                                        name_plant,
+                                        name_varieties,
+                                        uid_line: auth.data.uid_line
+                                    }
+                                })
+                            }
+                        })
                     })
                 })
             } catch (err) {
@@ -1267,7 +1299,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                     const data = req.body;
                     console.log("BODY =>", data);
                     if (
-                        !data.id_farmhouse || !data.name_plant || !data.datePlant || !data.dateOut
+                        !data.id_farmhouse || !data.name_plant || !data.datePlant
                     ) {
                         con.end();
                         return res.send("missing required fields");
@@ -1308,13 +1340,14 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     ?, ?, ?, ?, ?,
                                     ?, ?,
                                     ?, ?, ?,
-                                    ?, 0, "", ?, ?, ?
+                                    ?, 0, "",
+                                    ?, ?, ?
                                 );
                             `, [
                         new Date().getTime(), data.id_farmhouse, data.name_plant,
                         valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
                         valueOrNull(data.posiW), valueOrNull(data.posiH),
-                        valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), new Date(data.dateOut), valueOrNull(data.system),
+                        valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), dateOrNull(data.dateOut), valueOrNull(data.system),
                         valueOrNull(data.water), valueOrNull(data.waterStep),
                         valueOrNull(data.history), valueOrNull(data.insect), valueOrNull(data.qtyInsect),
                         valueOrNull(data.seft), valueOrNull(data.expectedYield), valueOrNull(data.defaultYield), valueOrNull(data.name_varieties)

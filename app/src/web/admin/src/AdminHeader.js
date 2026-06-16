@@ -17,7 +17,7 @@ const AdminHeader = ({ setSession, isSidebarCollapsed, pageTitle, toggleSidebar 
 
     const Profile = (e) => {
         if (e) e.preventDefault();
-        setBodyPopup(<ProfilePage RefPop={RefPopup} setPopup={setBodyPopup} session={setSession} returnToHome={Home} FetchProfileReload={() => { }} FetchNotify={() => {}} />);
+        setBodyPopup(<ProfilePage RefPop={RefPopup} setPopup={setBodyPopup} session={setSession} returnToHome={Home} FetchProfileReload={() => { }} FetchNotify={() => { }} />);
     };
 
     const logout = () => {
@@ -50,7 +50,7 @@ const AdminHeader = ({ setSession, isSidebarCollapsed, pageTitle, toggleSidebar 
 
             <div className="header-actions">
                 {/* Notifications are hidden for Admin currently */}
-                
+
                 <a href="#" className="profile-link" onClick={Profile}>
                     <span className="hide-mobile">โปรไฟล์</span>
                     <span className="show-mobile-icon">👤</span>

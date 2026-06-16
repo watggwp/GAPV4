@@ -23,8 +23,10 @@ module.exports = function apiGreenhouse(app, pool = new Pool()) {
             case "doctor" :
                 const username = req.session.user_doctor;
                 const password = req.session.pass_doctor;
+                const adminUser = req.session.user_username;
+                const adminPass = req.session.user_password;
             
-                if (username === '' || password === '') {
+                if ((username === '' || password === '' || !username || !password) && (!adminUser || !adminPass)) {
                     return res.status(403).send({
                         errors : "authorize error"
                     })

@@ -267,7 +267,7 @@ export default function SchedulesPopup({ id_form, onClose }) {
                 {/* Header */}
                 <div className="schedule-header">
                     <span className="schedule-header-title">แผนการปลูกและบันทึกกิจกรรม</span>
-                    <button className="schedule-close-btn" onClick={onClose}>✕</button>
+                    {/* <button className="schedule-close-btn" onClick={onClose}>✕</button> */}
                 </div>
 
                 {/* Body */}
@@ -372,7 +372,7 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                                         borderLeft: '4px solid #e11d48',
                                                         borderRadius: '4px',
                                                         color: '#9f1239',
-                                                        fontSize: '14px',
+                                                        fontSize: '18px',
                                                         fontWeight: '600',
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -417,10 +417,10 @@ export default function SchedulesPopup({ id_form, onClose }) {
                             )}
 
                             {/* Footer */}
-                            <div className="schedule-footer">
+                            {/* <div className="schedule-footer">
                                 <p className="schedule-timestamp">{formattedNow}</p>
                                 <button className="schedule-close-full-btn" onClick={onClose}>ปิดหน้าต่าง</button>
-                            </div>
+                            </div> */}
                         </>
                     )}
                 </div>

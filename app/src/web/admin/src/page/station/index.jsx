@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"; // NEW: useMemo
 import { clientMo } from "../../../../../assets/js/moduleClient";
-import { useDoctor } from "../../../../doctor/src/Doctor";
+import { useAdminContext } from "../../Admin";
 import { Button, MenuItem, Modal, Select, Stack, Typography } from "@mui/material";
 import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
@@ -17,10 +17,10 @@ const WeatherStationContext = createContext({
 });
 
 export default function WeatherStation() {
-  const { profile, bannerCoverRef, contentRef, setTextPage } = useDoctor();
+  const { profile, titlePageNested } = useAdminContext();
 
   const [stations, setStations] = useState([]);
-  const [selectedStation, setSelectedStation] = useState(profile.id_station);
+  const [selectedStation, setSelectedStation] = useState("");
   const [selectedStationData, setSelectedStationData] = useState({});
 
   // NEW: state สำหรับ greenhouse ที่ถูกเลือก
@@ -33,19 +33,19 @@ export default function WeatherStation() {
 
   const fetchStationList = useCallback(async () => {
     try {
-      const { data: stationsResponse } = await RequestAPI.post("/api/doctor/data/list", {
+      const { data: stationsResponse } = await RequestAPI.post("/api/admin/data/list", {
         limit: 100,
         startRow: 0,
         type: "station",
         textSearch: "",
       });
 
-      setStations(stationsResponse);
-      setSelectedStationData(stationsResponse.find(({ id_station }) => id_station === selectedStation) || {});
+      setStations(stationsResponse.filter(station => station.is_use === 1));
+      // ไม่ auto-select ศูนย์ใด รอให้ผู้ใช้เลือกเอง
     } catch (error) {
       console.error("Error fetching station list:", error);
     }
-  }, [selectedStation]);
+  }, []);
 
   const onUpdateRange = useCallback((startTimestamp, endTimestamp) => {
     setStartTime(startTimestamp);
@@ -53,12 +53,11 @@ export default function WeatherStation() {
   }, []);
 
   useEffect(() => {
-    bannerCoverRef.current.style.height = "30%";
-    contentRef.current.style.height = "70%";
-    setTextPage(["หน้าหลัก", "ข้อมูลสภาพแวดล้อม"]);
+    titlePageNested(70, 30, ["หน้าหลัก", "ข้อมูลสภาพแวดล้อม"]);
     clientMo.unLoadingPage();
     fetchStationList();
-  }, [bannerCoverRef, contentRef, fetchStationList, setTextPage]);
+  }, [titlePageNested, fetchStationList]);
+
 
   // NEW: เมื่อเปลี่ยนศูนย์ ให้ล้าง greenhouse ที่เลือก เพื่อกลับไปโหมด station
   useEffect(() => {
@@ -104,6 +103,7 @@ export default function WeatherStation() {
           <Grid size={{ xs: 8, xl: 6 }}>
             <Stack direction={"row"}>
               <Select
+                displayEmpty
                 value={selectedStation}
                 onChange={(e) => {
                   setSelectedStation(e.target.value);
@@ -146,13 +146,19 @@ export default function WeatherStation() {
       </Stack>
 
       <Stack height={"calc(100% - 65px)"} minHeight={"350px"}>
-        <WeatherManagement
-          key={widgetKey}
-          endpointData={endpointData}
-          query={query}
-          columns={columns}
-          onChangeRange={onUpdateRange}
-        />
+        {selectedStation ? (
+          <WeatherManagement
+            key={widgetKey}
+            endpointData={endpointData}
+            query={query}
+            columns={columns}
+            onChangeRange={onUpdateRange}
+          />
+        ) : (
+          <Stack height={"100%"} alignItems={"center"} justifyContent={"space-between"} spacing={1}>
+            <Typography variant="h6" color="text.secondary">กรุณาเลือกศูนย์เพื่อดูข้อมูลสภาพแวดล้อม</Typography>
+          </Stack>
+        )}
       </Stack>
 
       <Modal open={openManageWeatherStation}>

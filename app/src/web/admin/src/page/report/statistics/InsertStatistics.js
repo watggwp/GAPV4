@@ -29,13 +29,17 @@ export function InsertStatisticsProvider({ children }) {
 
 const InsertStatistics = () => {
   const { TabOn } = useContext(AdminContext)
-  const { textSearch } = useContext(PageTemplateContext)
+  const { textSearch, selectedStation } = useContext(PageTemplateContext)
   const { minCount , selectedRows , setMinCount , setSelectedRows } = useContext(InsertStatisticsContext)
 
   const [ pestsMapping , setPestsMapping ] = useState(new Map())
   const [plantDiseaseStats, setPlantDiseaseStats] = useState([]);
   const [pestStats, setPestStats] = useState([]);
   const [showPlantDiseases, setShowPlantDiseases] = useState(true);
+
+  useEffect(() => {
+    setSelectedRows(new Map());
+  }, [selectedStation, setSelectedRows]);
   const [duration, setDuration] = useState("1_week");
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
 
@@ -87,11 +91,17 @@ const InsertStatistics = () => {
 
   const fetchStatistics = useCallback(async (search) => {
     try {
-      const response = await clientMo.post("/api/admin/statistic/get", { duration , search });
+      const response = await clientMo.post("/api/admin/statistic/get", { 
+        duration, 
+        search,
+        station_id: selectedStation,
+      });
       const data = JSON.parse(response);
 
       if (data.length === 0) {
         console.error("No data received from API");
+        setPlantDiseaseStats([]);
+        setPestStats([]);
         return;
       }
 
@@ -140,7 +150,7 @@ const InsertStatistics = () => {
     }
 
     TabOn.addTimeOut(TabOn.end());
-  }, [TabOn , duration]);
+  }, [TabOn, duration, selectedStation]);
 
   useEffect(() => {
     console.log(textSearch)
@@ -268,8 +278,8 @@ const InsertStatistics = () => {
       {showPlantDiseases !== null && (
         <div>
           {filterByMinCount(showPlantDiseases ? plantDiseaseStats : pestStats).length === 0 ? (
-            <p style={{ textAlign: "center", color: "gray", fontFamily: "Sans-font", fontWeight: "900" }}>
-              ไม่มีข้อมูลที่จะแสดง
+            <p style={{ textAlign: "center", color: "gray", fontFamily: "Sans-font", fontWeight: "900", padding: "20px" }}>
+              ไม่พบข้อมูล
             </p>
           ) : (
             <table

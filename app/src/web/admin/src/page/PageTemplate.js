@@ -3,6 +3,7 @@ import '../assets/style/page/templatePage.scss'
 import "../assets/style/page/List.scss"
 import ListData from "./ListData";
 import { InsertStatisticsProvider } from "./report/statistics/InsertStatistics";
+import { clientMo } from "../../../../assets/js/moduleClient";
 import UserAccessLogs from "./report/user-access-logs";
 import AdminAccessLogs from "./report/admin-access-logs";
 
@@ -17,9 +18,28 @@ export const PageTemplateContext = createContext({
     setPopupDataManage: () => ({ open: false, type: "" }),
     ChangeStatus: (status) => { },
     textSearch: "",
+    selectedStation: "",
 })
 
 const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session, TabOn }) => {
+    const [stations, setStations] = useState([]);
+    const [selectedStation, setSelectedStation] = useState("");
+
+    useEffect(() => {
+        const fetchStations = async () => {
+            try {
+                const response = await clientMo.post("/api/admin/station/list");
+                if (response) {
+                    const parsed = JSON.parse(response);
+                    setStations(parsed.filter(s => s.is_use === 1));
+                }
+            } catch (err) {
+                console.error("Error fetching stations in PageTemplate:", err);
+            }
+        };
+        fetchStations();
+    }, []);
+
     const [StatusPage, setStatus] = useState({
         status: HrefData.get() === "list?default" ? "default" :
             HrefData.get() === "list?delete" ? "delete" :
@@ -34,8 +54,8 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                                 HrefData.get() === "report?graph" ? "graph" :
                                                     HrefData.get() === "report?statistics" ? "statistics" :
                                                         HrefData.get() === "report?user-access-logs" ? "user-access-logs" :
-                                                    HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
-                                                            "",
+                                                            HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
+                                                                "",
         changePath: addHref
     })
 
@@ -53,8 +73,8 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                                 HrefData.get() === "report?graph" ? "graph" :
                                                     HrefData.get() === "report?statistics" ? "statistics" :
                                                         HrefData.get() === "report?user-access-logs" ? "user-access-logs" :
-                                                    HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
-                                                            "",
+                                                            HrefData.get() === "report?admin-access-logs" ? "admin-access-logs" :
+                                                                "",
     })
 
     const [getTimeOut, setTimeOut] = useState(0)
@@ -90,7 +110,11 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
     useEffect(() => {
         setViewMode("card")
     }, [StateOnPage.status])
-
+    useEffect(() => {
+        if (StatusPage.status === "user-access-logs" || StatusPage.status === "admin-access-logs") {
+            setStateOnPage({ status: StatusPage.status });
+        }
+    }, [StatusPage.status]);
     const state = () => {
         const status =
             HrefData.get() === "list?default=pop" ? "default" :
@@ -124,29 +148,15 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
         }
     }
 
-    const dropdownRef = useRef(null);
 
-    useEffect(() => {
-        if (dropdownRef.current) {
-            const selectedText = dropdownRef.current.options[dropdownRef.current.selectedIndex]?.text;
-            const tempSpan = document.createElement("span");
-            tempSpan.style.visibility = "hidden";
-            tempSpan.style.position = "absolute";
-            tempSpan.style.whiteSpace = "nowrap";
-            tempSpan.style.fontSize = "16px";
-            tempSpan.innerText = selectedText;
-            document.body.appendChild(tempSpan);
-            dropdownRef.current.style.width = `${tempSpan.offsetWidth + 55}px`;
-            document.body.removeChild(tempSpan);
-        }
-    }, [StateOnPage.status]);
 
     return (
         <PageTemplateContext.Provider
             value={{
                 popupDataManage, setPopupDataManage,
                 ChangeStatus: ChangeStatus,
-                textSearch: getTextSearch
+                textSearch: getTextSearch,
+                selectedStation,
             }}
         >
             <section className="page-manage">
@@ -173,33 +183,32 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                 >
                                     {viewMode === "card" ? (
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
+                                            <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18" />
                                         </svg>
                                     ) : (
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                                            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                                            <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                                            <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
                                         </svg>
                                     )}
                                 </a>
                             </div>
                         )}
 
-                        {StateOnPage.status !== "group" && StateOnPage.status !== "env-station" && (
+                        {StatusPage.status !== "group" && StatusPage.status !== "env-station" && (
                             <select
-                                ref={dropdownRef}
-                                className={`dropdown-status ${["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status)
+                                className={`dropdown-status ${["default", "delete", "admin", "deleteAdmin"].includes(StatusPage.status)
                                     ? "dropdown-status-default"
-                                    : ["plant", "chemical", "pest", "station"].includes(StateOnPage.status)
+                                    : ["plant", "chemical", "pest", "station"].includes(StatusPage.status)
                                         ? "dropdown-status-plant"
-                                        : ["listlocation", "graph", "statistics", "user-access-logs"].includes(StateOnPage.status)
+                                        : ["listlocation", "graph", "statistics", "user-access-logs", "admin-access-logs"].includes(StatusPage.status)
                                             ? "dropdown-status-location"
                                             : ""
                                     }`}
                                 onChange={(e) => ChangeStatus(e.target.value)}
-                                value={StateOnPage.status}
+                                value={StatusPage.status}
                             >
-                                {["default", "delete", "admin", "deleteAdmin"].includes(StateOnPage.status) && (
+                                {["default", "delete", "admin", "deleteAdmin"].includes(StatusPage.status) && (
                                     <>
                                         <option value="default">แสดงบัญชีผู้ส่งเสริมที่ยังไม่ถูกลบ</option>
                                         <option value="delete">แสดงบัญชีผู้ส่งเสริมที่ถูกลบ</option>
@@ -208,7 +217,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     </>
                                 )}
 
-                                {["plant", "chemical", "pest", "station"].includes(StateOnPage.status) && (
+                                {["plant", "chemical", "pest", "station"].includes(StatusPage.status) && (
                                     <>
                                         <option value="plant">แสดงรายการชนิดพืช</option>
                                         <option value="chemical">แสดงรายการสารเคมี</option>
@@ -217,7 +226,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                     </>
                                 )}
 
-                                {["listlocation", "graph", "statistics", "user-access-logs", "admin-access-logs"].includes(StateOnPage.status) && (
+                                {["listlocation", "graph", "statistics", "user-access-logs", "admin-access-logs"].includes(StatusPage.status) && (
                                     <>
                                         <option value="listlocation">แสดงรายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
                                         <option value="graph">แสดงจำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
@@ -235,9 +244,26 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                             <button className="bt-group" onClick={() => ChangeStatus("group")}>แสดงรายการจัดกลุ่มข้อมูล</button>
                         )}
 
+                        {/* เลือกศูนย์สำหรับรายงานข้อมูล */}
+                        {["listlocation", "graph", "statistics", "user-access-logs", "admin-access-logs"].includes(StateOnPage.status) && (
+                            <select
+                                className="dropdown-status dropdown-status-location"
+                                onChange={(e) => setSelectedStation(e.target.value)}
+                                value={selectedStation}
+                                style={{ marginLeft: "10px", width: "auto" }}
+                            >
+                                <option value="">ศูนย์ทั้งหมด</option>
+                                {stations.map((station) => (
+                                    <option key={station.id} value={station.id}>
+                                        {station.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+
                         {/* ค้นหา */}
                         {
-                            StatusPage.status !== "user-access-logs" && StatusPage.status !== "env-station" && (
+                            StatusPage.status !== "env-station" && (
                                 <div className="search">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
                                         <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -249,20 +275,19 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                                         value={getTextSearchValue}
                                         autoComplete="none"
                                         ref={TextSearchRef}
-                                        onInput={(e) => {
-                                            setTextSearchValue(e.target.value);
-                                            clearTimeout(getTimeOut);
-                                            setTimeOut(setTimeout(() => {
+                                        onChange={(e) => setTextSearchValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
                                                 setTextSearch(e.target.value);
-                                            }, 2000));
+                                            }
                                         }}
                                         type="text"
                                         placeholder="Search"
                                     />
                                     <svg xmlns="http://www.w3.org/2000/svg" onClick={() => {
-                                        clearTimeout(getTimeOut);
                                         setTextSearch("");
-                                        TextSearchRef.current.value = "";
+                                        setTextSearchValue("");
+                                        if (TextSearchRef.current) TextSearchRef.current.value = "";
                                     }} width="1em" height="1em" viewBox="0 0 32 32">
                                         <path fill="currentColor" d="M16 2C8.2 2 2 8.2 2 16s6.2 14 14 14s14-6.2 14-14S23.8 2 16 2zm5.4 21L16 17.6L10.6 23L9 21.4l5.4-5.4L9 10.6L10.6 9l5.4 5.4L21.4 9l1.6 1.6l-5.4 5.4l5.4 5.4l-1.6 1.6z" />
                                     </svg>
@@ -277,6 +302,7 @@ const PageTemplate = ({ socket, addHref = false, HrefData, modify, auth, session
                             <UserAccessLogs
                                 HrefPage={HrefData}
                                 status={StatusPage}
+                                selectedStation={selectedStation}
                             />
                         ) : StatusPage.status === "admin-access-logs" ? (
                             <AdminAccessLogs

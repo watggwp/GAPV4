@@ -10,7 +10,7 @@ const InsertGraph = () => {
   const ListGraph = useCallback(async () => {
     console.log("Start fetch graph");
     try {
-      const response = await clientMo.post("/api/doctor/report/list", { search: "" });
+      const response = await clientMo.post("/api/doctor/report/list", { search: textSearch });
       const result = JSON.parse(response);
  
       if (result.data) {
@@ -39,18 +39,18 @@ const InsertGraph = () => {
  
   useEffect(() => {
     ListGraph();
-  }, []);
+  }, [ListGraph]);
  
   return (
-    <div style={{ padding: "20px" , width : "90%", fontFamily: "Sans-font" }}>
+    <div style={{ padding: "20px" , width : "90%", margin: "0 auto", fontFamily: "Sans-font" }}>
       <div>
         <table
-          style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",}}
+          style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",tableLayout: "fixed",textAlign: "center",}}
         >
           <thead>
             <tr>
               <th
-                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",
+                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",width: "10%",
                 }}
               >
                 ลำดับ

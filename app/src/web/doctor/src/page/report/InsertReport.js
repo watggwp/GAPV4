@@ -52,20 +52,22 @@ const InsertReport = () => {
  
   useEffect(() => {
     ListReport();
-  }, []);
+  }, [ListReport]);
  
   return (
-    <div style={{ padding: "20px" , width : "90%" }}>
+    <div style={{ padding: "20px" , width : "90%", margin: "0 auto" }}>
       <table
         style={{
           width: "100%",
           borderCollapse: "collapse",
           fontFamily: "Sans-font",
+          tableLayout: "fixed",
+          textAlign: "center",
         }}
       >
        <thead>
         <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
-          <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>
+          <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd", width: "10%" }}>
             ลำดับ
           </th>
           <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd" }}>

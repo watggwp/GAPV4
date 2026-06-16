@@ -621,10 +621,9 @@ app.post('/api/admin/role/update', async (req, res) => {
           plants = await new Promise((resolve, reject) => {
             con.query(
               `
-              SELECT name, GROUP_CONCAT(COALESCE(variety_name, '')) as variety_names
+              SELECT id, name, variety_name, qty_harvest
               FROM plant_list
               WHERE is_use = 1
-              GROUP BY name
               ORDER BY name COLLATE utf8mb4_thai_520_w2 ASC;
               `,
               [],
@@ -740,13 +739,48 @@ app.post('/api/admin/role/update', async (req, res) => {
     }
   });
 
-  app.post('/api/admin/farmhouse/get/HouseList', async (req, res) => {
-    const username = req.session.user_username;
-    const password = req.session.user_password;
-    if (!username || !password) { res.redirect('/api/logout'); return; }
+  app.get('/api/admin/station/:station_id/greenhouse', async (req, res) => {
+    const adminUser = req.session.user_username;
+    const adminPass = req.session.user_password;
+
+    if (!adminUser || !adminPass) {
+      res.redirect('/api/logout');
+      return;
+    }
+
     let con = Database.createConnection(listDB);
     try {
-      const result = await apifunc.auth(con, username, password, res, "admin");
+      const result = await apifunc.auth(con, adminUser, adminPass, res, "admin");
+      if (result['result'] === "pass") {
+        const { params: { station_id } } = req;
+        const station = await pool.executeQuery(
+          `
+            SELECT h.*
+            FROM acc_farmer ac_f
+            LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
+            WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
+            GROUP BY h.id_farm_house;
+          `,
+          [station_id]
+        );
+        con.end();
+        res.send({
+          houses: station
+        });
+      }
+    } catch (err) {
+      con.end();
+      res.redirect('/api/logout');
+    }
+  });
+
+  app.post('/api/admin/farmhouse/get/HouseList', async (req, res) => {
+    const adminUser = req.session.user_username;
+    const adminPass = req.session.user_password;
+    if (!adminUser || !adminPass) { res.redirect('/api/logout'); return; }
+    let con = Database.createConnection(listDB);
+    try {
+      const result = await apifunc.auth(con, adminUser, adminPass, res, "admin");
       if (result['result'] === "pass") {
         const { id_farmer } = req.body;
         con.query(`
@@ -1022,6 +1056,63 @@ app.post('/api/admin/role/update', async (req, res) => {
                         const { insertId: idEdit } = resultEdit;
 
                         if (idEdit > 0) {
+                            // Auto-calculate date_harvest if plant name, variety name, or planting date is specified/changed
+                            const currentPlant = data.dataChange.hasOwnProperty('name_plant') ? data.dataChange.name_plant : dataCurrent[0].name_plant;
+                            const currentVariety = data.dataChange.hasOwnProperty('name_varieties') ? data.dataChange.name_varieties : dataCurrent[0].name_varieties;
+                            const currentPlantDate = data.dataChange.hasOwnProperty('date_plant') ? data.dataChange.date_plant : dataCurrent[0].date_plant;
+                            const currentHarvestDate = dataCurrent[0].date_harvest;
+
+                            const plantChanged = data.dataChange.hasOwnProperty('name_plant');
+                            const varietyChanged = data.dataChange.hasOwnProperty('name_varieties');
+                            const plantDateChanged = data.dataChange.hasOwnProperty('date_plant');
+                            const isHarvestEmpty = !currentHarvestDate || currentHarvestDate === "";
+
+                            if (!data.dataChange.hasOwnProperty('date_harvest') && (plantChanged || varietyChanged || plantDateChanged || isHarvestEmpty) && currentPlant && currentPlantDate) {
+                                try {
+                                    let qtyResult = null;
+                                    // 1. Try matching by specific variety name if it is not empty/hyphen
+                                    if (currentVariety && currentVariety !== "" && currentVariety !== "-") {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND variety_name = ? AND is_use = 1 LIMIT 1`, [currentPlant, currentVariety], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    // 2. If not found or variety is empty/hyphen, try matching the variety-less entry
+                                    if (qtyResult === null) {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND (variety_name IS NULL OR variety_name = '' OR variety_name = '-') AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    // 3. Fallback: get the first active entry for this plant name
+                                    if (qtyResult === null) {
+                                        qtyResult = await new Promise((resolve) => {
+                                            con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1 LIMIT 1`, [currentPlant], (err, result) => {
+                                                if (!err && result.length > 0) resolve(result[0].qty_harvest);
+                                                else resolve(null);
+                                            });
+                                        });
+                                    }
+
+                                    if (qtyResult !== null) {
+                                        const pDate = new Date(currentPlantDate);
+                                        if (!isNaN(pDate.getTime())) {
+                                            pDate.setDate(pDate.getDate() + parseInt(qtyResult));
+                                            const calculatedHarvestStr = pDate.toISOString().split('T')[0];
+                                            data.dataChange.date_harvest = calculatedHarvestStr;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Auto calculate harvest date error:", e);
+                                }
+                            }
+
                             const updateDatasWhere = [];
                             const updateDatasParams = [];
 
@@ -3206,10 +3297,8 @@ app.post('/api/admin/report/list', async(req, res) => {
   try {
     const auth = await apifunc.auth(con , username , password , res , "admin")
     if(auth['result'] === "pass") {
-      const station = auth['data']['station_admin']
-      const { search } = req.body
-
-      const isNumber = !isNaN(search) && search.trim() !== '';
+      const { search, station_id } = req.body
+      const hasStation = station_id && station_id !== "";
 
     // ดึงข้อมูลเกษตรกรและพืชใน station
     const farmerQuery = `
@@ -3242,12 +3331,12 @@ app.post('/api/admin/report/list', async(req, res) => {
                         WHERE (formplant.state_status = 1 OR formplant.state_status = 0)
                         GROUP BY id_farm_house , formplant.name_plant
                     ) AS subquery ON housefarm.id_farm_house = subquery.id_farm_house
-                    WHERE acc_farmer.station = ? 
+                    WHERE 1=1 ${hasStation ? "AND acc_farmer.station = ?" : ""} 
                     AND (formplant.name_plant LIKE ?)
                     GROUP BY acc_farmer.station;
                 `;
  
-                con.query(farmerQuery, [station, `%${search}%`], (err, farmerStatistics) => {
+                con.query(farmerQuery, hasStation ? [station_id, `%${search}%`] : [`%${search}%`], (err, farmerStatistics) => {
                       if (err) {
                           console.error('Error fetching farmer statistics:', err);
                           res.status(500).json({ status: "error", message: "Database query error" });
@@ -3260,12 +3349,12 @@ app.post('/api/admin/report/list', async(req, res) => {
                       const doctorQuery = `
                       SELECT id_doctor, fullname_doctor, station_doctor, 'หมอพืช' AS role
                       FROM acc_doctor
-                      WHERE station_doctor = ? 
+                      WHERE 1=1 ${hasStation ? "AND station_doctor = ?" : ""} 
                       AND doctor_role = 1
                       AND (fullname_doctor LIKE ? OR 'หมอพืช' LIKE ?);
                   `;
 
-                    con.query(doctorQuery, [station, `%${search}%`, `%${search}%`], (err, doctors) => {
+                    con.query(doctorQuery, hasStation ? [station_id, `%${search}%`, `%${search}%`] : [`%${search}%`, `%${search}%`], (err, doctors) => {
                         if (err) {
                             console.error('Error fetching doctor data:', err);
                             res.status(500).json({ status: "error", message: "Database query error" });
@@ -3278,12 +3367,12 @@ app.post('/api/admin/report/list', async(req, res) => {
                         const consultantQuery = `
                             SELECT id_doctor, fullname_doctor, station_doctor, 'ที่ปรึกษาเกษตรกร' AS role
                             FROM acc_doctor
-                            WHERE station_doctor = ? 
+                            WHERE 1=1 ${hasStation ? "AND station_doctor = ?" : ""} 
                             AND consultant_role = 1
                             AND (fullname_doctor LIKE ? OR 'ที่ปรึกษาเกษตรกร' LIKE ?);
                         `;
 
-                        con.query(consultantQuery, [station, `%${search}%`, `%${search}%`], (err, consultants) => {
+                        con.query(consultantQuery, hasStation ? [station_id, `%${search}%`, `%${search}%`] : [`%${search}%`, `%${search}%`], (err, consultants) => {
                             if (err) {
                                 console.error('Error fetching consultant data:', err);
                                 res.status(500).json({ status: "error", message: "Database query error" });
@@ -3296,7 +3385,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               res.status(200).json({
                                   status: "success",
                                   data: {
-                                      farmerStatistics: farmerStatistics.map((stat) => ({
+                                      farmerStatistics: hasStation ? farmerStatistics.map((stat) => ({
                                           station: stat.station,
                                           totalFarmers: stat.total_farmers,
                                           totalPlants: stat.total_plants,
@@ -3313,7 +3402,25 @@ app.post('/api/admin/report/list', async(req, res) => {
                                               }
                                               return prev;
                                           }, []),
-                                      })),
+                                      })) : [
+                                          farmerStatistics.reduce((acc, stat) => {
+                                              acc.totalFarmers += stat.total_farmers || 0;
+                                              acc.totalPlants += stat.total_plants || 0;
+                                              const details = JSON.parse(stat.plantDetails || "[]");
+                                              details.forEach(curr => {
+                                                  const indexFind = acc.plantDetails.findIndex(({ plantName }) => plantName === curr["plantName"]);
+                                                  if (indexFind >= 0) {
+                                                      acc.plantDetails[indexFind]["farmersCount"] += curr["farmersCount"];
+                                                  } else {
+                                                      acc.plantDetails.push({
+                                                          plantName: curr["plantName"],
+                                                          farmersCount: curr["farmersCount"]
+                                                      });
+                                                  }
+                                              });
+                                              return acc;
+                                          }, { totalFarmers: 0, totalPlants: 0, plantDetails: [] })
+                                      ],
                                       doctors,
                                       consultants,
                                   },
@@ -3327,7 +3434,6 @@ app.post('/api/admin/report/list', async(req, res) => {
           res.status(500).json({ status: "error", message: "Internal Server Error" });
       }
   });
-
 
   app.post('/api/admin/statistic/get', async (req, res) => {
     let username = req.session.user_username;
@@ -3343,7 +3449,10 @@ app.post('/api/admin/report/list', async(req, res) => {
     try {
       const auth = await apifunc.auth(con, username, password, res, "admin");
       if (auth['result'] === "pass") {
-        const search = req.body.search
+        const { search, duration, station_id } = req.body;
+        const hasStation = station_id && station_id !== "";
+        const queryParams = hasStation ? [search, station_id] : [search];
+
         con.query(
           `SELECT 
               p.pest_id,
@@ -3360,9 +3469,10 @@ app.post('/api/admin/report/list', async(req, res) => {
             LEFT JOIN formplant fp ON fc.id_plant = fp.id
             LEFT JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house 
             LEFT JOIN acc_farmer af ON hf.uid_line = af.uid_line
-            WHERE af.station = ? AND INSTR( p.pest_name , ? )
+            WHERE INSTR( p.pest_name , ? )
+            ${hasStation ? "AND af.station = ?" : ""}
             GROUP BY fc.insect
-            LIMIT 25;`, [auth['data']['station_admin'] , search] ,
+            LIMIT 25;`, queryParams,
           (err, result) => {
             if (err) {
               dbpacket.dbErrorReturn(con, err, res);

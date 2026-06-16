@@ -62,6 +62,8 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
     const Search = useRef()
     const SearchInput = useRef()
     const [textSearch, setTextSearch] = useState("")
+    const [textSearchValue, setTextSearchValue] = useState("")
+    const TextSearchRef = useRef()
     const SelectType = useRef()
     const Other = useRef()
 
@@ -290,16 +292,47 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
             <section className="data-list-content-page data-page">
 
                 {(DataProcess.get("type") === "report" || DataProcess.get("type") === "listlocation" || DataProcess.get("type") === "graph" || DataProcess.get("type") === "statistics") && (
-                    <select className="report-menu"
-                        onChange={(e) => { searchList(e.target, e.target.value, "type"); }} ref={SelectType} value={DataProcess.get("type")}>
-                        <option value="listlocation">รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
-                        <option value="graph">จำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
-                        <option value="statistics">สถิติโรคพืช / ศัตรูพืช</option>
-                    </select>
+                    <div style={{ position: "absolute", top: "5px", right: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+                        <select className="report-menu" style={{ position: "static", right: "auto", top: "auto" }}
+                            onChange={(e) => { searchList(e.target, e.target.value, "type"); }} ref={SelectType} value={DataProcess.get("type")}>
+                            <option value="listlocation">รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
+                            <option value="graph">จำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
+                            <option value="statistics">สถิติโรคพืช / ศัตรูพืช</option>
+                        </select>
+                        <div className="search" style={{ backgroundColor: "rgba(233, 233, 233, 0.482)", padding: "2px 10px", borderRadius: "20px", display: "flex", alignItems: "center" }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
+                                <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                                    <path d="m11.25 11.25l3 3"/>
+                                    <circle cx="7.5" cy="7.5" r="4.75"/>
+                                </g>
+                            </svg>
+                            <input
+                                value={textSearchValue}
+                                autoComplete="none"
+                                ref={TextSearchRef}
+                                onChange={(e) => setTextSearchValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        setTextSearch(e.target.value);
+                                    }
+                                }}
+                                type="text"
+                                placeholder="Search"
+                                style={{ border: 0, fontFamily: "Sans-font", fontSize: "14px", backgroundColor: "transparent", outline: 0, paddingLeft: "5px", fontWeight: "900" }}
+                            />
+                            <svg xmlns="http://www.w3.org/2000/svg" onClick={() => {
+                                setTextSearch("");
+                                setTextSearchValue("");
+                                if (TextSearchRef.current) TextSearchRef.current.value = "";
+                            }} width="1em" height="1em" viewBox="0 0 32 32">
+                                <path fill="currentColor" d="M16 2C8.2 2 2 8.2 2 16s6.2 14 14 14s14-6.2 14-14S23.8 2 16 2zm5.4 21L16 17.6L10.6 23L9 21.4l5.4-5.4L9 10.6L10.6 9l5.4 5.4L21.4 9l1.6 1.6l-5.4 5.4l5.4 5.4l-1.6 1.6z"/>
+                            </svg>
+                        </div>
+                    </div>
                 )}
 
                 {
-                    // DataProcess.get("type") !== "report" &&
+                    !(["report", "listlocation", "graph", "statistics"].includes(DataProcess.get("type"))) && (
                     <div className="search-form" ref={Search}>
                         <div className="bt-select-option">
                             {
@@ -470,7 +503,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                             </div>
                         </div>
                     </div>
-                }
+                )}
                 <div className="data-list-content">
                     {
                         DataProcess.get("type") === "group" ?

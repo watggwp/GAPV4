@@ -100,23 +100,23 @@ module.exports = function appConfig(username, password, hostServer) {
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
-        cookie: {
-            httpOnly: true,
-            secure: true,
-            // maxAge: 1000 * 60 * 60 * 24,
-            maxAge: null,
-            sameSite: "none"
-        },
-        resave: false
         // cookie: {
-        //     // ตั้งให้เปิด mode https ได้
-        //     // httpOnly: true,
-        //     // secure : mode == process.env.BUILD,
-        //     maxAge: 1000 * 60 * 60 * 8, // 8 ชั่วโมง
-        //     sameSite: 'strict'
-        //     // secure: mode != process.env.BUILD ? false : true
+        //     httpOnly: true,
+        //     secure: true,
+        //     // maxAge: 1000 * 60 * 60 * 24,
+        //     maxAge: null,
+        //     sameSite: "none"
         // },
         // resave: false
+        cookie: {
+            // ตั้งให้เปิด mode https ได้
+            // httpOnly: true,
+            // secure : mode == process.env.BUILD,
+            maxAge: 1000 * 60 * 60 * 8, // 8 ชั่วโมง
+            sameSite: 'strict'
+            // secure: mode != process.env.BUILD ? false : true
+        },
+        resave: false
     })
 
     const subpathPrefix = process.env.PREFIX_PATH || ""; // ทุก redirect จะเพิ่ม prefix นี้
@@ -177,7 +177,6 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use(cors({
         //อันเก่า
         origin: origins,
-
         //อันนหใม่ที่อนุญาติ IP ต่างๆ
         // origin: function (origin, callback) {
         //     // Allow requests with no origin (like mobile apps or curl requests)

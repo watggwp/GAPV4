@@ -45,6 +45,7 @@ export default function SchedulesPage() {
     const [datePlant, setDatePlant] = useState("");
     const [dateHarvest, setDateHarvest] = useState("");
     const [schedules, setSchedules] = useState([]);
+    const [qtyHarvest, setQtyHarvest] = useState(null);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -61,13 +62,14 @@ export default function SchedulesPage() {
             const plant_variety = formData[0].name_varieties;
             setPlantName(plant_name);
             setPlantVariety(plant_variety || "");
-            setDatePlant(formData[0].date_plant?.split(" ")[0]);
-            setDateHarvest(formData[0].date_harvest?.split(" ")[0]);
+            setDatePlant(formData[0].date_plant?.split(" ")?.[0] ?? "");
+            setDateHarvest(formData[0].date_harvest ? formData[0].date_harvest.split(" ")[0] : "");
 
             // 2. ดึงรายการตารางงานที่ตั้งไว้ของพืชชนิดนี้ (ค้นหาจากชื่อพืชและสายพันธุ์)
             const res = await clientMo.post('/api/farmer/schedules/plant', {
                 name_plant: plant_name,
-                name_varieties: plant_variety
+                name_varieties: plant_variety,
+                date_harvest: formData[0].date_harvest
             });
             const scheduleData = typeof res === "string" ? JSON.parse(res) : res;
             console.log("SCHEDULE DATA:", scheduleData);
@@ -75,6 +77,12 @@ export default function SchedulesPage() {
             if (scheduleData) {
                 setHasVarieties(scheduleData.has_varieties || false);
                 setResolvedPlantId(scheduleData.resolved_plant_id || null);
+                setQtyHarvest(scheduleData.qty_harvest ?? null);
+
+                if (!formData[0].date_harvest && scheduleData.resolved_plant_id && scheduleData.qty_harvest != null && !scheduleData.has_varieties) {
+                    const autoHarvest = addDays(formData[0].date_plant?.split(" ")?.[0] ?? null, scheduleData.qty_harvest);
+                    setDateHarvest(autoHarvest.toISOString().split("T")[0]);
+                }
 
                 if (scheduleData.schedule_plants) {
                     const uniqueSchedules = [];
@@ -154,7 +162,7 @@ export default function SchedulesPage() {
                         }}
                     >
                         {/* Title */}
-                        <Typography textAlign="center" fontSize="24px" fontWeight="bold" color="#2c2c2c" mb={plantVariety ? 0.5 : 2}>
+                        <Typography textAlign="center" fontSize="30px" fontWeight="bold" color="#2c2c2c" mb={plantVariety ? 0.5 : 2}>
                             {plantName || "ไม่พบข้อมูลพืช"}
                         </Typography>
                         {plantVariety ? (
@@ -170,11 +178,11 @@ export default function SchedulesPage() {
                                     textAlign: 'center'
                                 }}
                             >
-                                <Typography color="#856404" fontSize="14px" fontWeight="bold">
+                                <Typography color="#856404" fontSize="22px" fontWeight="bold">
                                     ⚠️ หมอพืชยังไม่ได้ระบุสายพันธุ์พืช
                                 </Typography>
-                                <Typography fontSize="12px" color="#856404" mt={0.5}>
-                                    กรุณารอเจ้าหน้าที่ระบุสายพันธุ์เพื่อความถูกต้องของแผนการปลูก
+                                <Typography fontSize="22px" color="#856404" mt={0.5}>
+                                    กรุณารอเจ้าหน้าที่ระบุสายพันธุ์ <br /> เพื่อความถูกต้องของแผนการปลูก
                                 </Typography>
                             </Box>
                         ) : null}
@@ -182,12 +190,12 @@ export default function SchedulesPage() {
                         {/* 'ยังไม่มีแผนการปลูก' displayed above planting date if schedules length is 0 */}
                         {resolvedPlantId && schedules.length === 0 && (
                             <Box sx={{ my: 1, mb: 2, textAlign: 'center' }}>
-                                <Typography color="#888" fontSize="15px">ยังไม่มีแผนการปลูก</Typography>
+                                <Typography color="#888" fontSize="22px">ยังไม่มีแผนการปลูก</Typography>
                             </Box>
                         )}
 
                         {/* Planting Item */}
-                        {datePlant && (
+                        {datePlant && !(!resolvedPlantId && hasVarieties) && (
                             <TimelineItem
                                 img={imgPlant}
                                 title="วันที่ปลูก"
@@ -205,20 +213,20 @@ export default function SchedulesPage() {
                             const repeatCount = sch.repeat_count || 1;
 
                             // จัดเตรียมรายละเอียด (Details)
-                            let detailText = "";
-                            try {
-                                const details = JSON.parse(sch.details);
-                                if (isFertilizer) {
-                                    detailText = `${details.name_fertilizer ? `ชื่อปุ๋ย: ${details.name_fertilizer}` : ''} ${details.formula_fertilizer ? `สูตร: ${details.formula_fertilizer}` : ''} 
-                                    ${details.volume ? `ปริมาณ: ${details.volume}` : ''} ${details.unit_volume || ''}
-                                    ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
-                                } else {
-                                    detailText = `${details.pest ? `โรคพืช : ${details.pest}` : ''} ${details.chemical ? `สารเคมี : ${details.chemical}` : ''}  
-                                    ${details.rate ? `อัตราส่วนผสม ${details.rate} CC/น้ำ20ลิตร` : ''} 
-                                    ${details.volume ? `ปริมาณ ${details.volume}` : ''} ${details.unit_volume || ''}
-                                    ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
-                                }
-                            } catch (e) { }
+                            // let detailText = "";
+                            // try {
+                            //     const details = JSON.parse(sch.details);
+                            //     if (isFertilizer) {
+                            //         detailText = `${details.name_fertilizer ? `ชื่อปุ๋ย: ${details.name_fertilizer}` : ''} ${details.formula_fertilizer ? `สูตร: ${details.formula_fertilizer}` : ''} 
+                            //         ${details.volume ? `ปริมาณ: ${details.volume}` : ''} ${details.unit_volume || ''}
+                            //         ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
+                            //     } else {
+                            //         detailText = `${details.pest ? `โรคพืช : ${details.pest}` : ''} ${details.chemical ? `สารเคมี : ${details.chemical}` : ''}  
+                            //         ${details.rate ? `อัตราส่วนผสม ${details.rate} CC/น้ำ20ลิตร` : ''} 
+                            //         ${details.volume ? `ปริมาณ ${details.volume}` : ''} ${details.unit_volume || ''}
+                            //         ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
+                            //     }
+                            // } catch (e) { }
 
                             // คำนวณวันที่ต้องดำเนินการ
                             const targetDate = addDays(datePlant, sch.age_plant);
@@ -228,18 +236,18 @@ export default function SchedulesPage() {
                                     key={sch.id || idx}
                                     img={img}
                                     title={title}
-                                    repeat={`ครั้งที่ ${repeatCount}`}
+                                    // repeat={`ครั้งที่ ${repeatCount}`}
                                     date={formatThaiDate(targetDate)}
-                                    details={detailText}
+                                // details={detailText}
                                 />
                             );
                         })}
 
                         {/* Harvest Item */}
-                        {dateHarvest && (
+                        {dateHarvest && !(!resolvedPlantId && hasVarieties) && (
                             <TimelineItem
                                 img={imgHarvest}
-                                title="วันที่เก็บเกี่ยว"
+                                title="วันที่คาดว่าจะเก็บเกี่ยว"
                                 date={formatThaiDate(dateHarvest)}
                                 isTop={!datePlant && schedules.length === 0}
                             />
@@ -247,7 +255,7 @@ export default function SchedulesPage() {
 
                         {/* Footer */}
                         <Box mt={3} textAlign="center">
-                            <Typography fontSize="14px" color="#888" mb={2}>
+                            <Typography fontSize="18px" color="#888" mb={2}>
                                 {formattedNow}
                             </Typography>
                             <Button
@@ -259,7 +267,7 @@ export default function SchedulesPage() {
                                     borderRadius: '20px',
                                     px: 5,
                                     py: 0.5,
-                                    fontSize: '18px',
+                                    fontSize: '22px',
                                     fontWeight: 'bold',
                                     boxShadow: 'none',
                                     '&:hover': { bgcolor: '#4e7a5b', boxShadow: 'none' }
@@ -286,21 +294,21 @@ function TimelineItem({ img, title, repeat, date, details, isTop }) {
                     sx={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '12px' }}
                 />
                 <Box flex={1}>
-                    <Typography fontSize="18px" color="#5a9c7b" fontWeight="bold">
+                    <Typography fontSize="22px" color="#5a9c7b" fontWeight="bold">
                         {title}
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="baseline" flexWrap="wrap">
                         {repeat && (
-                            <Typography fontSize="14px" color="#e67e22" fontWeight="bold">
+                            <Typography fontSize="18px" color="#e67e22" fontWeight="bold">
                                 {repeat}
                             </Typography>
                         )}
-                        <Typography fontSize="15px" color="#222">
+                        <Typography fontSize="18px" color="#222">
                             {date}
                         </Typography>
                     </Stack>
                     {details && (
-                        <Typography fontSize="14px" color="#222" sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>
+                        <Typography fontSize="18px" color="#222" sx={{ mt: 0.5, whiteSpace: 'pre-line' }}>
                             {details}
                         </Typography>
                     )}

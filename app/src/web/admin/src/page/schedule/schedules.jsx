@@ -24,19 +24,18 @@ export default function SchedulesPlanStation() {
         switch(status) {
             case 200 :
                 try {
-                    setStations(data)
-                    const { id } = data[0] || {}
-                    
-                    if(!stationID) {
-                        setStationID(id)
-                        navigator(`/admin/schedules/${id}` , { replace : true })
+                    setStations(data.filter(station => station.is_use === 1))
+                    // ถ้า URL มี station_id อยู่แล้ว ให้ set stationID ตาม URL
+                    if (station_id && !stationID) {
+                        setStationID(station_id)
                     }
+                    // ไม่ auto-select ศูนย์แรก รอให้ผู้ใช้เลือกเอง
                 } catch(err) {}
                 break;
             default :
                 break;
         }
-    } , [navigator])
+    } , [navigator, station_id, stationID])
 
     const onSelectedStation = useCallback((event) => {
         setStationID(event.target.value)

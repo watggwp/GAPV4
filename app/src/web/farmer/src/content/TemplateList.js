@@ -14,9 +14,10 @@ const Template = ({
     disabledAdd = false
 }) => {
     const PopupSection = useMemo(()=>PopUp.PopupRef ? PopUp.PopupRef : createRef() , [])
+    const showPopup = PopUp.PopupBody && PopUp.PopupBody.type !== React.Fragment;
     return(
         <section className="plant">
-            <section ref={PopupSection} className="popup-add">
+            <section ref={PopupSection} className="popup-add" {...(showPopup ? { show: "" } : {})}>
                 {PopUp.PopupBody}
             </section>
             <div className="content-body">

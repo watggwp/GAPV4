@@ -3,9 +3,9 @@ import "./ListFertilizer.scss";
 import { clientMo } from "../../../../../assets/js/moduleClient";
 import { CloseAccount } from "../../method";
 import {
-  CloseDatePopup,
-  DatePickerThaiApp,
-  Loading
+    CloseDatePopup,
+    DatePickerThaiApp,
+    Loading
 } from "../../../../../assets/js/module";
 import { useParams, useLocation, useNavigate } from "react-router";
 import Swal from 'sweetalert2';
@@ -22,15 +22,17 @@ export default function TemplatePopup({
     RefPop,
     type_path,
     ReloadData,
-    editDefaultField
+    editDefaultField,
+    greenhouse_id: propGreenhouseId,
+    gap_id: propGapId,
 }) {
-    const { greenhouse_id , gap_id } = useParams()
+    const { greenhouse_id, gap_id } = useParams()
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     // เก็บ schedule_id ครั้งแรกที่โหลดหน้าเว็บ เพราะ LIFF อาจจะเปลี่ยน URL ทิ้งภายหลัง
     const scheduleIdRef = useRef(new URLSearchParams(location.search).get("schedule_id"));
-    
+
     const { setCurrentPage } = useGreenhouse()
 
     const endpointManage = useRef(
@@ -45,57 +47,57 @@ export default function TemplatePopup({
     // State สำหรับการแจ้งเตือน
     const [popupMessage, setPopupMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
-    const [ errors , setErrors ] = useState({})
+    const [errors, setErrors] = useState({})
 
-    const [ useDate , setUseDate ] = useState(editDefaultField?.date || getDateNow())
-    const [ primaryName , setPrimaryName ] = useState(editDefaultField?.name || "")
-    const [ secondaryName , setSecondaryName ] = useState(editDefaultField?.formula_name || "")
-    const [ use , setUse ] = useState(editDefaultField?.use_is || "")
-    const [ volume , setVolume ] = useState(editDefaultField?.volume.split(" ")?.[0] || "")
-    const [ unit , setUnit ] = useState(editDefaultField?.volume.split(" ")?.[1] || (type_path === "z" ? "ลิตร" : "กรัม"))
-    const [ source , setSource ] = useState(editDefaultField?.source || "")
+    const [useDate, setUseDate] = useState(editDefaultField?.date || getDateNow())
+    const [primaryName, setPrimaryName] = useState(editDefaultField?.name || "")
+    const [secondaryName, setSecondaryName] = useState(editDefaultField?.formula_name || "")
+    const [use, setUse] = useState(editDefaultField?.use_is || "")
+    const [volume, setVolume] = useState(editDefaultField?.volume.split(" ")?.[0] || "")
+    const [unit, setUnit] = useState(editDefaultField?.volume.split(" ")?.[1] || (type_path === "z" ? "ลิตร" : "กรัม"))
+    const [source, setSource] = useState(editDefaultField?.source || "")
 
     //  chemical
-    const [ insectName , setInsectName ] = useState(editDefaultField?.insect || "")
-    const [ rate , setRate ] = useState(editDefaultField?.rate || "")
-    const [ safeDate , setSafeDate ] = useState(editDefaultField?.date_safe || "")
+    const [insectName, setInsectName] = useState(editDefaultField?.insect || "")
+    const [rate, setRate] = useState(editDefaultField?.rate || "")
+    const [safeDate, setSafeDate] = useState(editDefaultField?.date_safe || "")
 
-    const [ because , setBesauce ] = useState("")
+    const [because, setBesauce] = useState("")
 
-    const [ factors, setFactors ] = useState([]);
-    const [ sources, setSources ] = useState([]);
+    const [factors, setFactors] = useState([]);
+    const [sources, setSources] = useState([]);
 
     const PrimarySearch = useMemo(() => {
         const factorsName = new Set([...factors.map(({ name }) => name)])
         return {
-            factorsName : [...factorsName],
-            match : RoyalGapFrontendUtil.GetMatchSearch(
+            factorsName: [...factorsName],
+            match: RoyalGapFrontendUtil.GetMatchSearch(
                 factorsName,
                 {
-                    threshold : 0.5
+                    threshold: 0.5
                 }
             )
         }
-    } , [factors])
+    }, [factors])
 
     const SecondarySearch = useMemo(() => {
         const factorsName = factors
             .filter(({ name }) => name === primaryName)
             .map(({ name_formula }) => name_formula)
         return {
-            factorsName : factorsName,
-            match : RoyalGapFrontendUtil.GetMatchSearch(
+            factorsName: factorsName,
+            match: RoyalGapFrontendUtil.GetMatchSearch(
                 factorsName,
                 {
-                    threshold : 0.5
+                    threshold: 0.5
                 }
             )
         }
-    } , [factors, primaryName])
+    }, [factors, primaryName])
 
-    const [ loadingSources , setLoadingSources ] = useState(true)
-    const [ loadingSecondaryName, setLoadingSecondaryName ] = useState(false);
-    const [ loadingPrimaryName, setLoadingPrimaryName ] = useState(false);
+    const [loadingSources, setLoadingSources] = useState(true)
+    const [loadingSecondaryName, setLoadingSecondaryName] = useState(false);
+    const [loadingPrimaryName, setLoadingPrimaryName] = useState(false);
 
     // State และ Refs สำหรับศัตรูพืช
     const [pests, setPests] = useState([]);
@@ -118,10 +120,10 @@ export default function TemplatePopup({
             list.sort((a, b) => a.name.localeCompare(b.name, 'th'));
             list.sort((a, b) => a.name_formula.localeCompare(b.name_formula, 'th'));
             setFactors(list);
-            
+
             return list;
         }
-    } , [setCurrentPage])
+    }, [setCurrentPage])
 
     const fetchSource = useCallback(async () => {
         setLoadingSources(true)
@@ -131,7 +133,7 @@ export default function TemplatePopup({
             const LIST = JSON.parse(Data);
             setSources(LIST);
         }
-    } , [setCurrentPage])
+    }, [setCurrentPage])
 
     // ฟังก์ชัน fetchPests ดึงข้อมูลศัตรูพืช
     const fetchPests = useCallback(async () => {
@@ -142,16 +144,16 @@ export default function TemplatePopup({
             let list = JSON.parse(data);
             list = list.map((item) => ({
                 ...item,
-                pest_name: item.pest_name.trim() 
+                pest_name: item.pest_name.trim()
             }));
             const collator = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
             list.sort((a, b) => collator.compare(a.pest_name, b.pest_name));
 
             setPests(list);
-            
+
             return list;
         }
-    } , [setCurrentPage])
+    }, [setCurrentPage])
 
     // ฟังก์ชันโหลดข้อมูลจาก API
     const fetchPestChemicalData = useCallback(async () => {
@@ -167,16 +169,16 @@ export default function TemplatePopup({
 
                 // ตรวจสอบโครงสร้างข้อมูล
                 if (response?.plant_name && Array.isArray(response.data)) {
-                const { plant_name, data } = response; // Destructure ข้อมูล
+                    const { plant_name, data } = response; // Destructure ข้อมูล
 
-                if (data.length > 0) {
-                    setPestChemicalData(data);
-                    setCurrentPlantName(plant_name);
-                } else {
-                    // console.warn("No pest-chemical data found:", data);
-                    // setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
-                    // setShowPopup(true);
-                }
+                    if (data.length > 0) {
+                        setPestChemicalData(data);
+                        setCurrentPlantName(plant_name);
+                    } else {
+                        // console.warn("No pest-chemical data found:", data);
+                        // setPopupMessage("ไม่พบข้อมูลสารเคมีเเละศัตรูพืชตรงกัน");
+                        // setShowPopup(true);
+                    }
                 } else {
                     // console.error(
                     //     "Invalid response structure or missing required fields"
@@ -199,20 +201,20 @@ export default function TemplatePopup({
         } finally {
             setLoading(false)
         }
-    } , [gap_id, setCurrentPage])
+    }, [gap_id, setCurrentPage])
 
     const cancel = useCallback(() => {
         RefPop.current.removeAttribute("show");
         navigate(location.pathname, { replace: true });
         setTimeout(() => {
-        setPopup(<></>);
+            setPopup(<></>);
         }, 500);
-    } , [RefPop, setPopup, navigate, location.pathname])
+    }, [RefPop, setPopup, navigate, location.pathname])
 
     const validateInputs = useCallback(() => {
         let isValid = true;
         const errors = {}
-    
+
         // ตรวจสอบชื่อสารเคมี
         if (!factors.some((val) => val.name === primaryName.trim())) {
             errors["primaryName"] = true
@@ -220,7 +222,7 @@ export default function TemplatePopup({
         } else {
             delete errors["primaryName"]
         }
-    
+
         // ตรวจสอบชื่อสามัญสารเคมี
         if (
             !factors.some((val) => val.name_formula === secondaryName.trim())
@@ -230,7 +232,7 @@ export default function TemplatePopup({
         } else {
             delete errors["secondaryName"]
         }
-    
+
         // ตรวจสอบศัตรูพืช
         if (!pests.some((val) => val.pest_name === insectName.trim())) {
             errors["insectName"] = true
@@ -238,10 +240,10 @@ export default function TemplatePopup({
         } else {
             delete errors["insectName"]
         }
-    
+
         setErrors(errors)
         return isValid;
-    } , [factors, insectName, pests, primaryName, secondaryName])
+    }, [factors, insectName, pests, primaryName, secondaryName])
 
     const setHowUse = useCallback(() => {
         try {
@@ -251,11 +253,11 @@ export default function TemplatePopup({
                     factor.name === primaryName
                 ).map((factor) => factor.how_use)[0] ?? ""
             )
-        } catch (e) {}
-    } , [factors, primaryName, secondaryName, use])
+        } catch (e) { }
+    }, [factors, primaryName, secondaryName, use])
 
     const setUpData = useCallback(() => {
-        if(!editDefaultField) {
+        if (!editDefaultField) {
             return {
                 id_farmhouse: greenhouse_id,
                 id_plant: gap_id,
@@ -270,7 +272,7 @@ export default function TemplatePopup({
         } else {
 
         }
-    } , [])
+    }, [])
 
     const onConfirmFertilizer = useCallback(async () => {
         // if (
@@ -281,7 +283,7 @@ export default function TemplatePopup({
         //     volume &&
         //     source
         // ) {
-            
+
         // } else {
         //     const dataAll = new Map(
         //         [
@@ -314,7 +316,7 @@ export default function TemplatePopup({
             ...(schedule_id && { schedule_id })
         }
 
-        if(!editDefaultField) {
+        if (!editDefaultField) {
             requestData = {
                 ...requestData,
                 date: useDate,
@@ -327,9 +329,9 @@ export default function TemplatePopup({
         } else {
             requestData = {
                 ...requestData,
-                id_form : editDefaultField?.id,
+                id_form: editDefaultField?.id,
                 because,
-                change : {
+                change: {
                     ...(useDate !== editDefaultField.date && { date: useDate }),
                     ...(secondaryName !== editDefaultField.formula_name && { formula_name: secondaryName }),
                     ...(primaryName !== editDefaultField.name && { name: primaryName }),
@@ -341,19 +343,23 @@ export default function TemplatePopup({
         }
 
         setWait(true);
-        const result = await clientMo.post(endpointManage.current , requestData)
+        const result = await clientMo.post(endpointManage.current, requestData)
         if (await CloseAccount(result, setCurrentPage)) {
             cancel();
-            ReloadData();
+            if (propGreenhouseId && propGapId) {
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/${type_path}`);
+            } else {
+                ReloadData();
+            }
             setWait(false);
         }
-    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    }, [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, primaryName, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume, navigator, propGreenhouseId, propGapId])
 
     const onConfirmChemical = useCallback(async () => {
         // if (!validateInputs()) {
         //     return;
         // }
-    
+
         const schedule_id = scheduleIdRef.current;
 
         let requestData = {
@@ -363,7 +369,7 @@ export default function TemplatePopup({
             ...(schedule_id && { schedule_id })
         };
 
-        if(!editDefaultField) {
+        if (!editDefaultField) {
             requestData = {
                 ...requestData,
                 date: useDate,
@@ -379,9 +385,9 @@ export default function TemplatePopup({
         } else {
             requestData = {
                 ...requestData,
-                id_form : editDefaultField?.id,
+                id_form: editDefaultField?.id,
                 because,
-                change : {
+                change: {
                     ...(useDate !== editDefaultField.date && { date: useDate }),
                     ...(secondaryName !== editDefaultField.formula_name && { formula_name: secondaryName }),
                     ...(primaryName !== editDefaultField.name && { name: primaryName }),
@@ -394,35 +400,39 @@ export default function TemplatePopup({
                 }
             }
         }
-    
+
         setWait(true);
         const result = await clientMo.post(endpointManage.current, requestData);
         if (await CloseAccount(result, setCurrentPage)) {
             cancel();
-            ReloadData();
+            if (propGreenhouseId && propGapId) {
+                navigator(`/farmer/form/${greenhouse_id}/${gap_id}/${type_path}`);
+            } else {
+                ReloadData();
+            }
             setWait(false);
         }
-    } , [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume])
+    }, [ReloadData, because, cancel, editDefaultField, gap_id, greenhouse_id, insectName, primaryName, rate, safeDate, secondaryName, setCurrentPage, source, type_path, unit, use, useDate, volume, navigator, propGreenhouseId, propGapId])
 
     const onChangeHowUse = useCallback(() => {
         primaryName && secondaryName && setHowUse()
-    } , [primaryName, secondaryName, setHowUse])
+    }, [primaryName, secondaryName, setHowUse])
 
     const onSafeDate = useCallback((day_safe) => {
         try {
             const DateUsePut = new Date(
-                useDate 
+                useDate
                 // ? ConvertDate(useDate).christDate : ""
             )
             DateUsePut.setDate(DateUsePut.getDate() + parseInt(day_safe) + 1);
             setSafeDate(DateUsePut);
-        } catch (e) {}
-    } , [useDate])
-  
+        } catch (e) { }
+    }, [useDate])
+
 
     const debounce = useRef(0)
     const ValidateChemicalAndPest = useCallback(({
-        chemicalNameData , insectNameData
+        chemicalNameData, insectNameData
     }) => {
         clearTimeout(debounce.current)
         debounce.current = setTimeout(() => {
@@ -458,8 +468,8 @@ export default function TemplatePopup({
             } else {
                 console.log("Matched entry:", matchedEntry);
             }
-        } , 0)
-    } , [currentPlantPlantName, insectName, onSafeDate, pestChemicalData, pests, primaryName])
+        }, 0)
+    }, [currentPlantPlantName, insectName, onSafeDate, pestChemicalData, pests, primaryName])
 
     useEffect(() => {
         RefPop.current.setAttribute("show", "")
@@ -501,9 +511,9 @@ export default function TemplatePopup({
 
     useEffect(() => {
         onChangeHowUse()
-    } , [onChangeHowUse])
+    }, [onChangeHowUse])
 
-    const Disabled = useMemo(() => 
+    const Disabled = useMemo(() =>
         type_path === "z" ?
             !Boolean(
                 useDate &&
@@ -527,10 +537,10 @@ export default function TemplatePopup({
                 validateInputs() &&
                 (editDefaultField ? because : true)
             )
-    , [because, editDefaultField, insectName, primaryName, rate, safeDate, source, type_path, unit, use, useDate, validateInputs, volume])
+        , [because, editDefaultField, insectName, primaryName, rate, safeDate, source, type_path, unit, use, useDate, validateInputs, volume])
 
     return (
-    // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
+        // <section className="popup-content-fertilizer" onTouchStart={OutListSearch}>
         <section className="popup-content-fertilizer">
             {/* ป๊อปอัปแจ้งเตือน */}
             {showPopup && (
@@ -561,350 +571,350 @@ export default function TemplatePopup({
                             <div className="step">
                                 <div className="num">1.</div>
                                 <div className="body">
-                                {type_path === "z" ? (
-                                    <>
-                                    <div className="row">
-                                        <label className="frame-textbox">
-                                            <span>ว/ด/ป ที่ใช้</span>
-                                            <DatePickerThaiApp
-                                                className={"input-date"}
-                                                value={useDate}
-                                                onChange={(christDate) => setUseDate(christDate)}
-                                                format="DD-MM-YYYY"
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="row">
-                                        <label className="frame-textbox colume">
-                                            <span className="full">
-                                                ชื่อสิ่งที่ใช้ (ชื่อการค้า, ตรา)
-                                            </span>
-                                            <div className="content-colume-input">
-                                                <div className="input-select-popup">
-                                                    <Autocomplete
-                                                        disableClearable
+                                    {type_path === "z" ? (
+                                        <>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ว/ด/ป ที่ใช้</span>
+                                                    <DatePickerThaiApp
+                                                        className={"input-date"}
+                                                        value={useDate}
+                                                        onChange={(christDate) => setUseDate(christDate)}
+                                                        format="DD-MM-YYYY"
+                                                    />
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">
+                                                        ชื่อสิ่งที่ใช้ (ชื่อการค้า, ตรา)
+                                                    </span>
+                                                    <div className="content-colume-input">
+                                                        <div className="input-select-popup">
+                                                            <Autocomplete
+                                                                disableClearable
+                                                                sx={{
+                                                                    [`& .MuiOutlinedInput-root`]: {
+                                                                        padding: "0px !important"
+                                                                    }
+                                                                }}
+                                                                filterOptions={(options, { inputValue }) => {
+                                                                    if (!inputValue) return options;
+                                                                    return PrimarySearch.match.search(inputValue).map(r => r.item);
+                                                                }}
+                                                                value={primaryName}
+                                                                options={PrimarySearch.factorsName}
+                                                                renderInput={(params) =>
+                                                                    <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อปุ๋ย"} />
+                                                                }
+                                                                readOnly={loadingPrimaryName}
+                                                                onChange={(e, value) => {
+                                                                    setPrimaryName(value)
+                                                                    setSecondaryName("")
+                                                                }}
+                                                                noOptionsText="ไม่พบปุ๋ย"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ชื่อสูตรปุ๋ย</span>
+                                                    <div className="input-select-other">
+                                                        <Autocomplete
+                                                            disableClearable
+                                                            sx={{
+                                                                [`& .MuiOutlinedInput-root`]: {
+                                                                    padding: "0px !important"
+                                                                }
+                                                            }}
+                                                            filterOptions={(options, { inputValue }) => {
+                                                                if (!inputValue) return options;
+                                                                return SecondarySearch.match.search(inputValue).map(r => r.item);
+                                                            }}
+                                                            value={secondaryName}
+                                                            options={SecondarySearch.factorsName}
+                                                            renderInput={(params) =>
+                                                                <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : (primaryName ? "เลือกสูตรปุ๋ย" : "ต้องเลือกชื่อก่อน")} />
+                                                            }
+                                                            readOnly={loadingSecondaryName || !primaryName}
+                                                            onChange={(e, value) => setSecondaryName(value)}
+                                                            noOptionsText="ไม่พบสูตรปุ๋ย"
+                                                        />
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">วิธีการใช้</span>
+                                                    <TextField
+                                                        value={use}
+                                                        onChange={(e) => setUse(e.target.value)}
+                                                        multiline
+                                                        rows={2}
+                                                        fullWidth
                                                         sx={{
-                                                            [`& .MuiOutlinedInput-root`] : {
-                                                                padding : "0px !important"
+                                                            bgcolor: "white",
+                                                            [`& .MuiInputBase-root`]: {
+                                                                padding: 1
                                                             }
                                                         }}
-                                                        filterOptions={(options, { inputValue }) => {
-                                                            if (!inputValue) return options;
-                                                            return PrimarySearch.match.search(inputValue).map(r => r.item);
-                                                        }}
-                                                        value={primaryName}
-                                                        options={PrimarySearch.factorsName}
-                                                        renderInput={(params) => 
-                                                            <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อปุ๋ย"} />
-                                                        }
-                                                        readOnly={loadingPrimaryName}
-                                                        onChange={(e , value) => {
-                                                            setPrimaryName(value)
-                                                            setSecondaryName("")
-                                                        }}
-                                                        noOptionsText="ไม่พบปุ๋ย"
                                                     />
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <div className="row">
-                                        <label className="frame-textbox">
-                                            <span>ชื่อสูตรปุ๋ย</span>
-                                            <div className="input-select-other">
-                                                <Autocomplete
-                                                    disableClearable
-                                                    sx={{
-                                                        [`& .MuiOutlinedInput-root`] : {
-                                                            padding : "0px !important"
-                                                        }
-                                                    }}
-                                                    filterOptions={(options, { inputValue }) => {
-                                                        if (!inputValue) return options;
-                                                        return SecondarySearch.match.search(inputValue).map(r => r.item);
-                                                    }}
-                                                    value={secondaryName}
-                                                    options={SecondarySearch.factorsName}
-                                                    renderInput={(params) => 
-                                                        <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : (primaryName ? "เลือกสูตรปุ๋ย" : "ต้องเลือกชื่อก่อน")} />
-                                                    }
-                                                    readOnly={loadingSecondaryName || !primaryName}
-                                                    onChange={(e , value) => setSecondaryName(value)}
-                                                    noOptionsText="ไม่พบสูตรปุ๋ย"
-                                                />
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <div className="row">
-                                        <label className="frame-textbox colume">
-                                            <span className="full">วิธีการใช้</span>
-                                            <TextField
-                                                value={use}
-                                                onChange={(e) => setUse(e.target.value)}
-                                                multiline
-                                                rows={2}
-                                                fullWidth
-                                                sx={{
-                                                    bgcolor : "white",
-                                                    [`& .MuiInputBase-root`] : {
-                                                        padding : 1
-                                                    }
-                                                }}
-                                            />
-                                            {/* <textarea
+                                                    {/* <textarea
                                                 onChange={() => }
                                                 className="content-colume-input"
                                                 style={{ textAlign: "left" }}
                                             >
                                                 
                                             </textarea> */}
-                                        </label>
-                                    </div>
-                                    <div className="row">
-                                        <label className="frame-textbox">
-                                        <span>ปริมาณที่ใช้</span>
-                                        <div className="input-row">
-                                            <input
-                                                onChange={(e) => setVolume(e.target.value)}
-                                                value={volume}
-                                                type="number"
-                                                placeholder="ตัวเลข"
-                                            ></input>
-                                            <select
-                                                onChange={(e) => setUnit(e.target.value)}
-                                                value={unit}
-                                            >
-                                                <option value={"ลิตร"}>ลิตร</option>
-                                                <option value={"กก."}>กก.</option>
-                                            </select>
-                                        </div>
-                                        </label>
-                                    </div>
-                                    <div className="row">
-                                        <label className="frame-textbox">
-                                            <span>แหล่งที่ซื้อ</span>
-                                            {!loadingSources ? (
-                                                <select
-                                                    onChange={(e) => setSource(e.target.value)}
-                                                    value={source}
-                                                >
-                                                    <option value={""} disabled>
-                                                        เลือก
-                                                    </option>
-                                                    {
-                                                    sources && (
-                                                        sources.map(({name , id}) => (
-                                                            <option value={name} key={id}>
-                                                                {name}
-                                                            </option>
-                                                        ))
-                                                    )}
-                                                </select>
-                                            ) : (
-                                                <select
-                                                    disabled
-                                                    defaultValue={""}
-                                                >
-                                                    <option disabled value={""}>
-                                                        กำลังโหลด
-                                                    </option>
-                                                </select>
-                                            )}
-                                        </label>
-                                    </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ว/ด/ป ที่พ่นสาร</span>
-                                                <DatePickerThaiApp
-                                                    className={"input-date"}
-                                                    value={useDate}
-                                                    onChange={(christDate) => setUseDate(christDate)}
-                                                    format="DD-MM-YYYY"
-                                                />
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                            <span className="full">
-                                                ชื่อสารเคมี (ชื่อการค้า, ตรา)
-                                            </span>
-                                            <div className="content-colume-input">
-                                                <div className="input-select-popup">
-                                                    <Autocomplete
-                                                        disableClearable
-                                                        sx={{
-                                                            [`& .MuiOutlinedInput-root`] : {
-                                                                padding : "0px !important"
-                                                            }
-                                                        }}
-                                                        filterOptions={(options, { inputValue }) => {
-                                                            if (!inputValue) return options;
-                                                            return PrimarySearch.match.search(inputValue).map(r => r.item);
-                                                        }}
-                                                        value={primaryName}
-                                                        options={PrimarySearch.factorsName}
-                                                        renderInput={(params) => 
-                                                            <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อสารเคมี"} />
-                                                        }
-                                                        readOnly={loadingPrimaryName}
-                                                        onChange={(event , value) => {
-                                                            setPrimaryName(value)
-                                                            setSecondaryName("")
-                                                            ValidateChemicalAndPest({
-                                                                chemicalNameData : value
-                                                            })
-                                                        }}
-                                                        noOptionsText="ไม่พบชื่อสารเคมี"
-                                                    />
-                                                </div>
+                                                </label>
                                             </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ชื่อสามัญสารเคมี</span>
-                                                <div className="input-select-other">
-                                                    <Autocomplete
-                                                        disableClearable
-                                                        sx={{
-                                                            [`& .MuiOutlinedInput-root`] : {
-                                                                padding : "0px !important"
-                                                            }
-                                                        }}
-                                                        filterOptions={(options, { inputValue }) => {
-                                                            if (!inputValue) return options;
-                                                            return SecondarySearch.match.search(inputValue).map(r => r.item);
-                                                        }}
-                                                        value={secondaryName}
-                                                        options={SecondarySearch.factorsName}
-                                                        renderInput={(params) => 
-                                                            <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : ( primaryName ? "เลือกชื่อสามัญ" : "ต้องเลือกชื่อก่อน" )} />
-                                                        }
-                                                        readOnly={loadingSecondaryName || !primaryName}
-                                                        onChange={(event , value) => {
-                                                            setSecondaryName(value)
-                                                        }}
-                                                        noOptionsText="ไม่พบชื่อสามัญสารเคมี"
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ปริมาณที่ใช้</span>
+                                                    <div className="input-row">
+                                                        <input
+                                                            onChange={(e) => setVolume(e.target.value)}
+                                                            value={volume}
+                                                            type="number"
+                                                            placeholder="ตัวเลข"
+                                                        ></input>
+                                                        <select
+                                                            onChange={(e) => setUnit(e.target.value)}
+                                                            value={unit}
+                                                        >
+                                                            <option value={"ลิตร"}>ลิตร</option>
+                                                            <option value={"กก."}>กก.</option>
+                                                        </select>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>แหล่งที่ซื้อ</span>
+                                                    {!loadingSources ? (
+                                                        <select
+                                                            onChange={(e) => setSource(e.target.value)}
+                                                            value={source}
+                                                        >
+                                                            <option value={""} disabled>
+                                                                เลือก
+                                                            </option>
+                                                            {
+                                                                sources && (
+                                                                    sources.map(({ name, id }) => (
+                                                                        <option value={name} key={id}>
+                                                                            {name}
+                                                                        </option>
+                                                                    ))
+                                                                )}
+                                                        </select>
+                                                    ) : (
+                                                        <select
+                                                            disabled
+                                                            defaultValue={""}
+                                                        >
+                                                            <option disabled value={""}>
+                                                                กำลังโหลด
+                                                            </option>
+                                                        </select>
+                                                    )}
+                                                </label>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ว/ด/ป ที่พ่นสาร</span>
+                                                    <DatePickerThaiApp
+                                                        className={"input-date"}
+                                                        value={useDate}
+                                                        onChange={(christDate) => setUseDate(christDate)}
+                                                        format="DD-MM-YYYY"
                                                     />
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                            <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
-                                                <div className="content-colume-input">
-                                                    <div className="input-select-popup">
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">
+                                                        ชื่อสารเคมี (ชื่อการค้า, ตรา)
+                                                    </span>
+                                                    <div className="content-colume-input">
+                                                        <div className="input-select-popup">
+                                                            <Autocomplete
+                                                                disableClearable
+                                                                sx={{
+                                                                    [`& .MuiOutlinedInput-root`]: {
+                                                                        padding: "0px !important"
+                                                                    }
+                                                                }}
+                                                                filterOptions={(options, { inputValue }) => {
+                                                                    if (!inputValue) return options;
+                                                                    return PrimarySearch.match.search(inputValue).map(r => r.item);
+                                                                }}
+                                                                value={primaryName}
+                                                                options={PrimarySearch.factorsName}
+                                                                renderInput={(params) =>
+                                                                    <TextField {...params} placeholder={loadingPrimaryName ? "กำลังโหลด" : "เลือกชื่อสารเคมี"} />
+                                                                }
+                                                                readOnly={loadingPrimaryName}
+                                                                onChange={(event, value) => {
+                                                                    setPrimaryName(value)
+                                                                    setSecondaryName("")
+                                                                    ValidateChemicalAndPest({
+                                                                        chemicalNameData: value
+                                                                    })
+                                                                }}
+                                                                noOptionsText="ไม่พบชื่อสารเคมี"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ชื่อสามัญสารเคมี</span>
+                                                    <div className="input-select-other">
                                                         <Autocomplete
                                                             disableClearable
                                                             sx={{
-                                                                [`& .MuiOutlinedInput-root`] : {
-                                                                    padding : "0px !important"
+                                                                [`& .MuiOutlinedInput-root`]: {
+                                                                    padding: "0px !important"
                                                                 }
                                                             }}
-                                                            value={insectName}
-                                                            options={
-                                                                pests.map(({ pest_name }) => pest_name)
-                                                            }
-                                                            renderInput={(params) => 
-                                                                <TextField {...params} placeholder={loadingPest ? "กำลังโหลด" : "เลือกชื่อศัตรูพืช"} />
-                                                            }
-                                                            readOnly={loadingPest}
-                                                            onChange={(event , value) => {
-                                                                setInsectName(value)
-                                                                ValidateChemicalAndPest({
-                                                                    insectNameData : value
-                                                                })
+                                                            filterOptions={(options, { inputValue }) => {
+                                                                if (!inputValue) return options;
+                                                                return SecondarySearch.match.search(inputValue).map(r => r.item);
                                                             }}
+                                                            value={secondaryName}
+                                                            options={SecondarySearch.factorsName}
+                                                            renderInput={(params) =>
+                                                                <TextField {...params} placeholder={loadingSecondaryName ? "กำลังโหลด" : (primaryName ? "เลือกชื่อสามัญ" : "ต้องเลือกชื่อก่อน")} />
+                                                            }
+                                                            readOnly={loadingSecondaryName || !primaryName}
+                                                            onChange={(event, value) => {
+                                                                setSecondaryName(value)
+                                                            }}
+                                                            noOptionsText="ไม่พบชื่อสามัญสารเคมี"
                                                         />
                                                     </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox colume">
-                                                <span className="full">วิธีการใช้</span>
-                                                <TextField
-                                                    value={use}
-                                                    onChange={(e) => setUse(e.target.value)}
-                                                    multiline
-                                                    rows={2}
-                                                    fullWidth
-                                                    sx={{
-                                                        bgcolor : "white",
-                                                        [`& .MuiInputBase-root`] : {
-                                                            padding : 1
-                                                        }
-                                                    }}
-                                                />
-                                            {/* <textarea
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">ศัตรูพืชหรือโรคที่พบ</span>
+                                                    <div className="content-colume-input">
+                                                        <div className="input-select-popup">
+                                                            <Autocomplete
+                                                                disableClearable
+                                                                sx={{
+                                                                    [`& .MuiOutlinedInput-root`]: {
+                                                                        padding: "0px !important"
+                                                                    }
+                                                                }}
+                                                                value={insectName}
+                                                                options={
+                                                                    pests.map(({ pest_name }) => pest_name)
+                                                                }
+                                                                renderInput={(params) =>
+                                                                    <TextField {...params} placeholder={loadingPest ? "กำลังโหลด" : "เลือกชื่อศัตรูพืช"} />
+                                                                }
+                                                                readOnly={loadingPest}
+                                                                onChange={(event, value) => {
+                                                                    setInsectName(value)
+                                                                    ValidateChemicalAndPest({
+                                                                        insectNameData: value
+                                                                    })
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox colume">
+                                                    <span className="full">วิธีการใช้</span>
+                                                    <TextField
+                                                        value={use}
+                                                        onChange={(e) => setUse(e.target.value)}
+                                                        multiline
+                                                        rows={2}
+                                                        fullWidth
+                                                        sx={{
+                                                            bgcolor: "white",
+                                                            [`& .MuiInputBase-root`]: {
+                                                                padding: 1
+                                                            }
+                                                        }}
+                                                    />
+                                                    {/* <textarea
                                                 className="content-colume-input"
                                                 style={{ textAlign: "left" }}
                                                 ref={Use}
                                             ></textarea> */}
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>อัตราที่ผสม</span>
-                                                <div className="input-row">
-                                                    <input
-                                                        onChange={(e) => setRate(e.target.value)}
-                                                        value={rate}
-                                                        type="number"
-                                                        placeholder="cc."
-                                                    />
-                                                    <div className="unit">CC/น้ำ20ล.</div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>ปริมาณที่ใช้ทั้งหมด</span>
-                                                <div className="input-row">
-                                                    <input
-                                                        onChange={(e) => setVolume(e.target.value)}
-                                                        value={volume}
-                                                        type="number"
-                                                        placeholder="ตัวเลข"
-                                                    />
-                                                    <select
-                                                        onChange={(e , value) => setUnit(e.target.value)}
-                                                        value={unit}
-                                                        defaultValue={"กรัม"}
-                                                    >
-                                                        <option value={"กรัม"}>กรัม</option>
-                                                        <option value={"มิลลิลิตร"}>มิลลิลิตร</option>
-                                                    </select>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                                <span>วันที่ปลอดภัย</span>
-                                                {/* <DatePickerThai
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>อัตราที่ผสม</span>
+                                                    <div className="input-row">
+                                                        <input
+                                                            onChange={(e) => setRate(e.target.value)}
+                                                            value={rate}
+                                                            type="number"
+                                                            placeholder="cc."
+                                                        />
+                                                        <div className="unit">CC/น้ำ20ล.</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>ปริมาณที่ใช้ทั้งหมด</span>
+                                                    <div className="input-row">
+                                                        <input
+                                                            onChange={(e) => setVolume(e.target.value)}
+                                                            value={volume}
+                                                            type="number"
+                                                            placeholder="ตัวเลข"
+                                                        />
+                                                        <select
+                                                            onChange={(e, value) => setUnit(e.target.value)}
+                                                            value={unit}
+                                                            defaultValue={"กรัม"}
+                                                        >
+                                                            <option value={"กรัม"}>กรัม</option>
+                                                            <option value={"มิลลิลิตร"}>มิลลิลิตร</option>
+                                                        </select>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>วันที่ปลอดภัย</span>
+                                                    {/* <DatePickerThai
                                                     classNameMain="input-date"
                                                     defaultDate={getDateNow()}
                                                     onChange={(date) => {
                                                         setSafeDate(date)
                                                     }}
                                                 /> */}
-                                                <DatePickerThaiApp
-                                                    className={"input-date"}
-                                                    value={safeDate}
-                                                    onChange={(christDate) => setSafeDate(christDate)}
-                                                    format="DD-MM-YYYY"
-                                                />
-                                            {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
-                                            </label>
-                                        </div>
-                                        <div className="row">
-                                            <label className="frame-textbox">
-                                            <span>แหล่งที่ซื้อ</span>
-                                            {/* <input onChange={ChangeChemi} ref={Source} type="text" placeholder="เลือกข้อมูล"></input> */}
-                                            {/* {sources ? (
+                                                    <DatePickerThaiApp
+                                                        className={"input-date"}
+                                                        value={safeDate}
+                                                        onChange={(christDate) => setSafeDate(christDate)}
+                                                        format="DD-MM-YYYY"
+                                                    />
+                                                    {/* <input onChange={ChangeChemi} onClick={()=>clickDate(DateSafe)} ref={DateSafe} type="date"></input> */}
+                                                </label>
+                                            </div>
+                                            <div className="row">
+                                                <label className="frame-textbox">
+                                                    <span>แหล่งที่ซื้อ</span>
+                                                    {/* <input onChange={ChangeChemi} ref={Source} type="text" placeholder="เลือกข้อมูล"></input> */}
+                                                    {/* {sources ? (
                                                 <select
                                                 key={0}
                                                 onChange={ChangeChemi}
@@ -936,39 +946,39 @@ export default function TemplatePopup({
                                                 </option>
                                                 </select>
                                             )} */}
-                                            {!loadingSources ? (
-                                                <select
-                                                    onChange={(e) => setSource(e.target.value)}
-                                                    value={source}
-                                                >
-                                                    <option value={""} disabled>
-                                                        เลือก
-                                                    </option>
-                                                    {
-                                                    sources && (
-                                                        sources.map(({name , id}) => (
-                                                            <option value={name} key={id}>
-                                                                {name}
+                                                    {!loadingSources ? (
+                                                        <select
+                                                            onChange={(e) => setSource(e.target.value)}
+                                                            value={source}
+                                                        >
+                                                            <option value={""} disabled>
+                                                                เลือก
                                                             </option>
-                                                        ))
+                                                            {
+                                                                sources && (
+                                                                    sources.map(({ name, id }) => (
+                                                                        <option value={name} key={id}>
+                                                                            {name}
+                                                                        </option>
+                                                                    ))
+                                                                )}
+                                                        </select>
+                                                    ) : (
+                                                        <select
+                                                            disabled
+                                                            defaultValue={""}
+                                                        >
+                                                            <option disabled value={""}>
+                                                                กำลังโหลด
+                                                            </option>
+                                                        </select>
                                                     )}
-                                                </select>
-                                            ) : (
-                                                <select
-                                                    disabled
-                                                    defaultValue={""}
-                                                >
-                                                    <option disabled value={""}>
-                                                        กำลังโหลด
-                                                    </option>
-                                                </select>
-                                            )}
-                                            </label>
-                                        </div>
-                                    </>
-                                )}
-                                {
-                                    Boolean(editDefaultField) &&
+                                                </label>
+                                            </div>
+                                        </>
+                                    )}
+                                    {
+                                        Boolean(editDefaultField) &&
                                         <div className="row">
                                             <label className={`frame-textbox colume`}>
                                                 <span className="full">เหตุผลการแก้ไข</span>
@@ -979,15 +989,15 @@ export default function TemplatePopup({
                                                     rows={2}
                                                     fullWidth
                                                     sx={{
-                                                        bgcolor : "white",
-                                                        [`& .MuiInputBase-root`] : {
-                                                            padding : 1
+                                                        bgcolor: "white",
+                                                        [`& .MuiInputBase-root`]: {
+                                                            padding: 1
                                                         }
                                                     }}
                                                 />
                                             </label>
                                         </div>
-                                }
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -1003,27 +1013,27 @@ export default function TemplatePopup({
                     </button>
                     {
                         getWait ? (
-                                <div
-                                    className="bt-confirm-factor"
-                                    style={{
+                            <div
+                                className="bt-confirm-factor"
+                                style={{
                                     display: "flex",
                                     justifyContent: "center",
                                     alignItems: "center",
                                     padding: "2px",
                                     height: "30.8px"
-                                    }}
-                                >
-                                    <Loading size={27} border={5} color="white" animetion={true} />
-                                </div>
-                            ) : (
-                                <button
-                                    disabled={Disabled}
-                                    className="bt-confirm-factor"
-                                    onClick={type_path === "z" ? onConfirmFertilizer : onConfirmChemical}
-                                >
-                                    ยืนยัน
-                                </button>
-                            )
+                                }}
+                            >
+                                <Loading size={27} border={5} color="white" animetion={true} />
+                            </div>
+                        ) : (
+                            <button
+                                disabled={Disabled}
+                                className="bt-confirm-factor"
+                                onClick={type_path === "z" ? onConfirmFertilizer : onConfirmChemical}
+                            >
+                                ยืนยัน
+                            </button>
+                        )
                     }
                 </div>
             </div>
