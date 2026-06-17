@@ -1,8 +1,5 @@
 {
   "name": "web",
   "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "sweetalert2": "^11.26.25"
-  }
+  "private": true
 }
