@@ -750,7 +750,7 @@ const ResetListPestsPopup = () => {
                                         <div className="row">
                                             <label className={`frame-textbox${ObjectData.subjectResult.date == 2 ? " not" : ""}`}>
                                                 <span>ว/ด/ป ที่ใช้</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={ObjectData.date.split(" ")[0]} refIn={DateUse} onInputIn={ChangeFerti}/>
+                                                <DatePickerThai classNameMain="input-date" defaultDate={ObjectData.date.split(" ")[0]} refIn={DateUse} maxDate={new Date()} onInputIn={ChangeFerti}/>
                                                 {/* <input onChange={ChangeFerti} defaultValue={ObjectData.date.split(" ")[0]} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
                                             </label>
                                         </div>
@@ -841,7 +841,7 @@ const ResetListPestsPopup = () => {
                                         <div className="row">
                                             <label className={`frame-textbox${ObjectData.subjectResult.date == 2 ? " not" : ""}`}>
                                                 <span>ว/ด/ป ที่พ่นสาร</span>
-                                                <DatePickerThai classNameMain="input-date" defaultDate={ObjectData.date.split(" ")[0]} refIn={DateUse} onInputIn={()=>ChangeChemi()}/>
+                                                <DatePickerThai classNameMain="input-date" defaultDate={ObjectData.date.split(" ")[0]} refIn={DateUse} maxDate={new Date()} onInputIn={()=>ChangeChemi()}/>
                                                 {/* <input onChange={ChangeChemi} defaultValue={ObjectData.date.split(" ")[0]} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
                                             </label>
                                         </div>

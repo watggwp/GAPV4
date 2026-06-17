@@ -1,13 +1,13 @@
 import { Autocomplete, Grid, MenuItem, Modal, Select, Stack, TextField } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDoctor } from "../../../../../doctor/src/Doctor";
+import { useAdminContext } from "../../../Admin";
 import RequestAPI from "../../../../../../assets/js/requestAPI";
 import { useWeatherStation } from "..";
 import House from "./house";
 
 export default function Houses() {
 
-    const { onSession } = useDoctor()
+    const { onSession } = useAdminContext()
     const { selectedStationData } = useWeatherStation()
     const [farmers, setFarmers] = useState([])
     const [loadingFarmers, setLoadingFarmers] = useState(true)
@@ -24,7 +24,7 @@ export default function Houses() {
         setFarmers([])
         setSelectedFarmer("")
         setLoadingFarmers(true)
-        const { data, status } = await RequestAPI.post('/api/doctor/farmer/list', {
+        const { data, status } = await RequestAPI.post('/api/admin/farmer/list', {
             approve: 1,
             station_id: selectedStationData.id
         },
@@ -54,7 +54,7 @@ export default function Houses() {
     const requestGreenhouses = useCallback(async () => {
         setHouses([])
         setLoadingHouse(true)
-        const { data, status } = await RequestAPI.get(`/api/doctor/station/${selectedStationData.id}/greenhouse`, {}, {
+        const { data, status } = await RequestAPI.get(`/api/admin/station/${selectedStationData.id}/greenhouse`, {}, {
             signal: abortRequestGreenhouse.current.signal
         })
         setLoadingHouse(false)

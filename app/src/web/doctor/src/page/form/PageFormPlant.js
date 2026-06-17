@@ -12,7 +12,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import AddGapModal from "./formplant/AddGapModal";
 import Select from "react-select";
+import { useDoctor } from "../../Doctor";
 const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, LoadType, eleBody, setTextStatus }) => {
+    const { profile } = useDoctor();
     // const [Body , setBody] = useState(<></>)
     const [Loading, setLoading] = useState(false)
     const [exportMode, setExportMode] = useState("all"); // "all" | "show"
@@ -29,6 +31,7 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
     const [DataIdPlant, setDataIdPlant] = useState([])
     const [DataPlantList, setDataPlantList] = useState([])
     const [showAddModal, setShowAddModal] = useState(false)
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
 
     const Search = useRef()
 
@@ -273,7 +276,7 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
     }, [fetchPlantList])
 
     return (
-        <><section className="data-list-content-page form-page">
+        <><section className={`data-list-content-page form-page${viewMode === 'table' ? ' table-mode' : ''}`}>
             <div className="search-form" ref={Search}>
                 <div className="bt-select-option">
                     <style>{`
@@ -348,22 +351,28 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
                         onClick={() => setViewMode(prev => prev === "card" ? "table" : "card")}
                     >
                         {viewMode === "card" ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 4h18v2H3zm0 7h18v2H3zm0 7h18v2H3z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <path d="M3 9h18M3 15h18M9 3v18" />
                             </svg>
                         ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 3h8v8H3zm0 10h8v8H3zm10-10h8v8h-8zm0 10h8v8h-8z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1" />
+                                <rect x="14" y="3" width="7" height="7" rx="1" />
+                                <rect x="3" y="14" width="7" height="7" rx="1" />
+                                <rect x="14" y="14" width="7" height="7" rx="1" />
                             </svg>
                         )}
                     </a>
-                    <a title="เพิ่มใบ GAP" className="bt-search-show" onClick={() => setShowAddModal(true)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                            <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
-                                <path d="M8 3v10M3 8h10" />
-                            </g>
-                        </svg>
-                    </a>
+                    {profile?.doctor_role === 1 && (
+                        <a title="เพิ่มใบ GAP" className="bt-search-show" onClick={() => setShowAddModal(true)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                                <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+                                    <path d="M8 3v10M3 8h10" />
+                                </g>
+                            </svg>
+                        </a>
+                    )}
                     <a title="ค้นหา" className="bt-search-show" onClick={() => OpenOption(Search, 0)}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                             <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
@@ -589,8 +598,8 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
                     </div>
                 </div>
             </div>
-            <div className="data-list-content">
-                <List session={session} socket={socket} DataFillter={DataProcess} setDataPlant={setDataPlantList} setDataId={setDataIdPlant} viewMode={viewMode} />
+            <div className={`data-list-content${viewMode === 'table' ? ' table-mode' : ''}`}>
+                <List session={session} socket={socket} DataFillter={DataProcess} setDataPlant={setDataPlantList} setDataId={setDataIdPlant} viewMode={viewMode} refreshTrigger={refreshTrigger} />
             </div>
 
 
@@ -600,9 +609,7 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
                     onClose={() => setShowAddModal(false)}
                     onSuccess={() => {
                         setShowAddModal(false);
-                        // Reset ALL filters to show newly added form
-                        const newMap = new Map([["statusClick", true]]);
-                        setDataProcess(newMap);
+                        setRefreshTrigger(prev => prev + 1);
                     }}
                 />
             )}
@@ -611,21 +618,26 @@ const PageFormPlant = ({ setMain, session, socket, type = false, eleImageCover, 
     )
 }
 
-const List = ({ session, socket, DataFillter, setDataId, viewMode }) => {
+const List = ({ session, socket, DataFillter, setDataId, viewMode, refreshTrigger }) => {
     const [Data, setData] = useState([])
     const [Count, setCount] = useState(10)
     const [timeOut, setTimeOut] = useState()
     const [LoadingList, setLoadList] = useState(true)
+    const prevRefreshTrigger = useRef(refreshTrigger)
 
     useEffect(() => {
         setLoadList(true)
-
         clearTimeout(timeOut)
-        setTimeOut(setTimeout(() => {
-            FetchList(10)
-        }, 500))
 
-    }, [DataFillter])
+        if (refreshTrigger !== prevRefreshTrigger.current) {
+            prevRefreshTrigger.current = refreshTrigger
+            FetchList(10)
+        } else {
+            setTimeOut(setTimeout(() => {
+                FetchList(10)
+            }, 500))
+        }
+    }, [DataFillter, refreshTrigger])
 
     const FetchList = async (Limit) => {
         try {
@@ -839,21 +851,14 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
     const RefPop = useRef()
     const [PopBody, setPop] = useState(<></>)
     const [schedulesId, setSchedulesId] = useState(null)
+    const containerRef = useRef(null)
 
     let refData = Data.map(() => React.createRef());
 
     useEffect(() => {
         refData = Data.map(() => React.createRef());
         ManageShow(Data)
-
-        // window.addEventListener("resize" , Resize)
-
-        // return () => {
-        //     window.removeEventListener("resize" , Resize)
-        // }
     }, [Data])
-
-    // const Resize = () => ManageShow(Data)
 
     const ManageShow = (Data) => {
         if (Data.length !== 0) {
@@ -918,7 +923,7 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
                                 </div>
                                 <div className="date">
                                     <span>ปลูก</span>
-                                    <DayJSX DATE={Data.date_plant} TYPE="SMALL" />
+                                    <DayJSX DATE={Data.date_plant} TYPE="small" />
                                 </div>
                             </div>
                             <div className="inrow">
@@ -972,8 +977,8 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
             setBody(body)
         } else {
             setBody(
-                <section>
-                    <div>ไม่พบข้อมูล</div>
+                <section style={{ padding: "40px 0" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "#666" }}>ไม่พบข้อมูล</div>
                 </section>
             )
         }
@@ -992,46 +997,40 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
             <div className="body-page-content" id="plant-list-export">
                 {viewMode === "table" ? (
                     <>
-                        <style>{`
-                            .table-row-hover:hover {
-                                background-color: #f5fbf9;
-                            }
-                            table th, table td {
-                                text-align: center !important;
-                            }
-                            table td input {
-                                text-align: center !important;
-                                border: none !important;
-                                background: transparent !important;
-                                outline: none !important;
-                                padding: 0 !important;
-                                margin: 0 !important;
-                                font-size: inherit !important;
-                                font-family: inherit !important;
-                                color: inherit !important;
-                                width: auto !important;
-                                cursor: pointer;
-                            }
-                        `}</style>
-                        <div className="table-responsive" style={{ width: "100%", overflowX: "auto", marginTop: "10px", padding: "0 10px" }}>
-                            <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+
+                        <div className="table-responsive" style={{ width: "100%", marginTop: "10px", padding: "0 10px" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)", tableLayout: "fixed" }}>
+                                <colgroup>
+                                    <col style={{ width: "7%" }} />   {/* ชนิดพืช */}
+                                    <col style={{ width: "8%" }} />   {/* ชื่อพืช */}
+                                    <col style={{ width: "4%" }} />   {/* รุ่น */}
+                                    <col style={{ width: "15%" }} />  {/* วันที่ปลูก */}
+                                    <col style={{ width: "6%" }} />   {/* จำนวนต้น */}
+                                    <col style={{ width: "8%" }} />   {/* รูปแบบการปลูก */}
+                                    <col style={{ width: "5%" }} />   {/* ปุ๋ย */}
+                                    <col style={{ width: "5%" }} />   {/* สารเคมี */}
+                                    <col style={{ width: "7%" }} />   {/* ศัตรูพืช */}
+                                    <col style={{ width: "10%" }} />  {/* ชื่อเกษตรกร */}
+                                    <col style={{ width: "13%" }} />  {/* หมายเหตุ */}
+                                    <col style={{ width: "12%" }} />  {/* จัดการ */}
+                                </colgroup>
                                 <thead>
-                                    <tr style={{ backgroundColor: "#189D85", color: "white", textAlign: "center", fontSize: "15px" }}>
-                                        <th style={{ padding: "14px 16px" }}>ชนิดพืช</th>
-                                        <th style={{ padding: "14px 16px" }}>ชื่อพืช</th>
-                                        <th style={{ padding: "14px 16px" }}>รุ่น</th>
-                                        <th style={{ padding: "14px 16px" }}>วันที่ปลูก</th>
-                                        <th style={{ padding: "14px 16px" }}>จำนวนต้น</th>
-                                        <th style={{ padding: "14px 16px" }}>รูปแบบการปลูก</th>
-                                        <th style={{ padding: "14px 16px" }}>ปุ๋ย (ครั้ง)</th>
-                                        <th style={{ padding: "14px 16px" }}>สารเคมี (ครั้ง)</th>
-                                        <th style={{ padding: "14px 16px" }}>ศัตรูพืช</th>
-                                        <th style={{ padding: "14px 16px" }}>ชื่อเกษตรกร</th>
-                                        <th style={{ padding: "14px 16px" }}>หมายเหตุ</th>
-                                        <th style={{ padding: "14px 16px" }}>จัดการข้อมูล</th>
+                                    <tr style={{ backgroundColor: "#189D85", color: "white", textAlign: "center" }}>
+                                        <th style={{ padding: "10px 6px" }}>ชนิดพืช</th>
+                                        <th style={{ padding: "10px 6px" }}>ชื่อพืช</th>
+                                        <th style={{ padding: "10px 6px" }}>รุ่น</th>
+                                        <th style={{ padding: "10px 6px" }}>วันที่ปลูก</th>
+                                        <th style={{ padding: "10px 6px" }}>จำนวนต้น</th>
+                                        <th style={{ padding: "10px 6px" }}>รูปแบบ</th>
+                                        <th style={{ padding: "10px 6px" }}>ปุ๋ย (ครั้ง)</th>
+                                        <th style={{ padding: "10px 6px" }}>สารเคมี (ครั้ง)</th>
+                                        <th style={{ padding: "10px 6px" }}>ศัตรูพืช</th>
+                                        <th style={{ padding: "10px 6px" }}>เกษตรกร</th>
+                                        <th style={{ padding: "10px 6px" }}>หมายเหตุ</th>
+                                        <th style={{ padding: "10px 6px" }}>จัดการข้อมูล</th>
                                     </tr>
                                 </thead>
-                                <tbody style={{ fontSize: "14px", color: "#333" }}>
+                                <tbody style={{ color: "#333" }}>
                                     {Data.length > 0 ? Data.map((item, index) => {
                                         const dateHarvest = parseDateStr(item.date_harvest);
                                         const today = new Date();
@@ -1065,28 +1064,26 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
                                                     transition: "background-color 0.2s"
                                                 }}
                                             >
-                                                <td data-label="ชนิดพืช" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.type_main || "-"}</td>
-                                                <td data-label="ชื่อพืช" style={{ padding: "14px 16px" }}>{item.name_plant || "-"}</td>
-                                                <td data-label="รุ่น" style={{ padding: "14px 16px" }}>{item.generation || "-"}</td>
-                                                <td data-label="วันที่ปลูก" style={{ padding: "14px 16px" }}><DayJSX DATE={item.date_plant} TYPE="SMALL" /></td>
-                                                <td data-label="จำนวนต้น" style={{ padding: "14px 16px" }}>{item.qty !== null && item.qty !== undefined && item.qty !== "" ? item.qty : "-"}</td>
-                                                <td data-label="รูปแบบการปลูก" style={{ padding: "14px 16px" }}>{item.system_glow || "-"}</td>
-                                                <td data-label="ปุ๋ย (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctFer !== null && item.ctFer !== undefined && item.ctFer !== "" ? item.ctFer : "-"}</td>
-                                                <td data-label="สารเคมี (ครั้ง)" style={{ padding: "14px 16px" }}>{item.ctChe !== null && item.ctChe !== undefined && item.ctChe !== "" ? item.ctChe : "-"}</td>
-                                                <td data-label="ศัตรูพืช" style={{ padding: "14px 16px" }}>{item.insect || "-"}</td>
-                                                <td data-label="ชื่อเกษตรกร" style={{ padding: "14px 16px" }}>{item.farmer || "-"}</td>
-                                                <td data-label="หมายเหตุ" style={{ padding: "14px 16px" }}>
+                                                <td data-label="ชนิดพืช" style={{ padding: "10px 6px", fontWeight: "500", wordBreak: "break-word" }}>{item.type_main || "-"}</td>
+                                                <td data-label="ชื่อพืช" style={{ padding: "10px 6px", wordBreak: "break-word" }}>{item.name_plant || "-"}</td>
+                                                <td data-label="รุ่น" style={{ padding: "10px 6px" }}>{item.generation || "-"}</td>
+                                                <td data-label="วันที่ปลูก" style={{ padding: "10px 6px" }}><DayJSX DATE={item.date_plant} TYPE="small" /></td>
+                                                <td data-label="จำนวนต้น" style={{ padding: "10px 6px" }}>{item.qty !== null && item.qty !== undefined && item.qty !== "" ? item.qty : "-"}</td>
+                                                <td data-label="รูปแบบ" style={{ padding: "10px 6px", wordBreak: "break-word" }}>{item.system_glow || "-"}</td>
+                                                <td data-label="ปุ๋ย (ครั้ง)" style={{ padding: "10px 6px" }}>{item.ctFer !== null && item.ctFer !== undefined && item.ctFer !== "" ? item.ctFer : "-"}</td>
+                                                <td data-label="สารเคมี (ครั้ง)" style={{ padding: "10px 6px" }}>{item.ctChe !== null && item.ctChe !== undefined && item.ctChe !== "" ? item.ctChe : "-"}</td>
+                                                <td data-label="ศัตรูพืช" style={{ padding: "10px 6px", wordBreak: "break-word" }}>{item.insect || "-"}</td>
+                                                <td data-label="ชื่อเกษตรกร" style={{ padding: "10px 6px", wordBreak: "break-word" }}>{item.farmer || "-"}</td>
+                                                <td data-label="หมายเหตุ" style={{ padding: "10px 6px" }}>
                                                     {tags.length > 0 ? (
                                                         <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "center" }}>
                                                             {tags.map((t, idx) => (
                                                                 <span key={idx} style={{
-                                                                    backgroundColor: t.cls === "incomplete" ? "#ffbebe" : "rgb(230, 247, 134)",
                                                                     color: t.cls === "incomplete" ? "#d63031" : "#E53935",
-                                                                    padding: "4px 10px",
-                                                                    borderRadius: "8px",
-                                                                    fontSize: "12px",
-                                                                    fontWeight: "bold",
-                                                                    whiteSpace: "nowrap"
+                                                                    // fontWeight: "bold",
+                                                                    display: "block",
+                                                                    textAlign: "center",
+                                                                    wordBreak: "break-word"
                                                                 }}>
                                                                     {t.label}
                                                                 </span>
@@ -1096,7 +1093,7 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
                                                         "-"
                                                     )}
                                                 </td>
-                                                <td data-label="จัดการข้อมูล" style={{ padding: "10px 16px", textAlign: "center" }}>
+                                                <td data-label="จัดการข้อมูล" style={{ padding: "10px 6px", textAlign: "center" }}>
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -1104,16 +1101,17 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
                                                             setSchedulesId(item.id);
                                                         }}
                                                         style={{
-                                                            backgroundColor: "#F5E642",
+                                                            backgroundColor: "#fff15dff",
                                                             color: "#333",
                                                             border: "none",
                                                             borderRadius: "20px",
-                                                            padding: "6px 14px",
+                                                            padding: "5px 10px",
                                                             fontFamily: "Sans-font",
-                                                            fontSize: "13px",
                                                             fontWeight: "700",
                                                             cursor: "pointer",
-                                                            whiteSpace: "nowrap"
+                                                            whiteSpace: "nowrap",
+                                                            display: "block",
+                                                            margin: "0 auto"
                                                         }}
                                                     >
                                                         ดูแผนการปลูก
@@ -1124,7 +1122,7 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
                                         );
                                     }) : (
                                         <tr>
-                                            <td colSpan={12} style={{ padding: "20px", textAlign: "center", color: "#666" }}>ไม่พบข้อมูล</td>
+                                            <td colSpan={12} style={{ padding: "30px", textAlign: "center", color: "#666", fontSize: "20px", fontWeight: "bold" }}>ไม่พบข้อมูล</td>
                                         </tr>
                                     )}
                                 </tbody>

@@ -21,7 +21,8 @@ import AdminHeader from "./AdminHeader";
 export const AdminContext = React.createContext({
     TabOn: undefined,
     titlePageNested: (heigthBody, heightCover, ArrtextPage = []) => { },
-    profile: {}
+    profile: {},
+    onSession: () => { }
 })
 
 const Admin = ({ setBodyFileMain, socket, username, password }) => {
@@ -348,7 +349,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             value={{
                 TabOn: TabOn,
                 titlePageNested: modifyMainPage,
-                profile: getProfile
+                profile: getProfile,
+                onSession: sessionoff
             }}
         >
             <BrowserRouter basename={env.subpath_server}>
@@ -371,6 +373,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
                     <div className="main-content-wrapper" style={{
                         flexGrow: 1,
+                        minWidth: 0,
                         height: '100vh',
                         display: 'flex',
                         flexDirection: 'column',
@@ -401,12 +404,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                                             <Route path=":station_id" element={<SchedulesPlan />} />
                                             <Route path=":station_id/:plant_id" element={<SchedulePlants />} />
                                         </Route>
-                                        <Route path="/admin/station" element={<WeatherStation />}>
-                                        </Route>
-                                        <Route path="/admin/weather-station" element={
-                                            <></>
-                                        }>
-                                        </Route>
+                                        <Route path="/admin/station" element={<WeatherStation />} />
+                                        <Route path="/admin/weather-station" element={<WeatherStation />} />
                                         <Route path="/admin/form-plant" element={
                                             <PageFormPlantAdmin
                                                 setMain={setBody}

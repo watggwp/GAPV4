@@ -4,6 +4,9 @@ import { DoctorContext } from "./Doctor";
 import { clientMo } from "../../../assets/js/moduleClient";
 import { PopupDom, TimeDiff, Loading } from "../../../assets/js/module";
 import ProfilePage from "./page/profile/Profile";
+import ManagePopup from "./page/form/ManagePopup";
+import SchedulesPopup from "./page/form/schedules/SchedulesPageDoctor";
+import './assets/style/page/form/PageFormPlant.scss';
 
 const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTitle, toggleSidebar }) => {
     const { profile } = useContext(DoctorContext);
@@ -17,60 +20,172 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
     const [getNotifyList, setNotifyList] = useState([]);
     const [getShowNotify, setShowNotify] = useState(false);
     const [getStation, setStation] = useState(0);
-    const [getFetchStart, setFetchStart] = useState(true);
 
-    // --- Notification Logic ---
-    const NotifyConnect = async (id) => {
-        if (getFetchStart) {
-            await FetchNotify(0, "count");
-            setFetchStart(false);
-        } else {
-            SocketConnect(id);
+    const latestNotifyIdRef = useRef(0);
+    const [toasts, setToasts] = useState([]);
+
+    const playNotificationSound = () => {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playNote = (freq, startTime, duration) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.2, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            };
+            const now = audioCtx.currentTime;
+            playNote(523.25, now, 0.15); // C5
+            playNote(659.25, now + 0.15, 0.3); // E5
+        } catch (e) {
+            console.log("Audio play failed", e);
         }
     };
 
-    const SocketConnect = (id) => {
-        socket.emit("connect_notify_doctor", getStation);
-        socket.on("update", () => {
-            FetchNotify(id, "update");
+    const addToast = (notifyData) => {
+        setToasts(prev => {
+            if (prev.find(t => t.id === notifyData.id)) return prev;
+            return [...prev, notifyData];
         });
+        setTimeout(() => {
+            setToasts(prev => prev.filter(t => t.id !== notifyData.id));
+        }, 7000);
     };
 
     const FetchNotify = async (id_focus, type) => {
-        const SelectDataOn = getNotifyContent ? type : "count";
+        const SelectDataOn = (type === "update") ? "update" : (getNotifyContent ? type : "count");
         const notify = await clientMo.get(`/api/doctor/notify/get?type=${SelectDataOn}&id=${id_focus}`);
         if (notify) {
             const notifyData = JSON.parse(notify);
-            setStation(notifyData.station);
+
+            if (notifyData.station !== undefined) {
+                setStation(notifyData.station);
+            }
+
+            if (notifyData.maxId !== undefined) {
+                if (notifyData.maxId > latestNotifyIdRef.current) {
+                    latestNotifyIdRef.current = notifyData.maxId;
+                }
+            }
+            if (notifyData.List && notifyData.List.length > 0) {
+                const maxId = notifyData.List[0].id;
+                if (maxId > latestNotifyIdRef.current) {
+                    latestNotifyIdRef.current = maxId;
+                }
+            }
+
             if (SelectDataOn === "start") {
                 setNotifyList(notifyData.List);
                 setNotifyCount(0);
             } else if (SelectDataOn === "update") {
-                setNotifyList((prevent) => [...notifyData.List, ...prevent]);
-                setNotifyCount(0);
+                let addedItems = [];
+                setNotifyList((prevent) => {
+                    const newItems = notifyData.List.filter(item => !prevent.find(p => p.id === item.id));
+                    addedItems = newItems;
+                    return [...newItems, ...prevent];
+                });
+                setTimeout(() => {
+                    if (addedItems.length > 0 && !getNotifyContent) {
+                        playNotificationSound();
+                        addedItems.forEach(item => addToast(item));
+                    }
+                }, 0);
+                setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
             } else if (SelectDataOn === "get") {
                 setNotifyList((prevent) => [...prevent, ...notifyData.List]);
-            } else setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
+            } else {
+                setNotifyCount(notifyData.countUn ? notifyData.countUn : 0);
+            }
             return notifyData.List;
-        } else setSession();
+        } else {
+            setSession();
+        }
     };
 
+    // Initial load
     useEffect(() => {
-        if (socket) {
+        FetchNotify(0, "count");
+    }, []);
+
+    // Socket listeners setup
+    useEffect(() => {
+        if (!socket || getStation === 0) return;
+
+        socket.emit("connect_notify_doctor", getStation);
+
+        const handleUpdate = () => {
+            FetchNotify(latestNotifyIdRef.current, "update");
+        };
+
+        socket.on("update", handleUpdate);
+
+        return () => {
             socket.emit("disconnect_notify_doctor", getStation);
-            socket.removeListener("update");
-            NotifyConnect(getNotifyList.length === 0 ? 0 : getNotifyList[0].id);
-            return (() => {
-                socket.emit("disconnect_notify_doctor", getStation);
-                socket.removeListener("update");
-            });
-        }
-    }, [getNotifyList, getFetchStart, getNotifyContent, socket]);
+            socket.off("update", handleUpdate);
+        };
+    }, [socket, getStation]);
 
     // --- Profile Logic ---
     const Home = (e) => {
         if (e) e.preventDefault();
         setBodyPopup(<></>); // Close popup
+    };
+
+    const showPopup = async (id_form) => {
+        const context = await clientMo.post('/api/doctor/check');
+        if (context) {
+            setBodyPopup(
+                <div className="data-list-content-page form-page" style={{ width: '100%', height: '100%', background: 'transparent' }}>
+                    <ManagePopup
+                        RefData={{ current: null }}
+                        setPopup={setBodyPopup}
+                        RefPop={RefPopup}
+                        id_form={id_form}
+                        session={setSession}
+                        Fecth={() => { }}
+                    />
+                </div>
+            );
+            setTimeout(() => {
+                if (RefPopup.current) {
+                    RefPopup.current.style.opacity = "1";
+                    RefPopup.current.style.visibility = "visible";
+                }
+            }, 100);
+        } else {
+            setSession();
+        }
+    };
+
+    const showSchedulesPopup = async (id_form) => {
+        const context = await clientMo.post('/api/doctor/check');
+        if (context) {
+            setBodyPopup(
+                <SchedulesPopup
+                    id_form={id_form}
+                    onClose={() => {
+                        setBodyPopup(<></>);
+                        if (RefPopup.current) {
+                            RefPopup.current.style.opacity = "0";
+                            RefPopup.current.style.visibility = "hidden";
+                        }
+                    }}
+                />
+            );
+            setTimeout(() => {
+                if (RefPopup.current) {
+                    RefPopup.current.style.opacity = "1";
+                    RefPopup.current.style.visibility = "visible";
+                }
+            }, 100);
+        } else {
+            setSession();
+        }
     };
 
     const Profile = (e) => {
@@ -83,7 +198,16 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         setNotifyContent(true);
         setShowNotify(!getShowNotify);
     };
-
+    //ทดสอบ popup แจ้งเตือน
+    const handleTestNotification = async (e) => {
+        if (e) e.preventDefault();
+        try {
+            await clientMo.post('/api/doctor/notify/test');
+        } catch (err) {
+            console.error("Test notification failed:", err);
+        }
+    };
+    //-------------------------------------------------------------
     const logout = () => {
         clientMo.LoadingPage();
         setTimeout(() => {
@@ -102,6 +226,34 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
     return (
         <div className="header-bar" style={{ width: '100%', marginBottom: '20px' }}>
             <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={999} />
+            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {toasts.map(toastNotify => (
+                    <div key={toastNotify.id} style={{
+                        background: 'white',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        animation: 'fadeIn 0.3s ease-out',
+                        cursor: 'pointer',
+                        width: '350px',
+                        borderLeft: '4px solid #22C7A9'
+                    }} onClick={() => {
+                        if ((toastNotify.type === 1 || toastNotify.type === 2) && toastNotify.ref_id) {
+                            showSchedulesPopup(toastNotify.ref_id);
+                        }
+                        setToasts(prev => prev.filter(t => t.id !== toastNotify.id));
+                    }}>
+                        <img src={toastNotify.img_farmer} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} alt="farmer" />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>การแจ้งเตือนใหม่</span>
+                            <span style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{toastNotify.notify}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button className="mobile-menu-btn" onClick={toggleSidebar}>
@@ -113,16 +265,19 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
             </div>
 
             <div className="header-actions">
+                <a href="#" className="notification-link" onClick={handleTestNotification} style={{ color: '#22C7A9', marginRight: '15px' }}>
+                    <span className="hide-mobile">ทดสอบแจ้งเตือน</span>
+                    <span className="show-mobile-icon">🧪</span>
+                </a>
                 <div className="menu-content" style={{ position: 'relative' }}>
                     <a href="#" className="notification-link" onClick={Notify} notify="">
                         <span className="hide-mobile">การแจ้งเตือน</span>
+                        <span className="show-mobile-icon">🔔</span>
                         {getNotifyCount ? <div notify="" className="count-notify" style={{
                             position: 'absolute', top: '-5px', right: '-5px',
                             background: 'red', color: 'white', borderRadius: '50%',
                             padding: '2px 5px', fontSize: '10px'
-                        }}>{getNotifyCount < 10 ? getNotifyCount : "9+"}</div> :
-                            <span className="show-mobile-icon">🔔</span>
-                        }
+                        }}>{getNotifyCount < 10 ? getNotifyCount : "9+"}</div> : null}
                     </a>
                     <div className="notify-content" show={getShowNotify ? "" : null}>
                         {getNotifyContent ?
@@ -134,6 +289,8 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                                 FetchNotifyData={() => FetchNotify(0, "start")}
                                 dataNotification={getNotifyList}
                                 FetchNotify={() => FetchNotify(getNotifyList.length !== 0 ? getNotifyList[getNotifyList.length - 1].id : 0, "get")}
+                                showPopup={showPopup}
+                                showSchedulesPopup={showSchedulesPopup}
                             />
                             : <></>
                         }
@@ -146,7 +303,13 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                 </a>
                 <div className="logout-btn" onClick={logout}>
                     <span className="hide-mobile">ออกจากระบบ</span>
-                    <span className="show-mobile-icon">🚪</span>
+                    <span className="show-mobile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px', display: 'inline-block', verticalAlign: 'middle' }}>
+                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" />
+                            <path d="M16 17L21 12L16 7" />
+                            <path d="M21 12H9" />
+                        </svg>
+                    </span>
                 </div>
             </div>
         </div>
@@ -154,7 +317,7 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
 };
 
 // Notification Component
-const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, FetchNotify, setCount, session }) => {
+const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, FetchNotify, setCount, session, showPopup, showSchedulesPopup }) => {
     const [getLoadGet, setLoadGet] = useState(true)
     const [getListNew, setListNew] = useState([0])
     const [getWaitContent, setWaitContent] = useState("w")
@@ -199,7 +362,13 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                     getWaitContent !== "w" ?
                         dataNotification.length ?
                             dataNotification.map(val =>
-                                <div className="content-notification" key={val.id} notify="">
+                                <div className="content-notification" key={val.id} notify=""
+                                    onClick={() => {
+                                        if ((val.type === 1 || val.type === 2) && val.ref_id) {
+                                            showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
+                                        }
+                                    }}
+                                    style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
                                     <div className="box-left" notify="">
                                         <img notify="" src={val.img_farmer} alt="farmer"></img>
                                     </div>

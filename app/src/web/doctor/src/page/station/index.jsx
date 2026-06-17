@@ -40,8 +40,9 @@ export default function WeatherStation() {
         textSearch: "",
       });
 
-      setStations(stationsResponse);
-      setSelectedStationData(stationsResponse.find(({ id_station }) => id_station === selectedStation) || {});
+      const activeStations = stationsResponse.filter(station => station.is_use === 1);
+      setStations(activeStations);
+      setSelectedStationData(activeStations.find(({ id_station }) => id_station === selectedStation) || {});
     } catch (error) {
       console.error("Error fetching station list:", error);
     }
@@ -103,7 +104,7 @@ export default function WeatherStation() {
         <Grid container width={"100%"}>
           <Grid size={{ xs: 8, xl: 6 }}>
             <Stack direction={"row"}>
-              <Select
+              {/* <Select
                 value={selectedStation}
                 onChange={(e) => {
                   setSelectedStation(e.target.value);
@@ -117,7 +118,7 @@ export default function WeatherStation() {
                     {station.name}
                   </MenuItem>
                 ))}
-              </Select>
+              </Select> */}
 
               {/* คง UI เดิม: Houses ยังแสดงเหมือนเดิม
                  แต่ตอนนี้ Houses จะเรียก setGreenhouseId ผ่าน Context เมื่อผู้ใช้เลือกเรือน */}

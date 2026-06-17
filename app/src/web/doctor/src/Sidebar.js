@@ -36,20 +36,6 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
         return allow;
     };
 
-    const logout = () => {
-        clientMo.LoadingPage();
-        setTimeout(() => {
-            clientMo.get('/api/logout')
-                .then(() => {
-                    setSession(true);
-                    clientMo.unLoadingPage();
-                })
-                .catch(() => {
-                    setSession(true);
-                    clientMo.unLoadingPage();
-                });
-        }, 2000);
-    };
 
     // --- Navigation Functions (from NavFirst.js) ---
 
@@ -148,13 +134,20 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src={`${env.subpath_server}/logo2.png`} alt="Logo" className="logo" />
-                    <span className="brand-name">{getBrandName()}</span>
-                </div>
-                <button className="toggle-btn" onClick={toggleSidebar}>
-                    {isCollapsed ? '☰' : '✖'}
-                </button>
+                {isCollapsed ? (
+                    <button className="toggle-btn" onClick={toggleSidebar}>
+                        ☰
+                    </button>
+                ) : (
+                    <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                        onClick={toggleSidebar}
+                        className="brand-container"
+                    >
+                        <img src={`${env.subpath_server}/logo2.png`} alt="Logo" className="logo" />
+                        <span className="brand-name">{getBrandName()}</span>
+                    </div>
+                )}
             </div>
 
             <ul className="sidebar-menu">
@@ -225,18 +218,6 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                     </li>
                 )}
 
-                {/* Report */}
-                {hasRole(['doctor', 'consultant', 'protection']) && (
-                    <li className="menu-item" onClick={report}>
-                        <a onClick={(e) => e.preventDefault()}>
-                            <div className="icon-container-img">
-                                <img src={iconReport} alt="Report" />
-                            </div>
-                            <span>รายงานข้อมูล</span>
-                        </a>
-                    </li>
-                )}
-
                 {/* Environment */}
                 {hasRole(['doctor', 'consultant', 'protection']) && (
                     <li className="menu-item" onClick={station}>
@@ -249,17 +230,20 @@ const Sidebar = ({ setMain, socket, setSession, setdoctor, eleImageCover, eleBod
                     </li>
                 )}
 
+                {/* Report */}
+                {hasRole(['doctor', 'consultant', 'protection']) && (
+                    <li className="menu-item" onClick={report}>
+                        <a onClick={(e) => e.preventDefault()}>
+                            <div className="icon-container-img">
+                                <img src={iconReport} alt="Report" />
+                            </div>
+                            <span>รายงานข้อมูล</span>
+                        </a>
+                    </li>
+                )}
+
             </ul>
 
-            <div className="sidebar-footer">
-                <div className="menu-item logout" onClick={logout}>
-                    <div className="icon-container-img" style={{ filter: 'grayscale(1)' }}>
-                        {/* Using a generic icon or the dashboard one for logout temporarily if no specific logout image */}
-                        <img src={iconDashboard} alt="Logout" style={{ transform: 'rotate(180deg)' }} />
-                    </div>
-                    <span>ออกจากระบบ</span>
-                </div>
-            </div>
         </div>
     );
 };

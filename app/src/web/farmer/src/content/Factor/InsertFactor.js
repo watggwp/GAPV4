@@ -691,6 +691,7 @@ const PopupInsertFactor = ({
                             classNameMain="input-date"
                             defaultDate={DateNowOnForm}
                             refIn={DateUse}
+                            maxDate={new Date()}
                             onInputIn={ChangeFerti}
                           />
                           {/* <input onChange={ChangeFerti} defaultValue={DateNowOnForm} onClick={()=>clickDate(DateUse)} ref={DateUse} type="date"></input> */}
@@ -876,6 +877,7 @@ const PopupInsertFactor = ({
                             classNameMain="input-date"
                             defaultDate={DateNowOnForm}
                             refIn={DateUse}
+                            maxDate={new Date()}
                             onInputIn={() => {
                               ChangeChemi();
                             }}

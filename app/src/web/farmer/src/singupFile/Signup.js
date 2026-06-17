@@ -4,6 +4,7 @@ import { Loading, MapsJSX, PatternCheck, ReportAction, ResizeImg, SetMaxLength }
 import './Signup.scss'
 import { clientMo } from "../../../../assets/js/moduleClient";
 import { CloseAccount } from "../method";
+import { ThailandAddressTypeahead, ThailandAddressValue } from 'react-thailand-address-typeahead';
 import { useFarmer } from "../main";
 
 const SignUp = () => {
@@ -66,6 +67,8 @@ const SignUp = () => {
             StepFocus.item(StepIndex - 1).setAttribute('select', "")
             stepInMedthod = stepOn - 1
             setstepOn(stepInMedthod)
+        } else {
+            return;
         }
 
         // ตรวจสอบแสดงปุ่มย้อนกลับ
@@ -166,9 +169,11 @@ const StepOne = (props) => {
     const Firstname = useRef()
     const Lastname = useRef()
     const Password = useRef()
+    const ConfirmPassword = useRef()
     const telnumber = useRef()
 
     const [getQtyPhone, setQtyPhone] = useState(0)
+    const [errors, setErrors] = useState({})
 
     useEffect(() => {
         props.stepAp(1)
@@ -187,13 +192,29 @@ const StepOne = (props) => {
             props.data.set("firstname", Firstname.current.value)
             props.data.set("lastname", Lastname.current.value)
             props.data.set("password", Password.current.value)
+            props.data.set("confirm-password", ConfirmPassword.current.value)
             props.data.set("telnumber", telnumber.current.value)
         }
+
+        let newErrors = {};
+        const fname = props.data.get("firstname") || "";
+        const lname = props.data.get("lastname") || "";
+        const pwd = props.data.get("password") || "";
+        const cpwd = props.data.get("confirm-password") || "";
+        const tel = props.data.get("telnumber") || "";
+
+        if (fname && !PatternCheck(fname).thaiName) newErrors.firstname = "กรุณากรอกภาษาไทยเท่านั้น";
+        if (lname && !PatternCheck(lname).thaiName) newErrors.lastname = "กรุณากรอกภาษาไทยเท่านั้น";
+        if (cpwd && pwd && cpwd !== pwd) newErrors.confirmPassword = "รหัสผ่านไม่ตรงกัน";
+        if (tel && (isNaN(tel) || tel.length !== 10)) newErrors.telnumber = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก";
+
+        setErrors(newErrors);
 
         if (
             (props.data.get("firstname") && PatternCheck(props.data.get("firstname")).thaiName) &&
             (props.data.get("lastname") && PatternCheck(props.data.get("lastname")).thaiName) &&
             props.data.get("password") &&
+            props.data.get("confirm-password") === props.data.get("password") &&
             props.data.get("telnumber") && !isNaN(props.data.get("telnumber")) && props.data.get("telnumber").length == 10
         ) {
             props.btnext(true)
@@ -215,12 +236,14 @@ const StepOne = (props) => {
                         <span>ชื่อ</span><span className="dot">*</span>
                     </span>
                     <input autoComplete="false" placeholder="ชื่อภาษาไทย" defaultValue={props.profile.get("firstname")} onChange={checkData} type="text" ref={Firstname} data="firstname"></input>
+                    {errors.firstname && <div style={{color: '#d32f2f', fontSize: '4vw', marginTop: '5px', paddingLeft: '10px'}}>{errors.firstname}</div>}
                 </label>
                 <label>
                     <span>
                         <span>นามสกุล</span><span className="dot">*</span>
                     </span>
                     <input autoComplete="false" placeholder="นามสกุลภาษาไทย" defaultValue={props.profile.get("lastname")} onChange={checkData} type="text" ref={Lastname} data="lastname"></input>
+                    {errors.lastname && <div style={{color: '#d32f2f', fontSize: '4vw', marginTop: '5px', paddingLeft: '10px'}}>{errors.lastname}</div>}
                 </label>
                 <label>
                     <span>
@@ -230,11 +253,19 @@ const StepOne = (props) => {
                 </label>
                 <label>
                     <span>
+                        <span>ยืนยันรหัสผ่าน</span><span className="dot">*</span>
+                    </span>
+                    <input autoComplete="false" defaultValue={props.profile.get("confirm-password")} onChange={checkData} type="password" ref={ConfirmPassword} data="confirm-password" placeholder="กรอกรหัสผ่านอีกครั้งเพื่อยืนยัน"></input>
+                    {errors.confirmPassword && <div style={{color: '#d32f2f', fontSize: '4vw', marginTop: '5px', paddingLeft: '10px'}}>{errors.confirmPassword}</div>}
+                </label>
+                <label>
+                    <span>
                         <span>เบอร์มือถือเกษตรกร</span><span className="dot">*</span><span className="qty">{getQtyPhone}/10</span>
                     </span>
                     <input autoComplete="false" defaultValue={props.profile.get("telnumber")} onChange={checkData} onInput={(e) => {
                         SetMaxLength(e, setQtyPhone, 10)
                     }} type="number" ref={telnumber} data="telnumber" placeholder="เช่น 0902959768"></input>
+                    {errors.telnumber && <div style={{color: '#d32f2f', fontSize: '4vw', marginTop: '5px', paddingLeft: '10px'}}>{errors.telnumber}</div>}
                 </label>
             </div>
         </section>
@@ -253,12 +284,62 @@ const StepTwo = (props) => {
     const [Selected, setSelected] = useState(props.profile.get("station"))
     const [getTextLocation, setTextLocation] = useState(props.profile.get("text-location"))
 
+    const [addressDetails, setAddressDetails] = useState(props.profile.get("address-details") || '');
+    const [thaiAddress, setThaiAddress] = useState(props.profile.get("thai-address") || ThailandAddressValue.empty());
+
+    const updateAddress = (details, thaiAddr) => {
+        let fullAddress = details.trim();
+        if (thaiAddr.subdistrict) fullAddress += ' ต.' + thaiAddr.subdistrict;
+        if (thaiAddr.district) fullAddress += ' อ.' + thaiAddr.district;
+        if (thaiAddr.province) fullAddress += ' จ.' + thaiAddr.province;
+        if (thaiAddr.postalCode) fullAddress += ' ' + thaiAddr.postalCode;
+        fullAddress = fullAddress.trim();
+
+        props.data.set("text-location", fullAddress);
+        props.data.set("address-details", details);
+        props.data.set("thai-address", thaiAddr);
+        setTextLocation(fullAddress);
+        CheckData("");
+    };
+
     const [LoadingState, setLoading] = useState(<></>)
     const [TimeOutLoad, setTimeOutLoad] = useState(0)
 
     useEffect(() => {
         props.stepAp(2)
-        PullMap()
+
+        if (props.profile.get("list-station")) {
+            setStation(props.profile.get("list-station"))
+            setReady(true)
+        } else {
+            // โหลดรายชื่อศูนย์โดยไม่ใช้ GPS ไปก่อน เพื่อไม่ให้ popup เด้งอัตโนมัติ
+            clientMo.post("/api/farmer/station/search", { uidLine: props.uidLine }).then((list) => {
+                try {
+                    const search = JSON.parse(list).map(val => {
+                        return { id: val.id, name: val.name }
+                    })
+                    props.data.set("list-station", search)
+                    setStation(search)
+                    setReady(true)
+                } catch (e) {
+                    CloseAccount("error auth", "")
+                }
+            })
+        }
+
+        if (MapEle.current && LoadingMap.current) {
+            MapEle.current.setAttribute('show', '')
+            LoadingMap.current.setAttribute('hide', '')
+            setLoading(<></>)
+        }
+
+        setCurrent(<div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+            กดปุ่ม <b>"โหลดตำแหน่ง"</b> ด้านล่าง<br />เพื่อระบุพิกัด GPS
+        </div>)
+
+        if (!props.profile.get("latitude")) props.data.set("latitude", 1)
+        if (!props.profile.get("longitude")) props.data.set("longitude", 1)
+        CheckData("")
 
         return () => {
             clearTimeout(TimeOutLoad)
@@ -394,9 +475,7 @@ const StepTwo = (props) => {
             ...props.data
         ]))
 
-        if (props.data.get("station")
-            && props.data.get("latitude")
-            && props.data.get("longitude") && props.data.get("text-location")) {
+        if (props.data.get("station") && props.data.get("text-location") && props.data.get("address-details") && props.data.get("address-details").trim() !== "") {
             props.btnext(true)
             props.stepAp(3)
         } else {
@@ -420,15 +499,40 @@ const StepTwo = (props) => {
                     <span>
                         <span>ที่อยู่ปัจจุบัน</span><span className="dot">*</span>
                     </span>
-                    <textarea placeholder="กรอกที่อยู่อาศัย เช่น บ้านเลขที่ 99/99 หมู่ 14 ต.เมืองนะ อ.เชียงดาว จ.เชียงใหม่" defaultValue={getTextLocation} type="text" onChange={(e) => {
-                        props.data.set("text-location", e.target.value)
-                        setTextLocation(e.target.value)
-                        CheckData("")
-                    }}></textarea>
+                    <div className="address-typeahead-container" style={{ marginTop: '10px' }}>
+                        <input 
+                            type="text" 
+                            placeholder="บ้านเลขที่ / หมู่ เช่น 99/99 หมู่ 14" 
+                            value={addressDetails} 
+                            onChange={(e) => {
+                                setAddressDetails(e.target.value);
+                                updateAddress(e.target.value, thaiAddress);
+                            }} 
+                            style={{ width: '100%', marginBottom: '10px', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#aee4a5', boxSizing: 'border-box', fontFamily: 'TH-font', fontSize: '5vw' }}
+                        />
+                        <ThailandAddressTypeahead
+                            value={thaiAddress}
+                            onValueChange={(val) => {
+                                setThaiAddress(val);
+                                updateAddress(addressDetails, val);
+                            }}
+                        >
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <ThailandAddressTypeahead.SubdistrictInput placeholder="ตำบล" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#aee4a5', boxSizing: 'border-box', fontFamily: 'TH-font', fontSize: '5vw' }} />
+                                <ThailandAddressTypeahead.DistrictInput placeholder="อำเภอ" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#aee4a5', boxSizing: 'border-box', fontFamily: 'TH-font', fontSize: '5vw' }} />
+                                <ThailandAddressTypeahead.ProvinceInput placeholder="จังหวัด" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#aee4a5', boxSizing: 'border-box', fontFamily: 'TH-font', fontSize: '5vw' }} />
+                                <ThailandAddressTypeahead.PostalCodeInput placeholder="รหัสไปรษณีย์" style={{ width: '100%', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#aee4a5', boxSizing: 'border-box', fontFamily: 'TH-font', fontSize: '5vw' }} />
+                            </div>
+                            <ThailandAddressTypeahead.Suggestion 
+                                containerProps={{ className: 'thai-address-suggestion-container' }}
+                                optionItemProps={{ className: 'thai-address-suggestion-item' }}
+                            />
+                        </ThailandAddressTypeahead>
+                    </div>
                 </label>
                 <label className="location">
                     <div className="head-map">ตำแหน่งที่อยู่</div>
-                    <div className="warning">* เพื่อการดึงข้อมูลที่ถูกต้อง โปรดอยู่ในตำแหน่งที่อยู่ปัจจุบันของท่าน</div>
+                    {/* <div className="warning">* เพื่อการดึงข้อมูลที่ถูกต้อง โปรดอยู่ในตำแหน่งที่อยู่ปัจจุบันของท่าน</div> */}
                     <div className="map-genarate">
                         <div onLoad={MapLoad} ref={MapEle} className="map">
                             {LocationCurrent}
@@ -528,23 +632,24 @@ const StepThree = (props) => {
             y: 0
         })
         if (file) {
-            if (
-                new Date().getTime() - file.lastModified < 10000
-            ) {
-                ResizeImg(file, 600).then((imageResult) => {
-                    setPreview(imageResult)
-                    props.data.set("dataImgState", imageResult)
-                    props.data.set("xImgState", 0)
-                    props.data.set("yImgState", 0)
-                    updateData()
-                })
-            }
-            else {
-                setLoading(true)
-                setPreview("/view-preview-img.svg")
-                ImageCurrent.current.setAttribute("size", "w")
-                alert('โปรดใช้รูปถ่ายปัจจุบัน')
-            }
+            // ปิดการตรวจสอบเวลาชั่วคราว เพื่อให้อัปโหลดรูปเก่าได้
+            // if (
+            //     new Date().getTime() - file.lastModified < 10000
+            // ) {
+            ResizeImg(file, 600).then((imageResult) => {
+                setPreview(imageResult)
+                props.data.set("dataImgState", imageResult)
+                props.data.set("xImgState", 0)
+                props.data.set("yImgState", 0)
+                updateData()
+            })
+            // }
+            // else {
+            //     setLoading(true)
+            //     setPreview("/view-preview-img.svg")
+            //     ImageCurrent.current.setAttribute("size", "w")
+            //     alert('โปรดใช้รูปถ่ายปัจจุบัน')
+            // }
         } else {
             setLoading(true)
             setPreview("/view-preview-img.svg")
@@ -699,14 +804,14 @@ const StepThree = (props) => {
                 "lastname": props.profile.get("lastname"),
                 "password": props.profile.get("password"),
                 "telnumber": props.profile.get("telnumber"),
-                "lat": props.profile.get("latitude"),
-                "lng": props.profile.get("longitude"),
+                "lat": props.profile.get("latitude") ?? 1,
+                "lng": props.profile.get("longitude") ?? 1,
                 "station": props.profile.get("station"),
                 "text_location": props.profile.get("text-location"),
                 "Img": props.data.get("Image"),
             }
 
-            if (data.firstname && data.lastname && data.password && data.lat && data.lng && data.station && data.Img && data.text_location) {
+            if (data.firstname && data.lastname && data.password && data.station && data.Img && data.text_location) {
                 props.previewData(<PopUpPreview setAnimetion={props.setAnimetion} LoadingPreview={props.LoadingPreview} data={data} previewData={props.previewData} liff={props.liff} />)
             } else {
                 props.LoadingPreview.current.removeAttribute("show")

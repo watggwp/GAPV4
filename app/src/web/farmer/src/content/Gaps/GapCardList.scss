@@ -5,6 +5,7 @@
     min-height: 100vh;
     background: #f0f7f4;
     font-family: 'Prompt', sans-serif;
+    font-size: 24px;
     padding-bottom: 80px;
 }
 
@@ -92,7 +93,7 @@
     text-align: center;
     padding: 60px 20px;
     color: #888;
-    font-size: 1rem;
+    font-size: 18px;
 }
 
 /* ── Card Grid ──────────────────────────────── */
@@ -145,7 +146,7 @@
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.92);
             color: #1b6b44;
-            font-size: 0.7rem;
+            font-size: 18px;
             font-weight: 600;
             padding: 3px 11px;
             border-radius: 20px;
@@ -163,7 +164,7 @@
             transform: translateX(-50%);
             background: #e53935;
             color: #fff;
-            font-size: 0.6rem;
+            font-size: 16px;
             font-weight: 700;
             padding: 2px 8px;
             border-radius: 8px;
@@ -180,7 +181,7 @@
         flex: 1;
 
         .gap-card-plant-name {
-            font-size: 1rem;
+            font-size: 20px;
             font-weight: 500;
             color: #1e3a2f;
             text-align: center;
@@ -196,7 +197,7 @@
     border-radius: 20px;
     padding: 7px 4px;
     font-family: 'Prompt', sans-serif;
-    font-size: 1rem;
+    font-size: 18px;
     font-weight: 400;
     cursor: pointer;
     background: #3A9E72;
@@ -415,6 +416,7 @@
                                 width: 100%;
                                 padding-bottom: 5px;
                                 border-bottom: 1px solid green;
+                                font-size: 0.85rem;
 
                                 span {
                                     width: 40%;

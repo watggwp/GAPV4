@@ -173,7 +173,6 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use(cors({
         //อันเก่า
         origin: origins,
-
         //อันนหใม่ที่อนุญาติ IP ต่างๆ
         // origin: function (origin, callback) {
         //     // Allow requests with no origin (like mobile apps or curl requests)

@@ -10,7 +10,7 @@ const InsertGraph = () => {
   const ListGraph = useCallback(async () => {
     console.log("Start fetch graph");
     try {
-      const response = await clientMo.post("/api/doctor/report/list", { search: "" });
+      const response = await clientMo.post("/api/doctor/report/list", { search: textSearch });
       const result = JSON.parse(response);
  
       if (result.data) {
@@ -39,18 +39,24 @@ const InsertGraph = () => {
  
   useEffect(() => {
     ListGraph();
-  }, []);
+  }, [ListGraph]);
  
   return (
-    <div style={{ padding: "20px" , width : "90%", fontFamily: "Sans-font" }}>
-      <div>
+    <div style={{ padding: "10px", width: "100%", maxWidth: "1200px", margin: "0 auto", fontFamily: "Sans-font", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", overflowX: "auto", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)", marginTop: "10px" }}>
         <table
-          style={{width: "100%",borderCollapse: "collapse",marginTop: "10px",}}
+          style={{
+            width: "100%",
+            minWidth: "600px",
+            borderCollapse: "collapse",
+            textAlign: "center",
+            backgroundColor: "white",
+          }}
         >
           <thead>
             <tr>
               <th
-                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",
+                style={{border: "1px solid #ddd",padding: "8px",textAlign: "center",backgroundColor: "#60d6cf",color: "#fff",fontWeight: "900",width: "10%",
                 }}
               >
                 ลำดับ
@@ -111,18 +117,20 @@ const InsertGraph = () => {
         style={{
           marginTop: "20px",
           padding: "20px",
-          backgroundColor: "#f4f4f4",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
+          backgroundColor: "#E8F7F4",
+          borderRadius: "12px",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
+          border: "1px solid rgba(79, 176, 150, 0.15)",
           textAlign: "center",
         }}
       >
-        <h4 style={{ fontWeight: "900" }}>จำนวนเกษตรกรในพื้นที่</h4>
+        <h4 style={{ fontWeight: "900", color: "#4FB096", margin: "0 0 10px 0" }}>จำนวนเกษตรกรในพื้นที่</h4>
         <p
           style={{
-            fontSize: "24px",
+            fontSize: "28px",
             fontWeight: "900",
             color: "#333",
+            margin: 0
           }}
         >
           {farmerCount} คน

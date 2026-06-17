@@ -107,31 +107,32 @@ function NotifyStatistics({
                 <button type="button" className="btn-close" onClick={handleCloseModal}></button>
             </div>
 
-            <div className="modal-body" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+            <div className="modal-body" style={{ display: "block", padding: "15px" }}>
                 {selectedData.length > 0 ? (
-                    <table style={{ 
-                        width: "90%", 
-                        borderCollapse: "collapse", 
-                        marginTop: "10px", 
-                        border: "2px solid #60d6cf", 
-                        textAlign: "center"
-                    }}>
-                        <thead>
-                            <tr style={{ backgroundColor: "#60d6cf", color: "white" }}>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>โรคพืช/ศัตรูพืช</th>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>พืชที่เกี่ยวข้อง</th>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>จำนวน</th>
-                                <th style={{ padding: "10px", border: "1px solid white" }}>สารเคมี</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {[...selectedData]
-                                .sort((a, b) => b.count - a.count) 
-                                .map((item, index) => (
-                                    <NotifyStatistic key={index} index={index} item={item} />
-                            ))}
-                        </tbody>
-                    </table>
+                    <div style={{ width: "100%", overflowX: "auto", borderRadius: "8px", border: "1px solid #60d6cf" }}>
+                        <table style={{ 
+                            width: "100%", 
+                            minWidth: "600px",
+                            borderCollapse: "collapse", 
+                            textAlign: "center"
+                        }}>
+                            <thead>
+                                <tr style={{ backgroundColor: "#60d6cf", color: "white" }}>
+                                    <th style={{ padding: "10px", border: "1px solid white" }}>โรคพืช/ศัตรูพืช</th>
+                                    <th style={{ padding: "10px", border: "1px solid white" }}>พืชที่เกี่ยวข้อง</th>
+                                    <th style={{ padding: "10px", border: "1px solid white" }}>จำนวน</th>
+                                    <th style={{ padding: "10px", border: "1px solid white" }}>สารเคมี</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[...selectedData]
+                                    .sort((a, b) => b.count - a.count) 
+                                    .map((item, index) => (
+                                        <NotifyStatistic key={index} index={index} item={item} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 ) : (
                     <p style={{ textAlign: "center", color: "gray", fontWeight: "bold", padding: "10px" }}>ไม่มีข้อมูลที่จะแสดง</p>
                 )}
