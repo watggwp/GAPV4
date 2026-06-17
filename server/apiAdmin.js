@@ -3140,29 +3140,10 @@ app.post('/api/admin/data/change', async (req, res) => {
                   INNER JOIN plant_list pl ON fp.name_plant = pl.name AND IFNULL(pl.variety_name, '') = IFNULL(fp.name_varieties, '') AND pl.is_use = 1
                   INNER JOIN schedules s ON s.plant_id = pl.id AND s.station_id = af.station
                   LEFT JOIN schedule_tracking st ON st.formplant_id = fp.id AND st.schedule_id = s.id
-                  LEFT JOIN formfertilizer ff ON st.formfertilizer_id = ff.id
-                  LEFT JOIN formchemical fc ON st.formchemical_id = fc.id
-                  LEFT JOIN schedules_detail_fertilizer sdf ON s.category = 1 AND sdf.schedule_id = s.id
-                  LEFT JOIN schedules_detail_disease sdd ON s.category = 2 AND sdd.schedule_id = s.id
                   WHERE 
                       (fp.state_status = 0 OR fp.state_status = 1)
                       AND DATE(DATE_ADD(fp.date_plant, INTERVAL s.age_plant DAY)) <= CURDATE()
-                      AND (
-                          st.id IS NULL
-                          OR (s.category = 1 AND (
-                              IFNULL(ff.name, '') != IFNULL(sdf.fertilizer, '') OR 
-                              IFNULL(ff.formula_name, '') != IFNULL(sdf.formula_fertilizer, '') OR
-                              TRIM(IFNULL(ff.volume, '')) != TRIM(CONCAT(IFNULL(sdf.volume, ''), ' ', IFNULL(sdf.unit_volume, ''))) OR
-                              TRIM(IFNULL(ff.use_is, '')) != TRIM(IFNULL(sdf.how_use, ''))
-                          ))
-                          OR (s.category = 2 AND (
-                              IFNULL(fc.name, '') != IFNULL(sdd.chemical, '') OR 
-                              IFNULL(fc.insect, '') != IFNULL(sdd.pest, '') OR
-                              TRIM(IFNULL(fc.rate, '')) != TRIM(IFNULL(sdd.rate, '')) OR
-                              TRIM(IFNULL(fc.volume, '')) != TRIM(CONCAT(IFNULL(sdd.volume, ''), ' ', IFNULL(sdd.unit_volume, ''))) OR
-                              TRIM(IFNULL(fc.use_is, '')) != TRIM(IFNULL(sdd.how_use, ''))
-                          ))
-                      )
+                      AND st.id IS NULL
               `;
               
               let params = [];
@@ -3171,7 +3152,7 @@ app.post('/api/admin/data/change', async (req, res) => {
                   params.push(station);
               }
               
-              query += ` GROUP BY fp.id, s.id ORDER BY overdue_days DESC LIMIT 20`;
+              query += ` GROUP BY fp.id, s.id ORDER BY overdue_days DESC`;
 
               con.query(query, params, (err, result) => {
                   con.end();
@@ -3222,7 +3203,8 @@ app.post('/api/admin/data/change', async (req, res) => {
                   SELECT 
                       fp.name_plant AS type,
                       SUM(IFNULL(fp.expected_yield, 0)) AS amount,
-                      COUNT(fp.id) AS plot_count
+                      COUNT(fp.id) AS plot_count,
+                      (SELECT name FROM station_list WHERE id = af.station) as station_name
                   FROM formplant fp
                   INNER JOIN housefarm hf ON fp.id_farm_house = hf.id_farm_house
                   INNER JOIN acc_farmer af ON (hf.uid_line = af.uid_line OR hf.link_user = af.link_user)
@@ -3233,12 +3215,7 @@ app.post('/api/admin/data/change', async (req, res) => {
               `;
               
               let params = [monthSQL, yearCE];
-              if (station) {
-                  query += " AND (SELECT name FROM station_list WHERE id = af.station) = ?";
-                  params.push(station);
-              }
-              
-              query += ` GROUP BY fp.name_plant ORDER BY amount DESC LIMIT 20`;
+              query += ` GROUP BY fp.name_plant, af.station`;
 
               con.query(query, params, (err, result) => {
                   con.end();
@@ -3247,26 +3224,11 @@ app.post('/api/admin/data/change', async (req, res) => {
                       return res.json([]);
                   }
 
-                  // หา max เพื่อใช้ทำ bar chart
-                  const maxAmount = result.length > 0
-                      ? Math.max(...result.map(r => Number(r.amount) || 0))
-                      : 1;
-
-                  // สีสำหรับแต่ละรายการ
-                  const colors = [
-                      '#C8863A', '#BFA04F', '#7EAA4F', '#3C9E6E', '#4FB8C7',
-                      '#8E6BBF', '#D4694A', '#5BA58B', '#C75B8E', '#6B8EC7',
-                      '#A4B84D', '#D99B3B', '#7ABFB0', '#C46CA3', '#6FA0D6',
-                      '#B5A33D', '#D47A5E', '#59B389', '#C287D1', '#7DB5C9'
-                  ];
-
-                  const production = result.map((row, idx) => ({
-                      id: idx + 1,
+                  const production = result.map(row => ({
                       type: row.type || '-',
                       amount: Number(row.amount) || 0,
-                      max: maxAmount,
                       plot_count: row.plot_count || 0,
-                      color: colors[idx % colors.length]
+                      station_name: row.station_name
                   }));
 
                   res.json(production);
