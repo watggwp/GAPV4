@@ -690,6 +690,7 @@ const SetMaxLength = (e, setQty, max) => {
 
 const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
     onChangeDate,
+    restrictFuture = false,
     Ref = {
         DayCK: null,
         MountCK: null,
@@ -715,6 +716,8 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
     const [getDay, setDay] = useState([])
     const [getYearSelect, setYearSelect] = useState([])
     const [getReady, setReady] = useState(false)
+    const [selectedYear, setSelectedYear] = useState(YearCurrent)
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
 
     // const RefDay = useRef()
     // const RefMount = useRef()
@@ -740,6 +743,10 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
         }
 
         setDefault(parsed);
+        if (parsed[0]) setSelectedYear(parseInt(parsed[0]));
+        else setSelectedYear(NaN);
+        if (parsed[1]) setSelectedMonth(parseInt(parsed[1]));
+        else setSelectedMonth(NaN);
 
         // Manually update the selects if the refs exist and are mounted
         if (RefDate.DayCK?.current) RefDate.DayCK.current.value = parsed[2] ?? "";
@@ -755,6 +762,16 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
         const targetMonth = getDefault[1] !== undefined && getDefault[1] !== "" ? parseInt(getDefault[1]) : NaN;
         const targetYear = getDefault[0] !== undefined && getDefault[0] !== "" ? parseInt(getDefault[0]) : NaN;
         if (!isNaN(targetMonth) && !isNaN(targetYear)) {
+            const today = new Date();
+            if (restrictFuture && targetYear === today.getFullYear() && targetMonth === today.getMonth()) {
+                const currentDay = today.getDate();
+                const newDay = []
+                for (let day = 1; day <= currentDay; day++) {
+                    newDay.push(day)
+                }
+                setDay(newDay)
+                return;
+            }
             const startDate = new Date(targetYear, targetMonth, 1);
             const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
             if (startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
@@ -778,6 +795,16 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
         const targetMonth = Mount !== undefined && Mount !== "" ? parseInt(Mount) : NaN;
         const targetYear = Year !== undefined && Year !== "" ? parseInt(Year) : NaN;
         if (!isNaN(targetMonth) && !isNaN(targetYear)) {
+            const today = new Date();
+            if (restrictFuture && targetYear === today.getFullYear() && targetMonth === today.getMonth()) {
+                const currentDay = today.getDate();
+                const newDay = []
+                for (let day = 1; day <= currentDay; day++) {
+                    newDay.push(day)
+                }
+                setDay(newDay)
+                return;
+            }
             const startDate = new Date(targetYear, targetMonth, 1);
             const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
             if (startDate != "Invalid Date" && nextMonthDate != "Invalid Date") {
@@ -798,10 +825,25 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
     }
 
     const ChangeDate = (day, mount, year) => {
-        const dateNew = `${year}-${mount ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`
+        const dateNew = `${year}-${mount !== undefined && mount !== "" ? parseInt(mount) + 1 : "##"}-${day ? day : "##"}`
+        if (restrictFuture) {
+            const dateStr = dateNew.replace(/##/g, "01");
+            const selectedDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (!isNaN(selectedDate.getTime()) && selectedDate > today) {
+                alert("ไม่สามารถเลือกวันที่ในอนาคตได้");
+                if (RefDate.DayCK?.current) RefDate.DayCK.current.value = getDefault[2] ?? "";
+                if (RefDate.MountCK?.current) RefDate.MountCK.current.value = getDefault[1] ?? "";
+                if (RefDate.YearCK?.current) RefDate.YearCK.current.value = getDefault[0] ?? "";
+                return;
+            }
+        }
         RefDateValue && (RefDateValue.current.value = dateNew);
         onChangeDate && onChangeDate(dateNew)
         methodCheckValue && methodCheckValue()
+        setDefault([year, mount, day]);
     }
 
     return (
@@ -819,21 +861,53 @@ const DateSelect = ({ RefDateValue, Value = "", methodCheckValue,
                         }
                     </select> : <></>
                 }
-                <select className="list-date-select" defaultValue={getDefault[1] ?? ""} ref={RefDate.MountCK} onChange={(e) => {
+                <select className="list-date-select" value={isNaN(selectedMonth) || selectedMonth === null || selectedMonth === undefined ? "" : selectedMonth} ref={RefDate.MountCK} onChange={(e) => {
+                    const newMonth = e.target.value !== "" ? parseInt(e.target.value) : NaN;
+                    setSelectedMonth(newMonth);
+                    let currentDayVal = RefDate.DayCK.current?.value;
+                    const today = new Date();
+                    if (restrictFuture && selectedYear === today.getFullYear() && newMonth === today.getMonth()) {
+                        const curDay = today.getDate();
+                        if (currentDayVal !== "" && parseInt(currentDayVal) > curDay) {
+                            if (RefDate.DayCK.current) {
+                                RefDate.DayCK.current.value = "";
+                                currentDayVal = "";
+                            }
+                        }
+                    }
                     SelectSetDay(e.target.value, RefDate.YearCK.current?.value)
-                    ChangeDate(RefDate.DayCK.current?.value, e.target.value, RefDate.YearCK.current?.value)
+                    ChangeDate(currentDayVal, e.target.value, RefDate.YearCK.current?.value)
                 }}>
                     <option value={""}>เดือน</option>
                     {
                         Mount.map((val, key) => {
+                            if (restrictFuture && selectedYear === YearCurrent) {
+                                if (key > new Date().getMonth()) {
+                                    return null;
+                                }
+                            }
                             return <option value={key} key={key}>{val}</option>
                         }
                         )
                     }
                 </select>
-                <select className="list-date-select" defaultValue={getDefault[0] ?? ""} ref={RefDate.YearCK} onChange={(e) => {
-                    SelectSetDay(RefDate.MountCK.current?.value, e.target.value)
-                    ChangeDate(RefDate.DayCK.current?.value, RefDate.MountCK.current?.value, e.target.value)
+                <select className="list-date-select" value={isNaN(selectedYear) || selectedYear === null || selectedYear === undefined ? "" : selectedYear} ref={RefDate.YearCK} onChange={(e) => {
+                    const newYear = e.target.value !== "" ? parseInt(e.target.value) : NaN;
+                    setSelectedYear(newYear);
+                    let currentMonthVal = RefDate.MountCK.current?.value;
+                    const today = new Date();
+                    if (restrictFuture && newYear === today.getFullYear()) {
+                        const curMonth = today.getMonth();
+                        if (currentMonthVal !== "" && parseInt(currentMonthVal) > curMonth) {
+                            if (RefDate.MountCK.current) {
+                                RefDate.MountCK.current.value = "";
+                                currentMonthVal = "";
+                                setSelectedMonth(NaN);
+                            }
+                        }
+                    }
+                    SelectSetDay(currentMonthVal, e.target.value)
+                    ChangeDate(RefDate.DayCK.current?.value, currentMonthVal, e.target.value)
                 }}>
                     <option disabled value={""}>ปี</option>
                     {
@@ -854,7 +928,8 @@ const DatePickerThai = ({
     onInputIn = (e, offset) => { },
     onChange = (_christDate, _thaiDate) => { },
     className = "",
-    classNameMain = ""
+    classNameMain = "",
+    maxDate = undefined
 }) => {
     const refDataInput = useRef()
 
@@ -900,6 +975,7 @@ const DatePickerThai = ({
                 <ThaiDatePicker
                     value={selectedDate}
                     onChange={handleDatePickerChange}
+                    maxDate={maxDate}
                 />
             </div>
         </div>
@@ -910,7 +986,8 @@ export function DatePickerThaiApp({
     className,
     value,
     onChange = (christDate, buddhistDate) => { },
-    format = "DD/MM/YYYY"
+    format = "DD/MM/YYYY",
+    maxDate = undefined
 }) {
     const refBox = useRef()
 
@@ -951,6 +1028,7 @@ export function DatePickerThaiApp({
             <ThaiDatePicker
                 value={value}
                 onChange={onChange}
+                maxDate={maxDate}
             />
         </Box>
         // <div className={className}>

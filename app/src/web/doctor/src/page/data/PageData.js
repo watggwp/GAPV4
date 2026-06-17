@@ -292,14 +292,14 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
             <section className="data-list-content-page data-page">
 
                 {(DataProcess.get("type") === "report" || DataProcess.get("type") === "listlocation" || DataProcess.get("type") === "graph" || DataProcess.get("type") === "statistics") && (
-                    <div style={{ position: "absolute", top: "5px", right: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-                        <select className="report-menu" style={{ position: "static", right: "auto", top: "auto" }}
+                    <div className="report-header-bar">
+                        <select className="report-menu"
                             onChange={(e) => { searchList(e.target, e.target.value, "type"); }} ref={SelectType} value={DataProcess.get("type")}>
                             <option value="listlocation">รายชื่อหมอพืชและที่ปรึกษาเกษตรกร</option>
                             <option value="graph">จำนวนเกษตรกรและพืชที่เพาะปลูกในพื้นที่</option>
                             <option value="statistics">สถิติโรคพืช / ศัตรูพืช</option>
                         </select>
-                        <div className="search" style={{ backgroundColor: "rgba(233, 233, 233, 0.482)", padding: "2px 10px", borderRadius: "20px", display: "flex", alignItems: "center" }}>
+                        <div className="search">
                             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
                                 <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                                     <path d="m11.25 11.25l3 3"/>
@@ -318,7 +318,6 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                                 }}
                                 type="text"
                                 placeholder="Search"
-                                style={{ border: 0, fontFamily: "Sans-font", fontSize: "14px", backgroundColor: "transparent", outline: 0, paddingLeft: "5px", fontWeight: "900" }}
                             />
                             <svg xmlns="http://www.w3.org/2000/svg" onClick={() => {
                                 setTextSearch("");

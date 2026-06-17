@@ -61,16 +61,18 @@ const InsertReport = () => {
   }, [ListReport]);
 
   return (
-    <div style={{ padding: "20px", width: "90%", margin: "0 auto" }}>
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          fontFamily: "Sans-font",
-          tableLayout: "fixed",
-          textAlign: "center",
-        }}
-      >
+    <div style={{ padding: "10px", width: "100%", maxWidth: "1200px", margin: "0 auto", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", overflowX: "auto", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+        <table
+          style={{
+            width: "100%",
+            minWidth: "600px",
+            borderCollapse: "collapse",
+            fontFamily: "Sans-font",
+            textAlign: "center",
+            backgroundColor: "white",
+          }}
+        >
        <thead>
         <tr style={{ backgroundColor: "#60d6cf", color: "#fff" }}>
           <th style={{ padding: "10px", fontWeight: "900", border: "1px solid #ddd", width: "10%" }}>
@@ -115,6 +117,7 @@ const InsertReport = () => {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

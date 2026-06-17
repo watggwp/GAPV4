@@ -493,6 +493,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                                                         defaultDate={DateNowOnForm}
                                                         offsetQtyDate={DateHarvest}
                                                         refIn={DatePlant}
+                                                        maxDate={new Date()}
                                                         onInputIn={(e) => {
                                                             const plantDate = e.target.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-");
                                                             setDateNowOnForm(plantDate);
@@ -722,8 +723,8 @@ const GapCardList = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
-    const fetchAll = useCallback(async () => {
-        setLoading(true);
+    const fetchAll = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
             const houseRaw = await clientMo.get("/api/farmer/farmhouse/get/HouseList");
             const allHouses = JSON.parse(houseRaw);
@@ -746,7 +747,7 @@ const GapCardList = () => {
             console.error("GapCardList fetchAll error:", err);
             setCards([]);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
             clientMo.unLoadingPage?.();
         }
     }, []);
@@ -786,7 +787,7 @@ const GapCardList = () => {
 
     const handleSuccess = () => {
         setShowModal(false);
-        fetchAll();
+        fetchAll(true);
     };
 
     return (

@@ -582,6 +582,7 @@ const PopupInsertPlant = ({ setPopup, RefPop, ReloadData }) => {
                                                 defaultDate={DateNowOnForm}
                                                 offsetQtyDate={DateHarvest}
                                                 refIn={DatePlant}
+                                                maxDate={new Date()}
                                                 onInputIn={(e) => {
                                                     const plantDate = e.target.value.split("-").reverse().map((val, idx) => (idx === 0 ? parseInt(val) - 543 : val)).join("-");
                                                     setDateNowOnForm(plantDate);

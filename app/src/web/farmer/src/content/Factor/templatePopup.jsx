@@ -579,6 +579,7 @@ export default function TemplatePopup({
                                                     <DatePickerThaiApp
                                                         className={"input-date"}
                                                         value={useDate}
+                                                        maxDate={new Date()}
                                                         onChange={(christDate) => setUseDate(christDate)}
                                                         format="DD-MM-YYYY"
                                                     />
@@ -731,6 +732,7 @@ export default function TemplatePopup({
                                                     <DatePickerThaiApp
                                                         className={"input-date"}
                                                         value={useDate}
+                                                        maxDate={new Date()}
                                                         onChange={(christDate) => setUseDate(christDate)}
                                                         format="DD-MM-YYYY"
                                                     />

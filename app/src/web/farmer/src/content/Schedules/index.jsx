@@ -212,21 +212,21 @@ export default function SchedulesPage() {
                             const title = isFertilizer ? "วันที่ใส่ปุ๋ย" : "วันที่ใช้สารเคมี";
                             const repeatCount = sch.repeat_count || 1;
 
-                            // จัดเตรียมรายละเอียด (Details)
-                            // let detailText = "";
-                            // try {
-                            //     const details = JSON.parse(sch.details);
-                            //     if (isFertilizer) {
-                            //         detailText = `${details.name_fertilizer ? `ชื่อปุ๋ย: ${details.name_fertilizer}` : ''} ${details.formula_fertilizer ? `สูตร: ${details.formula_fertilizer}` : ''} 
-                            //         ${details.volume ? `ปริมาณ: ${details.volume}` : ''} ${details.unit_volume || ''}
-                            //         ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
-                            //     } else {
-                            //         detailText = `${details.pest ? `โรคพืช : ${details.pest}` : ''} ${details.chemical ? `สารเคมี : ${details.chemical}` : ''}  
-                            //         ${details.rate ? `อัตราส่วนผสม ${details.rate} CC/น้ำ20ลิตร` : ''} 
-                            //         ${details.volume ? `ปริมาณ ${details.volume}` : ''} ${details.unit_volume || ''}
-                            //         ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
-                            //     }
-                            // } catch (e) { }
+                            // จัดเตรียมรายละเอียด(Details)
+                            let detailText = "";
+                            try {
+                                const details = JSON.parse(sch.details);
+                                if (isFertilizer) {
+                                    detailText = `${details.name_fertilizer ? `ชื่อปุ๋ย: ${details.name_fertilizer}` : ''} ${details.formula_fertilizer ? `สูตร: ${details.formula_fertilizer}` : ''} 
+                                    ${details.volume ? `ปริมาณ: ${details.volume}` : ''} ${details.unit_volume || ''}
+                                    ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
+                                } else {
+                                    detailText = `${details.pest ? `โรคพืช : ${details.pest}` : ''} ${details.chemical ? `สารเคมี : ${details.chemical}` : ''}  
+                                    ${details.rate ? `อัตราส่วนผสม ${details.rate} CC/น้ำ20ลิตร` : ''} 
+                                    ${details.volume ? `ปริมาณ ${details.volume}` : ''} ${details.unit_volume || ''}
+                                    ${details.how_use ? `วิธีใช้ : ${details.how_use}` : ''}`;
+                                }
+                            } catch (e) { }
 
                             // คำนวณวันที่ต้องดำเนินการ
                             const targetDate = addDays(datePlant, sch.age_plant);
@@ -238,7 +238,7 @@ export default function SchedulesPage() {
                                     title={title}
                                     // repeat={`ครั้งที่ ${repeatCount}`}
                                     date={formatThaiDate(targetDate)}
-                                // details={detailText}
+                                    details={detailText}
                                 />
                             );
                         })}
