@@ -89,6 +89,7 @@
     "react-refresh": "^0.11.0",
     "react-router": "^7.5.2",
     "react-select": "^5.10.0",
+    "react-thailand-address-typeahead": "^2.0.1",
     "recharts": "^3.2.1",
     "resize-observer-polyfill": "^1.5.1",
     "resolve": "^1.20.0",
@@ -101,6 +102,7 @@
     "socket.io-client": "^4.7.5",
     "source-map-loader": "^3.0.0",
     "style-loader": "^3.3.1",
+    "sweetalert2": "^11.26.25",
     "tailwindcss": "^3.0.2",
     "terser-webpack-plugin": "^5.2.5",
     "thai-wordcut": "^0.7.7",
@@ -150,7 +152,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "jest": {
     "roots": [
       "<rootDir>/src"
