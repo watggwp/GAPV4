@@ -149,10 +149,10 @@ const InsertStatistics = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", width: "90%" }}>
-      <div style={{ marginBottom: "1rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+    <div style={{ padding: "10px", width: "100%", maxWidth: "1200px", margin: "0 auto", boxSizing: "border-box" }}>
+      <div style={{ marginBottom: "1rem", textAlign: "center", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "15px", padding: "10px" }}>
         <ButtonChangeStatistics />
-        <label style={{ marginRight: "10px", fontFamily: "Sans-font", fontWeight: "900" }}>
+        <label style={{ fontFamily: "Sans-font", fontWeight: "900", display: "flex", alignItems: "center", margin: 0 }}>
           ระยะเวลา:
           <select
             value={duration}
@@ -180,7 +180,6 @@ const InsertStatistics = () => {
         <div
           style={{
             display: "inline-block",
-            marginLeft: "20px",
             padding: "8px",
             fontFamily: "Sans-font",
             fontWeight: "900",
@@ -193,13 +192,12 @@ const InsertStatistics = () => {
         </div>
 
         {/* กล่องเลือกจำนวนขั้นต่ำ */}
-        {/* กล่องเลือกจำนวนขั้นต่ำ */}
         <label
           style={{
             display: "inline-block",
-            marginLeft: "30px",
             fontFamily: "Sans-font",
             fontWeight: "900",
+            margin: 0
           }}
         >
           ความถี่ที่พบ:
@@ -224,7 +222,6 @@ const InsertStatistics = () => {
             }}
           />
         </label>
-
       </div>
 
       <div style={{ marginBottom: "1rem", textAlign: "center" }}>
@@ -268,13 +265,15 @@ const InsertStatistics = () => {
               ไม่มีข้อมูลที่จะแสดง
             </p>
           ) : (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginTop: "10px",
-              }}
-            >
+            <div style={{ width: "100%", overflowX: "auto", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)", marginTop: "10px" }}>
+              <table
+                style={{
+                  width: "100%",
+                  minWidth: "650px",
+                  borderCollapse: "collapse",
+                  backgroundColor: "white",
+                }}
+              >
               <thead>
                 <tr>
                   <th
@@ -429,6 +428,7 @@ const InsertStatistics = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}

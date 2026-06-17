@@ -618,7 +618,7 @@ const DataForm = () => {
                                                 <div className="full">
                                                     {
                                                         StatusEdit ?
-                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant ? Data.date_plant.split(" ")[0] : ""} offsetQtyDate={QtyDate} refIn={DatePlant} onInputIn={(e, qty) => {
+                                                            <DatePickerThai classNameMain="input-date" className="w-100" defaultDate={Data.date_plant ? Data.date_plant.split(" ")[0] : ""} offsetQtyDate={QtyDate} refIn={DatePlant} maxDate={new Date()} onInputIn={(e, qty) => {
                                                                 ChangeEdit();
                                                                 const DateChis = e.target.value.split("-").reverse().map((val, key) => key == 0 ? parseInt(val) - 543 : val).join("-");
                                                                 const DatePlantQty = new Date(DateChis);

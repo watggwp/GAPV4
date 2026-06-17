@@ -272,13 +272,12 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                 <div className="menu-content" style={{ position: 'relative' }}>
                     <a href="#" className="notification-link" onClick={Notify} notify="">
                         <span className="hide-mobile">การแจ้งเตือน</span>
+                        <span className="show-mobile-icon">🔔</span>
                         {getNotifyCount ? <div notify="" className="count-notify" style={{
                             position: 'absolute', top: '-5px', right: '-5px',
                             background: 'red', color: 'white', borderRadius: '50%',
                             padding: '2px 5px', fontSize: '10px'
-                        }}>{getNotifyCount < 10 ? getNotifyCount : "9+"}</div> :
-                            <span className="show-mobile-icon">🔔</span>
-                        }
+                        }}>{getNotifyCount < 10 ? getNotifyCount : "9+"}</div> : null}
                     </a>
                     <div className="notify-content" show={getShowNotify ? "" : null}>
                         {getNotifyContent ?
@@ -304,7 +303,13 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                 </a>
                 <div className="logout-btn" onClick={logout}>
                     <span className="hide-mobile">ออกจากระบบ</span>
-                    <span className="show-mobile-icon">🚪</span>
+                    <span className="show-mobile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px', display: 'inline-block', verticalAlign: 'middle' }}>
+                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" />
+                            <path d="M16 17L21 12L16 7" />
+                            <path d="M21 12H9" />
+                        </svg>
+                    </span>
                 </div>
             </div>
         </div>

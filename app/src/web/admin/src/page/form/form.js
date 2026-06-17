@@ -306,6 +306,18 @@ export default function FormPlant({
         const { because, ...editDatas } = editValue
         console.log("🟢 บันทึกค่า editValue:", editDatas);
 
+        if (editDatas.date_plant) {
+            const dateStr = editDatas.date_plant.replace(/##/g, "01");
+            const selectedDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (!isNaN(selectedDate.getTime()) && selectedDate > today) {
+                alert("วันที่ปลูกต้องไม่เป็นวันที่ในอนาคต");
+                return;
+            }
+        }
+
         setLocalMode("view");
         setMode("view");
         setEditValue({});
@@ -520,7 +532,7 @@ export default function FormPlant({
                                 localMode === "view" ? (
                                     <span className="data-show">{formatDateThai(data.date_plant)}</span>
                                 ) : (
-                                    <DateSelect RefDateValue={DatePlant} Value={data.date_plant} onChangeDate={handlePlantDateChange} />
+                                    <DateSelect RefDateValue={DatePlant} Value={data.date_plant} restrictFuture={true} onChangeDate={handlePlantDateChange} />
                                 )
                             }
                         </div>

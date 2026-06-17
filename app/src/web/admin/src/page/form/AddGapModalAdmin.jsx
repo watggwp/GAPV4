@@ -640,6 +640,7 @@ const AddGapModalForm = ({ session, onClose, onSuccess, apiPrefix = "/api/doctor
                                                         defaultDate={DateNowOnForm}
                                                         offsetQtyDate={DateHarvest}
                                                         refIn={DatePlant}
+                                                        maxDate={new Date()}
                                                         onInputIn={(e) => {
                                                             const plantDate = e.target.value.split("-").reverse().map((v, i) => i === 0 ? parseInt(v) - 543 : v).join("-");
                                                             setDateNowOnForm(plantDate);
