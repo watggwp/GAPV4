@@ -69,7 +69,8 @@ const checkUnrecorded = {
              WHERE station_doctor = ?
                AND uid_line_doctor != ''
                AND status_account = 1
-               AND status_delete = 0`,
+               AND status_delete = 0
+               AND doctor_role = 1`,
             [station]
         )
     },
