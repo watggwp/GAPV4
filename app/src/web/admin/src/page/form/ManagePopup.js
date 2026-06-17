@@ -943,7 +943,7 @@ const PopupConfirmAction = ({ Ref, setPopup, session, FetchData, Result, id_plan
     return (
         <div className="content-confirm-manage">
             <span>{Result ? "ยืนยันเก็บเกี่ยวผลผลิตทั้งหมด" : "ยืนยันเก็บเกี่ยวผลผลิตตัวอย่าง"}</span>
-            <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password"></input>
+            <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password" autoComplete="new-password"></input>
             <div className="bt-content">
                 <button style={{ backgroundColor: "red" }} onClick={close}>ยกเลิก</button>
                 <button ref={BtConfirm} not="" onClick={Confirm}>ยืนยัน</button>
@@ -1163,7 +1163,7 @@ const InsertManage = ({ Ref, setPopup, session, FetchData, NameDoctor, typeInser
                 }
             </div>
             <div className="appove">
-                <input onChange={() => CheckData()} placeholder="รหัสผ่านเจ้าหน้าที่" ref={Password} type="password"></input>
+                <input onChange={() => CheckData()} placeholder="รหัสผ่านเจ้าหน้าที่" ref={Password} type="password" autoComplete="new-password"></input>
                 <div className="bt-insert">
                     <button onClick={close} className="cancel">ยกเลิก</button>
                     <button ref={BtConfirm} className="submit" onClick={Confirm}>ยืนยัน</button>
@@ -1357,7 +1357,7 @@ const EditReport = ({ Ref, setPopup, session, FetchData, Data }) => {
                 </div>
             </div>
             <div className="appove">
-                <input onChange={() => CheckData()} placeholder="รหัสผ่านเจ้าหน้าที่" ref={Password} type="password"></input>
+                <input onChange={() => CheckData()} placeholder="รหัสผ่านเจ้าหน้าที่" ref={Password} type="password" autoComplete="new-password"></input>
                 <div className="bt-insert">
                     <button onClick={close} className="cancel">ยกเลิก</button>
                     <button ref={BtConfirm} className="submit" onClick={Confirm}>ยืนยัน</button>

@@ -59,6 +59,28 @@ const checkUnrecorded = {
     notifyDoctorMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
         return `เกษตรกร ${row.fullname} ยังไม่บันทึกการใช้${typeLabel}\nพืช: ${row.name_plant}\nกิจกรรม: ${row.title}\nโรงเรือน: ${row.greenhouse_name}`
+    },
+
+    queryDoctorsByStation: async (connectionPool, station) => {
+        return await connectionPool.executeQuery(
+            `SELECT uid_line_doctor
+             FROM acc_doctor
+             WHERE station_doctor = ?
+               AND uid_line_doctor != ''
+               AND status_account = 1
+               AND status_delete = 0`,
+            [station]
+        )
+    },
+
+    notifyDoctorLineMessage: (row) => {
+        const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
+        return [
+            `เกษตรกร: ${row.fullname}`,
+            `พืช: ${row.name_plant}`,
+            `กิจกรรม: ${row.title} (${typeLabel})`,
+            `โรงเรือน: ${row.greenhouse_name}`
+        ]
     }
 }
 
