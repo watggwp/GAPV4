@@ -428,7 +428,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                             }}
                         >
                             <option value="" disabled>กรุณาเลือกโรงเรือน</option>
-                            {houses.filter((h) => h.status === 1).map((h) => (
+                            {houses.filter((h) => Number(h.status) === 1).map((h) => (
                                 <option key={h.id_farm_house} value={h.id_farm_house}>
                                     {h.name_house}
                                 </option>
@@ -730,7 +730,7 @@ const GapCardList = () => {
             const allHouses = JSON.parse(houseRaw);
             if (!Array.isArray(allHouses)) { setCards([]); setHouses([]); return; }
             setHouses(allHouses);
-            const openHouses = allHouses.filter((h) => h.status === 1);
+            const openHouses = allHouses.filter((h) => Number(h.status) === 1);
             const allCards = [];
             for (const house of openHouses) {
                 const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
@@ -808,7 +808,7 @@ const GapCardList = () => {
             {loading ? (
                 <div className="gap-liff-loading"><div className="spinner" /><p>กำลังโหลด…</p></div>
             ) : cards.length === 0 ? (
-                houses.some((h) => h.status === 1) ? (
+                houses.some((h) => Number(h.status) === 1) ? (
                     <div className="gap-liff-empty">ไม่มีใบ GAP กรุณาสร้างใบ GAP</div>
                 ) : (
                     <div className="gap-liff-empty">ไม่มีข้อมูลแปลง กรุณาสร้างแปลง</div>
@@ -839,7 +839,7 @@ const GapCardList = () => {
                 </div>
             )}
 
-            {houses.some((h) => h.status === 1) && (
+            {houses.some((h) => Number(h.status) === 1) && (
                 <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
             )}
 
