@@ -428,7 +428,7 @@ const AddGapModal = ({ houses, onClose, onSuccess }) => {
                             }}
                         >
                             <option value="" disabled>กรุณาเลือกโรงเรือน</option>
-                            {houses.filter((h) => h.status === 1).map((h) => (
+                            {houses.filter((h) => Number(h.status) === 1).map((h) => (
                                 <option key={h.id_farm_house} value={h.id_farm_house}>
                                     {h.name_house}
                                 </option>
@@ -730,18 +730,25 @@ const GapCardList = () => {
             const allHouses = JSON.parse(houseRaw);
             if (!Array.isArray(allHouses)) { setCards([]); setHouses([]); return; }
             setHouses(allHouses);
-            const openHouses = allHouses.filter((h) => h.status === 1);
-            const allCards = [];
-            for (const house of openHouses) {
-                const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
-                if (!formRaw || formRaw === "error auth" || formRaw === "close") continue;
-                const forms = JSON.parse(formRaw);
-                if (!Array.isArray(forms)) continue;
-                for (const gap of forms) {
-                    if (parseInt(gap.state_status) === 2) continue;
-                    allCards.push({ house, gap });
+            const openHouses = allHouses.filter((h) => Number(h.status) === 1);
+
+            const cardPromises = openHouses.map(async (house) => {
+                try {
+                    const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
+                    if (!formRaw || formRaw === "error auth" || formRaw === "close") return [];
+                    const forms = JSON.parse(formRaw);
+                    if (!Array.isArray(forms)) return [];
+                    return forms
+                        .filter((gap) => parseInt(gap.state_status) !== 2)
+                        .map((gap) => ({ house, gap }));
+                } catch (e) {
+                    console.error("Fetch formplant error for house:", house.id_farm_house, e);
+                    return [];
                 }
-            }
+            });
+
+            const results = await Promise.all(cardPromises);
+            const allCards = results.flat();
             setCards(allCards);
         } catch (err) {
             console.error("GapCardList fetchAll error:", err);
@@ -808,7 +815,7 @@ const GapCardList = () => {
             {loading ? (
                 <div className="gap-liff-loading"><div className="spinner" /><p>กำลังโหลด…</p></div>
             ) : cards.length === 0 ? (
-                houses.some((h) => h.status === 1) ? (
+                houses.some((h) => Number(h.status) === 1) ? (
                     <div className="gap-liff-empty">ไม่มีใบ GAP กรุณาสร้างใบ GAP</div>
                 ) : (
                     <div className="gap-liff-empty">ไม่มีข้อมูลแปลง กรุณาสร้างแปลง</div>
@@ -839,7 +846,7 @@ const GapCardList = () => {
                 </div>
             )}
 
-            {houses.some((h) => h.status === 1) && (
+            {houses.some((h) => Number(h.status) === 1) && (
                 <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
             )}
 

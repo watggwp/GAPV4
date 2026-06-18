@@ -3857,7 +3857,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         const authen = new AuthorizeUser(pool)
         try {
             const { profile } = await authen.farmer(uidFarmer, {
-                select: "acc_farmer.fullname , station_list.id_station , station_list.name"
+                select: "acc_farmer.fullname , acc_farmer.reminder_days_advance , station_list.id_station , station_list.name"
             })
 
             res.json({
@@ -3866,6 +3866,36 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         } catch (err) {
             res.status(404).json({
                 message: "Not found user"
+            })
+        }
+    })
+
+    app.post("/api/farmer/profile/updateReminderDays", async (req, res) => {
+        const { session: { uidFarmer }, body: { reminder_days_advance } } = req
+
+        if (!uidFarmer) {
+            return res.status(401).json({ status: "error", message: "Authentication required" });
+        }
+
+        try {
+            const days = parseInt(reminder_days_advance)
+            if (isNaN(days) || days < 0) {
+                return res.status(400).json({ status: "error", message: "Invalid days value" });
+            }
+
+            await pool.executeQuery(
+                `UPDATE acc_farmer SET reminder_days_advance = ? WHERE uid_line = ?`,
+                [days, uidFarmer]
+            )
+
+            res.json({
+                status: "success",
+                message: "Reminder days updated successfully"
+            })
+        } catch (err) {
+            res.status(500).json({
+                status: "error",
+                message: err.message
             })
         }
     })

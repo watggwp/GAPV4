@@ -1,5 +1,5 @@
 class MessageLineTemplate {
-    static bubbleTemplateUrl(alt , message, url , option = { buttonLabel : "ดูข้อมูล" }) {
+    static bubbleTemplateUrl(alt, message, url, option = { buttonLabel: "ดูข้อมูล" }) {
 
         const { buttonLabel } = option;
 
@@ -37,7 +37,7 @@ class MessageLineTemplate {
         }
     }
 
-    static bubbleOnlyUrl(message, url, option = { buttonLabel : "ดูข้อมูล" }) {
+    static bubbleOnlyUrl(message, url, option = { buttonLabel: "ดูข้อมูล" }) {
         const { buttonLabel } = option;
 
         if (!message || !url) {
@@ -138,25 +138,27 @@ class MessageLineTemplate {
                     }
                 ]
             },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {
-                        "type": "button",
-                        "style": "primary",
-                        "height": "sm",
-                        "color": "#1DB446",
-                        "action": {
-                            "type": "uri",
-                            "label": buttonLabel || "คลิกที่นี่",
-                            "uri": url
+            ...(url ? {
+                "footer": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "style": "primary",
+                            "height": "sm",
+                            "color": "#1DB446",
+                            "action": {
+                                "type": "uri",
+                                "label": buttonLabel || "คลิกที่นี่",
+                                "uri": url
+                            }
                         }
-                    }
-                ],
-                "flex": 0
-            }
+                    ],
+                    "flex": 0
+                }
+            } : {})
         };
     }
 

@@ -364,10 +364,22 @@
                             font-weight: 900;
                         }
 
+                        & > .content {
+                            flex: 1;
+                            min-width: 0;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            margin-right: 8px;
+                            align-self: center;
+                        }
+
                         .column {
                             display: flex;
                             flex-direction: column;
                             align-items: start;
+                            flex: 1;
+                            min-width: 0;
 
                             .type-main {
                                 font-weight: 900;
@@ -378,6 +390,11 @@
                                 margin-left: 5px;
                                 font-size: 15px;
                                 text-decoration: underline;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                width: 100%;
+                                max-width: 100%;
                             }
                         }
 

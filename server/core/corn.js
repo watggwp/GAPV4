@@ -7,16 +7,33 @@ const RoyalGapLine = require("../configLine");
 const MessageLineTemplate = require('./messageLineTemplate');
 
 const schedulePlan = require('./corns/schedulePlan');
+const plantingScheduleReminder = require('./corns/plantingScheduleReminder');
 const checkUnrecorded = require('./corns/checkUnrecorded');
 const checkMismatch = require('./corns/checkMismatch');
 
 module.exports = function Schedules(connectionPool = new ConnectPool(), socket) {
     cron.schedule("0 6 * * *", async () => {
         console.log("Start Schedules GAP")
-        try {
-            const schedule_plan = await schedulePlan.queryPlan(connectionPool)
 
-            const groupedPlans = schedule_plan.reduce((acc, curr) => {
+        // 1 & 2. Current Day & Advance Reminders Combined
+        try {
+            console.log("Start Querying Schedule Plans and Advance Reminders");
+            const schedule_plan = await schedulePlan.queryPlan(connectionPool).catch(err => {
+                console.error(`Schedule plan query error: ${err}`);
+                return [];
+            });
+            const advance_plan = await plantingScheduleReminder.queryPlan(connectionPool).catch(err => {
+                console.error(`Advance plan query error: ${err}`);
+                return [];
+            });
+
+            // Tag them so we know which generator to use
+            const allPlans = [
+                ...schedule_plan.map(p => ({ ...p, isAdvance: false })),
+                ...advance_plan.map(p => ({ ...p, isAdvance: true }))
+            ];
+
+            const groupedPlans = allPlans.reduce((acc, curr) => {
                 const uid = curr.uid_line;
                 if (!acc[uid]) acc[uid] = [];
                 acc[uid].push(curr);
@@ -37,7 +54,10 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                         const chunkSentInfo = [];
 
                         for (const schedule of chunk) {
-                            const result = schedulePlan.generateMessage(schedule);
+                            const result = schedule.isAdvance
+                                ? plantingScheduleReminder.generateMessage(schedule)
+                                : schedulePlan.generateMessage(schedule);
+
                             if (result && result.length === 2) {
                                 const [bubbleMsg, details_message] = result;
                                 bubbles.push(bubbleMsg);
@@ -56,7 +76,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                         }
                     }
                 } catch (err) {
-                    console.error(`Schedule plan carousel error for uid: ${uid_line}:`, err);
+                    console.error(`Combined reminder carousel error for uid: ${uid_line}:`, err);
                 }
             }
 
@@ -67,7 +87,7 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                 )
             }
         } catch (error) {
-            console.error(`Schedule plan cron error: ${error}`)
+            console.error(`Combined schedule cron error: ${error}`)
         }
     })
     //ปรับเวลาแจ้งเตือนตรงนี้
