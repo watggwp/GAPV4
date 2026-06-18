@@ -1191,6 +1191,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             type === "plant" ? [
               RefData.Data1.current.value,
               RefData.Data2.current.value,
+              RefData.Data3.current.value,
               QtyDate.current.value,
             ] :
               type === "chemical" ? [
@@ -1239,7 +1240,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             : type === "plant" ? {
               name: RefData.Data1.current.value,
               type_plant: RefData.Data2.current.value,
-              variety_name: RefData.Data3.current.value || "ธรรมดา",
+              variety_name: RefData.Data3.current.value,
               qtyDate: QtyDate.current.value,
               type: type,
               passwordAd: pwAdmin.current.value

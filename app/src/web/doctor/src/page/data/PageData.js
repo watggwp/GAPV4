@@ -149,7 +149,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
     // insert
     const CheckInsert = () => {
         const value = DataProcess.get("type") === "plant" ?
-            [nameInsert.current.value, typeInsert.current.value, DateQtyInsert.current.value] :
+            [nameInsert.current.value, typeInsert.current.value, speciesInsert.current.value, DateQtyInsert.current.value] :
             DataProcess.get("type") === "fertilizer" ?
                 [
                     nameInsert.current.value,
@@ -185,14 +185,14 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                             name: nameInsert.current.value,
                             type_plant: typeInsert.current.value,
                             varietie: {
-                                name: speciesInsert.current.value || "ธรรมดา",
+                                name: speciesInsert.current.value,
                                 qty_harvest: parseInt(DateQtyInsert.current.value)
                             },
                             qty_harvest: parseInt(DateQtyInsert.current.value)
                         },
                         check: {
                             name: nameInsert.current.value,
-                            variety_name: speciesInsert.current.value || "ธรรมดา"
+                            variety_name: speciesInsert.current.value
                         },
                         type: "plant"
                     } :
