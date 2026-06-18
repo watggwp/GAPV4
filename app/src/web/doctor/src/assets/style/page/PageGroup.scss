@@ -221,8 +221,7 @@
 
             // ปุ่มใน mobile: ยืด flex เท่ากัน
             .btn-edit,
-            .btn-toggle,
-            .btn-history {
+            .btn-toggle {
                 flex: 1;
                 min-width: unset;
                 padding: 10px 6px;
@@ -232,9 +231,28 @@
                     height: 20px;
                 }
 
-                span,
-                .btn-history-label {
+                span {
                     font-size: 12px;
+                }
+            }
+
+            // ปุ่มประวัติ mobile → วงกลมขนาดเท่าปุ่มอื่น + แสดง label
+            .btn-history {
+                flex: 0 0 auto;
+                width: auto;
+                height: auto;
+                border-radius: 10px;
+                padding: 10px 16px;
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                }
+
+                .btn-history-label {
+                    display: inline;
+                    font-size: 12px;
+                    font-weight: 700;
                 }
             }
 

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Button, Card, CardContent, Chip, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Button } from "@mui/material";
 import RequestAPI from "../../js/requestAPI";
 import RoyalGapFrontendUtil from "../../core/RoyalGapUtil";
 
@@ -16,10 +16,8 @@ const option = {
 export default function SchedulesPlanManagement({ station_id , onClickOpenSchedule , hasTotalSchedule , searchText }) {
     const [ plants , setPlants ] = useState([])
     const [ plantFuse , setPlantFuse ] = useState(undefined)
-    const [ loadingPlants , setLoadingPlants ] = useState(false)
 
-    const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+    const [ loadingPlants , setLoadingPlants ] = useState(false)
 
     const requestPlantSchedules = useCallback( async () => {
         setPlants([])
@@ -34,7 +32,10 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
             case 200 :
                 setPlants(data)
                 setPlantFuse(
-                    RoyalGapFrontendUtil.GetMatchSearch(data, option)
+                    RoyalGapFrontendUtil.GetMatchSearch(
+                        data,
+                        option
+                    )
                 )
                 break;
             default :
@@ -46,49 +47,12 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
         requestPlantSchedules()
     } , [requestPlantSchedules])
 
-    const filteredPlants = searchText
-        ? plantFuse?.search(searchText)?.map(({ item }) => item) ?? []
-        : plants
-
-    if (isMobile) {
-        return (
-            <Stack spacing={1.5} sx={{ overflowY: 'auto', flex: 1 }}>
-                {loadingPlants ? (
-                    <Typography textAlign="center" color="text.secondary">กำลังโหลด...</Typography>
-                ) : filteredPlants.length === 0 ? (
-                    <Typography textAlign="center" color="text.secondary">ไม่มีข้อมูล</Typography>
-                ) : filteredPlants.map((row) => (
-                    <Card key={row.id} variant="outlined">
-                        <CardContent sx={{ pb: '12px !important' }}>
-                            <Stack spacing={1}>
-                                <Typography fontWeight="bold">
-                                    {row.name}{row.variety_name ? ` (${row.variety_name})` : ""}
-                                </Typography>
-                                <Chip
-                                    size="small"
-                                    label={`จำนวนขั้นตอน: ${row.total_schedule}`}
-                                    color="primary"
-                                    variant="outlined"
-                                    sx={{ alignSelf: 'flex-start' }}
-                                />
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => onClickOpenSchedule(row.id)}
-                                >
-                                    จัดการแผนการปลูก
-                                </Button>
-                            </Stack>
-                        </CardContent>
-                    </Card>
-                ))}
-            </Stack>
-        )
-    }
-
     return(
-        <SchedulesPlanContext.Provider value={{ onClickOpenSchedule }}>
+        <SchedulesPlanContext.Provider
+            value={{
+                onClickOpenSchedule
+            }}
+        >
             <DataGrid
                 columns={[
                     {
@@ -114,7 +78,11 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
                         renderCell: ButtonOpenSchedule
                     }
                 ]}
-                rows={filteredPlants}
+                rows={
+                    searchText ?
+                        plantFuse?.search(searchText)?.map(({ item }) => item) :
+                        plants
+                }
                 loading={loadingPlants}
                 hideFooterPagination
                 hideFooter
@@ -124,13 +92,19 @@ export default function SchedulesPlanManagement({ station_id , onClickOpenSchedu
 }
 
 function ButtonOpenSchedule({ row : { id } }) {
+
     const { onClickOpenSchedule } = useContext(SchedulesPlanContext)
+
     const onClick = useCallback(() => {
         onClickOpenSchedule(id)
     } , [id, onClickOpenSchedule])
 
     return(
-        <Button fullWidth variant="contained" onClick={onClick}>
+        <Button
+            fullWidth
+            variant="contained"
+            onClick={onClick}
+        >
             จัดการแผนการปลูก
         </Button>
     )

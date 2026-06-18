@@ -51,77 +51,66 @@ function getMismatches(plan, actual, isFertilizer) {
 
     const normalize = (val) => String(val ?? "").replace(/\s+/g, "").toLowerCase();
 
-    const isTextMismatch = (pText, aText) => {
-        const p = normalize(pText);
-        const a = normalize(aText);
-        if (!p || !a) return false;
-
-        // Exact match
-        if (p === a) return false;
-
-        // Numeric match logic to avoid partial matches (e.g., "1" matching "10")
-        const pNumMatch = p.match(/^[\d.]+/);
-        const aNumMatch = a.match(/^[\d.]+/);
-        if (pNumMatch && aNumMatch) {
-            const pNum = parseFloat(pNumMatch[0]);
-            const aNum = parseFloat(aNumMatch[0]);
-            if (pNum !== aNum) return true; // Numbers are different -> mismatch!
-
-            // Numbers are identical, check units
-            const pUnit = p.replace(/^[\d.]+/, "");
-            const aUnit = a.replace(/^[\d.]+/, "");
-            if (pUnit && aUnit && pUnit !== aUnit) return true; // Units are different -> mismatch!
-            return false;
-        }
-
-        // General text substring matching
-        if (!a.includes(p) && !p.includes(a)) return true;
-        return false;
-    };
-
     if (isFertilizer) {
-        // Compare fertilizer name
-        if (isTextMismatch(det.name_fertilizer, actual.name)) {
+        // Compare fertilizer name + formula
+        const planName = normalize(det.name_fertilizer);
+        const planFormula = normalize(det.formula_fertilizer);
+        const actualName = normalize(actual.name);
+        const actualFormula = normalize(actual.formula_name);
+
+        if (planName && actualName && !actualName.includes(planName) && !planName.includes(actualName)) {
             mismatches.push("name");
-        }
-        // Compare fertilizer formula
-        else if (isTextMismatch(det.formula_fertilizer, actual.formula_name)) {
+        } else if (planFormula && actualFormula && !actualFormula.includes(planFormula) && !planFormula.includes(actualFormula)) {
             mismatches.push("name");
         }
 
         // Compare volume
-        if (isTextMismatch(det.volume, actual.volume)) {
+        const planVol = normalize(det.volume);
+        const actualVol = normalize(actual.volume);
+        if (planVol && actualVol && !actualVol.includes(planVol) && !planVol.includes(actualVol)) {
             mismatches.push("volume");
         }
 
         // Compare how use
-        if (isTextMismatch(det.how_use, actual.use_is)) {
+        const planUse = normalize(det.how_use);
+        const actualUse = normalize(actual.use_is);
+        if (planUse && actualUse && !actualUse.includes(planUse) && !planUse.includes(actualUse)) {
             mismatches.push("how_use");
         }
     } else {
         // Chemical
         // Compare pest
-        if (isTextMismatch(det.pest, actual.insect)) {
+        const planPest = normalize(det.pest);
+        const actualInsect = normalize(actual.insect);
+        if (planPest && actualInsect && !actualInsect.includes(planPest) && !planPest.includes(actualInsect)) {
             mismatches.push("pest");
         }
 
         // Compare chemical name
-        if (isTextMismatch(det.chemical, actual.name)) {
+        const planName = normalize(det.chemical);
+        const actualName = normalize(actual.name);
+        if (planName && actualName && !actualName.includes(planName) && !planName.includes(actualName)) {
             mismatches.push("name");
         }
 
         // Compare rate
-        if (isTextMismatch(det.rate, actual.rate)) {
+        const planRate = normalize(det.rate);
+        const actualRate = normalize(actual.rate);
+        if (planRate && actualRate && !actualRate.includes(planRate) && !planRate.includes(actualRate)) {
             mismatches.push("rate");
         }
 
         // Compare volume
-        if (isTextMismatch(det.volume, actual.volume)) {
+        const planVol = normalize(det.volume);
+        const actualVol = normalize(actual.volume);
+        if (planVol && actualVol && !actualVol.includes(planVol) && !planVol.includes(actualVol)) {
             mismatches.push("volume");
         }
 
         // Compare how use
-        if (isTextMismatch(det.how_use, actual.use_is)) {
+        const planUse = normalize(det.how_use);
+        const actualUse = normalize(actual.use_is);
+        if (planUse && actualUse && !actualUse.includes(planUse) && !planUse.includes(actualUse)) {
             mismatches.push("how_use");
         }
     }
@@ -312,13 +301,6 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                         const isFertilizer = mainTitle.includes("ปุ๋ย");
                                         const mismatches = getMismatches(row.left.raw, row.right.raw, isFertilizer);
 
-                                        const planDateNorm = row.left.date ? row.left.date.replace(/\s+/g, "").toLowerCase() : "";
-                                        const actualDateNorm = row.right.date ? row.right.date.replace(/\s+/g, "").toLowerCase() : "";
-                                        const isDateMismatched = planDateNorm && actualDateNorm && planDateNorm !== actualDateNorm;
-                                        if (isDateMismatched) {
-                                            mismatches.push("date");
-                                        }
-
                                         return (
                                             <div key={i} className="step-card">
                                                 <div className="step-header-row">
@@ -343,7 +325,7 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                                         ) : (
                                                             <div className="box-details">
                                                                 {row.left.date && (
-                                                                    <div className="detail-date" style={isDateMismatched ? { color: '#e11d48', fontWeight: 'bold' } : {}}>
+                                                                    <div className="detail-date">
                                                                         วันที่: {row.left.date}
                                                                     </div>
                                                                 )}
@@ -367,7 +349,7 @@ export default function SchedulesPopup({ id_form, onClose }) {
                                                         ) : (
                                                             <div className="box-details">
                                                                 {row.right.date && (
-                                                                    <div className="detail-date" style={isDateMismatched ? { color: '#e11d48', fontWeight: 'bold' } : {}}>
+                                                                    <div className="detail-date">
                                                                         วันที่บันทึก: {row.right.date}
                                                                     </div>
                                                                 )}

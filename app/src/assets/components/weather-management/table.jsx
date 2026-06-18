@@ -1,4 +1,4 @@
-import { Pagination, PaginationItem, Stack, Typography, useMediaQuery } from "@mui/material"
+import { Pagination, PaginationItem, Stack, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useMemo, useState } from "react";
 import DateGAP from "../../core/DateGAP";
@@ -6,17 +6,10 @@ import DateGAP from "../../core/DateGAP";
 export default function DataTable({
     columns,
     historyDatas,
-    loadingHistory,
-    activeField
+    loadingHistory
 }) {
     const [page, setPage] = useState(1);
-    const isMobile = useMediaQuery(theme => theme.breakpoints.down('sm'))
-
-    // บน mobile แสดงเฉพาะ column ที่กำลังดูอยู่ใน chart
-    const visibleColumns = isMobile && activeField
-        ? columns.filter(c => c.field === activeField)
-        : columns
-
+    
     // 1) จัดกลุ่มตามวัน
     const groupedByDate = useMemo(() => {
         const map = new Map([])
@@ -49,7 +42,7 @@ export default function DataTable({
             <DataGrid
                 columns={[
                     { field: 'timestamp', headerName: 'วันที่/เวลา', minWidth: 150 , flex: 1 , align : "center" , headerAlign : "center" },
-                    ...visibleColumns.map((item) => {
+                    ...columns.map((item) => {
                         return {
                             field : item.field,
                             headerName : item.name,

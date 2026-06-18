@@ -675,7 +675,7 @@ const ManagePopup = ({ setPopup, RefPop, resultPage = {
                 (status === "wt" || status === "not") && TypeDetail !== "msg" ?
                     <div className="action-box-bt">
                         <div className="password">
-                            <input onChange={CheckEmply} type="password" autoComplete="new-password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
+                            <input onChange={CheckEmply} type="password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
                         </div>
                         <div className="bt">
                             {
@@ -688,7 +688,7 @@ const ManagePopup = ({ setPopup, RefPop, resultPage = {
                     ProfileConvert.id_table_convert && status === "ap" && resultDate.length === 1 ?
                         <div className="action-box-bt submit-convert">
                             <div className="password">
-                                <input onChange={CheckEmplyPassword} type="password" autoComplete="new-password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
+                                <input onChange={CheckEmplyPassword} type="password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
                             </div>
                             <div className="bt">
                                 <button onClick={() => ConfirmConvert(DetailFarmer, "convert")} className="submit" ref={RefOnType.ButtonRef} not="">เชื่อมต่อบัญชี</button>
@@ -697,7 +697,7 @@ const ManagePopup = ({ setPopup, RefPop, resultPage = {
                         resultDate.length > 1 && status === "ap" && StateActionConfirm === "cancel-cvt" ?
                             <div className="action-box-bt submit-convert">
                                 <div className="password">
-                                    <input onChange={CheckEmplyPassword} type="password" autoComplete="new-password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
+                                    <input onChange={CheckEmplyPassword} type="password" ref={RefOnType.DoctorPw} placeholder="รหัสผ่านเจ้าหน้าที่"></input>
                                 </div>
                                 <div className="bt">
                                     <button className="cancel" onClick={() => setStateActionConfirm("")}>ไม่ยกเลิก</button>
@@ -707,7 +707,7 @@ const ManagePopup = ({ setPopup, RefPop, resultPage = {
                             StateEdit ?
                                 <div className="action-box-bt">
                                     <div className="password">
-                                        <input placeholder="รหัสผ่านเจ้าหน้าที่" onChange={() => CheckEdit()} type="password" autoComplete="new-password" ref={RefPasswordEdit}></input>
+                                        <input placeholder="รหัสผ่านเจ้าหน้าที่" onChange={() => CheckEdit()} type="password" ref={RefPasswordEdit}></input>
                                     </div>
                                     <div className="bt">
                                         <button className="cancel" onClick={() => ChangeEditPage(0)}>ยกเลิก</button>
@@ -801,7 +801,7 @@ const PopupConfirmAction = ({ Ref, setPopup, session, DetailFarmer, id_table_con
     return (
         <div className="content-confirm-account">
             <span>ยืนยันการปิดบัญชี</span>
-            <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password" autoComplete="new-password"></input>
+            <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password"></input>
             <div className="bt-content">
                 <button style={{ backgroundColor: "red" }} onClick={close}>ยกเลิก</button>
                 <button ref={BtConfirm} not="" onClick={Confirm}>ยืนยัน</button>

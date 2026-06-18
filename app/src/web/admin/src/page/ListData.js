@@ -1050,37 +1050,6 @@ const ManageList = ({
           }
           .admin-status-badge.on { background-color: #24f0cb; }
           .admin-status-badge.off { background-color: #f48282; color: white; }
-          @media (max-width: 600px) {
-            .admin-data-table thead { display: none; }
-            .admin-data-table tbody tr {
-              display: block;
-              margin-bottom: 10px;
-              border: 2px solid #189D85;
-              border-radius: 10px;
-              overflow: hidden;
-            }
-            .admin-data-table tbody td {
-              display: flex !important;
-              justify-content: space-between;
-              align-items: center;
-              text-align: right !important;
-              padding: 10px 14px !important;
-              border-bottom: 1px solid #f0f0f0;
-              font-size: 14px;
-              min-height: 44px;
-            }
-            .admin-data-table tbody td:last-child { border-bottom: none; }
-            .admin-data-table tbody td::before {
-              content: attr(data-label);
-              font-weight: 700;
-              text-align: left;
-              margin-right: 12px;
-              color: #444;
-              flex-shrink: 0;
-            }
-            .admin-data-table tbody td[data-label=""]::before { display: none; }
-            .admin-data-table tbody td[data-label=""] { justify-content: center; }
-          }
         `}</style>
         <div style={{ width: "100%", overflowX: "auto", padding: "8px 10px" }}>
           <table className="admin-data-table" style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
@@ -1097,30 +1066,30 @@ const ManageList = ({
               {Data.length > 0 ? Data.map((item, index) => (
                 <tr key={index} className="admin-table-row" style={{ borderBottom: "1px solid #eef2f0", transition: "background-color 0.2s" }}>
                   {status.status === "plant" && (<>
-                    <td data-label="ชื่อพืช" style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
-                    <td data-label="ประเภท" style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
-                    <td data-label="สายพันธุ์พืช" style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
-                    <td data-label="วันเก็บเกี่ยว" style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
-                    <td data-label="สถานะ" style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
                   </>)}
                   {status.status === "chemical" && (<>
-                    <td data-label="ชื่อสารเคมี" style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
-                    <td data-label="ชื่อสามัญ" style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
-                    <td data-label="วิธีการใช้" style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
-                    <td data-label="วันปลอดภัย" style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
-                    <td data-label="สถานะ" style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
                   </>)}
                   {status.status === "pest" && (<>
-                    <td data-label="ชื่อโรคพืช / ศัตรูพืช" style={{ padding: "16px 20px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
-                    <td data-label="ประเภท" style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
-                    <td data-label="สถานะ" style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
                   </>)}
                   {status.status === "station" && (<>
-                    <td data-label="ชื่อศูนย์" style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
-                    <td data-label="รหัสศูนย์" style={{ padding: "16px 20px" }}>{item.id_station || "-"}</td>
-                    <td data-label="สถานะ" style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
+                    <td style={{ padding: "16px 20px", fontWeight: "500" }}>{item.name || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}>{item.id_station || "-"}</td>
+                    <td style={{ padding: "16px 20px" }}><span className={`admin-status-badge ${item.is_use == 1 ? "on" : "off"}`}>{item.is_use == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}</span></td>
                   </>)}
-                  <td data-label="" style={{ padding: "12px 16px" }}>
+                  <td style={{ padding: "12px 16px" }}>
                     {status.status === "station" && (
                       <button className="admin-manage-btn" onClick={() => OpenEditDataDirect(item.id, status.status)}>แก้ไข</button>
                     )}
@@ -1191,6 +1160,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             type === "plant" ? [
               RefData.Data1.current.value,
               RefData.Data2.current.value,
+              RefData.Data3.current.value,
               QtyDate.current.value,
             ] :
               type === "chemical" ? [
@@ -1239,7 +1209,7 @@ const InsertPage = ({ ReloadAccount, type }) => {
             : type === "plant" ? {
               name: RefData.Data1.current.value,
               type_plant: RefData.Data2.current.value,
-              variety_name: RefData.Data3.current.value || "ธรรมดา",
+              variety_name: RefData.Data3.current.value,
               qtyDate: QtyDate.current.value,
               type: type,
               passwordAd: pwAdmin.current.value
@@ -1638,7 +1608,6 @@ const BodyDetailInsert = ({
                   ref={RefData.Data2}
                   placeholder="กรอกรหัสผ่าน"
                   type="password"
-                  autoComplete="new-password"
                 />
               </div>
               <div className="field-text">
@@ -1692,7 +1661,6 @@ const BodyDetailInsert = ({
                   ref={RefData.Data2}
                   placeholder="กรอกรหัสผ่าน"
                   type="password"
-                  autoComplete="new-password"
                 />
               </div>
             </label>
@@ -1763,7 +1731,6 @@ const BodyDetailInsert = ({
             onChange={CheckEmply}
             placeholder="รหัสผ่านผู้ดูแลระบบ"
             type="password"
-            autoComplete="new-password"
           ></input>
         </label>
         <div className="bt-submit">

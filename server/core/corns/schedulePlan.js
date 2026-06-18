@@ -2,7 +2,7 @@ const MessageLineTemplate = require('../messageLineTemplate');
 const RoyalGapEnv = require('../env');
 
 const schedulePlan = {
-    queryPlan: async (connectionPool) => {
+    queryPlan : async (connectionPool) => {
         return await connectionPool.executeQuery(`
             SELECT 
                 fp.id as form_id , 
@@ -57,27 +57,27 @@ const schedulePlan = {
             ) gh ON gh.id_farm_house = fp.id_farm_house AND gh.station_id = sdl.station_id
         `)
     },
-    generateMessage: (schedule) => {
-        const { title, name, category, greenhouse_id, greenhouse_name, form_id, schedule_details, id: schedule_id } = schedule
+    generateMessage : (schedule) => {
+        const { title, name, category, greenhouse_id , greenhouse_name , form_id, schedule_details, id: schedule_id } = schedule
         const details = JSON.parse(schedule_details)
         const date = new Date()
-        const dateString = `${date.getDate()} เดือน ${date.getMonth() + 1} ปี ${date.getFullYear() + 543}`
+        const dateString = `${date.getDate()} เดือน ${date.getMonth()+1} ปี ${date.getFullYear()+543}`
 
-        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
+        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่: ${dateString}`;
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
         const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
 
-        switch (category) {
-            case 1: {
-                const { name_fertilizer, formula_fertilizer, volume, unit_volume, how_use } = details
-
+        switch(category) {
+            case 1 : {
+                const { name_fertilizer , formula_fertilizer , volume , unit_volume , how_use } = details
+                
                 const details_list = [
                     { label: "ปุ๋ย", value: name_fertilizer || "-" },
                     { label: "สูตร", value: formula_fertilizer || "-" },
                     { label: "ปริมาณ", value: `${volume || "-"} ${unit_volume || ""}`.trim() },
                     { label: "วิธีใช้", value: `${how_use || "-"} (หากไม่แน่ใจ ให้ดูบนฉลาก)` }
                 ];
-
+                
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
@@ -92,9 +92,9 @@ const schedulePlan = {
                     details_message
                 ]
             }
-            case 2: {
-                const { pest, chemical, rate, volume, unit_volume, how_use } = details
-
+            case 2 : {
+                const { pest , chemical , rate , volume , unit_volume , how_use } = details
+                
                 const details_list = [
                     { label: "โรคพืช", value: pest || "-" },
                     { label: "สารเคมี", value: chemical || "-" },
@@ -102,7 +102,7 @@ const schedulePlan = {
                     { label: "ปริมาณ", value: `${volume || "-"} ${unit_volume || ""}`.trim() },
                     { label: "วิธีใช้", value: `${how_use || "-"} (หากไม่แน่ใจ ให้ดูบนฉลาก)` }
                 ];
-
+                
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
@@ -117,7 +117,7 @@ const schedulePlan = {
                     details_message
                 ]
             }
-            default:
+            default :
                 return []
         }
     }

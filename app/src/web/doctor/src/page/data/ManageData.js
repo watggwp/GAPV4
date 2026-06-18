@@ -264,7 +264,7 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                 {StateEdit &&
                     <div className="bt-manage">
                         <div className="password">
-                            <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" autoComplete="new-password" ref={Password} onChange={(e) => CheckEdit(e.target.value, "password")}></input>
+                            <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" ref={Password} onChange={(e) => CheckEdit(e.target.value, "password")}></input>
                         </div>
                         <div className="bt">
                             <button onClick={() => {
@@ -282,7 +282,7 @@ const ManageData = ({ Ref, setPopup, DataOfPage, Type, Fetch, RowPresent, sessio
                             <span className="delete-name">{Type === "pest" ? Data.pest_name : Data.name}</span>
                         </div>
                         <div className="password">
-                            <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" autoComplete="new-password" ref={DeletePasswordRef}
+                            <input placeholder="รหัสผ่านเจ้าหน้าที่" type="password" ref={DeletePasswordRef}
                                 onChange={(e) => setDeletePassword(e.target.value)}></input>
                         </div>
                         <div className="bt">
@@ -423,7 +423,7 @@ const EditPlant = ({ CheckEdit, Data, ErrReport, setBecause }) => {
             <div className="row">
                 <label className="field-select">
                     <span>เหตุผลที่แก้ไข</span>
-                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" autoComplete="off" onChange={(e) => setBecause(e.target.value)} />
+                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" onChange={(e) => setBecause(e.target.value)} />
                 </label>
             </div>
         </div>
@@ -493,7 +493,7 @@ const Editpest = ({ CheckEdit, Data, ErrReport, setBecause }) => {
             <div className="row">
                 <label className="field-select">
                     <span>เหตุผลที่แก้ไข</span>
-                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" autoComplete="off" onChange={(e) => setBecause(e.target.value)} />
+                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" onChange={(e) => setBecause(e.target.value)} />
                 </label>
             </div>
         </div>
@@ -596,7 +596,7 @@ const EditFertilizer = ({ CheckEdit, Data, ErrReport, setBecause }) => {
             <div className="row">
                 <label className="field-select">
                     <span>เหตุผลที่แก้ไข</span>
-                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" autoComplete="off" onChange={(e) => setBecause(e.target.value)} />
+                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" onChange={(e) => setBecause(e.target.value)} />
                 </label>
             </div>
         </div>
@@ -676,7 +676,7 @@ const EditChemical = ({ CheckEdit, Data, ErrReport, setBecause }) => {
             <div className="row">
                 <label className="field-select">
                     <span>เหตุผลที่แก้ไข</span>
-                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" autoComplete="off" onChange={(e) => setBecause(e.target.value)} />
+                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" onChange={(e) => setBecause(e.target.value)} />
                 </label>
             </div>
         </div>
@@ -797,7 +797,7 @@ const EditSource = ({ CheckEdit, Data, ErrReport, setBecause }) => {
             <div className="row">
                 <label className="field-select">
                     <span>เหตุผลที่แก้ไข</span>
-                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" autoComplete="off" onChange={(e) => setBecause(e.target.value)} />
+                    <input placeholder="ระบุเหตุผล (ถ้ามี)" type="text" onChange={(e) => setBecause(e.target.value)} />
                 </label>
             </div>
         </div>

@@ -200,7 +200,6 @@ const ManageRole = ({ RefOnPage, id_table, ReloadFetch, setBecause }) => {
                             placeholder="กรอกรหัสผ่าน"
                             ref={PasswordRef}
                             type="password"
-                            autoComplete="new-password"
                             className="input-text input-pw"
                         />
                     </label>

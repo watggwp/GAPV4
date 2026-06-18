@@ -205,7 +205,7 @@ const PageGroup = () => {
             <div className="form-manage">
               <label className="column">
                 <span>รหัสผ่านผู้ดูแล</span>
-                <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" autoComplete="new-password" className="input-text input-pw" />
+                <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" className="input-text input-pw" />
               </label>
               <div className="bt-manage">
                 <button onClick={() => setShowConfirmModal(false)} className="close">ยกเลิก</button>

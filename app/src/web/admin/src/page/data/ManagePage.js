@@ -159,7 +159,7 @@ const ManageDataPage = ({RefOnPage , id_table , type , status , setBecause , Tab
             <div className="form-manage">
                 <label className="column">
                     <span>รหัสผ่านผู้ดูแล</span>
-                    <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" autoComplete="new-password" className="input-text input-pw"></input>
+                    <input placeholder="กรอกรหัสผ่าน" ref={PasswordRef} type="password" className="input-text input-pw"></input>
                 </label>
                 <div className="bt-manage">
                     <button onClick={close} className="close">ยกเลิก</button>

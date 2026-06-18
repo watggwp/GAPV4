@@ -3,12 +3,12 @@ import env from "../../../env"
 import Devices from "./devices"
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 
-const { path_icon: { sensor_station, sensor_greenhouse, sensor_pump } } = env
+const { path_icon : { sensor_station , sensor_greenhouse , sensor_pump } } = env
 
 export const categoriesMapping = {
-    weather: 0,
-    greenhouse: 1,
-    pump: 2
+    weather : 0,
+    greenhouse : 1,
+    pump : 2
 }
 
 export const categories = [
@@ -19,7 +19,7 @@ export const categories = [
         color: '#d3b328',
         subColor: '#e9d88a',
         allowedRoles: ['admin'],
-        path: "/api/sensor/weather-station"
+        path : "/api/sensor/weather-station"
     },
     {
         id: 'greenhouse',
@@ -28,7 +28,7 @@ export const categories = [
         color: '#4caf50',
         subColor: '#a8e6a1',
         allowedRoles: ['admin', 'farmer'],
-        path: "/api/sensor/weather-greenhouse"
+        path : "/api/sensor/weather-greenhouse"
     },
     {
         id: 'pump',
@@ -37,86 +37,80 @@ export const categories = [
         color: '#4e7ddc',
         subColor: '#acc3f2',
         allowedRoles: ['admin', 'farmer'],
-        path: "/api/pump/"
+        path : "/api/pump/"
     },
 ]
 
-export const template = {
-    devices: {
-        path: "",
-        query: {},
-        pathParams: {},
-        columnsData: {
-            id: "",
-            device_id: "",
-            status: "",
+export const template = { 
+    devices : {
+        path : "",
+        query : {},
+        pathParams : {},
+        columnsData : {
+            id : "",
+            device_id : "",
+            status : "",
         }
-    },
-    add: {
-        path: "",
-        query: {},
-        pathParams: {},
-        onAddComplete: () => { }
-    },
-    delete: {
-        path: "",
-        query: {},
-        pathParams: {},
-        typeDelete: "",
-        onDeleteComplete: () => { }
-    },
-    status: {
-        path: "",
-        query: {},
-        pathParams: {}
-    }
+    } , 
+    add : {
+        path : "",
+        query : {},
+        pathParams : {},
+        onAddComplete : () => {}
+    } , 
+    delete : {
+        path : "",
+        query : {},
+        pathParams : {},
+        typeDelete : "",
+        onDeleteComplete : () => {}
+    } , 
+    status : {
+        path : "",
+        query : {},
+        pathParams : {}
+    } 
 }
 
 const DeviceManagementContext = createContext({
-    menuDatas: [
-        { id: "weather", dataPage: template },
-        { id: "greenhouse", dataPage: template },
-        { id: "pump", dataPage: template }
+    menuDatas : [ 
+        { id : "weather" , dataPage : template } , 
+        { id : "greenhouse" , dataPage : template } , 
+        { id : "pump" , dataPage : template }
     ],
-    setPage: () => { },
+    setPage : () => {},
 })
 
 export default function DeviceManagement({
-    menuDatas = [
-        {
-            id: "weather",
-            dataPage: template,
-            stationSignature: ""
-        },
-        {
-            id: "greenhouse",
-            dataPage: template,
-            greenhouse_id: ""
-        },
-        {
-            id: "pump",
-            dataPage: template,
-            greenhouse_id: ""
+    menuDatas = [ 
+        { 
+            id : "weather" , 
+            dataPage : template,
+            stationSignature : ""
+        } , 
+        { 
+            id : "greenhouse" , 
+            dataPage : template,
+            greenhouse_id : ""
+        } , 
+        { 
+            id : "pump" , 
+            dataPage : template,
+            greenhouse_id : ""
         }
     ],
-    role = "",
-    onPageChange = null
+    role = ""
 }) {
 
-    const [page, setPage] = useState(
+    const [ page , setPage ] = useState(
         menuDatas.length === 1 ? menuDatas[0].id : "index"
     )
 
-    const handleSetPage = useCallback((newPage) => {
-        setPage(newPage)
-        if (onPageChange) onPageChange(newPage)
-    }, [onPageChange])
-
-    const pageData = useMemo(() =>
+    const pageData = useMemo(() => 
         menuDatas.find(menu => menu.id === page)
-        , [menuDatas, page])
+    , [menuDatas, page])
 
-    return (
+    return(
         <Stack
             width={"100%"}
             height={"100%"}
@@ -124,12 +118,12 @@ export default function DeviceManagement({
             <DeviceManagementContext.Provider
                 value={{
                     menuDatas,
-                    setPage: handleSetPage,
+                    setPage,
                 }}
             >
                 {
                     page === "index" ?
-                        <DeviceManagementHome /> :
+                        <DeviceManagementHome/> :
                         <Devices
                             title={categories[categoriesMapping[page]].title}
                             icon={categories[categoriesMapping[page]].icon}
@@ -149,27 +143,27 @@ export default function DeviceManagement({
 
 function DeviceManagementHome() {
 
-    const { setPage, menuDatas } = useDeviceManagement()
+    const { setPage , menuDatas } = useDeviceManagement()
 
     const onSelectMenu = useCallback((page) => {
         setPage(page)
-    }, [setPage])
+    } , [setPage])
 
-    return (
+    return(
         <Grid container spacing={2}>
             {
-                menuDatas.map(({ id: idMenu }) => {
-                    const { id, title, icon, color, subColor } = categories[categoriesMapping[idMenu]]
+                menuDatas.map(({ id : idMenu }) => {
+                    const { id , title , icon , color , subColor } = categories[categoriesMapping[idMenu]]
 
-                    return (
-                        <Grid key={id} size={{ xs: 12 }} justifyContent={"center"} display={"flex"}>
+                    return(
+                        <Grid key={id} size={{ xs : 12 }} justifyContent={"center"} display={"flex"}>
                             <Stack
                                 sx={{
-                                    width: "98%",
-                                    maxWidth: "300px",
-                                    borderRadius: 4,
-                                    height: "120px",
-                                    overflow: "hidden"
+                                    width : "98%",
+                                    maxWidth : "300px",
+                                    borderRadius : 4,
+                                    height : "120px",
+                                    overflow : "hidden"
                                 }}
                             >
                                 <Stack width={"100%"} height={"100%"} overflow={"hidden"} direction={"row"} bgcolor={subColor}>

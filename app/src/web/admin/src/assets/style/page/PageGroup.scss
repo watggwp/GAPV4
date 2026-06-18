@@ -205,8 +205,7 @@
             }
 
             .btn-edit,
-            .btn-toggle,
-            .btn-history {
+            .btn-toggle {
                 flex: 1;
                 min-width: unset;
                 padding: 10px 6px;
@@ -216,7 +215,21 @@
                     height: 20px;
                 }
 
-                span,
+                span {
+                    font-size: 12px;
+                }
+            }
+
+            .btn-history {
+                flex: 1;
+                min-width: unset;
+                padding: 15px 10px;
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                }
+
                 .btn-history-label {
                     font-size: 12px;
                 }
