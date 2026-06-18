@@ -149,7 +149,7 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
     // insert
     const CheckInsert = () => {
         const value = DataProcess.get("type") === "plant" ?
-            [nameInsert.current.value, typeInsert.current.value, DateQtyInsert.current.value, speciesInsert.current.value] :
+            [nameInsert.current.value, typeInsert.current.value, DateQtyInsert.current.value] :
             DataProcess.get("type") === "fertilizer" ?
                 [
                     nameInsert.current.value,
@@ -185,14 +185,14 @@ const PageData = ({ setMain, session, socket, type = false, eleImageCover, LoadT
                             name: nameInsert.current.value,
                             type_plant: typeInsert.current.value,
                             varietie: {
-                                name: speciesInsert.current.value,
+                                name: speciesInsert.current.value || "ธรรมดา",
                                 qty_harvest: parseInt(DateQtyInsert.current.value)
                             },
                             qty_harvest: parseInt(DateQtyInsert.current.value)
                         },
                         check: {
                             name: nameInsert.current.value,
-                            variety_name: speciesInsert.current.value
+                            variety_name: speciesInsert.current.value || "ธรรมดา"
                         },
                         type: "plant"
                     } :
@@ -797,9 +797,40 @@ const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety, viewMo
                             .manage-btn:hover {
                                 background-color: #e0d13b;
                             }
+                            @media (max-width: 600px) {
+                                .mobile-stack thead { display: none; }
+                                .mobile-stack tbody tr {
+                                    display: block;
+                                    margin-bottom: 10px;
+                                    border: 2px solid #189D85;
+                                    border-radius: 10px;
+                                    overflow: hidden;
+                                }
+                                .mobile-stack tbody td {
+                                    display: flex !important;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    text-align: right !important;
+                                    padding: 10px 14px !important;
+                                    border-bottom: 1px solid #f0f0f0;
+                                    font-size: 14px;
+                                    min-height: 44px;
+                                }
+                                .mobile-stack tbody td:last-child { border-bottom: none; }
+                                .mobile-stack tbody td::before {
+                                    content: attr(data-label);
+                                    font-weight: 700;
+                                    text-align: left;
+                                    margin-right: 12px;
+                                    color: #444;
+                                    flex-shrink: 0;
+                                }
+                                .mobile-stack tbody td[data-label=""]::before { display: none; }
+                                .mobile-stack tbody td[data-label=""] { justify-content: center; }
+                            }
                         `}</style>
                         <div className="table-responsive" style={{ width: "100%", overflowX: "auto", marginTop: "10px", padding: "0 10px" }}>
-                            <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+                            <table className="mobile-stack" style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
                                 <thead>
                                     <tr style={{ backgroundColor: "#189D85", color: "white", textAlign: "center", fontSize: "17px" }}>
                                         {Type === "plant" && (
@@ -856,37 +887,37 @@ const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety, viewMo
                                             >
                                                 {Type === "plant" && (
                                                     <>
-                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
+                                                        <td data-label="ชนิดพืช" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td data-label="ประเภท" style={{ padding: "16px 20px" }}>{item.type_plant || "-"}</td>
+                                                        <td data-label="สายพันธุ์พืช" style={{ padding: "16px 20px" }}>{item.variety_name || "ยังไม่ระบุ"}</td>
+                                                        <td data-label="วันเก็บเกี่ยว" style={{ padding: "16px 20px" }}>{item.qty_harvest ? `${item.qty_harvest} วัน` : "-"}</td>
                                                     </>
                                                 )}
                                                 {Type === "pest" && (
                                                     <>
-                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
+                                                        <td data-label="ชื่อโรคพืช / ศัตรูพืช" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.pest_name || "-"}</td>
+                                                        <td data-label="ประเภท" style={{ padding: "16px 20px" }}>{item.type_pest || "-"}</td>
                                                     </>
                                                 )}
                                                 {Type === "fertilizer" && (
                                                     <>
-                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                                                        <td data-label="ชื่อปุ๋ย" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td data-label="สูตรปุ๋ย" style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                                                        <td data-label="วิธีการใช้" style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
                                                     </>
                                                 )}
                                                 {Type === "chemical" && (
                                                     <>
-                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
-                                                        <td style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
+                                                        <td data-label="ชื่อสารเคมี" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td data-label="ชื่อสามัญสารเคมี" style={{ padding: "16px 20px" }}>{item.name_formula || "-"}</td>
+                                                        <td data-label="วิธีการใช้" style={{ padding: "16px 20px" }}>{item.how_use || "-"}</td>
+                                                        <td data-label="วันปลอดภัย" style={{ padding: "16px 20px" }}>{item.date_safe_list ? `${item.date_safe_list} วัน` : "-"}</td>
                                                     </>
                                                 )}
                                                 {Type === "source" && (
                                                     <>
-                                                        <td style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
-                                                        <td style={{ padding: "14px 16px", minWidth: "200px" }}>
+                                                        <td data-label="แหล่งที่ซื้อ" style={{ padding: "14px 16px", fontWeight: "500" }}>{item.name || "-"}</td>
+                                                        <td data-label="ตำแหน่งที่ตั้ง" style={{ padding: "14px 16px", minWidth: "200px" }}>
                                                             {item.location ? (
                                                                 <div style={{ display: "inline-block", width: "100%", maxWidth: "250px" }}>
                                                                     <MapsJSX lat={item.location.x} lng={item.location.y} w={"100%"} h={"80px"} />
@@ -897,7 +928,7 @@ const ManageList = ({ Data, session, fetch, setRow, Limit, Type, variety, viewMo
                                                         </td>
                                                     </>
                                                 )}
-                                                <td style={{ padding: "10px 16px", textAlign: "center" }}>
+                                                <td data-label="" style={{ padding: "10px 16px", textAlign: "center" }}>
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();

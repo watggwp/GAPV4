@@ -23,11 +23,16 @@ export default function SchedulesPlan() {
 
     return (
         <Stack height={"100%"} width={"100%"} spacing={2} padding={2}>
-            <Stack direction={"row"} justifyContent={"space-between"}>
+            <Stack
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent={{ sm: "space-between" }}
+                spacing={1}
+            >
                 <Select
                     value={hasTotalSchedule}
                     size="small"
                     onChange={onChangeSelectTypeSchedule}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                     <MenuItem value={true}>กำหนดแผนการปลูกแล้ว</MenuItem>
                     <MenuItem value={false}>ยังไม่กำหนดแผนการปลูก</MenuItem>
@@ -36,6 +41,7 @@ export default function SchedulesPlan() {
                     placeholder="ค้นหา"
                     size="small"
                     onChange={({ target: { value } }) => setSearch(value)}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
                 />
             </Stack>
             <SchedulesPlanManagement

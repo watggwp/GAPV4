@@ -50,7 +50,12 @@ const checkMismatch = {
                     TRIM(IFNULL(fc.use_is, '')) != TRIM(IFNULL(sdd.how_use, ''))
                 ))
               )
-
+              AND NOT EXISTS (
+                SELECT 1 FROM schedules_history sh
+                WHERE sh.schedule_id = s.id
+                  AND sh.greenhouse_id = fp.id_farm_house
+                  AND sh.notified_mismatch = 1
+              )
             GROUP BY fp.id, s.id
         `);
     },
@@ -99,7 +104,12 @@ const checkMismatch = {
                     TRIM(IFNULL(fc.use_is, '')) != TRIM(IFNULL(sdd.how_use, ''))
                 ))
               )
-
+              AND NOT EXISTS (
+                SELECT 1 FROM schedules_history sh
+                WHERE sh.schedule_id = s.id
+                  AND sh.greenhouse_id = fp.id_farm_house
+                  AND sh.notified_mismatch = 1
+              )
             GROUP BY fp.id, s.id
         `, [formplant_id, schedule_id]);
     },
@@ -129,6 +139,20 @@ const checkMismatch = {
                     socket.to(`notify-${row.station}`).emit("update");
                 }
 
+                // mark notified in schedule_history (create or update)
+                const updated = await connectionPool.executeQuery(
+                    `UPDATE schedules_history SET notified_mismatch = 1
+                     WHERE schedule_id = ? AND greenhouse_id = ? AND DATE(date) = CURDATE()`,
+                    [row.schedule_id, row.greenhouse_id]
+                );
+                if (updated.affectedRows === 0) {
+                    await connectionPool.executeQuery(
+                        `INSERT INTO schedules_history (schedule_id, greenhouse_id, details_message, notified_mismatch)
+                         VALUES (?, ?, ?, 1)`,
+                        [row.schedule_id, row.greenhouse_id, detailsMessage]
+                    );
+                }
+
                 // ส่ง LINE ไปให้หมอพืช (Doctor)
                 if (row.doctor_uids) {
                     const uids = row.doctor_uids.split(',');
@@ -146,11 +170,7 @@ const checkMismatch = {
                     });
                     for (let uid of uids) {
                         try {
-                            await RoyalGapLine.pushMessage(uid, {
-                                type: "flex",
-                                altText: "แจ้งเตือนข้อมูลไม่ตรงตามแผน",
-                                contents: msgTemplate
-                            });
+                            await RoyalGapLine.pushMessage(uid, msgTemplate);
                         } catch (e) {
                             console.error("Line Push Error:", e.response?.data || e.message);
                         }

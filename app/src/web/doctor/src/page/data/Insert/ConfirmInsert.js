@@ -115,7 +115,7 @@ const PopupConfirm = ({Ref , setPopup , session , Data , RowPresent , setLimit ,
                 }
             </div>
             <div className="bt-insert">
-                <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password"></input>
+                <input onChange={CheckEmply} ref={Password} placeholder="รหัสผ่านเจ้าหน้าที่" type="password" autoComplete="new-password"></input>
                 <div className="bt-content">
                     { !getLoading ?
                         <button className="bt" style={{backgroundColor : "red"}} onClick={close}>ยกเลิก</button> :

@@ -66,11 +66,9 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     const yearOptions = Array.from({ length: 2 }, (_, i) => currentBE + i);
 
     // ข้อมูลจริง — แปลงที่ยังไม่กรอกข้อมูลการใช้ปุ๋ย/สารเคมี
-    const [allUnfilledPlots, setAllUnfilledPlots] = useState([]);
     const [unfilledPlots, setUnfilledPlots] = useState([]);
 
     // ข้อมูลจริง — ประมาณการผลผลิต
-    const [allProductionData, setAllProductionData] = useState([]);
     const [productionData, setProductionData] = useState([]);
 
     // Pagination state
@@ -78,7 +76,6 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     const [pageProduction, setPageProduction] = useState(1);
     const ITEMS_PER_PAGE = 5;
 
-    const [allMapPins, setAllMapPins] = useState([]); // Store raw data
     const [mapPins, setMapPins] = useState([]);
     const [stations, setStations] = useState([]);
     const [availablePlants, setAvailablePlants] = useState([]);
@@ -92,16 +89,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
         const context = await clientMo.post('/api/admin/check');
         if (context) {
             setPop(
-                <div className="data-list-content-page form-page" style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    background: 'transparent',
-                    display: 'flex',
-                    position: 'relative',
-                    justifyContent: 'space-evenly',
-                    alignItems: 'center',
-                    flexDirection: 'column'
-                }}>
+                <div className="data-list-content-page form-page" style={{ width: '100%', height: '100%', background: 'transparent' }}>
                     <ManagePopup
                         RefData={{ current: null }}
                         setPopup={setPop}
@@ -160,89 +148,48 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                // Fetch ALL locations for ALL stations once
-                const response = await clientMo.post('/api/admin/farmhouse/locations', {});
+                const response = await clientMo.post('/api/admin/farmhouse/locations', {
+                    station: selectedStation,
+                    plant_type: selectedPlantType,
+                    yield_range: selectedYield,
+                    disease_status: selectedDisease
+                });
                 if (response) {
                     const data = JSON.parse(response);
-                    setAllMapPins(data);
+                    setMapPins(data);
 
-                    // Extract unique plants
-                    const plants = new Set();
-                    data.forEach(pin => {
-                        if (pin.plants) {
-                            pin.plants.forEach(p => {
-                                if (p.name && p.name !== '-') plants.add(p.name);
-                            });
-                        }
-                    });
-                    setAvailablePlants(Array.from(plants));
+                    // อัปเดตรายชื่อพืชเฉพาะเมื่อยังไม่ได้เลือกชนิดพืช
+                    if (!selectedPlantType) {
+                        const plants = new Set();
+                        data.forEach(pin => {
+                            if (pin.plants) {
+                                pin.plants.forEach(p => {
+                                    if (p.name && p.name !== '-') plants.add(p.name);
+                                });
+                            }
+                        });
+                        setAvailablePlants(Array.from(plants));
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching locations:", error);
             }
         };
         fetchLocations();
-    }, []); // Fetch only once on mount
-
-    // Client-side filtering logic
-    useEffect(() => {
-        let filtered = allMapPins;
-
-        if (selectedStation || selectedPlantType || selectedYield || selectedDisease) {
-            filtered = allMapPins.map(pin => {
-                // Filter by station
-                if (selectedStation && pin.station !== selectedStation) return null;
-                // Filter the plants inside the pin
-                const filteredPlants = (pin.plants || []).filter(p => {
-                    let pass = true;
-
-                    if (selectedPlantType && p.name !== selectedPlantType) pass = false;
-
-                    if (selectedYield) {
-                        let y = p.amount || 0;
-                        if (selectedYield === 'low' && y >= 1000) pass = false;
-                        if (selectedYield === 'mid' && (y < 1000 || y > 5000)) pass = false;
-                        if (selectedYield === 'high' && y <= 5000) pass = false;
-                    }
-
-                    if (selectedDisease) {
-                        let hasDisease = p.disease !== '-';
-                        if (selectedDisease === 'none' && hasDisease) pass = false;
-                        if (selectedDisease === 'found' && !hasDisease) pass = false;
-                    }
-
-                    return pass;
-                });
-
-                // If no plants match the filter, hide the entire pin
-                if (filteredPlants.length === 0) return null;
-
-                // Recompute pin status based on filtered plants
-                const hasDisease = filteredPlants.some(p => p.disease !== '-');
-                const totalAmount = filteredPlants.reduce((sum, p) => sum + (p.amount || 0), 0);
-
-                return {
-                    ...pin,
-                    plants: filteredPlants,
-                    hasDisease,
-                    status: hasDisease ? 'red' : 'green',
-                    totalAmount
-                };
-            }).filter(Boolean); // Remove null pins
-        }
-
-        setMapPins(filtered);
-    }, [allMapPins, selectedStation, selectedPlantType, selectedYield, selectedDisease]);
+    }, [selectedStation, selectedPlantType, selectedYield, selectedDisease]);
 
     // ดึงข้อมูลแปลงที่เกินกำหนดการใส่ปุ๋ย/สารเคมี
     useEffect(() => {
         const fetchOverduePlots = async () => {
             try {
-                const response = await clientMo.post('/api/admin/dashboard/overdue-plots', {});
+                const response = await clientMo.post('/api/admin/dashboard/overdue-plots', {
+                    station: selectedStation
+                });
                 if (response) {
                     const data = typeof response === 'string' ? JSON.parse(response) : response;
                     if (Array.isArray(data)) {
-                        setAllUnfilledPlots(data);
+                        setUnfilledPlots(data);
+                        setPageUnfilled(1); // รีเซ็ตหน้าเมื่อข้อมูลเปลี่ยน
                     }
                 }
             } catch (error) {
@@ -250,20 +197,22 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
             }
         };
         fetchOverduePlots();
-    }, []);
+    }, [selectedStation]);
 
     // ดึงข้อมูลประมาณการผลผลิต (re-fetch เมื่อเปลี่ยนเดือน/ปี หรือศูนย์)
     useEffect(() => {
         const fetchProduction = async () => {
             try {
                 const response = await clientMo.post('/api/admin/dashboard/production', {
+                    station: selectedStation,
                     month: selectedMonth,
                     year: selectedYear
                 });
                 if (response) {
                     const data = typeof response === 'string' ? JSON.parse(response) : response;
                     if (Array.isArray(data)) {
-                        setAllProductionData(data);
+                        setProductionData(data);
+                        setPageProduction(1); // รีเซ็ตหน้าเมื่อข้อมูลเปลี่ยน
                     }
                 }
             } catch (error) {
@@ -271,68 +220,7 @@ const AdminDashboardLayout = ({ setBodyFileAdmin, socket, session }) => {
             }
         };
         fetchProduction();
-    }, [selectedMonth, selectedYear]);
-
-    // Client-side filtering for Tables
-    useEffect(() => {
-        // Filter unfilled plots based on the currently filtered mapPins
-        const allowedFormplantIds = new Set();
-        mapPins.forEach(pin => {
-            if (pin.plants) {
-                pin.plants.forEach(p => allowedFormplantIds.add(p.formplant_id));
-            }
-        });
-        
-        let filteredUnfilled = allUnfilledPlots;
-        if (selectedStation || selectedPlantType || selectedYield || selectedDisease) {
-            filteredUnfilled = allUnfilledPlots.filter(plot => allowedFormplantIds.has(plot.id));
-        }
-        setUnfilledPlots(filteredUnfilled.slice(0, 20));
-        setPageUnfilled(1);
-
-        // Filter production data
-        let filteredProductionRaw = allProductionData;
-        if (selectedStation) {
-            filteredProductionRaw = filteredProductionRaw.filter(p => p.station_name === selectedStation);
-        }
-        if (selectedPlantType) {
-            filteredProductionRaw = filteredProductionRaw.filter(p => p.type === selectedPlantType);
-        }
-
-        // Aggregate by type (since the backend groups by type and station)
-        const aggMap = {};
-        filteredProductionRaw.forEach(p => {
-            if (!aggMap[p.type]) aggMap[p.type] = { type: p.type, amount: 0, plot_count: 0 };
-            aggMap[p.type].amount += p.amount;
-            aggMap[p.type].plot_count += p.plot_count;
-        });
-
-        let filteredProduction = Object.values(aggMap).sort((a, b) => b.amount - a.amount).slice(0, 20);
-
-        const maxAmount = filteredProduction.length > 0
-            ? Math.max(...filteredProduction.map(r => Number(r.amount) || 0))
-            : 1;
-
-        const colors = [
-            '#C8863A', '#BFA04F', '#7EAA4F', '#3C9E6E', '#4FB8C7',
-            '#8E6BBF', '#D4694A', '#5BA58B', '#C75B8E', '#6B8EC7',
-            '#A4B84D', '#D99B3B', '#7ABFB0', '#C46CA3', '#6FA0D6',
-            '#B5A33D', '#D47A5E', '#59B389', '#C287D1', '#7DB5C9'
-        ];
-
-        filteredProduction = filteredProduction.map((row, idx) => ({
-            id: idx + 1,
-            type: row.type || '-',
-            amount: Number(row.amount) || 0,
-            max: maxAmount,
-            plot_count: row.plot_count || 0,
-            color: colors[idx % colors.length]
-        }));
-
-        setProductionData(filteredProduction);
-        setPageProduction(1);
-
-    }, [mapPins, allUnfilledPlots, allProductionData, selectedStation, selectedPlantType, selectedYield, selectedDisease]);
+    }, [selectedStation, selectedMonth, selectedYear]);
 
 
     const getBadgeStyle = (overdueDays) => {
