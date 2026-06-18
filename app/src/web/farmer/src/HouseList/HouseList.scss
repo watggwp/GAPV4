@@ -228,4 +228,71 @@
             }
         }
     }
+
+    .notification-settings-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1),
+                    0 6px 20px rgba(0, 0, 0, 0.1); 
+        padding: 16px;
+        width: 100%;
+        max-width: 320px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 15px;
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #16604a;
+
+            svg {
+                width: 24px;
+                height: 24px;
+                fill: #28a745;
+            }
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .settings-control {
+            width: 100%;
+            margin-top: 4px;
+            
+            .select-days {
+                width: 100%;
+                font-family: Sans-font;
+                font-size: 16px;
+                padding: 8px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                background-color: white;
+                color: #333;
+                outline: none;
+                cursor: pointer;
+                box-sizing: border-box;
+                
+                &:focus {
+                    border-color: #28a745;
+                }
+            }
+        }
+        
+        .save-indicator {
+            font-size: 12px;
+            color: #28a745;
+            text-align: right;
+            height: 14px;
+        }
+    }
 }

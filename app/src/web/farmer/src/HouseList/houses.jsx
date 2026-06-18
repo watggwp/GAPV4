@@ -108,7 +108,7 @@ export default function Houses() {
                                                         position : "absolute",
                                                         top : 0,
                                                         left : 0
-                                                    }} 
+                                                     }} 
                                                 />
                                             </div>
                                         </div>
@@ -138,8 +138,7 @@ export default function Houses() {
                             </button>
                         </div>
                     </div>
-                )
-            }
+                )}
         </React.Fragment>
     )
 }

@@ -731,17 +731,24 @@ const GapCardList = () => {
             if (!Array.isArray(allHouses)) { setCards([]); setHouses([]); return; }
             setHouses(allHouses);
             const openHouses = allHouses.filter((h) => Number(h.status) === 1);
-            const allCards = [];
-            for (const house of openHouses) {
-                const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
-                if (!formRaw || formRaw === "error auth" || formRaw === "close") continue;
-                const forms = JSON.parse(formRaw);
-                if (!Array.isArray(forms)) continue;
-                for (const gap of forms) {
-                    if (parseInt(gap.state_status) === 2) continue;
-                    allCards.push({ house, gap });
+
+            const cardPromises = openHouses.map(async (house) => {
+                try {
+                    const formRaw = await clientMo.post("/api/farmer/formplant/select", { id_farmhouse: house.id_farm_house });
+                    if (!formRaw || formRaw === "error auth" || formRaw === "close") return [];
+                    const forms = JSON.parse(formRaw);
+                    if (!Array.isArray(forms)) return [];
+                    return forms
+                        .filter((gap) => parseInt(gap.state_status) !== 2)
+                        .map((gap) => ({ house, gap }));
+                } catch (e) {
+                    console.error("Fetch formplant error for house:", house.id_farm_house, e);
+                    return [];
                 }
-            }
+            });
+
+            const results = await Promise.all(cardPromises);
+            const allCards = results.flat();
             setCards(allCards);
         } catch (err) {
             console.error("GapCardList fetchAll error:", err);

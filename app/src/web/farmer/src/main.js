@@ -17,6 +17,7 @@ const liff_id_mapping = {
     "houses": process.env.REACT_APP_LINE_HOUSELIST,
     "weather-station": process.env.REACT_APP_WEATHER_STATION,
     "gap": process.env.REACT_APP_LINE_GAP, // ✅ LIFF สำหรับหน้า GAP โดยเฉพาะ
+    "notifications": process.env.REACT_APP_LINE_NOTIFICATIONS || process.env.REACT_APP_LINE_HOUSELIST,
 }
 
 const MainFarmer = () => {
@@ -52,6 +53,7 @@ const MainFarmer = () => {
                     case "house":
                     case "houses":
                     case "gap": // ✅ หน้า GAP card list
+                    case "notifications":
                         switch (result) {
                             case "search":
                                 setVerified(true)
