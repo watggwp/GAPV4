@@ -1,4 +1,4 @@
-import { Autocomplete, Grid, MenuItem, Modal, Select, Stack, TextField } from "@mui/material";
+import { Autocomplete, Modal, Stack, TextField, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDoctor } from "../../../Doctor";
 import RequestAPI from "../../../../../../assets/js/requestAPI";
@@ -107,50 +107,46 @@ export default function Houses() {
     return(
         // <Grid size={{ xs : 12 , md : 5 }}>
         <React.Fragment>
-            <Grid container width="100%" spacing={1}>
-                <Grid size={6} justifyContent={"center"} display={"flex"}>
-                    <Stack
-                        maxWidth={200}
-                        width={"100%"}
-                    >
-                        <Autocomplete
-                            disablePortal
-                            onChange={onSelectedFarmer}
-                            value={selectedFarmer}
-                            isOptionEqualToValue={(option, value) => option?.id === value.id}
-                            options={farmers}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params} size="small" placeholder="ค้นหาเกษตรกร"  fullWidth slotProps={{ htmlInput: { ...params.inputProps, sx: { fontFamily: (theme) => theme.typography.fontFamily , fontWeight : 900 } } }}
-                                />
-                            )}
-                            fullWidth
-                            loading={loadingFarmers}
-                        />
-                    </Stack>
-                </Grid>
-                <Grid size={6} justifyContent={"center"} display={"flex"}>
-                    <Stack
-                        maxWidth={200}
-                        width={"100%"}
-                    >
-                        <Autocomplete
-                            disablePortal
-                            onChange={onSelectedHouse}
-                            value={null}
-                            isOptionEqualToValue={(option, value) => option?.id === value.id}
-                            options={houses}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params} size="small" placeholder="เลือกโรงเรือน"  fullWidth slotProps={{ htmlInput: { ...params.inputProps, sx: { fontFamily: (theme) => theme.typography.fontFamily , fontWeight : 900 } } }}
-                                />
-                            )}
-                            fullWidth
-                            loading={loadingHouses}
-                        />
-                    </Stack>
-                </Grid>
-            </Grid>
+            <Stack direction="row" spacing={2}>
+                <Stack width={200} spacing={0.5}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary">
+                        ค้นหาเกษตรกร
+                    </Typography>
+                    <Autocomplete
+                        disablePortal
+                        onChange={onSelectedFarmer}
+                        value={selectedFarmer}
+                        isOptionEqualToValue={(option, value) => option?.id === value.id}
+                        options={farmers}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params} size="small" placeholder="ชื่อเกษตรกร" fullWidth slotProps={{ htmlInput: { ...params.inputProps, sx: { fontFamily: (theme) => theme.typography.fontFamily, fontWeight: 900 } } }}
+                            />
+                        )}
+                        fullWidth
+                        loading={loadingFarmers}
+                    />
+                </Stack>
+                <Stack width={200} spacing={0.5}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary">
+                        เลือกโรงเรือน
+                    </Typography>
+                    <Autocomplete
+                        disablePortal
+                        onChange={onSelectedHouse}
+                        value={null}
+                        isOptionEqualToValue={(option, value) => option?.id === value.id}
+                        options={houses}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params} size="small" placeholder="ชื่อโรงเรือน" fullWidth slotProps={{ htmlInput: { ...params.inputProps, sx: { fontFamily: (theme) => theme.typography.fontFamily, fontWeight: 900 } } }}
+                            />
+                        )}
+                        fullWidth
+                        loading={loadingHouses}
+                    />
+                </Stack>
+            </Stack>
             <Modal
                 open={Boolean(openHouseData)}
             >
