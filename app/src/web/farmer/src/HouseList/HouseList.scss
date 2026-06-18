@@ -26,8 +26,96 @@
     }
     
     
-  
-    
+
+
+    // ── Tab Bar ──
+    .tab-bar {
+        display: flex;
+        width: 100%;
+        max-width: 320px;
+        margin-top: 16px;
+        background: #e8f5e9;
+        border-radius: 12px;
+        padding: 4px;
+        gap: 4px;
+        box-sizing: border-box;
+
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            font-family: Sans-font;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.22s ease;
+
+            svg {
+                width: 17px;
+                height: 17px;
+                stroke: currentColor;
+                fill: none;
+                flex-shrink: 0;
+                transition: stroke 0.22s;
+            }
+
+            &.active {
+                background: #28a745;
+                color: #fff;
+                box-shadow: 0 2px 8px rgba(40, 167, 69, 0.35);
+
+                svg {
+                    stroke: #fff;
+                }
+            }
+
+            &:not(.active):hover {
+                background: rgba(40, 167, 69, 0.12);
+                color: #16604a;
+            }
+        }
+    }
+
+    // ── Settings Page ──
+    .settings-page {
+        width: 100%;
+        max-width: 320px;
+        padding-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 24px;
+
+        .settings-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #16604a;
+            padding: 8px 12px;
+            background: linear-gradient(90deg, #d4f5e0 0%, #f5f5f5 100%);
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+            margin-bottom: 4px;
+
+            svg {
+                width: 20px;
+                height: 20px;
+                fill: #28a745;
+                flex-shrink: 0;
+            }
+        }
+    }
+
+
     .sub-title {
         font-size: 22px;
         text-align: center;
@@ -226,6 +314,73 @@
                     font-family: Sans-font;
                 }
             }
+        }
+    }
+
+    .notification-settings-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1),
+                    0 6px 20px rgba(0, 0, 0, 0.1); 
+        padding: 16px;
+        width: 100%;
+        max-width: 320px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 15px;
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #16604a;
+
+            svg {
+                width: 24px;
+                height: 24px;
+                fill: #28a745;
+            }
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .settings-control {
+            width: 100%;
+            margin-top: 4px;
+            
+            .select-days {
+                width: 100%;
+                font-family: Sans-font;
+                font-size: 16px;
+                padding: 8px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                background-color: white;
+                color: #333;
+                outline: none;
+                cursor: pointer;
+                box-sizing: border-box;
+                
+                &:focus {
+                    border-color: #28a745;
+                }
+            }
+        }
+        
+        .save-indicator {
+            font-size: 12px;
+            color: #28a745;
+            text-align: right;
+            height: 14px;
         }
     }
 }

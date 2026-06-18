@@ -3,6 +3,10 @@ import { Button, Card, CardContent, Chip, Dialog, IconButton, Stack, TextField, 
 import { DataGrid } from "@mui/x-data-grid";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+<<<<<<< HEAD
+=======
+import { useNavigate } from "react-router";
+>>>>>>> main
 import DialogSchedule from "./dialog";
 import RequestAPI from "../../../js/requestAPI";
 import DateGAP from "../../../core/DateGAP";
@@ -17,7 +21,12 @@ const SchedulePlantsContext = createContext({
     station_id : ""
 })
 
+<<<<<<< HEAD
 export default function SchedulePlantManagement({ plant_id , station_id , onBack }) {
+=======
+export default function SchedulePlantManagement({ plant_id , station_id }) {
+    const navigator = useNavigate();
+>>>>>>> main
 
     const [ loadingPlantSchedules , setLoadingPlantSchedules ] = useState(true)
     const [ plantProfile , setPlantProfile ] = useState({})
@@ -93,7 +102,6 @@ export default function SchedulePlantManagement({ plant_id , station_id , onBack
                         requestSchedulePlants={requestSchedulePlants}
                     />
                 </Dialog>
-
                 {/* Header */}
                 <Stack
                     direction={{ xs: "column", sm: "row" }}
@@ -101,6 +109,7 @@ export default function SchedulePlantManagement({ plant_id , station_id , onBack
                     alignItems={{ sm: "center" }}
                     spacing={1}
                 >
+<<<<<<< HEAD
                     <Stack direction="row" alignItems="center" spacing={1}>
                         {onBack && (
                             <IconButton size="small" onClick={onBack} sx={{ bgcolor: 'action.hover' }}>
@@ -108,6 +117,13 @@ export default function SchedulePlantManagement({ plant_id , station_id , onBack
                             </IconButton>
                         )}
                         <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize: 18 }} />
+=======
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <IconButton size="small" onClick={() => navigator(-1)} sx={{ border: '1px solid #189D85', padding: '6px' }}>
+                            <ArrowBackIcon color="primary" />
+                        </IconButton>
+                        <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize: 18, alignSelf: 'flex-start' }} />
+>>>>>>> main
                     </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                         <TextField
