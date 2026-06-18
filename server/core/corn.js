@@ -109,6 +109,24 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                     // real-time ไปยัง doctor
                     if (socket) socket.to(`notify-${row.station}`).emit("update")
 
+                    // แจ้งเตือน doctor ผ่าน LINE
+                    try {
+                        const doctors = await checkUnrecorded.queryDoctorsByStation(connectionPool, row.station)
+                        const doctorUIDs = doctors.map(d => d.uid_line_doctor)
+                        if (doctorUIDs.length > 0) {
+                            await RoyalGapLine.multicast(
+                                doctorUIDs,
+                                MessageLineTemplate.bubbleTemplateUrl(
+                                    'เกษตรกรยังไม่บันทึกกิจกรรม',
+                                    checkUnrecorded.notifyDoctorLineMessage(row),
+                                    'https://doctor.gapv4.online',
+                                    { buttonLabel: 'ไปที่ระบบ GAP' }
+                                )
+                            )
+                        }
+                    } catch (lineErr) {
+                        console.error(`LINE notify doctor error (schedule: ${row.schedule_id}, greenhouse: ${row.greenhouse_id}):`, lineErr)
+                    }
 
                     // mark notified — update record ที่ schedulePlan สร้างไว้ก่อน ถ้าไม่มีค่อย insert ใหม่
                     const updated = await connectionPool.executeQuery(

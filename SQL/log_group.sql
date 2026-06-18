@@ -10,4 +10,4 @@ CREATE TABLE `log_group` (
   `because` longtext NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_group_id` (`group_id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
