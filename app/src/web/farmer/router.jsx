@@ -22,7 +22,6 @@ import PumpControlPage from "./src/content/Pump";
 import SchedulesPage from "./src/content/Schedules";
 import Houses from "./src/HouseList/houses";
 import HouseSetup from "./src/HouseList/setup";
-import NotificationSettings from "./src/NotificationSettings";
 
 // ✅ import หน้า PDF ที่เพิ่มใหม่
 import PDFPage from "./src/content/PDF/index.jsx";
@@ -43,7 +42,6 @@ export default function Router() {
             <Route index element={<Houses />} />
             <Route path=":greenhouse_id" element={<HouseSetup />} />
           </Route>
-          <Route path="notifications" element={<NotificationSettings />} />
           <Route path="weather-station" element={<WeatherStation />} />
           {/* ✅ GAP card-list — standalone LIFF entry point — แสดงทุกใบ GAP ที่ไม่ซ่อน ในทุกโรงเรือน */}
           <Route path="gap" element={<GapCardList />} />
