@@ -375,7 +375,7 @@ export default function WeatherManagement({
         <Grid size={{ sm: 12, md: 6 }} height={isMediaSm ? "45%" : "100%"} width={"100%"}>
           {/* ⬇️ ให้ export จับภาพตารางด้วย id นี้ */}
           <Stack id="weather-table-export" width={"100%"} height={"100%"} alignItems={"center"}>
-            <DataTable columns={columns} historyDatas={historyDatas} loadingHistory={loadingHistory} />
+            <DataTable columns={columns} historyDatas={historyDatas} loadingHistory={loadingHistory} activeField={effectiveField} />
           </Stack>
         </Grid>
       </Grid>

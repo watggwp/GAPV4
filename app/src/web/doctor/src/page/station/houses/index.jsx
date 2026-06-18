@@ -107,7 +107,7 @@ export default function Houses() {
     return(
         // <Grid size={{ xs : 12 , md : 5 }}>
         <React.Fragment>
-            <Grid container width={500} marginLeft={2}>
+            <Grid container width="100%" spacing={1}>
                 <Grid size={6} justifyContent={"center"} display={"flex"}>
                     <Stack
                         maxWidth={200}

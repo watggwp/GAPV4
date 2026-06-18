@@ -137,8 +137,8 @@ export default function WeatherStation() {
 
           <Grid size={{ xs: 4, xl: 6 }}>
             <Stack direction={"row"} justifyContent={"end"}>
-              <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}>
-                <Typography>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
+              <Button variant="contained" size="small" onClick={() => setOpenManageWeatherStation(true)}>
+                จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ
               </Button>
             </Stack>
           </Grid>

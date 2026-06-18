@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Button, Card, CardContent, Chip, Dialog, IconButton, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DialogSchedule from "./dialog";
 import RequestAPI from "../../../js/requestAPI";
 import DateGAP from "../../../core/DateGAP";
@@ -16,7 +17,7 @@ const SchedulePlantsContext = createContext({
     station_id : ""
 })
 
-export default function SchedulePlantManagement({ plant_id , station_id }) {
+export default function SchedulePlantManagement({ plant_id , station_id , onBack }) {
 
     const [ loadingPlantSchedules , setLoadingPlantSchedules ] = useState(true)
     const [ plantProfile , setPlantProfile ] = useState({})
@@ -100,7 +101,14 @@ export default function SchedulePlantManagement({ plant_id , station_id }) {
                     alignItems={{ sm: "center" }}
                     spacing={1}
                 >
-                    <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize: 18, alignSelf: 'flex-start' }} />
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                        {onBack && (
+                            <IconButton size="small" onClick={onBack} sx={{ bgcolor: 'action.hover' }}>
+                                <ArrowBackIcon fontSize="small" />
+                            </IconButton>
+                        )}
+                        <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize: 18 }} />
+                    </Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                         <TextField
                             placeholder="ค้นหา"
