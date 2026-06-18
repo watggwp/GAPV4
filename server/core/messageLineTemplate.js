@@ -1,5 +1,5 @@
 class MessageLineTemplate {
-    static bubbleTemplateUrl(alt , message, url , option = { buttonLabel : "ดูข้อมูล" }) {
+    static bubbleTemplateUrl(alt, message, url, option = { buttonLabel: "ดูข้อมูล" }) {
 
         const { buttonLabel } = option;
 
@@ -37,7 +37,7 @@ class MessageLineTemplate {
         }
     }
 
-    static bubbleOnlyUrl(message, url, option = { buttonLabel : "ดูข้อมูล" }) {
+    static bubbleOnlyUrl(message, url, option = { buttonLabel: "ดูข้อมูล" }) {
         const { buttonLabel } = option;
 
         if (!message || !url) {

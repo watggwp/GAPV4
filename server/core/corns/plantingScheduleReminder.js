@@ -73,7 +73,7 @@ const plantingScheduleReminder = {
         const date = new Date()
         date.setDate(date.getDate() + days)
         const dateString = `${date.getDate()} เดือน ${date.getMonth() + 1} ปี ${date.getFullYear() + 543}`
-        
+
         const actionName = category === 1 ? "ใส่ปุ๋ย" : (category === 2 ? "ใส่สารเคมี" : "")
         let reminderTitle = ""
         if (days === 0) {
@@ -81,10 +81,10 @@ const plantingScheduleReminder = {
         } else if (days === 1) {
             reminderTitle = `พรุ่งนี้อย่าลืม${actionName}`
         } else {
-            reminderTitle = `อีก ${days} วัน อย่าลืม${actionName}ด้วย`
+            reminderTitle = `อีก ${days} วัน อย่าลืม${actionName}`
         }
 
-        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่ทำกิจกรรม: ${dateString}`;
+        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
         const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
         switch (category) {

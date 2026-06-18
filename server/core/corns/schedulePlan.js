@@ -63,7 +63,7 @@ const schedulePlan = {
         const date = new Date()
         const dateString = `${date.getDate()} เดือน ${date.getMonth() + 1} ปี ${date.getFullYear() + 543}`
 
-        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่: ${dateString}`;
+        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
         const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
 
