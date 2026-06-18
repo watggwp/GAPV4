@@ -2,6 +2,8 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Button, Chip, Dialog, IconButton, Stack, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from "react-router";
 import DialogSchedule from "./dialog";
 import RequestAPI from "../../../js/requestAPI";
 import DateGAP from "../../../core/DateGAP";
@@ -17,6 +19,7 @@ const SchedulePlantsContext = createContext({
 })
 
 export default function SchedulePlantManagement({ plant_id , station_id }) {
+    const navigator = useNavigate();
 
     const [ loadingPlantSchedules , setLoadingPlantSchedules ] = useState(true)
 
@@ -109,7 +112,12 @@ export default function SchedulePlantManagement({ plant_id , station_id }) {
                     />
                 </Dialog>
                 <Stack direction={"row"} justifyContent={"space-between"}>
-                    <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize : 20 }} />
+                    <Stack direction={"row"} spacing={1} alignItems={"center"}>
+                        <IconButton size="small" onClick={() => navigator(-1)} sx={{ border: '1px solid #189D85', padding: '6px' }}>
+                            <ArrowBackIcon color="primary" />
+                        </IconButton>
+                        <Chip label={plantProfile.name} variant="outlined" color="primary" sx={{ fontSize : 20 }} />
+                    </Stack>
                     <Stack spacing={2} direction={"row"} alignItems={"center"}>
                         <TextField
                             placeholder="ค้นหา"

@@ -85,20 +85,7 @@ const plantingScheduleReminder = {
         }
 
         const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่ทำกิจกรรม: ${dateString}`;
-        let baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            const urlServerPath = path.join(__dirname, '../../../UrlServer.json');
-            if (fs.existsSync(urlServerPath)) {
-                const urlServerData = JSON.parse(fs.readFileSync(urlServerPath, 'utf8'));
-                if (urlServerData && urlServerData.url) {
-                    baseUrl = urlServerData.url;
-                }
-            }
-        } catch (e) {
-            console.error("Failed to read UrlServer.json in plantingScheduleReminder:", e);
-        }
+        const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
         const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
         switch (category) {
             case 1: {
@@ -117,9 +104,7 @@ const plantingScheduleReminder = {
                         title: reminderTitle,
                         subtitle: subtitle,
                         imageUrl: greenhouseImage,
-                        details: details_list, // Keep empty to avoid displaying details table on bubble
-                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
+                        details: details_list // Keep empty to avoid displaying details table on bubble
                     }),
                     details_message
                 ]
@@ -141,9 +126,7 @@ const plantingScheduleReminder = {
                         title: reminderTitle,
                         subtitle: subtitle,
                         imageUrl: greenhouseImage,
-                        details: details_list, // Keep empty to avoid displaying details table on bubble
-                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
+                        details: details_list // Keep empty to avoid displaying details table on bubble
                     }),
                     details_message
                 ]

@@ -138,25 +138,27 @@ class MessageLineTemplate {
                     }
                 ]
             },
-            "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
-                    {
-                        "type": "button",
-                        "style": "primary",
-                        "height": "sm",
-                        "color": "#1DB446",
-                        "action": {
-                            "type": "uri",
-                            "label": buttonLabel || "คลิกที่นี่",
-                            "uri": url
+            ...(url ? {
+                "footer": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "style": "primary",
+                            "height": "sm",
+                            "color": "#1DB446",
+                            "action": {
+                                "type": "uri",
+                                "label": buttonLabel || "คลิกที่นี่",
+                                "uri": url
+                            }
                         }
-                    }
-                ],
-                "flex": 0
-            }
+                    ],
+                    "flex": 0
+                }
+            } : {})
         };
     }
 

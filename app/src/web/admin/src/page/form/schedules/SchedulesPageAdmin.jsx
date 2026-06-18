@@ -55,7 +55,7 @@ function getMismatches(plan, actual, isFertilizer) {
         const p = normalize(pText);
         const a = normalize(aText);
         if (!p || !a) return false;
-        
+
         // Exact match
         if (p === a) return false;
 
@@ -66,7 +66,7 @@ function getMismatches(plan, actual, isFertilizer) {
             const pNum = parseFloat(pNumMatch[0]);
             const aNum = parseFloat(aNumMatch[0]);
             if (pNum !== aNum) return true; // Numbers are different -> mismatch!
-            
+
             // Numbers are identical, check units
             const pUnit = p.replace(/^[\d.]+/, "");
             const aUnit = a.replace(/^[\d.]+/, "");
