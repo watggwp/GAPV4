@@ -7,12 +7,15 @@ const RoyalGapLine = require("../configLine");
 const MessageLineTemplate = require('./messageLineTemplate');
 
 const schedulePlan = require('./corns/schedulePlan');
+const plantingScheduleReminder = require('./corns/plantingScheduleReminder');
 const checkUnrecorded = require('./corns/checkUnrecorded');
 const checkMismatch = require('./corns/checkMismatch');
 
 module.exports = function Schedules(connectionPool = new ConnectPool(), socket) {
     cron.schedule("0 6 * * *", async () => {
         console.log("Start Schedules GAP")
+
+        // 1. Current Day Schedule Plan Reminders
         try {
             const schedule_plan = await schedulePlan.queryPlan(connectionPool)
 
@@ -68,6 +71,65 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
             }
         } catch (error) {
             console.error(`Schedule plan cron error: ${error}`)
+        }
+
+        // 2. 1-Day Advance Reminders
+        console.log("Start Planting Schedule Reminder (1 day advance)")
+        try {
+            const advance_plan = await plantingScheduleReminder.queryPlan(connectionPool)
+
+            const groupedAdvancePlans = advance_plan.reduce((acc, curr) => {
+                const uid = curr.uid_line;
+                if (!acc[uid]) acc[uid] = [];
+                acc[uid].push(curr);
+                return acc;
+            }, {});
+
+            const sentAdvance = [];
+
+            for (const [uid_line, schedules] of Object.entries(groupedAdvancePlans)) {
+                try {
+                    const chunks = [];
+                    for (let i = 0; i < schedules.length; i += 10) {
+                        chunks.push(schedules.slice(i, i + 10));
+                    }
+
+                    for (const chunk of chunks) {
+                        const bubbles = [];
+                        const chunkSentInfo = [];
+
+                        for (const schedule of chunk) {
+                            const result = plantingScheduleReminder.generateMessage(schedule);
+                            if (result && result.length === 2) {
+                                const [bubbleMsg, details_message] = result;
+                                bubbles.push(bubbleMsg);
+                                chunkSentInfo.push({
+                                    schedule_id: schedule.id,
+                                    greenhouse_id: schedule.greenhouse_id,
+                                    details_message
+                                });
+                            }
+                        }
+
+                        if (bubbles.length > 0) {
+                            const carouselMsg = MessageLineTemplate.carouselTemplateUrl("แจ้งเตือนล่วงหน้า 1 วัน (GAP)", bubbles);
+                            await RoyalGapLine.pushMessage(uid_line, carouselMsg);
+                            sentAdvance.push(...chunkSentInfo);
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Advance reminder carousel error for uid: ${uid_line}:`, err);
+                }
+            }
+
+            if (sentAdvance.length > 0) {
+                await connectionPool.executeQuery(
+                    `INSERT INTO schedules_history (schedule_id, greenhouse_id, details_message) VALUES ${sentAdvance.map(() => "(?,?,?)").join(",")}`,
+                    sentAdvance.flatMap(r => [r.schedule_id, r.greenhouse_id, r.details_message.join("\n")])
+                )
+            }
+        } catch (error) {
+            console.error(`Planting schedule reminder cron error: ${error}`)
         }
     })
     //ปรับเวลาแจ้งเตือนตรงนี้
