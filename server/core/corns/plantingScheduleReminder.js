@@ -73,7 +73,7 @@ const plantingScheduleReminder = {
         const date = new Date()
         date.setDate(date.getDate() + days)
         const dateString = `${date.getDate()} เดือน ${date.getMonth() + 1} ปี ${date.getFullYear() + 543}`
-        
+
         const actionName = category === 1 ? "ใส่ปุ๋ย" : (category === 2 ? "ใส่สารเคมี" : "")
         let reminderTitle = ""
         if (days === 0) {
@@ -81,24 +81,11 @@ const plantingScheduleReminder = {
         } else if (days === 1) {
             reminderTitle = `พรุ่งนี้อย่าลืม${actionName}`
         } else {
-            reminderTitle = `อีก ${days} วัน อย่าลืม${actionName}ด้วย`
+            reminderTitle = `อีก ${days} วัน อย่าลืม${actionName}`
         }
 
-        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name} | วันที่ทำกิจกรรม: ${dateString}`;
-        let baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            const urlServerPath = path.join(__dirname, '../../../UrlServer.json');
-            if (fs.existsSync(urlServerPath)) {
-                const urlServerData = JSON.parse(fs.readFileSync(urlServerPath, 'utf8'));
-                if (urlServerData && urlServerData.url) {
-                    baseUrl = urlServerData.url;
-                }
-            }
-        } catch (e) {
-            console.error("Failed to read UrlServer.json in plantingScheduleReminder:", e);
-        }
+        const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
+        const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
         const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
         switch (category) {
             case 1: {
@@ -117,9 +104,7 @@ const plantingScheduleReminder = {
                         title: reminderTitle,
                         subtitle: subtitle,
                         imageUrl: greenhouseImage,
-                        details: details_list, // Keep empty to avoid displaying details table on bubble
-                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
+                        details: details_list // Keep empty to avoid displaying details table on bubble
                     }),
                     details_message
                 ]
@@ -141,9 +126,7 @@ const plantingScheduleReminder = {
                         title: reminderTitle,
                         subtitle: subtitle,
                         imageUrl: greenhouseImage,
-                        details: details_list, // Keep empty to avoid displaying details table on bubble
-                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
+                        details: details_list // Keep empty to avoid displaying details table on bubble
                     }),
                     details_message
                 ]
