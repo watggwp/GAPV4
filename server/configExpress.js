@@ -71,13 +71,13 @@ module.exports = function appConfig(username, password, hostServer) {
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     app.set('trust proxy', 1);
 
-    // app.use((req, res, next) => {
-    //     console.log('host:', req.headers.host);
-    //     console.log('protocol:', req.protocol);
-    //     console.log('secure:', req.secure);
-    //     console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
-    //     next();
-    // });
+    app.use((req, res, next) => {
+        console.log('host:', req.headers.host);
+        console.log('protocol:', req.protocol);
+        console.log('secure:', req.secure);
+        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
+        next();
+    });
 
     const upload = multer()
     const server =
@@ -102,17 +102,21 @@ module.exports = function appConfig(username, password, hostServer) {
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: isProduction,
-            maxAge: isProduction ? null : 1000 * 60 * 60 * 8,
-            sameSite: isProduction ? "none" : "lax"
+            secure: true,
+            // maxAge: 1000 * 60 * 60 * 24,
+            maxAge: null,
+            sameSite: "none"
         },
-        // cookie: {
-        //     httpOnly: true,
-        //     secure: true,
-        //     maxAge: null,
-        //     sameSite: "none"
-        // },
         resave: false
+        // cookie: {
+        //     // ตั้งให้เปิด mode https ได้
+        //     // httpOnly: true,
+        //     // secure : mode == process.env.BUILD,
+        //     maxAge: 1000 * 60 * 60 * 8, // 8 ชั่วโมง
+        //     sameSite: 'strict'
+        //     // secure: mode != process.env.BUILD ? false : true
+        // },
+        // resave: false
     })
 
     const subpathPrefix = process.env.PREFIX_PATH || ""; // ทุก redirect จะเพิ่ม prefix นี้
