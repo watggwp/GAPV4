@@ -1,5 +1,6 @@
 'use strict';
 
+const MessageLineTemplate = require('../messageLineTemplate');
 
 const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
@@ -76,12 +77,22 @@ const checkUnrecorded = {
 
     notifyDoctorLineMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
-        return [
-            `เกษตรกร: ${row.fullname}`,
-            `พืช: ${row.name_plant}`,
-            `กิจกรรม: ${row.title} (${typeLabel})`,
-            `โรงเรือน: ${row.greenhouse_name}`
-        ]
+        const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online"
+        const url = process.env.URL_DOCTOR || "https://doctor.gapv4.online"
+        return MessageLineTemplate.beautifulBubbleUrl({
+            title: "เกษตรกรยังไม่บันทึกข้อมูล",
+            // subtitle: `เกษตรกร: ${row.fullname}\nกิจกรรม: ${row.title} (${typeLabel})`,
+            imageUrl: `${baseUrl}/image/house?imagefarm=${row.greenhouse_id}&v=${new Date().getTime()}&ext=.jpg`,
+            details: [
+                { label: "เกษตรกร", value: row.fullname },
+                { label: "โรงเรือน", value: `${row.greenhouse_name}` },
+                { label: "พืช", value: `${row.name_plant}` },
+                { label: "กิจกรรม", value: `${row.title} (${typeLabel})` }
+
+            ],
+            url: `${url}/doctor`,
+            buttonLabel: "คลิกเพื่อดูรายละเอียด"
+        })
     }
 }
 

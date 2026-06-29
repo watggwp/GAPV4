@@ -116,7 +116,7 @@ class MessageLineTemplate {
                         "wrap": true,
                         "color": "#2c3e50"
                     },
-                    {
+                    ...(subtitle ? [{
                         "type": "text",
                         "text": subtitle,
                         "size": "sm",
@@ -124,7 +124,7 @@ class MessageLineTemplate {
                         "weight": "bold",
                         "margin": "sm",
                         "wrap": true
-                    },
+                    }] : []),
                     {
                         "type": "separator",
                         "margin": "md"
