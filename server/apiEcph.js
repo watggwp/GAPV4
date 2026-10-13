@@ -91,7 +91,7 @@ module.exports = function apiEcph(app, pool = new Pool()) {
         }
         
         try {
-            pool.executeQuery(
+            await pool.executeQuery(
                 `INSERT INTO ecph (id_formplant, ec_value, ph_value) VALUES (?, ?, ?)`,
                 [id_formplant, ec_value, ph_value],
             )

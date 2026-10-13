@@ -22,6 +22,7 @@ const ScheduleCorn = require("./core/corn")
 
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
+const ownershipGuard = require('./middleware/ownershipGuard');
 
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
@@ -216,6 +217,20 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use("/api/chemicals", authorizer(Pool))
     app.use("/api/fertilizers", authorizer(Pool))
     app.use("/api/pests/*", authorizer(Pool))
+
+    // เกษตรกร (?r=farmer) เข้าถึงได้เฉพาะโรงเรือน/แปลง/อุปกรณ์ของตัวเอง
+    const owns = ownershipGuard(Pool)
+    const byParam = (name) => (req) => req.params[name]
+    const byBody = (name) => (req) => req.body && req.body[name]
+    app.get("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.post("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.put("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.delete("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/sensor/weather-greenhouse", owns("weatherSensor", byBody("id")))
+    app.all("/api/pump/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/pump", owns("pumpSensor", byBody("id")))
 
     // config environment
     app.use(upload.any())
