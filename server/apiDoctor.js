@@ -16,6 +16,7 @@ const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
 const SafeUpdate = require('./core/safeUpdate');
+const MessageLineTemplate = require('./core/messageLineTemplate');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const io = new Server()
@@ -4225,6 +4226,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
                 const { id_plant } = req.body
+                const doctorName = result.data.fullname_doctor
                 try {
                     const name = req.body.img_report ?
                         await new Promise((resole, reject) => {
@@ -4246,38 +4248,27 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             VALUES
                             (? , ? , ? , ? , 0)
                         ` , [req.body.id_plant, req.body.report_text, result.data.id_table_doctor, name],
-                        async (err, result) => {
+                        async (err) => {
                             if (!err) {
-                                const { lineIds: arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                // ส่งเป็นการ์ดคำแนะนำ (รูปแนบอยู่ในการ์ด แตะเพื่อดูรูปเต็ม)
+                                const adviceUrl = `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
                                     (gapData) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        return [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `มีคำแนะนำการปลูกจากหมอพืช`,
-                                            '',
-                                            req.body.report_text
-                                        ]
+                                        return MessageLineTemplate.adviceMessage({
+                                            fromLabel: "หมอพืช",
+                                            senderName: doctorName,
+                                            greenhouseName: greenhouse_name,
+                                            plantName: plant_name,
+                                            advice: req.body.report_text,
+                                            imageUrl: name ? `${UrlApi}/doctor/report/${name}` : "",
+                                            url: adviceUrl
+                                        })
                                     },
-                                    {
-                                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
-                                    }
+                                    { url: adviceUrl }
                                 )
-                                // const arrUID = await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชให้คำแนะนำกับการปลูก" , `\nคำแนะนำ : ${req.body.report_text}`)
-                                if (name) {
-                                    const imageURL = `${UrlApi}/doctor/report/${name}`;
-                                    try {
-                                        RoyalGapLine.multicast(
-                                            arrUID,
-                                            {
-                                                type: "image",
-                                                originalContentUrl: imageURL,
-                                                previewImageUrl: imageURL
-                                            }
-                                        )
-                                    } catch (e) { }
-                                }
 
                                 con.end()
                                 res.send("113")

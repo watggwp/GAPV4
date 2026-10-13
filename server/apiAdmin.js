@@ -7,6 +7,7 @@ const { ca } = require('date-fns/locale');
 const RoyalGapLine = require('./configLine');
 const AccountAuth = require('./core/accountAuth');
 const SafeUpdate = require('./core/safeUpdate');
+const MessageLineTemplate = require('./core/messageLineTemplate');
 const fs = require('fs');
 const path = require('path');
 // โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
@@ -4816,6 +4817,7 @@ app.post('/api/admin/report/list', async(req, res) => {
           const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
           if (result['result'] === "pass") {
               const { id_plant } = req.body
+              const adminName = result.data.fullname_admin
               try {
                   const fs = require('fs');
                   const name = req.body.img_report ?
@@ -4838,37 +4840,27 @@ app.post('/api/admin/report/list', async(req, res) => {
                           VALUES
                           (? , ? , ? , ? , ?)
                       ` , [req.body.id_plant, req.body.report_text, 0, name, result.data.id],
-                      async (err, result) => {
+                      async (err) => {
                           if (!err) {
-                              const { lineIds: arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                              // ส่งเป็นการ์ดคำแนะนำ (รูปแนบอยู่ในการ์ด แตะเพื่อดูรูปเต็ม)
+                              const adviceUrl = `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                              await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
                                   (gapData) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      return [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `มีคำแนะนำการปลูกจากเจ้าหน้าที่`,
-                                          '',
-                                          req.body.report_text
-                                      ]
+                                      return MessageLineTemplate.adviceMessage({
+                                          fromLabel: "เจ้าหน้าที่",
+                                          senderName: adminName,
+                                          greenhouseName: greenhouse_name,
+                                          plantName: plant_name,
+                                          advice: req.body.report_text,
+                                          imageUrl: name ? `${hostServer}/doctor/report/${name}` : "",
+                                          url: adviceUrl
+                                      })
                                   },
-                                  {
-                                      url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
-                                  }
+                                  { url: adviceUrl }
                               )
-                              if (name) {
-                                  const imageURL = `${hostServer}/doctor/report/${name}`;
-                                  try {
-                                      RoyalGapLine.multicast(
-                                          arrUID,
-                                          {
-                                              type: "image",
-                                              originalContentUrl: imageURL,
-                                              previewImageUrl: imageURL
-                                          }
-                                      )
-                                  } catch (e) { }
-                              }
 
                               con.end()
                               res.send("113")

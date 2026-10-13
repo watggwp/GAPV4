@@ -57,9 +57,10 @@ class LineGAP extends Line.Client {
 			const message = await generateMessage(resultGAP[0] || {})
 			
 			try {
+				// generateMessage คืนข้อความ LINE สำเร็จรูป (มี type) ได้ เช่น การ์ดคำแนะนำ
 				await this.multicast(
 					farmerLineIDs , 
-					!buttonData ? {
+					message && message.type ? message : !buttonData ? {
 						type : "text" , 
 						text : message.join("\n")
 					} : {
