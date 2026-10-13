@@ -1,7 +1,7 @@
 import React, { useEffect, useState , useRef, useCallback, useMemo } from "react";
-import "../../../assets/style/page/form/DetailEdit.scss"
-import { clientMo } from "../../../../../../assets/js/moduleClient";
-import { DayJSX, Loading, ReportAction } from "../../../../../../assets/js/module";
+import "../../style/shared/form/DetailEdit.scss"
+import { clientMo } from "../../js/moduleClient";
+import { DayJSX, Loading, ReportAction } from "../../js/module";
 
 const DetailEdit = ({Ref , setRef , id_report}) => {
     const [reportHistorys , setReportHistorys] = useState({

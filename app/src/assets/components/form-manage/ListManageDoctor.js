@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { DayJSX, Loading, OpenImageMax, PopupDom } from "../../../../../assets/js/module";
-import { clientMo } from "../../../../../assets/js/moduleClient";
-import DetailEdit from "./report/DetailEdit";
+import { DayJSX, Loading, OpenImageMax, PopupDom } from "../../js/module";
+import { clientMo } from "../../js/moduleClient";
+import DetailEdit from "./ReportDetailEdit";
 
 const ListSuccess = ({data , index , DoctorSuccess}) => {
     return(

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useAdminContext } from "../../../Admin";
 import RequestAPI from "../../../../../../assets/js/requestAPI";
 import { useWeatherStation } from "..";
-import House from "./house";
+import House from "../../../../../../assets/components/station-management/house";
 
 export default function Houses() {
 

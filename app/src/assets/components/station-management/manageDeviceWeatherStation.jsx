@@ -1,6 +1,6 @@
 import { IconButton, Paper, Stack, Typography } from "@mui/material";
-import env from "../../../../../env";
-import DeviceManagement from "../../../../../assets/components/device-management";
+import env from "../../../env";
+import DeviceManagement from "../device-management";
 
 const { icon : { close : Close } } = env
 export default function ManageDevicesWeatherStation({

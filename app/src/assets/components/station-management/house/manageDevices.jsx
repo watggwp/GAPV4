@@ -1,11 +1,14 @@
 import { IconButton, Paper, Stack, Typography } from "@mui/material";
-import env from "../../../../../env";
-import DeviceManagement from "../../../../../assets/components/device-management";
+import DeviceManagement from "../../device-management";
+import { useHouse } from ".";
+import env from "../../../../env";
 
-const { icon : { close : Close } } = env
-export default function ManageDevicesWeatherStation({
-    setOpen , selectedStation
+const { icon : { history : History , close : Close } } = env
+export default function ManageDevices({
+    setOpen
 }) {
+
+    const { greenhouse_id , requestDevices } = useHouse()
 
     return(
         <Stack
@@ -22,7 +25,7 @@ export default function ManageDevicesWeatherStation({
                     padding : 3,
                     width : "90%",
                     maxWidth : 400,
-                    height : "90%",
+                    height : "80%",
                     flexDirection : "column"
                 }}
             >
@@ -34,21 +37,20 @@ export default function ManageDevicesWeatherStation({
                 </Stack>
                 <Stack
                     overflow={"auto"}
-                    width={"100%"}
                     height={"calc(100% - 70px)"}
                 >
                     <DeviceManagement
                         menuDatas={[
                             {
-                                id : "weather",
+                                id : "greenhouse",
                                 dataPage : {
                                     devices : {
-                                        path : `/api/sensor/weather-station/:selectedStation/list`,
+                                        path : `/api/sensor/weather-greenhouse/:greenhouse_id`,
                                         query : {
                                             r : "doctor"
                                         },
                                         pathParams : {
-                                            selectedStation
+                                            greenhouse_id
                                         },
                                         columnsData : {
                                             id : "id",
@@ -57,16 +59,53 @@ export default function ManageDevicesWeatherStation({
                                         }
                                     },
                                     add : {
-                                        path : "/api/sensor/weather-station/:selectedStation",
+                                        path : "/api/sensor/weather-greenhouse/:greenhouse_id",
                                         query : {
                                             r : "doctor"
                                         },
                                         pathParams : {
-                                            selectedStation
+                                            greenhouse_id
+                                        },
+                                        onAddComplete : requestDevices
+                                    },
+                                    delete : {
+                                        path : "/api/sensor/weather-greenhouse",
+                                        query : {
+                                            r : "doctor"
+                                        },
+                                        typeDelete : "unregister",
+                                        onDeleteComplete : requestDevices
+                                    }
+                                }
+                            },
+                            {
+                                id : "pump",
+                                dataPage : {
+                                    devices : {
+                                        path : `/api/pump/:greenhouse_id`,
+                                        query : {
+                                            r : "doctor"
+                                        },
+                                        pathParams : {
+                                            greenhouse_id
+                                        },
+                                        columnsData : {
+                                            id : "id",
+                                            device_id : "device_id",
+                                            status : "status"
+                                        }
+                                    },
+                                    add : {
+                                        path : "/api/pump/:greenhouse_id",
+                                        query : {
+                                            r : "doctor"
+                                        },
+                                        pathParams : {
+                                            greenhouse_id
                                         },
                                     },
                                     delete : {
-                                        path : "/api/sensor/weather-station",
+                                        path : "/api/pump/",
                                         query : {
                                             r : "doctor"
                                         },

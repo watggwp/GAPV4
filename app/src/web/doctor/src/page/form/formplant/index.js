@@ -1,6 +1,6 @@
 import { useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DateSelect, DayJSX, MapsJSX } from "../../../../../../assets/js/module";
-import "../../../assets/style/page/form/FormEdit.scss";
+import "../../../../../../assets/style/shared/form/FormEdit.scss";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { DoctorContext } from "../../../Doctor";
 import { inputBaseClasses, MenuItem, Select, selectClasses, Stack, TextField, textFieldClasses } from "@mui/material";

@@ -6,7 +6,7 @@ import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 import { Grid } from "@mui/system";
-import ManageDevicesWeatherStation from "./manageDevice";
+import ManageDevicesWeatherStation from "../../../../../assets/components/station-management/manageDeviceWeatherStation";
 
 const WeatherStationContext = createContext({
   selectedStationData: {},

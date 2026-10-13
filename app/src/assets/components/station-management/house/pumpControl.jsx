@@ -1,9 +1,9 @@
 import { IconButton, LinearProgress, Paper, Stack, Typography } from "@mui/material"
 import { useCallback, useEffect, useState } from "react"
 import { useHouse } from "."
-import RequestAPI from "../../../../../../../assets/js/requestAPI"
-import env from "../../../../../../../env"
-import PumpManagement from "../../../../../../../assets/components/pump-management"
+import RequestAPI from "../../../js/requestAPI"
+import env from "../../../../env"
+import PumpManagement from "../../pump-management"
 
 const { icon: { history: History, close: Close } } = env
 

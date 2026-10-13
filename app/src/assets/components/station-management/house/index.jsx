@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import WeatherManagement from "../../../../../../../assets/components/weather-management";
-import RequestAPI from "../../../../../../../assets/js/requestAPI";
-import { Loading } from "../../../../../../../assets/js/module";
+import WeatherManagement from "../../weather-management";
+import RequestAPI from "../../../js/requestAPI";
+import { Loading } from "../../../js/module";
 import { Box, Chip, Button, IconButton, Modal, Paper, Stack, Typography } from "@mui/material";
 // import { useWeatherStation } from "../..";
-import env from "../../../../../../../env";
+import env from "../../../../env";
 import PumpControl from "./pumpControl";
 import ManageDevices from "./manageDevices";
 

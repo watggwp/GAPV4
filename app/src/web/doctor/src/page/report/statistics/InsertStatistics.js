@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { clientMo } from "../../../../../../assets/js/moduleClient";
 import ButtonChangeStatistics from "./buttonChange";
-import { PageTemplateContext } from "../../../../../admin/src/page/PageTemplate";
 
 export const InsertStatisticsContext = createContext({
   minCount: 0,
@@ -27,7 +26,8 @@ export function InsertStatisticsProvider({ children }) {
 }
 
 const InsertStatistics = () => {
-  const { textSearch } = useContext(PageTemplateContext)
+  // หน้านี้ของหมอไม่มีช่องค้นหา (เดิมดึง context ของแอป admin มาใช้ค่า default "")
+  const textSearch = ""
   const { minCount, selectedRows, setMinCount, setSelectedRows } = useContext(InsertStatisticsContext)
 
   const [pestsMapping, setPestsMapping] = useState(new Map())
