@@ -260,7 +260,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
             try {
                 const auth = await authCheck(con, res, req);
-                const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
+                const where = req.body.id_edit ? `AND editform.id_edit = ${con.escape(req.body.id_edit)}` : '';
 
                 con.query(
                     `
@@ -1613,16 +1613,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
                 delete req.body.password
-                const img = req.body.img ? `img = "${req.body.img}"` : "";
-                const id = req.body.id_farmer ? `id_farmer = "${req.body.id_farmer}"` : "";
-                const fullname = req.body.fullname ? `fullname = "${req.body.fullname}"` : "";
-                const location = req.body.lag && req.body.lng ? `location = POINT(${req.body.lag} , ${req.body.lng})` : "";
-                const station = req.body.station ? `station = "${req.body.station}"` : "";
-                const tel_number = req.body.tel_number ? `tel_number = "${req.body.tel_number}"` : "";
-                const text_location = req.body.text_location ? `text_location = "${req.body.text_location}"` : "";
-                const newPassword = req.body.newPassword ? `password = SHA2("${req.body.newPassword}" , 256)` : "";
+                // ใช้ placeholder ทุกค่า ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในชื่อ/ที่อยู่ทิ้ง)
+                const setClauses = []
+                const setParams = []
+                const addSet = (clause, ...values) => { setClauses.push(clause); setParams.push(...values) }
+                if (req.body.img) addSet("img = ?", req.body.img)
+                if (req.body.id_farmer) addSet("id_farmer = ?", req.body.id_farmer)
+                if (req.body.fullname) addSet("fullname = ?", req.body.fullname)
+                if (req.body.lag && req.body.lng && !isNaN(parseFloat(req.body.lag)) && !isNaN(parseFloat(req.body.lng)))
+                    addSet("location = POINT(? , ?)", parseFloat(req.body.lag), parseFloat(req.body.lng))
+                if (req.body.station) addSet("station = ?", req.body.station)
+                if (req.body.tel_number) addSet("tel_number = ?", req.body.tel_number)
+                if (req.body.text_location) addSet("text_location = ?", req.body.text_location)
+                if (req.body.newPassword) addSet("password = SHA2(? , 256)", req.body.newPassword)
 
-                const SET = [img, id, fullname, location, station, tel_number, text_location, newPassword].filter(val => val).join(" , ").replaceAll(" ", "")
+                const SET = setClauses.join(" , ")
 
                 if (SET) {
                     const checkProfile = await new Promise((resole, reject) => {
@@ -1701,7 +1706,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 UPDATE acc_farmer
                                 SET ${SET}
                                 WHERE id_table = ?
-                            ` , [req.body.id_table],
+                            ` , [...setParams, req.body.id_table],
                             (err, resultEdit) => {
                                 con.end()
                                 if (!err) res.send("1")
@@ -1785,7 +1790,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 console.log("✅ Authentication Successful:", result['data']);
 
                 const { body: { textSearch = "", station_id = "" } } = req
-                const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit); // ตั้งค่าดีฟอลต์เป็น 10
                 console.log("🔹 Query Limit:", Limit);
 
                 let queryType;
@@ -2215,7 +2220,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
             if (result['result'] === "pass") {
-                const Limit = isNaN(parseInt(req.body.limit)) ? 0 : req.body.limit;
+                const Limit = isNaN(parseInt(req.body.limit)) ? 0 : parseInt(req.body.limit);
                 con.query(
                     `
                     SELECT acc_farmer.id_table , acc_farmer.fullname , acc_farmer.img , acc_farmer.id_farmer
@@ -2710,7 +2715,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.end()
                     res.send(ListMsg)
                 } else if (req.body.open_msg === "load") {
-                    const LIMIT = isNaN(parseInt(req.body.limit)) ? 0 : req.body.limit
+                    const LIMIT = isNaN(parseInt(req.body.limit)) ? 0 : parseInt(req.body.limit)
                     const OFFSET = isNaN(parseInt(req.body.offset)) ? 0 : req.body.offset
 
                     const ListMsg = await new Promise((resole, reject) => {
@@ -2778,8 +2783,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 // select out table
                 const TextInsert = req.body.textInput ?? "";
                 const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-                const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) && req.body.statusForm !== "" ? parseInt(req.body.statusForm) : null;
-                const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+                const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+                const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
                 const SubStatusForm = req.body.subStatusForm ?? "";
                 let subStatusSql = "";
@@ -2814,7 +2819,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
 
                 const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
-                const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
 
                 con.query(
                     `
@@ -4203,8 +4208,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         }) : null;
 
                     if (req.body.report_text || img_path != null) {
-                        const SET = new Array(req.body.report_text ? `report_text = '${req.body.report_text}'` : "", img_path != null ? `image_path = '${img_path}'` : "")
-                            .filter(val => val).join(",").replaceAll(" ", "")
+                        // ใช้ placeholder ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในข้อความทิ้ง)
+                        const setClauses = []
+                        const setParams = []
+                        if (req.body.report_text) { setClauses.push("report_text = ?"); setParams.push(req.body.report_text) }
+                        if (img_path != null) { setClauses.push("image_path = ?"); setParams.push(img_path) }
+                        const SET = setClauses.join(", ")
 
                         const old_report = await new Promise((resolve) => {
                             con.query(
@@ -4217,7 +4226,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 (err, oldData) => {
                                     if (err) {
                                         console.log("edit report");
-                                        return 0;
+                                        resolve(undefined)
+                                        return;
                                     }
 
                                     resolve(oldData[0])
@@ -4225,12 +4235,18 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             )
                         })
 
+                        // ไม่พบคำแนะนำนี้ (เดิม server ล่มเพราะอ่าน property ของ undefined)
+                        if (!old_report) {
+                            con.end()
+                            return res.send("not")
+                        }
+
                         con.query(
                             `
                             UPDATE report_detail
                             SET ${SET}
                             WHERE id_plant = ? and id = ? and id_table_doctor = ?
-                            ` , [req.body.id_plant, req.body.id, result.data.id_table_doctor],
+                            ` , [...setParams, req.body.id_plant, req.body.id, result.data.id_table_doctor],
                             (err, resultEdit) => {
                                 if (err) {
                                     dbpacket.dbErrorReturn(con, err, res);
@@ -4472,8 +4488,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 // select out table
                 const TextInsert = req.body.textInput ?? "";
                 const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-                const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) ? req.body.statusForm : null;
-                const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+                const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+                const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
                 const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
                 const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
@@ -4719,12 +4735,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     req.body.type == "pest" ? { pest_name: 1, type_pest: 1 } :
                                         ""
                     if (!Check || !Check[Data[0]]) return null
-                    else if (Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE '${Data[1]}' )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
-                    else return `INSTR( ${Data[0]} , '${Data[1]}' )`
+                    else if (Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE ${con.escape(String(Data[1]))} )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
+                    else return `INSTR( ${Data[0]} , ${con.escape(String(Data[1]))} )`
                 })
 
-                const StartRow = !isNaN(req.body.StartRow) ? req.body.StartRow : 0
-                const Limit = !isNaN(req.body.Limit) ? req.body.Limit : 0
+                const StartRow = isNaN(parseInt(req.body.StartRow)) ? 0 : parseInt(req.body.StartRow)
+                const Limit = isNaN(parseInt(req.body.Limit)) ? 0 : parseInt(req.body.Limit)
                 if (From && QuerySearch.filter(val => val == null).length === 0) {
                     const columnName = (
                         req.body.type == "pest" ? "pest_name" : "name"
@@ -4733,7 +4749,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         `
                         SELECT * 
                         FROM ${From}
-                        ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ").replaceAll(";", "")}` : ""}
+                        ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ")}` : ""}
                         ORDER BY is_use DESC , ${columnName} ASC
                         LIMIT ${Limit} OFFSET ${StartRow}
                         ` ,

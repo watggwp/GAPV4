@@ -425,10 +425,16 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con, req)
-                const name = (req.body.name) ? `name_house = "${req.body.name}"` : ""
-                const img = (req.body.img) ? `img_house = "${req.body.img}"` : ""
-                const location = (req.body.lag && req.body.lng) ? `location = POINT(${req.body.lag} , ${req.body.lng})` : ""
-                const SET = [name, img, location].filter(val => val).join(" , ")
+                // ใช้ placeholder ป้องกัน SQL injection
+                const setClauses = []
+                const setParams = []
+                if (req.body.name) { setClauses.push("name_house = ?"); setParams.push(req.body.name) }
+                if (req.body.img) { setClauses.push("img_house = ?"); setParams.push(req.body.img) }
+                if (req.body.lag && req.body.lng && !isNaN(parseFloat(req.body.lag)) && !isNaN(parseFloat(req.body.lng))) {
+                    setClauses.push("location = POINT(? , ?)")
+                    setParams.push(parseFloat(req.body.lag), parseFloat(req.body.lng))
+                }
+                const SET = setClauses.join(" , ")
                 if (SET.length != 0) {
                     con.query(
                         `
@@ -436,7 +442,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         SET ${SET}
                         WHERE id_farm_house = ? and link_user = ?
                         ` ,
-                        [req.body.id_farmhouse, auth.data.link_user],
+                        [...setParams, req.body.id_farmhouse, auth.data.link_user],
                         (err, result) => {
                             con.end()
                             if (!err) res.send("113")
@@ -458,7 +464,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
             try {
                 const auth = await authCheck(con, req);
-                const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
+                const where = (req.body.id_formplant) ? `and formplant.id = ${con.escape(req.body.id_formplant)}` : "";
 
                 const select = (req.body.id_formplant) ?
                     `formplant.*` :
@@ -646,7 +652,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
     //         try {
     //             const auth = await authCheck(con, req);
-    //             const where = (req.body.id_formplant) ? `and formplant.id = "${req.body.id_formplant}"` : "";
+    //             const where = (req.body.id_formplant) ? `and formplant.id = ${con.escape(req.body.id_formplant)}` : "";
 
     //             const select = (req.body.id_formplant) ? 
     //                 `formplant.*` :
@@ -1983,7 +1989,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             try {
                 const auth = await authCheck(con, req);
                 const where = req.body.id_edit
-                    ? `AND editform.id_edit = '${req.body.id_edit}'`
+                    ? `AND editform.id_edit = ${con.escape(req.body.id_edit)}`
                     : "";
 
                 con.query(
@@ -2222,11 +2228,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
             try {
                 const auth = await authCheck(con, req)
-                const where = (req.body.id_factor) ?
-                    `and form${req.body.type}.id = "${req.body.id_factor}"` :
-                    ""
-
                 const Type = req.body.type == "fertilizer" ? "fertilizer" : "chemical";
+                const where = (req.body.id_factor) ?
+                    `and form${Type}.id = ${con.escape(req.body.id_factor)}` :
+                    ""
+                // รับเฉพาะคอลัมน์ที่อนุญาตใน ORDER BY
+                const orderColumn = ["date", "id"].includes(req.body.order) ? req.body.order : "date"
 
                 con.query(`
                             SELECT form${Type}.* , formPlant.state_status
@@ -2241,7 +2248,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     WHERE formplant.id_farm_house = houseFarm.id_farm_house && formplant.id = ?
                                 ) as formPlant
                             WHERE form${Type}.id_plant = formPlant.id ${where}
-                            ORDER BY ${req.body.order} DESC
+                            ORDER BY ${orderColumn} DESC
                         ` ,
                     [
                         auth.data.uid_line, auth.data.link_user,
@@ -2311,7 +2318,12 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
             try {
                 const auth = await authCheck(con, req)
-                con.query(`SELECT * FROM ${req.body.type}_list WHERE is_use = 1`, (err, result) => {
+                const listType = req.body.type === "fertilizer" ? "fertilizer" : req.body.type === "chemical" ? "chemical" : null
+                if (!listType) {
+                    con.end()
+                    return res.send("error auth")
+                }
+                con.query(`SELECT * FROM ${listType}_list WHERE is_use = 1`, (err, result) => {
                     con.end()
                     if (!err) {
                         res.send(result)
@@ -2992,7 +3004,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             try {
                 const auth = await authCheck(con, req);
                 const where = req.body.id_edit
-                    ? `AND editform.id_edit = '${req.body.id_edit}'`
+                    ? `AND editform.id_edit = ${con.escape(req.body.id_edit)}`
                     : "";
                 const FactorType = req.body.type_form === "fertilizer" ? "fertilizer" : req.body.type_form === "chemical" ? "chemical" : null;
 
