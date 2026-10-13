@@ -14,9 +14,15 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
     })
     io.engine.use(sessionMiddleware);
     
+    // ใช้ session ที่ได้ตอน handshake เท่านั้น ไม่รับ username/password จาก client
+    const sessionOf = (socket_client) => socket_client.request.session || {}
+    const isAdmin = (socket_client) => Boolean(sessionOf(socket_client).user_username)
+    const isDoctor = (socket_client) => Boolean(sessionOf(socket_client).user_doctor && sessionOf(socket_client).pass_doctor)
+
     io.on("connection" , (socket_client)=>{
         //admin
         socket_client.on("connect-doctor-list" , ()=>{
+            if (!isAdmin(socket_client)) return
             socket_client.join("admin:doctor:list")
         })
 
@@ -25,32 +31,33 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
         })
 
         //doctor
-        socket_client.on("connect-account" , async (username , password)=>{
+        socket_client.on("connect-account" , async ()=>{
             try {
+                if (!isDoctor(socket_client)) return
 
                 const JsonOB = {
-                    user_doctor : socket_client.request.session.user_doctor ?? username ,
-                    pass_doctor : socket_client.request.session.pass_doctor ?? password
+                    user_doctor : sessionOf(socket_client).user_doctor ,
+                    pass_doctor : sessionOf(socket_client).pass_doctor
                 }
 
                 const id_table = await UpdateTimeOnline(io , JsonOB.user_doctor , JsonOB.pass_doctor , "online")
                 socket_client.data.username = JsonOB.user_doctor
                 socket_client.data.password = JsonOB.pass_doctor
                 socket_client.data.auth = "doctor"
-                socket_client.join(`${JsonOB.user_doctor}:${JsonOB.pass_doctor}`)
+                socket_client.join(onlineRoom(JsonOB.user_doctor))
                 if(id_table) io.to("admin:doctor:list").emit("update-online" , id_table , "online")
             } catch(e) {
                 console.log(e)
             }
         })
 
-        socket_client.on("disconnect-account" , async (username_in , password_in) => {
-            const username = socket_client.data.username ?? username_in
-            const password = socket_client.data.password ?? password_in
+        socket_client.on("disconnect-account" , async () => {
+            const username = socket_client.data.username
+            const password = socket_client.data.password
             if(username && password && socket_client.data.auth == "doctor") {
                 const time_end = new Date().getTime()
 
-                socket_client.leave(`${username}:${password}`)
+                socket_client.leave(onlineRoom(username))
                 const id_table = await UpdateTimeOnline(io , username , password , time_end)
                 if(id_table) io.to("admin:doctor:list").emit("update-online" , id_table , time_end)
                 delete socket_client.data.username , delete socket_client.data.password;
@@ -58,6 +65,7 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
         })
 
         socket_client.on("connect msg" , (uid_line)=>{
+            if (!isDoctor(socket_client) || typeof uid_line !== "string") return
             socket_client.join(uid_line)
         })
 
@@ -66,6 +74,7 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
         })
 
         socket_client.on("connect_notify_doctor" , (station)=>{
+            if (!isDoctor(socket_client)) return
             socket_client.join(`notify-${station}`)
         })
 
@@ -80,7 +89,7 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
             if(username && password && socket_client.data.auth == "doctor") {
                 const time_end = new Date().getTime()
 
-                socket_client.leave(`${username}:${password}`)
+                socket_client.leave(onlineRoom(username))
                 const id_table = await UpdateTimeOnline(io , username , password , time_end)
                 if(id_table) io.to("admin:doctor:list").emit("update-online" , id_table , time_end)
                 delete socket_client.data.username , delete socket_client.data.password;
@@ -88,9 +97,12 @@ module.exports = function WebSocketServ (server , sessionMiddleware , origins , 
         })
     })
 
+    // ห้องนับจำนวนแท็บที่หมอเปิดอยู่ (เดิมใช้ "username:password" เป็นชื่อห้อง)
+    const onlineRoom = (username) => `doctor-online:${username}`
+
     const UpdateTimeOnline = async (socket_io , username , password , status) => {
         return await new Promise((resole)=> {
-            const clientID = socket_io.sockets.adapter.rooms.get(`${username}:${password}`) ?? new Set()
+            const clientID = socket_io.sockets.adapter.rooms.get(onlineRoom(username)) ?? new Set()
             if(!clientID.size) {
                 const db = Database.createConnection(listDB)
                 apifunc.auth(db , username , password , null , "acc_doctor")

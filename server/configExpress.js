@@ -96,6 +96,9 @@ module.exports = function appConfig(username, password, hostServer) {
 
     // set session
     const isProduction = mode == process.env.BUILD
+    if (isProduction && (process.env.KEY_SESSION || "").length < 32) {
+        console.warn("[security] KEY_SESSION สั้นหรือไม่ได้ตั้งค่า ควรใช้ค่าสุ่มอย่างน้อย 32 ตัวอักษร")
+    }
     const sessionMiddleware = sessions({
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",

@@ -104,6 +104,7 @@ list.forEach((item) =>
             setTimeout(()=>{
                 clientMo.postForm('/api/doctor/auth' , formData).then((context)=>{
                     if(context === "pass") {
+                        socket.disconnect().connect()
                         setMain(<Doctor setMain={setMain} socket={socket} isClick={1} username={formData.username} password={formData.password}/>)
                     } else if(context === "account") {
                         ErrorLogin.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ"
@@ -304,6 +305,7 @@ const handleStationChange = (event) => {
                     password:pw.value
                 })
                 if(result === "pass"){
+                    main.socket.disconnect().connect()
                     main.setMain(<Doctor isClick={1} setMain={main.setMain} socket={main.socket} username={id_doctor} password={pw.value}/>)
                 } else if(result === "password") {
                     pw.setAttribute('err' , "")
