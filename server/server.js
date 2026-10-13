@@ -2,14 +2,24 @@ const db  = require('mysql')
 const appRun = require("./appRun")
 require('dotenv').config().parsed
 
+// บันทึก error ที่หลุดจาก callback/promise แทนการปล่อยให้ process ล่ม
+// (session เก็บใน memory ถ้า process ล่มผู้ใช้ทุกคนจะหลุด login)
+process.on("unhandledRejection", (err) => {
+    console.error("UNHANDLED REJECTION =>", err)
+})
+process.on("uncaughtException", (err) => {
+    console.error("UNCAUGHT EXCEPTION =>", err)
+})
+
 function connectionParams() {
     const mode = process.argv[2]
     switch(mode) {
         case process.env.BUILD :
             return {
                 database : process.env.DATABASE_SER,
-                username : process.env.USER_DB || "",
-                password : process.env.PASS_DB || ""
+                // npm run server <user> <password> หรือ docker compose command ส่งมาเป็น argv
+                username : process.argv[3] || process.env.USER_DB || "",
+                password : process.argv[4] || process.env.PASS_DB || process.env.PASSWORD_DB || ""
             }
         default:
             return {

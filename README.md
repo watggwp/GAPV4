@@ -241,6 +241,9 @@
 * **`NGROK_URL`** : URL ชั่วคราวที่ได้จาก Ngrok
 * **`NGROK_AUTHTOKEN`** : Auth Token ประจำบัญชี Ngrok
 
+#### การรายงาน error ให้ผู้ดูแล
+* **`ADMIN_REPORT_UID`** (ไม่บังคับ) : LINE userId ของผู้ดูแลที่จะได้รับข้อความ error จากระบบ ถ้าไม่ตั้งค่า ระบบจะบันทึก error ลง log อย่างเดียว
+
 #### การตั้งค่า Discord Webhook (แจ้งเตือน)
 * **`WEBHOOK_NOTIFIER`** : URL ของ Discord Webhook สำหรับส่งข้อความแจ้งเตือน Error หรือสถานะต่างๆ
 * **`CHANNEL_ID`** : ID ของช่องแชทใน Discord

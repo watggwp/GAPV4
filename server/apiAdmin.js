@@ -15,7 +15,7 @@ module.exports = function apiAdmin (app , Database , pool = new ConnectionPool()
     const password = req.session.user_password
     // ถ้าไม่มี session → หมด session → ส่ง "" กลับ
     if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
-      return res.clearCookie(process.env.cookieName).send("")
+      return res.clearCookie(process.env.cookie).send("")
     }
     // session ยังอยู่ → ส่ง "pass" กลับ
     return res.send("pass")

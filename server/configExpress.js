@@ -73,13 +73,6 @@ module.exports = function appConfig(username, password, hostServer) {
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     app.set('trust proxy', 1);
 
-    app.use((req, res, next) => {
-        console.log('host:', req.headers.host);
-        console.log('protocol:', req.protocol);
-        console.log('secure:', req.secure);
-        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
-        next();
-    });
 
     const upload = multer()
     const server =
@@ -297,13 +290,14 @@ module.exports = function appConfig(username, password, hostServer) {
     apiPests(app, Pool)
 
     apiAddDevice(app, Pool)
+    // ต้องอยู่ก่อน catch-all "*" ไม่งั้นไม่เคยถูกเรียก
+    app.get("/api/heartbeat", (req, res) => {
+        res.status(200).json({ status: "ok" })
+    });
+
     // page error 404
     app.get("*", (req, res) => {
         res.sendFile(__dirname.replace('\server', '/index404.html'));
-    });
-
-    app.get("/api/heartbeat", (req, res) => {
-        res.status(200)
     });
 
     return server
