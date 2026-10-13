@@ -11,6 +11,7 @@ const ConnentPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const AccountAuth = require('./core/accountAuth');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
@@ -31,8 +32,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
             return res.clearCookie(process.env.cookie).send("")
         }
-        // session ยังอยู่ → ส่ง "pass" กลับ (ชัดเจน ไม่ใช่ redirect)
-        return res.send("pass")
+        // ตรวจ session credential กับฐานข้อมูล (เปลี่ยนรหัสผ่านแล้ว session เก่าจะหลุด)
+        const con = Database.createConnection(listDB)
+        apifunc.auth(con, username, password, res, "acc_doctor")
+            .then(() => res.send("pass"))
+            .catch(() => res.clearCookie(process.env.cookie).send(""))
+            .finally(() => con.end())
     })
 
 
@@ -1219,18 +1224,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
             const SET = req.body.type === "name" ? "fullname_doctor = ?" :
                 req.body.type === "station" ? "station_doctor = ?" :
-                    req.body.type === "passwordNew" ? "password_doctor = SHA2( ? , 256)" : ""
+                    req.body.type === "passwordNew" ? "password_doctor = ?" : ""
+            const newValue = req.body.type === "passwordNew" ? AccountAuth.hashPassword(req.body.value) : req.body.value
             if (SET) {
                 con.query(
                     `
                     UPDATE acc_doctor
                     SET ${SET}
                     WHERE id_table_doctor = ?
-                    ` , [req.body.value, result["data"].id_table_doctor],
+                    ` , [newValue, result["data"].id_table_doctor],
                     (err, resultEdit) => {
                         if (!err) {
                             if (req.body.type === "passwordNew") {
-                                req.session.pass_doctor = req.body.value
+                                req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", { ...result["data"], password_doctor: newValue })
                             }
                             con.end()
                             res.send("1")
@@ -1316,7 +1322,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             if (val['changedRows'] == 1) {
                                 req.session.tokenSession = apifunc.getTokenCsurf(req)
                                 req.session.user_doctor = username
-                                req.session.pass_doctor = password
+                                req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", result['data'])
                                 res.send('pass')
                             } else {
                                 console.log("update error")
@@ -1369,7 +1375,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     req.session.account_type = RoyalGapEnv.access_type.doctor
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
-                    req.session.pass_doctor = password
+                    req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", result['data'])
                     req.session.role_doctor = role
 
                     if (uidLineVerified) {
@@ -1640,7 +1646,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 if (req.body.station) addSet("station = ?", req.body.station)
                 if (req.body.tel_number) addSet("tel_number = ?", req.body.tel_number)
                 if (req.body.text_location) addSet("text_location = ?", req.body.text_location)
-                if (req.body.newPassword) addSet("password = SHA2(? , 256)", req.body.newPassword)
+                if (req.body.newPassword) addSet("password = ?", AccountAuth.hashPassword(req.body.newPassword))
 
                 const SET = setClauses.join(" , ")
 

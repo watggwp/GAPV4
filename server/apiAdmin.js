@@ -5,6 +5,7 @@ const ConnectionPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const { ca } = require('date-fns/locale');
 const RoyalGapLine = require('./configLine');
+const AccountAuth = require('./core/accountAuth');
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
@@ -17,8 +18,12 @@ module.exports = function apiAdmin (app , Database , pool = new ConnectionPool()
     if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
       return res.clearCookie(process.env.cookie).send("")
     }
-    // session ยังอยู่ → ส่ง "pass" กลับ
-    return res.send("pass")
+    // ตรวจ session credential กับฐานข้อมูล (เปลี่ยนรหัสผ่านแล้ว session เก่าจะหลุด)
+    const con = Database.createConnection(listDB)
+    apifunc.auth(con, username, password, res, "admin")
+      .then(() => res.send("pass"))
+      .catch(() => res.clearCookie(process.env.cookie).send(""))
+      .finally(() => con.end())
   })
   
 // doctor page
@@ -1306,18 +1311,19 @@ app.post('/api/admin/role/update', async (req, res) => {
       console.log(result)
         const SET = req.body.type === "name" ? "fullname_admin = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
-                        req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
+                        req.body.type === "passwordNew" ? "password = ?" : ""
+        const newValue = req.body.type === "passwordNew" ? AccountAuth.hashPassword(req.body.value) : req.body.value
         if(SET) {
             con.query(
                 `
                 UPDATE admin
                 SET ${SET}
                 WHERE id = ?
-                ` , [ req.body.value , result["data"].id ] , 
+                ` , [ newValue , result["data"].id ] , 
                 (err , resultEdit) => {
                     if(!err) {
                         if(req.body.type === "passwordNew") {
-                            req.session.user_password = req.body.value
+                            req.session.user_password = AccountAuth.sessionCredential("admin", { ...result["data"], password: newValue })
                         }
                         con.end()
                         res.send("1")
@@ -1473,8 +1479,8 @@ app.post('/api/admin/add', async (req, res) => {
                           status_delete,
                           time_online
                       ) 
-                      VALUES (?, SHA2(?,256), '', '', 1, 0, "")
-                  `, [req.body['id'], req.body['passwordAdNew']], (err, result) => {
+                      VALUES (?, ?, '', '', 1, 0, "")
+                  `, [req.body['id'], AccountAuth.hashPassword(req.body['passwordAdNew'])], (err, result) => {
                       if (err) {
                           dbpacket.dbErrorReturn(con, err, res);
                           console.log("Error inserting admin");
@@ -1549,8 +1555,8 @@ app.post('/api/admin/add', async (req, res) => {
                             consultant_role,
                             protection_role
                         ) 
-                        VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?, ?)
-                    `, [req.body['id_doctor'], req.body['passwordDT'], doctor_role, analyst_role, consultant_role, protection_role], 
+                        VALUES ('', ?, '', ?, '', '', 1, 0, "", ?, ?, ?, ?)
+                    `, [req.body['id_doctor'], AccountAuth.hashPassword(req.body['passwordDT']), doctor_role, analyst_role, consultant_role, protection_role], 
                     (err, result) => {
                         if(err) {
                             dbpacket.dbErrorReturn(con , err , res);
@@ -2995,7 +3001,7 @@ app.post('/api/admin/data/change', async (req, res) => {
             req.session.role_primary = "admin";
             req.session.admin_id = auth['data'].id;
             req.session.user_username = username;
-            req.session.user_password = password;
+            req.session.user_password = AccountAuth.sessionCredential("admin", auth['data']);
             // req.session.user_doctor = "666";
             // req.session.pass_doctor = "666";
             req.session.tokenSession = apifunc.getTokenCsurf(req);

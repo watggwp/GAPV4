@@ -2,6 +2,7 @@
 
 const Pool = require("../connectPool")
 const Util = require("./util")
+const AccountAuth = require("./accountAuth")
 
 class AuthorizeUser {
     constructor(pool = new Pool()) {
@@ -11,15 +12,16 @@ class AuthorizeUser {
     async admin(username, password, options = { select: "*" }) {
         const { select } = options
         try {
-            const [profile] = await this.Pool.executeQuery(
+            const rows = await this.Pool.executeQuery(
                 `
-                SELECT ${select}
+                SELECT *
                 FROM admin
-                WHERE BINARY username = ? AND password = SHA2( ? , 256)
-                LIMIT 1
+                WHERE BINARY username = ?
                 `,
-                [username, password]
+                [username]
             )
+            const account = await AccountAuth.verifyAccount("admin", rows, password, (sql, params) => this.Pool.executeQuery(sql, params))
+            const profile = account ? await this.selectColumns("admin", "id", account.id, select) : undefined
 
             return {
                 profile: profile,
@@ -36,11 +38,11 @@ class AuthorizeUser {
     async doctor(username, password, role, options = { select: "*" }) {
         const { select } = options
         try {
-            const [profile] = await this.Pool.executeQuery(
+            const rows = await this.Pool.executeQuery(
                 `
-                SELECT ${select} , id_table_doctor as id , uid_line_doctor as uid_line
+                SELECT *
                 FROM acc_doctor
-                WHERE BINARY id_doctor = ? AND password_doctor = SHA2( ? , 256)
+                WHERE BINARY id_doctor = ?
                 ${role == "doctor" ?
                     "AND doctor_role = 1" :
                     role == "analyst" ?
@@ -52,10 +54,14 @@ class AuthorizeUser {
                                 ""
                 } 
                 ORDER BY status_delete ASC
-                LIMIT 1
                 `,
-                [username, password]
+                [username]
             )
+            const account = await AccountAuth.verifyAccount("acc_doctor", rows, password, (sql, params) => this.Pool.executeQuery(sql, params))
+            const profile = account ? await this.selectColumns(
+                "acc_doctor", "id_table_doctor", account.id_table_doctor,
+                `${select} , id_table_doctor as id , uid_line_doctor as uid_line`
+            ) : undefined
 
             return {
                 profile: profile,
@@ -67,6 +73,15 @@ class AuthorizeUser {
                 verified: false
             }
         }
+    }
+
+    // ดึงคอลัมน์ตาม select ของเดิมหลังตรวจรหัสผ่านผ่านแล้ว
+    async selectColumns(table, idColumn, id, select) {
+        const [profile] = await this.Pool.executeQuery(
+            `SELECT ${select} FROM ${table} WHERE ${idColumn} = ? LIMIT 1`,
+            [id]
+        )
+        return profile
     }
 
     async farmer(uid_line, options = { select: "*" }) {

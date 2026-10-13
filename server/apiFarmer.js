@@ -10,6 +10,7 @@ const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
 const io = new Server()
 
@@ -174,14 +175,14 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     tel_number,
                                     text_location
                                     ) 
-                                VALUES ("" , ? , ? , ? , POINT(?,?) , SHA2(? , 256) , 0 , ? , "" , "" , ? , ? , ?)` ,
+                                VALUES ("" , ? , ? , ? , POINT(?,?) , ? , 0 , ? , "" , "" , ? , ? , ?)` ,
                                         [
                                             `${req.body['firstname'].trim()} ${req.body['lastname'].trim()}`,
                                             req.body['Img'],
                                             req.body['station'],
                                             req.body['lat'],
                                             req.body['lng'],
-                                            req.body['password'].trim(),
+                                            AccountAuth.hashPassword(req.body['password'].trim()),
                                             uidLine,
                                             uidLine,
                                             req.body['telnumber'].trim(),

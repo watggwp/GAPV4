@@ -40,6 +40,7 @@
          (username , password , phone , address) 
          VALUES ('--username--' , SHA2('--password--', 256) , '--number phone--' , POINT(0000 , 0000))
         ```
+        (รหัสผ่านแบบ SHA2 ใช้ login ได้ และระบบจะแปลงเป็น bcrypt ให้อัตโนมัติเมื่อ login ครั้งแรก)
 
 ### Build Project
 

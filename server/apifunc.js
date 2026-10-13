@@ -1,5 +1,6 @@
 const dbFunc = require('./dbConfig')
 const crypto = require("crypto")
+const AccountAuth = require('./core/accountAuth')
 
 const ErrorDB = (connectDB, err, res) => {
   dbFunc.dbErrorReturn(connectDB, err, res)
@@ -25,22 +26,28 @@ const apifunc = {
         ) : "";
 
 
+        if (!roleAuth || typeof password !== "string" || !password) {
+          reject("not pass");
+          return;
+        }
+
+        // ดึงบัญชีด้วย username แล้วตรวจรหัสผ่าน (bcrypt / SHA-256 เดิม / session credential) ในโค้ด
         connectDB.query(
-          `SELECT * FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? AND ${passwordDB}=SHA2( ? , 256) ${ROLE} ${ORDER}`,
-          [username, password],
-          (err, result) => {
+          `SELECT * FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? ${ROLE} ${ORDER}`,
+          [username],
+          async (err, result) => {
             if (err) {
-              // ErrorDB(connectDB, err, res);
               reject("not pass");
-            } else {
-              if (result[0]) {
-                resole({
-                  data: result[0],
-                  result: "pass"
-                });
-              } else {
-                reject("not pass");
-              }
+              return;
+            }
+            try {
+              const runQuery = (sql, params) => new Promise((ok, fail) =>
+                connectDB.query(sql, params, (e, r) => e ? fail(e) : ok(r)))
+              const account = await AccountAuth.verifyAccount(roleAuth, result, password, runQuery)
+              if (account) resole({ data: account, result: "pass" });
+              else reject("not pass");
+            } catch (e) {
+              reject("not pass");
             }
           }
         );
