@@ -938,14 +938,17 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
         const { id, type } = req.body;
 
-        console.log("Received acknowledge request:", req.body);
+        // ต้องเป็นเกษตรกรที่ login อยู่ และรับทราบได้เฉพาะรายการของแปลงตัวเอง
+        let auth
         try {
-            const auth = await authCheck()
+            auth = await authCheck(con, req)
         } catch (err) {
-
+            con.end()
+            return res.status(401).json({ success: false, message: "error auth" })
         }
 
         if (!id || !type) {
+            con.end()
             console.log("Missing parameters");
             return res.status(400).json({ success: false, message: "Missing parameters" });
         }
@@ -964,12 +967,21 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             updateField = "is_read";
         } else {
             console.log("Invalid type:", type);
+            con.end()
             return res.status(400).json({ success: false, message: "Invalid type" });
         }
 
         console.log(`Updating acknowledgment for ${tableName} ID: ${id}`);
 
-        con.query(`UPDATE ${tableName} SET ${updateField} = 1 WHERE id = ?`, [id], (err, result) => {
+        con.query(`
+            UPDATE ${tableName} SET ${updateField} = 1
+            WHERE id = ? AND id_plant IN (
+                SELECT formplant.id
+                FROM formplant
+                JOIN housefarm ON housefarm.id_farm_house = formplant.id_farm_house
+                WHERE housefarm.uid_line = ? OR housefarm.link_user = ?
+            )
+        `, [id, auth.data.uid_line, auth.data.link_user], (err, result) => {
             con.end();
 
             if (err) {
