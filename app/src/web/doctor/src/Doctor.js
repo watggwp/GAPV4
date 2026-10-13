@@ -70,10 +70,10 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
         ChkPath(null, "web")
         window.addEventListener("popstate", ChkPath)
         window.addEventListener("resize", handleResize)
-        socket.emit("connect-account", username, password)
+        socket.emit("connect-account")
 
         return () => {
-            socket.emit("disconnect-account", username, password)
+            socket.emit("disconnect-account")
             window.removeEventListener("popstate", ChkPath)
             window.removeEventListener("resize", handleResize)
         }

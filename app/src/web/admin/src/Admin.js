@@ -335,10 +335,10 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
 
         window.addEventListener("popstate", ChkPath);
         window.addEventListener("resize", Resize);
-        socket.emit("connect-account", username, password);
+        socket.emit("connect-account");
 
         return () => {
-            socket.emit("disconnect-account", username, password);
+            socket.emit("disconnect-account");
             window.removeEventListener("popstate", ChkPath);
             window.removeEventListener("resize", Resize);
         };

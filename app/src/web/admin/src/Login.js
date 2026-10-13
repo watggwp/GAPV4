@@ -51,6 +51,7 @@ const Login = ({ setBodyFileMain, state = false, socket }) => {
                 clientMo.post('/api/admin/auth', formData).then((context) => {
                     if (context === "1") {
                         // เข้าสู่ระบบสำเร็จ
+                        socket.disconnect().connect();
                         setBodyFileMain(<Admin setBodyFileMain={setBodyFileMain} socket={socket} />);
                     } else if (context === "account_disabled") {
                         setErrorMessage("ผู้ใช้บัญชีนี้ถูกปิดใช้งาน");

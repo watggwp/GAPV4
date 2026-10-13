@@ -7,7 +7,7 @@ import ThemeProviderApp from "../../ThemeProvider";
 
 import env from "../../env"
 const { domain , subpath_server } = env
-const socket = io(domain , { path : `${subpath_server}/socket.io` })
+const socket = io(domain , { path : `${subpath_server}/socket.io` , withCredentials : true })
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(
