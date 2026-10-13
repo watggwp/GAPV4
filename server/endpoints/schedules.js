@@ -95,14 +95,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ${station_id_payload !== undefined ?
                     "AND s.station_id = ?" : ""
                 }
-                    ${s &&
+                    ${s ?
                 `
                                 AND (
                                     s.title LIKE ? OR
                                     sdf.fertilizer LIKE ? OR
                                     sdf.formula_fertilizer LIKE ?
                                 )
-                            `
+                            ` : ""
                 }
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC , s.repeat ASC
