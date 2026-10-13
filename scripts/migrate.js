@@ -30,7 +30,8 @@ function connectionConfig() {
     }
 }
 
-const checksum = (sql) => crypto.createHash('sha256').update(sql).digest('hex')
+// แปลง CRLF เป็น LF ก่อน เพื่อให้ checksum ตรงกันทั้ง Windows และ Linux
+const checksum = (sql) => crypto.createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex')
 
 async function main() {
     const config = connectionConfig()
