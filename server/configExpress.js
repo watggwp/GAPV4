@@ -24,6 +24,7 @@ const ScheduleCorn = require("./core/corn")
 
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
+const doctorScope = require('./middleware/doctorScope');
 const { requireRole, internalOnly } = require('./middleware/accessGuard');
 
 const apiAdmin = require('./apiAdmin');
@@ -271,6 +272,38 @@ module.exports = function appConfig(username, password, hostServer) {
 
     // config environment
     app.use(upload.any())
+
+    // หมอเข้าถึงได้เฉพาะข้อมูลของศูนย์ตัวเอง (ต้องอยู่หลัง upload.any() เพื่ออ่าน body แบบ multipart ได้)
+    const inStation = doctorScope(Pool)
+    const editTarget = (req) => ({ plant: "form", fertilizer: "fertilizer", chemical: "chemical" })[req.body && req.body.type_form]
+    app.post("/api/doctor/formplant/insert", inStation(["farmhouse", "id_farmhouse"]))
+    app.post("/api/doctor/formplant/history", inStation(["farmhouse", "id_farmhouse"]))
+    app.post("/api/doctor/formplant/edit", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/formplant/schedules", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/farmer/get/count", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/get/detail", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/edit", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmhouse/get/HouseList", inStation(["linkUser", "id_farmer"]))
+    app.post("/api/doctor/farmer/account/comfirm", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/account/cancel", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/convert/cancel", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/convert/comfirm", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/msg/count", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/msg/read", inStation(["lineUser", "uid_line"]))
+    app.post("/api/doctor/farmer/msg/send", inStation(["lineUser", "uid_line"]))
+    app.post("/api/doctor/farmer/msg/get", inStation(["lineUser", "uid_line"]))
+    app.get("/api/doctor/farmer/msg/image/:message_id", inStation(["lineMessage", "message_id"]))
+    app.get("/api/doctor/form/get/detail", inStation(["form", "id_form"]))
+    app.get("/api/doctor/form/get/farmer", inStation(["form", "id_form"]))
+    app.post("/api/doctor/form/edit/get", inStation([editTarget, "id_form"]))
+    app.get("/api/doctor/form/report/edit/gets", inStation(["report", "id_report"]))
+    app.put("/api/doctor/form/edit/change/status", inStation(["form", "id_plant"]))
+    app.get("/api/doctor/form/manage/get", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/success/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/report/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/report/edit", inStation(["form", "id_plant"], ["report", "id"]))
+    app.post("/api/doctor/form/manage/checkplant/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/checkform/insert", inStation(["form", "id_plant"]))
     app.use(express.static('app/src/assets/style'))
     app.use(express.static('app/src/assets/font'))
     app.use(express.static('app/src/assets/img'))
