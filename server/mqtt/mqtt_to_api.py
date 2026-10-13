@@ -17,6 +17,8 @@ PASSWORD = os.environ["TTN_SENSOR_PASSWORD"]
 TOPIC = os.environ["TTN_SENSOR_TOPIC"]
 
 API_PORT = os.environ["REACT_APP_API_PORT"]
+# ส่ง key นี้เมื่อ bridge ไม่ได้รันบนเครื่องเดียวกับ API (API รับ ingest เฉพาะ localhost หรือ key ที่ถูกต้อง)
+API_HEADERS = {"x-internal-api-key": os.environ["INTERNAL_API_KEY"]} if os.environ.get("INTERNAL_API_KEY") else {}
 
 with open("./server/mqtt/device_config.json") as f:
     DEVICE_CONFIG_MAP = json.load(f)
@@ -77,7 +79,7 @@ def on_message(client, userdata, msg):
 
             try:
                 endpoint_api = config["api"].format(PORT=API_PORT)
-                response = requests.post(endpoint_api, json=data)
+                response = requests.post(endpoint_api, json=data, headers=API_HEADERS)
                 if response.ok:
                     print(f"📤 ส่งไปยัง API: {endpoint_api} → {response.status_code}")
                 else:

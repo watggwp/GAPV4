@@ -234,6 +234,9 @@
 * **`TTN_SENSOR_PASSWORD`** : Password (หรือ API Key) สำหรับต่อ MQTT ของ TTN
 * **`TTN_SENSOR_TOPIC`** : Topic MQTT ที่ใช้ Subscribe อ่านค่าเซ็นเซอร์ที่ส่งเข้ามา (Uplink)
 
+#### การป้องกัน API ภายใน
+* **`INTERNAL_API_KEY`** (ไม่บังคับ) : key สำหรับ API ที่ระบบภายในเรียก (`/api/sensor/weather-*` แบบ POST, `/api/add/device`, `/api/delete/device`, `/api/line/notify/*`) ส่งมาใน header `x-internal-api-key` ถ้าไม่ได้ส่ง key ระบบจะยอมรับเฉพาะ request ที่มาจากเครื่องเดียวกัน (localhost) และไม่ผ่าน proxy หรือ ngrok
+
 #### การตั้งค่า Ngrok
 * **`NGROK_URL`** : URL ชั่วคราวที่ได้จาก Ngrok
 * **`NGROK_AUTHTOKEN`** : Auth Token ประจำบัญชี Ngrok

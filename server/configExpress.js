@@ -22,6 +22,7 @@ const ScheduleCorn = require("./core/corn")
 
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
+const { requireRole, internalOnly } = require('./middleware/accessGuard');
 
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
@@ -222,6 +223,24 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use("/api/chemicals", authorizer(Pool))
     app.use("/api/fertilizers", authorizer(Pool))
     app.use("/api/pests/*", authorizer(Pool))
+
+    // API ที่ก่อนหน้านี้เรียกได้โดยไม่ต้อง login
+    // ระบบภายใน (MQTT bridge / gap-device-dashboard)
+    app.post("/api/add/device", internalOnly)
+    app.delete("/api/delete/device", internalOnly)
+    app.post("/api/line/notify/*", internalOnly)
+    app.post("/api/sensor/weather-greenhouse", internalOnly)
+    app.post("/api/sensor/weather-station", internalOnly)
+    // ผู้ใช้ที่ login แล้ว
+    app.get("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id/status", requireRole("admin", "doctor", "farmer"))
+    app.post("/api/admin/formplant/detail", requireRole("admin"))
+    app.post("/api/admin/formplant/schedules", requireRole("admin"))
+    app.post("/api/admin/station/list", requireRole("admin"))
+    app.get("/api/doctor/form/get/sensor", requireRole("doctor"))
+    app.post("/api/farmer/report/acknowledge", requireRole("farmer"))
+    app.post("/api/farmer/pests", requireRole("farmer"))
+    app.post("/api/farmer/pest-chemical", requireRole("farmer"))
+    app.post("/api/farmer/check-schedule", requireRole("farmer"))
 
     // config environment
     app.use(upload.any())

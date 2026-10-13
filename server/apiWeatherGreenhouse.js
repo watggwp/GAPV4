@@ -268,6 +268,10 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
             } = req.body
 
             // select avg current
+            // ไม่รับข้อมูลที่ไม่มี device_id / timestamp (กันแถวว่างเข้าฐานข้อมูล)
+            if (!device_id || !timestamp) {
+                return res.status(400).send("Missing device_id or timestamp")
+            }
 
             try {
                 await pool.executeQuery(
