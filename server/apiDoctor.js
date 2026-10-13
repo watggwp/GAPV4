@@ -4,6 +4,10 @@ require('dotenv').config().parsed
 const wordcut = require('thai-wordcut')
 const axios = require('axios').default;
 const fs = require("fs")
+const path = require("path")
+// โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
+const REPORT_IMAGE_DIR = path.join(__dirname, "..", "app", "src", "assets", "img", "doctor", "report")
+fs.mkdirSync(REPORT_IMAGE_DIR, { recursive: true })
 wordcut.init()
 
 const { Server } = require('socket.io')
@@ -4145,7 +4149,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const name = req.body.img_report ?
                         await new Promise((resole, reject) => {
                             const name_image = `${result.data.id_table_doctor}${req.body.id_plant}${new Date().getTime()}.jpg`
-                            const Path = __dirname.replace("server", "app") + `/src/assets/img/doctor/report/${name_image}`
+                            const Path = path.join(REPORT_IMAGE_DIR, name_image)
                             const base64Data = req.body.img_report.replace("data:image/jpeg;base64,", "")
                             const imageBuffer = Buffer.from(base64Data, 'base64');
                             fs.writeFile(Path, imageBuffer, (err) => {
@@ -4243,9 +4247,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 ` , [req.body.id_plant, req.body.id, result.data.id_table_doctor],
                                 async (err, resoleImg) => {
                                     if (!err) {
-                                        const Path = __dirname.replace("server", "src") + `/assets/img/doctor/report/`
+                                        const Path = REPORT_IMAGE_DIR + path.sep
                                         // หากเจอภาพเก่า จึงลบออก
-                                        if (resoleImg[0].image_path)
+                                        if (resoleImg[0] && resoleImg[0].image_path)
                                             try { fs.rmSync(Path + `${resoleImg[0].image_path}`) } catch (e) { }
 
                                         // อัปไฟล์ใหม่ลง server

@@ -6,6 +6,11 @@ const RoyalGapEnv = require('./core/env');
 const { ca } = require('date-fns/locale');
 const RoyalGapLine = require('./configLine');
 const AccountAuth = require('./core/accountAuth');
+const fs = require('fs');
+const path = require('path');
+// โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
+const REPORT_IMAGE_DIR = path.join(__dirname, "..", "app", "src", "assets", "img", "doctor", "report")
+fs.mkdirSync(REPORT_IMAGE_DIR, { recursive: true })
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
@@ -4773,7 +4778,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                   const name = req.body.img_report ?
                       await new Promise((resole, reject) => {
                           const name_image = `${result.data.id}${req.body.id_plant}${new Date().getTime()}.jpg`
-                          const Path = __dirname.replace("server", "app") + `/src/assets/img/doctor/report/${name_image}`
+                          const Path = path.join(REPORT_IMAGE_DIR, name_image)
                           const base64Data = req.body.img_report.replace("data:image/jpeg;base64,", "")
                           const imageBuffer = Buffer.from(base64Data, 'base64');
                           fs.writeFile(Path, imageBuffer, (err) => {
@@ -4870,8 +4875,8 @@ app.post('/api/admin/report/list', async(req, res) => {
                               ` , [req.body.id_plant, req.body.id],
                               async (err, resoleImg) => {
                                   if (!err) {
-                                      const Path = __dirname.replace("server", "src") + `/assets/img/doctor/report/`
-                                      if (resoleImg[0].image_path)
+                                      const Path = REPORT_IMAGE_DIR + path.sep
+                                      if (resoleImg[0] && resoleImg[0].image_path)
                                           try { fs.rmSync(Path + `${resoleImg[0].image_path}`) } catch (e) { }
 
                                       if (req.body.image_object) {
