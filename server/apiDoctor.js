@@ -545,17 +545,18 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                                     const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                                         id_plant,
                                                         pool,
-                                                        (gapData) => {
+                                                        (gapData, { url }) => {
                                                             const { greenhouse_name, plant_name } = gapData || {}
-                                                            return [
-                                                                ...generateMessageTitle(greenhouse_name, plant_name),
-                                                                "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
-                                                                "",
-                                                                `แก้ไขรายการ:`,
-                                                                edits_content.map(({ name, prev, current }) =>
-                                                                    `${name}: จาก ${prev} เป็น ${current}`
-                                                                )
-                                                            ]
+                                                            return MessageLineTemplate.farmerCard({
+                                                                theme: "formEdited",
+                                                                subtitle: "โดยหมอพืช",
+                                                                rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                                list: {
+                                                                    label: "รายการที่แก้ไข",
+                                                                    items: edits_content.map(({ name, prev, current }) => `${name}: ${prev || "-"} → ${current || "-"}`)
+                                                                },
+                                                                url
+                                                            })
                                                         },
                                                         {
                                                             url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
@@ -1757,30 +1758,22 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                             )
                                         })
 
-                                        const dataSend = {
-                                            type: "text",
-                                            text: `ผู้ส่งเสริม ${result["data"].fullname_doctor}\n\n` +
-                                                `ทำการเปลี่ยนข้อมูลของท่าน :` +
-                                                `${req.body.id_farmer ? `\nรหัสประจำตัวเกษตกร : ${req.body.id_farmer}` : ""}` +
-                                                `${req.body.fullname ? `\nชื่อ : ${req.body.fullname}` : ""}` +
-                                                `${req.body.tel_number ? `\nเบอร์โทร : ${req.body.tel_number}` : ""}` +
-                                                `${req.body.text_location ? `\nที่อยู่ : ${req.body.text_location}` : ""}` +
-                                                `${req.body.station ? `\nศูนย์ในการดูแล : ${Station[0] ? Station[0].name : ""}` : ""}` +
-                                                `${req.body.newPassword ? `\nรหัสผ่าน : ${req.body.newPassword}` : ""}` +
-                                                `${req.body.img ? `\nรูปภาพ :` : ""}`
-                                        }
+                                        // การ์ดสรุปข้อมูลที่ถูกแก้ (รูปโปรไฟล์ใหม่อยู่ในการ์ด)
+                                        const dataSend = MessageLineTemplate.farmerCard({
+                                            theme: "profileEdited",
+                                            subtitle: `โดยผู้ส่งเสริม · ${result["data"].fullname_doctor}`,
+                                            rows: [
+                                                req.body.id_farmer && { label: "รหัสเกษตรกร", value: req.body.id_farmer },
+                                                req.body.fullname && { label: "ชื่อ", value: req.body.fullname },
+                                                req.body.tel_number && { label: "เบอร์โทร", value: req.body.tel_number },
+                                                req.body.text_location && { label: "ที่อยู่", value: req.body.text_location },
+                                                req.body.station && { label: "ศูนย์ที่ดูแล", value: Station[0] ? Station[0].name : "" },
+                                                req.body.newPassword && { label: "รหัสผ่านใหม่", value: req.body.newPassword },
+                                                req.body.img && { label: "รูปโปรไฟล์", value: "เปลี่ยนใหม่ (ด้านบน)" },
+                                            ],
+                                            imageUrl: req.body.img ? ImageUrl.farmerImageUrl(UrlApi, req.body.id_table) : ""
+                                        })
                                         await RoyalGapLine.pushMessage(resultSelect[0].uid_line, dataSend).catch(e => { })
-
-                                        if (req.body.img) {
-                                            await new Promise(async (resole, reject) => {
-                                                await RoyalGapLine.pushMessage(resultSelect[0].uid_line, {
-                                                    "type": "image",
-                                                    "originalContentUrl": ImageUrl.farmerImageUrl(UrlApi, req.body.id_table),
-                                                    "previewImageUrl": ImageUrl.farmerImageUrl(UrlApi, req.body.id_table)
-                                                }).catch(e => { })
-                                                resole("")
-                                            })
-                                        }
 
                                         if (req.body.lag && req.body.lng) {
                                             await new Promise(async (resole, reject) => {
@@ -2160,10 +2153,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                                     return 0
                                                 };
                                                 try {
-                                                    RoyalGapLine.pushMessage(convert[0].uid_line, {
-                                                        type: "text",
-                                                        text: `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
-                                                    }).catch(e => { })
+                                                    RoyalGapLine.pushMessage(convert[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", highlight: { label: "สถานะ", text: "เชื่อมบัญชีของท่านเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                                                 } catch (e) { }
                                                 resole(1)
                                             }
@@ -2199,10 +2189,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         async (err, result) => {
                                             con.end()
                                             try {
-                                                RoyalGapLine.pushMessage(req.body.uid_line, {
-                                                    type: "text",
-                                                    text: `บัญชีผ่านการตรวจสอบแล้วนะคะ \nและมีการเชื่อมบัญชีกับคุณ ${convert[0].fullname}\u2764`
-                                                }).catch(e => { })
+                                                RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountOk", rows: [{ label: "เชื่อมบัญชีกับ", value: convert[0].fullname }], highlight: { label: "เริ่มใช้งานได้เลย", text: "เพิ่มโรงเรือนและบันทึกแบบบันทึก GAP ได้จากเมนูด้านล่าง" }, url: RoyalGapEnv.url_line.get_greenhouse, buttonLabel: "เปิดโรงเรือนของฉัน" })).catch(e => { })
                                             } catch (e) { }
                                             try {
                                                 await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
@@ -2215,10 +2202,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 } else {
                                     con.end()
                                     try {
-                                        RoyalGapLine.pushMessage(req.body.uid_line, {
-                                            type: "text",
-                                            text: "บัญชีผ่านการตรวจสอบแล้วนะคะ \u2764"
-                                        }).catch(e => { })
+                                        RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountOk", highlight: { label: "เริ่มใช้งานได้เลย", text: "เพิ่มโรงเรือนและบันทึกแบบบันทึก GAP ได้จากเมนูด้านล่าง" }, url: RoyalGapEnv.url_line.get_greenhouse, buttonLabel: "เปิดโรงเรือนของฉัน" })).catch(e => { })
                                     } catch (e) { }
                                     try {
                                         await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
@@ -2286,10 +2270,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 con.end()
                                 if (!err, check[0]) {
                                     try {
-                                        RoyalGapLine.pushMessage(check[0].uid_line, {
-                                            type: "text",
-                                            text: "บัญชีไม่ผ่านการตรวจสอบ กรุณาส่งข้อความเพื่อพูดคุยกับเจ้าหน้าที่ หรือสมัครบัญชีอีกครั้งนะคะ \u2764"
-                                        }).catch(e => { })
+                                        RoyalGapLine.pushMessage(check[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountFail", highlight: { label: "ขั้นตอนต่อไป", text: "กรุณาส่งข้อความในแชทนี้เพื่อพูดคุยกับเจ้าหน้าที่ หรือสมัครบัญชีอีกครั้ง" } })).catch(e => { })
                                     } catch (e) { }
                                     try {
                                         await RoyalGapLine.unlinkRichMenuFromUser(check[0].uid_line)
@@ -2383,7 +2364,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             await RoyalGapLine.pushMessageToFarmerAccessedForm(
                                 search[0].link_user,
                                 pool,
-                                "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย"
+                                MessageLineTemplate.farmerCard({ theme: "accountLink", title: "ยกเลิกการเชื่อมบัญชีแล้ว", highlight: { label: "สถานะ", text: "ยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย" } })
                             )
                             // await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
                             con.query(
@@ -2452,10 +2433,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         ` , [req.body.id_table_convert, result['data']['station_doctor']]
                         , (err, result) => {
                             try {
-                                RoyalGapLine.pushMessage(convert[0].uid_line, {
-                                    type: "text",
-                                    text: `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
-                                }).catch(e => { })
+                                RoyalGapLine.pushMessage(convert[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", highlight: { label: "สถานะ", text: "เชื่อมบัญชีของท่านเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                             } catch (e) { }
                             resole(result)
                         })
@@ -2514,10 +2492,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     (err, result) => {
                                         if (!err) {
                                             try {
-                                                RoyalGapLine.pushMessage(req.body.uid_line, {
-                                                    type: "text",
-                                                    text: `เชื่อมบัญชีกับคุณ ${convert[0].fullname} \u2764`
-                                                }).catch(e => { })
+                                                RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", rows: [{ label: "เชื่อมกับ", value: convert[0].fullname }], highlight: { label: "สถานะ", text: "เชื่อมบัญชีเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                                             } catch (e) { }
                                             con.end()
                                         }
@@ -3419,7 +3394,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                             // ✅ ส่งข้อความแจ้งเตือนผ่าน LINE
                             try {
-                                await RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
+                                await RoyalGapLine.multicast(uidSend, MessageLineTemplate.pestAlertMessage(selectedData));
                                 console.log("✅ Message sent successfully!");
                                 res.status(200).json({ success: true, message: "Notification sent successfully" });
                             } catch (e) {
@@ -3763,20 +3738,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    (gapData) => {
+                                    (gapData, { url }) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        const messages = [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
-                                            "",
-                                            "รายการ:",
-                                            editDatas.map(({ subject_form, old_content, new_content }) =>
-                                                `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
-                                            )
-                                        ]
-
-                                        if (note) messages.push(`หมายเหตุ: ${note}`)
-                                        return messages
+                                        return MessageLineTemplate.farmerCard({
+                                            theme: "editRejected",
+                                            rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                            list: {
+                                                label: "รายการที่ขอแก้ไข",
+                                                items: editDatas.map(({ subject_form, old_content, new_content }) =>
+                                                    `${RoyalGapEnv.fields[subject_form] || subject_form}: ${old_content || "-"} → ${new_content || "-"}`)
+                                            },
+                                            highlight: note ? { label: "หมายเหตุจากเจ้าหน้าที่", text: note } : null,
+                                            url
+                                        })
                                     },
                                     {
                                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
@@ -4156,13 +4130,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             await RoyalGapLine.pushMessageToFarmerByFormID(
                                 id_plant,
                                 pool,
-                                (gapData) => {
+                                (gapData, { url }) => {
                                     const { greenhouse_name, plant_name } = gapData || {}
-                                    return [
-                                        ...generateMessageTitle(greenhouse_name, plant_name),
-                                        `หมอพืชสั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
-                                        `รหัสการเก็บเกี่ยว: ${Random}`
-                                    ]
+                                    return MessageLineTemplate.farmerCard({
+                                        theme: "harvest",
+                                        subtitle: "จากหมอพืช",
+                                        rows: [
+                                            ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                            { label: "ระยะ", value: req.body.type == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                            { label: "รหัสเก็บเกี่ยว", value: Random }
+                                        ],
+                                        highlight: { label: "สิ่งที่ต้องทำ", text: "กรุณาเก็บตัวอย่างผลผลิตตามรหัสด้านบน เพื่อส่งตรวจสอบ" },
+                                        url
+                                    })
                                 },
                                 {
                                     url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
@@ -4464,16 +4444,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    (gapData) => {
+                                    (gapData, { url }) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        const messages = [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
-                                            `คะแนนการประเมิน: ${statusCheck}`
-                                        ]
-
-                                        if (report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
-                                        return messages
+                                        return MessageLineTemplate.farmerCard({
+                                            theme: "checkPlant",
+                                            subtitle: "จากหมอพืช",
+                                            rows: [
+                                                ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                { label: "ระยะ", value: stateCheck == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                                { label: "คะแนนประเมิน", value: statusCheck }
+                                            ],
+                                            highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                            url
+                                        })
                                     },
                                     {
                                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
@@ -4557,18 +4540,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                             id_plant,
                                             pool,
-                                            (gapData) => {
+                                            (gapData, { url }) => {
                                                 const { greenhouse_name, plant_name } = gapData || {}
-                                                const messages = [
-                                                    ...generateMessageTitle(greenhouse_name, plant_name),
-                                                    `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
-                                                ]
-
-                                                if (report_text) messages.push(
-                                                    `ข้อความจากเจ้าหน้าที่: ${report_text}`
-                                                )
-
-                                                return messages
+                                                const passed = Boolean(Number(statusCheck))
+                                                return MessageLineTemplate.farmerCard({
+                                                    theme: passed ? "checkFormPass" : "checkFormFail",
+                                                    subtitle: "ตรวจโดยหมอพืช",
+                                                    rows: [
+                                                        ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                        { label: "ผลการตรวจ", value: passed ? "ผ่าน" : "ไม่ผ่าน" }
+                                                    ],
+                                                    highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                                    url
+                                                })
                                             },
                                             {
                                                 url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`

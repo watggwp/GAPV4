@@ -101,12 +101,17 @@ const plantingScheduleReminder = {
 
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
+                    MessageLineTemplate.farmerCard({
+                        theme: "planReminder",
                         title: reminderTitle,
-                        subtitle: subtitle,
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list // Keep empty to avoid displaying details table on bubble
-                    }),
+                    }).contents,
                     details_message
                 ]
             }
@@ -123,12 +128,17 @@ const plantingScheduleReminder = {
 
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
+                    MessageLineTemplate.farmerCard({
+                        theme: "planReminder",
                         title: reminderTitle,
-                        subtitle: subtitle,
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list // Keep empty to avoid displaying details table on bubble
-                    }),
+                    }).contents,
                     details_message
                 ]
             }

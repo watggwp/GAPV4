@@ -82,14 +82,18 @@ const schedulePlan = {
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
-                        title: title,
-                        subtitle: subtitle,
+                    MessageLineTemplate.farmerCard({
+                        theme: "planFertilizer",
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list,
                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่"
-                    }),
+                        buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่",
+                    }).contents,
                     details_message
                 ]
             }
@@ -107,14 +111,18 @@ const schedulePlan = {
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
 
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
-                        title: title,
-                        subtitle: subtitle,
+                    MessageLineTemplate.farmerCard({
+                        theme: "planChemical",
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list,
                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
-                        buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่"
-                    }),
+                        buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่",
+                    }).contents,
                     details_message
                 ]
             }

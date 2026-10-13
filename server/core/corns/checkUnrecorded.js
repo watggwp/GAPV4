@@ -80,21 +80,17 @@ const checkUnrecorded = {
     notifyDoctorLineMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online"
-        return MessageLineTemplate.beautifulBubbleUrl({
-            title: "เกษตรกรยังไม่บันทึกข้อมูล",
-            // subtitle: `เกษตรกร: ${row.fullname}\nกิจกรรม: ${row.title} (${typeLabel})`,
+        return MessageLineTemplate.farmerCard({
+            theme: "unrecorded",
+            subtitle: `เกษตรกร: ${row.fullname}`,
             imageUrl: ImageUrl.houseImageUrl(baseUrl, row.greenhouse_id, `&v=${new Date().getTime()}&ext=.jpg`),
-            details: [
-                { label: "เกษตรกร", value: row.fullname },
-                { label: "โรงเรือน", value: `${row.greenhouse_name}` },
-                { label: "พืช", value: `${row.name_plant}` },
+            rows: [
+                ...MessageLineTemplate.gapRows(row.greenhouse_name, row.name_plant),
                 { label: "กิจกรรม", value: `${row.title} (${typeLabel})` }
-
             ],
             // เปิดแบบบันทึกนั้นผ่าน LIFF ของหมอ (เข้าระบบด้วยบัญชี LINE ได้ทันที)
             url: DoctorNotify.lineUrl(DoctorNotify.targetPath(DoctorNotify.NOTIFY_TYPE.UNRECORDED, row.formplant_id)),
-            buttonLabel: "คลิกเพื่อดูรายละเอียด"
-        })
+        }).contents
     }
 }
 

@@ -1244,18 +1244,18 @@ app.post('/api/admin/role/update', async (req, res) => {
                                             const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                                 id_plant,
                                                 pool,
-                                                (gapData) => {
-                                                    const { greenhouse_name, plant_name } = gapData || {};
-                                                    return [
-                                                        `โรงเรือน: ${greenhouse_name || ""}`,
-                                                        `แปลงปลูก: ${plant_name || ""}`,
-                                                        "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
-                                                        "",
-                                                        `แก้ไขรายการ:`,
-                                                        edits_content.map(({ name, prev, current }) =>
-                                                            `${name}: จาก ${prev} เป็น ${current}`
-                                                        )
-                                                    ];
+                                                (gapData, { url }) => {
+                                                    const { greenhouse_name, plant_name } = gapData || {}
+                                                    return MessageLineTemplate.farmerCard({
+                                                        theme: "formEdited",
+                                                        subtitle: "โดยเจ้าหน้าที่",
+                                                        rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                        list: {
+                                                            label: "รายการที่แก้ไข",
+                                                            items: edits_content.map(({ name, prev, current }) => `${name}: ${prev || "-"} → ${current || "-"}`)
+                                                        },
+                                                        url
+                                                    })
                                                 },
                                                 {
                                                     url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${id_plant}/d`
@@ -3785,7 +3785,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 	
 							//  **ส่งข้อความแจ้งเตือน**
 							con.end();
-							RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
+							RoyalGapLine.multicast(uidSend, MessageLineTemplate.pestAlertMessage(selectedData));
 	
 						} catch (e) {
 						con.end();
@@ -4759,13 +4759,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                           await RoyalGapLine.pushMessageToFarmerByFormID(
                               id_plant,
                               pool,
-                              (gapData) => {
+                              (gapData, { url }) => {
                                   const { greenhouse_name, plant_name } = gapData || {}
-                                  return [
-                                      ...generateMessageTitle(greenhouse_name, plant_name),
-                                      `เจ้าหน้าที่สั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
-                                      `รหัสการเก็บเกี่ยว: ${Random}`
-                                  ]
+                                  return MessageLineTemplate.farmerCard({
+                                      theme: "harvest",
+                                      subtitle: "จากเจ้าหน้าที่",
+                                      rows: [
+                                          ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                          { label: "ระยะ", value: req.body.type == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                          { label: "รหัสเก็บเกี่ยว", value: Random }
+                                      ],
+                                      highlight: { label: "สิ่งที่ต้องทำ", text: "กรุณาเก็บตัวอย่างผลผลิตตามรหัสด้านบน เพื่อส่งตรวจสอบ" },
+                                      url
+                                  })
                               },
                               {
                                   url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
@@ -5056,16 +5062,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
-                                  (gapData) => {
+                                  (gapData, { url }) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      const messages = [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
-                                          `คะแนนการประเมิน: ${statusCheck}`
-                                      ]
-
-                                      if (report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
-                                      return messages
+                                      return MessageLineTemplate.farmerCard({
+                                          theme: "checkPlant",
+                                          subtitle: "จากเจ้าหน้าที่",
+                                          rows: [
+                                              ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                              { label: "ระยะ", value: stateCheck == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                              { label: "คะแนนประเมิน", value: statusCheck }
+                                          ],
+                                          highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                          url
+                                      })
                                   },
                                   {
                                       url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
@@ -5148,18 +5157,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                                       const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                           id_plant,
                                           pool,
-                                          (gapData) => {
+                                          (gapData, { url }) => {
                                               const { greenhouse_name, plant_name } = gapData || {}
-                                              const messages = [
-                                                  ...generateMessageTitle(greenhouse_name, plant_name),
-                                                  `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
-                                              ]
-
-                                              if (report_text) messages.push(
-                                                  `ข้อความจากเจ้าหน้าที่: ${report_text}`
-                                              )
-
-                                              return messages
+                                              const passed = Boolean(Number(statusCheck))
+                                              return MessageLineTemplate.farmerCard({
+                                                  theme: passed ? "checkFormPass" : "checkFormFail",
+                                                  subtitle: "ตรวจโดยเจ้าหน้าที่",
+                                                  rows: [
+                                                      ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                      { label: "ผลการตรวจ", value: passed ? "ผ่าน" : "ไม่ผ่าน" }
+                                                  ],
+                                                  highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                                  url
+                                              })
                                           },
                                           {
                                               url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
@@ -5291,20 +5301,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                               await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
-                                  (gapData) => {
+                                  (gapData, { url }) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      const messages = [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
-                                          "",
-                                          "รายการ:",
-                                          editDatas.map(({ subject_form, old_content, new_content }) =>
-                                              `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
-                                          )
-                                      ]
-
-                                      if (note) messages.push(`หมายเหตุ: ${note}`)
-                                      return messages
+                                      return MessageLineTemplate.farmerCard({
+                                          theme: "editRejected",
+                                          rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                          list: {
+                                              label: "รายการที่ขอแก้ไข",
+                                              items: editDatas.map(({ subject_form, old_content, new_content }) =>
+                                                  `${RoyalGapEnv.fields[subject_form] || subject_form}: ${old_content || "-"} → ${new_content || "-"}`)
+                                          },
+                                          highlight: note ? { label: "หมายเหตุจากเจ้าหน้าที่", text: note } : null,
+                                          url
+                                      })
                                   },
                                   {
                                       url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`

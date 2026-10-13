@@ -1,5 +1,6 @@
 require('dotenv').config();
 const line = require("./configLine");
+const MessageLineTemplate = require("./core/messageLineTemplate");
 const Pool = require("./connectPool");
 
 module.exports = function callServices(app, connectionDB = new Pool()) {
@@ -52,7 +53,17 @@ module.exports = function callServices(app, connectionDB = new Pool()) {
             `👨‍🌾 เกษตรกร: ${farmer_name || "-"}`;
 
         try {
-            await line.pushMessage(uid_line, [{ type: "text", text: message }]);
+            // การ์ดแจ้งเตือนอุปกรณ์ (altText เป็นข้อความเดิม)
+            await line.pushMessage(uid_line, [MessageLineTemplate.farmerCard({
+                theme: "device",
+                title: `อุปกรณ์ ${status}`,
+                rows: [
+                    { label: "อุปกรณ์", value: deviceIdForMsg },
+                    { label: "โรงเรือน", value: name_house },
+                    { label: "เกษตรกร", value: farmer_name }
+                ],
+                altText: message
+            })]);
             return res.json({ success: true });
         } catch (err) {
             console.error("❌ pushMessage failed:", err.response?.data || err);
