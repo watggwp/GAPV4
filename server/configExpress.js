@@ -2,6 +2,7 @@ const router = require('./routerApi');
 
 const dbpackage = require('./dbConfig');
 const ConnectPool = require('./connectPool');
+const ownershipGuard = require('./middleware/ownershipGuard');
 const apifunc = require('./apifunc');
 const WebSocket = require('./webSocket');
 
@@ -214,6 +215,20 @@ module.exports = function appConfig(username, password, hostServer) {
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     }))
+
+    // เกษตรกร (?r=farmer) เข้าถึงได้เฉพาะโรงเรือน/แปลง/อุปกรณ์ของตัวเอง
+    const owns = ownershipGuard(Pool)
+    const byParam = (name) => (req) => req.params[name]
+    const byBody = (name) => (req) => req.body && req.body[name]
+    app.get("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.post("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.put("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.delete("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/sensor/weather-greenhouse", owns("weatherSensor", byBody("id")))
+    app.all("/api/pump/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/pump", owns("pumpSensor", byBody("id")))
 
     // middleware custom
     app.use(logging(Pool))

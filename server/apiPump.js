@@ -453,7 +453,8 @@ module.exports = function apiPump(app, pool = new Pool()) {
         }
 
         try {
-            const result = await pool.executeQuery(`DELETE FROM pump_schedule WHERE id = ?`, [id]);
+            // ลบได้เฉพาะตารางเวลาของอุปกรณ์ที่ผ่านการตรวจสิทธิ์ข้างบน
+            const result = await pool.executeQuery(`DELETE FROM pump_schedule WHERE id = ? AND device_id = ?`, [id, device_id]);
             if (result.affectedRows === 0) {
                 return res.status(404).json({ error: "Schedule not found" });
             }
