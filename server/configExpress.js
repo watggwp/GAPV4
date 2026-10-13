@@ -232,7 +232,6 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use("/api/fertilizers", authorizer(Pool))
     app.use("/api/pests/*", authorizer(Pool))
 
-
     // config environment
     app.use(upload.any())
     app.use(express.static('app/src/assets/style'))
