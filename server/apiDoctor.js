@@ -15,6 +15,7 @@ const ConnentPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const SafeUpdate = require('./core/safeUpdate');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const io = new Server()
@@ -394,6 +395,13 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     }
 
                     const data = req.body;
+                    // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+                    data.dataChange = SafeUpdate.pickFormChanges("formplant", data.dataChange);
+                    if (!Object.keys(data.dataChange).length) {
+                        con.end();
+                        res.send("not");
+                        return;
+                    }
                     if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                         con.query(`
                         INSERT INTO editform 
@@ -5070,30 +5078,25 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         type_request == "pest" ? "pest_id" : "id"
                     )
                     try {
-                        // ตัดการส่ง check จากหน้าบ้าน ให้หลังบ้าน check แทน
-                        // revise code
-                        const OverCheck = Object.entries(req.body.check).map((checkData) => {
-                            checkData[1] = `"${checkData[1].trim()}"`
-                            return checkData.join("=").replaceAll(" ", "")
-                        })
-                            .join(" and ")
-                            .replaceAll(";", "")
+                        // ชื่อคอลัมน์ต้องอยู่ใน whitelist และค่าทุกตัวส่งเป็น parameter (กัน SQL injection)
+                        const overCheck = SafeUpdate.buildWhere(From, req.body.check)
+                        const changes = SafeUpdate.buildSet(From, req.body.data)
 
-                        const resultCheck = OverCheck.length ? await new Promise((resole, reject) => {
+                        const resultCheck = overCheck.sql ? await new Promise((resole) => {
                             con.query(
                                 `
                                 SELECT (
                                     SELECT EXISTS (
-                                        SELECT ${columnID} 
+                                        SELECT ${columnID}
                                         FROM ${From}
-                                        WHERE ${OverCheck}
+                                        WHERE ${overCheck.sql}
                                     )
                                 ) as checkData
-                                ` , (err, resultIn) => {
-                                console.log(resultIn)
+                                ` , overCheck.params, (err, resultIn) => {
                                 if (err) {
                                     console.log(err)
                                     resole(0)
+                                    return
                                 }
                                 resole(parseInt(resultIn[0].checkData))
                             }
@@ -5110,28 +5113,24 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 )
                             })
 
-                            const update = Object.entries(req.body.data).map(data => {
-                                if (data[0] === "location") {
-                                    data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
-                                }
-                                else data[1] = `"${data[1].trim()}"`
-                                return data.join(" = ")
-                            })
-                                .join(' , ')
-                                .replaceAll(";", "")
-                                .replaceAll(" ", "")
-
-                            await new Promise((resole, reject) => {
+                            const updateError = await new Promise((resole) => {
                                 con.query(
                                     `
                                     UPDATE ${From}
-                                    SET ${update}
+                                    SET ${changes.sql}
                                     WHERE ${columnID} = ?
-                                    ` , [data_id], (err, updateData) => {
-                                    resole()
+                                    ` , [...changes.params, data_id], (err) => {
+                                    resole(err)
                                 }
                                 )
                             })
+
+                            if (updateError) {
+                                console.log(updateError)
+                                con.end()
+                                res.send({ result: "error" })
+                                return
+                            }
 
                             con.query(
                                 `

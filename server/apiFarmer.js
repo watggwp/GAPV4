@@ -10,6 +10,7 @@ const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const SafeUpdate = require('./core/safeUpdate');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
@@ -1715,6 +1716,14 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                     console.log("EDIT DATA =>", data);
 
+                    // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+                    data.dataChange = SafeUpdate.pickFormChanges("formplant", data.dataChange);
+                    if (!Object.keys(data.dataChange).length) {
+                        con.end();
+                        res.send("not");
+                        return;
+                    }
+
                     if (
                         !data.dataChange ||
                         typeof data.dataChange !== "object"
@@ -2835,7 +2844,10 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         if ([0, 1].includes(state_status)) {
                             // ตรวจสอบว่าผู้ใช้เป็นหมอพืช
 
-                            const { id_user, user_type, id_form, because, change } = req.body;
+                            const { id_user, user_type, id_form, because } = req.body;
+                            // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+                            const change = SafeUpdate.pickFormChanges(`form${FactorType}`, req.body.change);
+                            if (!Object.keys(change).length) return res.send("edit")
                             const isDoctor = user_type === 'doctor'; // ตรวจสอบฟิลด์ user_type
                             const idDoctorEdit = isDoctor ? id_user : null;
 

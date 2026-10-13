@@ -6,6 +6,7 @@ const RoyalGapEnv = require('./core/env');
 const { ca } = require('date-fns/locale');
 const RoyalGapLine = require('./configLine');
 const AccountAuth = require('./core/accountAuth');
+const SafeUpdate = require('./core/safeUpdate');
 const fs = require('fs');
 const path = require('path');
 // โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
@@ -1079,6 +1080,13 @@ app.post('/api/admin/role/update', async (req, res) => {
             }
 
             const data = req.body;
+            // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+            data.dataChange = SafeUpdate.pickFormChanges("formplant", data.dataChange);
+            if (!Object.keys(data.dataChange).length) {
+                con.end();
+                res.send("not");
+                return;
+            }
             if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                 con.query(`
                 INSERT INTO editform 
@@ -2856,37 +2864,42 @@ app.post('/api/admin/data/change', async (req, res) => {
 
         if(From) {
           try {
-            const verify = data.update.name ? await new Promise((resole , reject)=> {
+            // หน้าเว็บส่ง name มาเสมอ ส่วนตาราง pests ใช้คอลัมน์ pest_name
+            const changes = { ...(data.update || {}) }
+            if (From === "pests" && "name" in changes) {
+              changes.pest_name = changes.name
+              delete changes.name
+            }
+            // ชื่อคอลัมน์ต้องอยู่ใน whitelist และค่าทุกตัวส่งเป็น parameter (กัน SQL injection)
+            const set = SafeUpdate.buildSet(From, changes)
+            const newName = changes[columnName]
+            const columnID = SafeUpdate.primaryKey(From)
+
+            const verify = newName ? await new Promise((resole , reject)=> {
               con.query(
                 `
                 SELECT (
                   SELECT EXISTS (
-                    SELECT id
+                    SELECT ${columnID}
                     FROM ${From}
                     WHERE ${From}.${columnName} = ? and ${From}.is_use = 1
                   )
                 ) as verifyStatus
                 `
-                ,[ data.update.name.replaceAll('"' , "") ], (err , result)=>{
+                ,[ SafeUpdate.cleanValue(newName) ], (err , result)=>{
                 if(err) reject("")
                 else resole(!result[0].verifyStatus)
-              }) 
+              })
             }) : true
-  
+
             if(verify) {
-              const update = Object.entries(data.update).map(val=>{
-                val[0] = val[0].replaceAll(" " , "")
-                val[1] = val[1].replaceAll(" " , "")
-                val = val.join("=")
-                return val
-              }).join(",").replaceAll(" " , "");
               con.query(
                 `
-                UPDATE ${From} 
-                SET ${update}
-                WHERE id = ?;
+                UPDATE ${From}
+                SET ${set.sql}
+                WHERE ${columnID} = ?;
                 `
-                , [ data.id_table ] , (err , result)=>{
+                , [ ...set.params , data.id_table ] , (err , result)=>{
                 if(err) {
                   con.end()
                   res.send("")
