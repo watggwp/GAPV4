@@ -206,6 +206,8 @@
 * **`REACT_APP_LINE_GAP`** : ID ของ LIFF สำหรับหน้า **ดูใบ GAP** (Endpoint: `/farmer/gap`)
 * **`REACT_APP_LIFF_DOCTOR`** : ID ของ LIFF สำหรับหน้า **เชื่อมต่อ LINE OA ของหมอพืช** (Endpoint: `/doctor`)
 * **`REACT_APP_WEATHER_STATION`** : ID ของ LIFF สำหรับหน้า **ดูสถานีตรวจวัดสภาพอากาศ** (Endpoint: `/farmer/weather-station`)
+* **`LINE_LOGIN_CHANNEL_ID`** (ไม่บังคับ) : Channel ID ของ LINE Login ที่ผูก LIFF ไว้ ใช้ตรวจ LIFF access token ถ้าไม่ใส่ระบบจะดึงจากเลขหน้า LIFF ID อัตโนมัติ
+* **`ALLOW_UNVERIFIED_LIFF`** (ไม่บังคับ) : ตั้งเป็น `true` เพื่อยอมรับ LINE uid ที่ไม่ได้ยืนยันในโหมด deploy ชั่วคราวเท่านั้น (ค่าปกติ: ปิด) ในโหมด dev ระบบยอมรับ `REACT_APP_UID_USER_TEST` อยู่แล้ว
 
 #### การตั้งค่า Server & Ports (Application Config)
 * **`BUILD`** : กำหนด Environment Mode เช่น `deploy`

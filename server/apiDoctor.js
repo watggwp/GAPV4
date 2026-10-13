@@ -10,6 +10,7 @@ const { Server } = require('socket.io')
 const ConnentPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
+const LineAuth = require('./core/lineAuth');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
@@ -1252,7 +1253,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         })
     })
 
-    app.post('/api/doctor/checkline', (req, res) => {
+    app.post('/api/doctor/checkline', async (req, res) => {
+        // ต้องยืนยัน LIFF access token ก่อน ไม่งั้นใครก็ถาม username หมอจาก LINE uid ได้
+        const uidLine = await LineAuth.resolveLineUserId({ accessToken: req.body['accessToken'], uid: req.body['id'] })
+        if (!uidLine) return res.send('')
+
         let con = Database.createConnection(listDB)
         con.connect((err) => {
             if (!err) {
@@ -1260,10 +1265,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT id_doctor 
                     FROM acc_doctor 
                     WHERE uid_line_doctor = ?` ,
-                    [req.body['id']],
+                    [uidLine],
                     (err, result) => {
                         con.end()
-                        if (result[0]) {
+                        if (!err && result[0]) {
                             res.send(result[0]['id_doctor'])
                         } else {
                             res.send('')
@@ -1332,7 +1337,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         })
     })
 
-    app.all('/api/doctor/auth', (req, res) => {
+    app.all('/api/doctor/auth', async (req, res) => {
+        // ผูก LINE กับบัญชีหมอได้เฉพาะ uid ที่ยืนยันจาก LIFF access token แล้ว
+        const uidLineVerified = (req.body['line_access_token'] || req.body['uid_line'])
+            ? await LineAuth.resolveLineUserId({ accessToken: req.body['line_access_token'], uid: req.body['uid_line'] })
+            : ""
+
         // เช็คการเข้าสู่ระบบจริงๆ
 
         let username = req.session.user_doctor ?? req.body['username'] ?? '';
@@ -1362,17 +1372,17 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     req.session.pass_doctor = password
                     req.session.role_doctor = role
 
-                    if (req.body.uid_line) {
+                    if (uidLineVerified) {
                         con.query(
                             `
                             UPDATE acc_doctor 
                             SET uid_line_doctor = ?
-                            WHERE id_table_doctor = ? and uid_line_doctor != ?
-                            ` , [req.body.uid_line, result.data.id_table_doctor, req.body.uid_line],
+                            WHERE id_table_doctor = ? and (uid_line_doctor IS NULL OR uid_line_doctor != ?)
+                            ` , [uidLineVerified, result.data.id_table_doctor, uidLineVerified],
                             (err, uid) => {
                                 con.end()
                                 !err && uid.changedRows != 0 && RoyalGapLine.pushMessage(
-                                    req.body.uid_line, { type: "text", text: "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ" }
+                                    uidLineVerified, { type: "text", text: "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ" }
                                 ).catch((e) => { })
                             }
                         )

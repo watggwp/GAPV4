@@ -28,8 +28,9 @@ const MainFarmer = () => {
     const [uid, setUid] = useState("")
     const [verified, setVerified] = useState(false)
 
-    const RouterPage = useCallback(async (uid) => {
-        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: page });
+    const RouterPage = useCallback(async (uid, accessToken) => {
+        // server ใช้ accessToken ยืนยันตัวตนกับ LINE ส่วน uid ใช้ได้เฉพาะตอน dev
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, accessToken: accessToken, page: page });
         setUid(uid)
 
         switch (result) {
@@ -81,7 +82,7 @@ const MainFarmer = () => {
                     return
                 }
                 const uidTest = process.env.REACT_APP_UID_USER_TEST
-                RouterPage(uidTest, Liff)
+                RouterPage(uidTest)
                 return
             }
 
@@ -91,7 +92,7 @@ const MainFarmer = () => {
             }
 
             const profile = await Liff.getProfile()
-            profile.userId && RouterPage(profile.userId, Liff)
+            profile.userId && RouterPage(profile.userId, Liff.getAccessToken())
         } catch (err) {
             CloseAccount("not line", null, "พบปัญหาจากระบบ")
         }
