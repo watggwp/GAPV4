@@ -17,7 +17,7 @@ const plantingScheduleReminder = {
                 FROM plant_list pl
                 INNER JOIN (
                     SELECT 
-                        s.* ,
+                        s.id , s.plant_id , s.station_id , s.category , s.title , s.age_plant , s.repeat ,
                         IF(
                             s.category = 1,
                         	CONCAT(

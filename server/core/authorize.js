@@ -4,17 +4,22 @@ const Pool = require("../connectPool")
 const Util = require("./util")
 const AccountAuth = require("./accountAuth")
 
+// คอลัมน์โปรไฟล์ตั้งต้น (ไม่ดึงรูป longblob และรหัสผ่าน รหัสผ่านตรวจด้วย query แยก)
+const ADMIN_PROFILE_COLUMNS = "id, username, phone, address, station_admin, fullname_admin, status_account, status_delete, time_online"
+const DOCTOR_PROFILE_COLUMNS = "id_table_doctor, id_doctor, uid_line_doctor, fullname_doctor, station_doctor, status_account, status_delete, time_online, doctor_role, analyst_role, consultant_role, protection_role"
+const FARMER_PROFILE_COLUMNS = "acc_farmer.id_farmer, acc_farmer.fullname, acc_farmer.station, acc_farmer.register_auth, acc_farmer.date_register, acc_farmer.uid_line, acc_farmer.link_user, acc_farmer.tel_number, station_list.name, station_list.id_station"
+
 class AuthorizeUser {
     constructor(pool = new Pool()) {
         this.Pool = pool
     }
 
-    async admin(username, password, options = { select: "*" }) {
+    async admin(username, password, options = { select: ADMIN_PROFILE_COLUMNS }) {
         const { select } = options
         try {
             const rows = await this.Pool.executeQuery(
                 `
-                SELECT *
+                SELECT id, username, password
                 FROM admin
                 WHERE BINARY username = ?
                 `,
@@ -35,12 +40,12 @@ class AuthorizeUser {
         }
     }
 
-    async doctor(username, password, role, options = { select: "*" }) {
+    async doctor(username, password, role, options = { select: DOCTOR_PROFILE_COLUMNS }) {
         const { select } = options
         try {
             const rows = await this.Pool.executeQuery(
                 `
-                SELECT *
+                SELECT id_table_doctor, id_doctor, password_doctor
                 FROM acc_doctor
                 WHERE BINARY id_doctor = ?
                 ${role == "doctor" ?
@@ -84,7 +89,7 @@ class AuthorizeUser {
         return profile
     }
 
-    async farmer(uid_line, options = { select: "*" }) {
+    async farmer(uid_line, options = { select: FARMER_PROFILE_COLUMNS }) {
         const { select } = options
         try {
             const [profile] = await this.Pool.executeQuery(

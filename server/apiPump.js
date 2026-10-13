@@ -18,7 +18,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
     async function updateScheduleCache() {
         try {
-            const schedules = await pool.executeQuery(`SELECT * FROM pump_schedule`)
+            const schedules = await pool.executeQuery(`SELECT device_id, start_time, duration, account_type, account_id FROM pump_schedule`)
             scheduleCache = schedules;
             console.log(`[scheduleCache] updated (${schedules.length} records)`);
         } catch (err) {
@@ -61,7 +61,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
         try {
             const devices = await pool.executeQuery(`
-                SELECT *
+                SELECT spg.id, spg.device_id, spg.status
                 FROM sensor_pump_greenhouse spg
                 ${greenhouse_id !== undefined ? "WHERE spg.greenhouse_id = ?" : ""
                 }
@@ -117,7 +117,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
         try {
             const devicesExists = await pool.executeQuery(
-                `SELECT * FROM sensor_pump_greenhouse WHERE device_id = ? LIMIT 1`,
+                `SELECT status FROM sensor_pump_greenhouse WHERE device_id = ? LIMIT 1`,
                 [device_id]
             )
 
@@ -241,7 +241,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         if (!downlink.success) {
             console.warn(`[TTN ERROR] Device: ${device_id} →`, downlink.message);
             const logs = await pool.executeQuery(
-                ` SELECT * FROM pump_log WHERE device_id = ? AND source = ?`,
+                ` SELECT id, action, source, timestamp FROM pump_log WHERE device_id = ? AND source = ?`,
                 [device_id, "manual"]
             )
             return res.status(400).json({
@@ -258,7 +258,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { insertId } = insertLog
 
         const lastLogs = await pool.executeQuery(
-            `SELECT * FROM pump_log WHERE id = ?`,
+            `SELECT id, action, source, timestamp FROM pump_log WHERE id = ?`,
             [insertId]
         )
 
@@ -325,7 +325,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         try {
             const newStartTime = new Date(start_time).toLocaleTimeString("th-TH")
             const existing = await pool.executeQuery(
-                `SELECT * FROM pump_schedule WHERE device_id = ? AND start_time = ?`,
+                `SELECT id FROM pump_schedule WHERE device_id = ? AND start_time = ?`,
                 [device_id, newStartTime]
             );
             if (existing.length > 0) {
@@ -340,7 +340,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
             const { insertId } = insertSchedule
 
             const lastSchedules = await pool.executeQuery(
-                `SELECT * FROM pump_schedule WHERE id = ?`,
+                `SELECT id, start_time, duration, created_at FROM pump_schedule WHERE id = ?`,
                 [insertId]
             )
 
@@ -383,7 +383,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
         try {
             const schedules = await pool.executeQuery(
-                `SELECT * FROM pump_schedule WHERE device_id = ? ORDER BY start_time`,
+                `SELECT id, start_time, duration, created_at FROM pump_schedule WHERE device_id = ? ORDER BY start_time`,
                 [device_id]
             );
             res.json({
@@ -422,7 +422,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
         }
 
         try {
-            let sql = `SELECT * FROM pump_log`;
+            let sql = `SELECT id, action, source, timestamp FROM pump_log`;
             let params = [];
 
             if (device_id) {

@@ -12,6 +12,36 @@ const path = require('path');
 const REPORT_IMAGE_DIR = path.join(__dirname, "..", "app", "src", "assets", "img", "doctor", "report")
 fs.mkdirSync(REPORT_IMAGE_DIR, { recursive: true })
 
+// คอลัมน์ของตารางข้อมูลหลัก (หน้า data list/get ใช้ทุกช่อง)
+const MASTER_DATA_COLUMNS = {
+  plant_list : "id , name , variety_name , is_use , type_plant , qty_harvest",
+  station_list : "id , name , is_use , location , id_station",
+  chemical_list : "id , name , name_formula , how_use , date_safe_list , is_use",
+  pests : "pest_id , pest_name , type_pest , is_use",
+}
+// คอลัมน์ของแบบบันทึก (form/get/detail แสดงและแก้ไขทุกช่อง)
+const FORM_DETAIL_COLUMNS = {
+  formplant : "id , id_farm_house , name_plant , generation , date_glow , date_plant , posi_w , posi_h , qty , area , date_harvest , system_glow , water , water_flow , history , insect , qtyInsect , seft , state_status , date_success , unit , name_varieties , expected_yield , default_yield",
+  formfertilizer : "id , id_plant , name , formula_name , use_is , volume , source , date",
+  formchemical : "id , id_plant , name , formula_name , insect , use_is , rate , volume , date_safe , date , source , pest_id",
+}
+// formplant แบบระบุชื่อตาราง (ใช้ใน query ที่ join กับตารางอื่น)
+const FORMPLANT_COLUMNS_QUALIFIED = FORM_DETAIL_COLUMNS.formplant.split(" , ").map((col) => `formplant.${col}`).join(" , ")
+// คอลัมน์ของรายการจัดการแบบบันทึก (form/manage/get ใช้ทุกช่อง รวมถึงส่งกลับตอนแก้ไข)
+const MANAGE_DETAIL_COLUMNS = {
+  success_detail : "id , id_success , id_plant , type_success , id_table_doctor , date_of_doctor , date_of_farmer , id_admin",
+  report_detail : "id , id_plant , report_text , id_table_doctor , date_report , image_path , is_read , id_admin",
+  check_form_detail : "id , id_plant , status_check , note_text , id_table_doctor , date_check , acknowledged , id_admin",
+  check_plant_detail : "id , id_plant , status_check , state_check , note_text , id_table_doctor , date_check , acknowledged , id_admin",
+}
+// คอลัมน์สำหรับตัวเลือกในหน้าจัดกลุ่ม (data/listforgroup)
+const GROUP_DATA_COLUMNS = {
+  plant_list : "id , name",
+  station_list : "id , name , is_use , id_station",
+  chemical_list : "id , name",
+  pests : "pest_id , pest_name , type_pest",
+}
+
 require('dotenv').config().parsed
 const axios = require('axios').default;
 
@@ -386,7 +416,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         if(type_status && data.id_table) {
           con.query(
             `
-              SELECT * 
+              SELECT id , because_text , date , id_admin${type_status === "status" ? " , type_status" : ""}
               FROM because_${type_status}
               WHERE id_table_doctor = ?  AND role = 1
               ORDER BY date DESC;
@@ -432,7 +462,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         if(type_status && data.id) {
           con.query(
             `
-              SELECT * 
+              SELECT id , because_text , date , id_admin${type_status === "status" ? " , type_status" : ""}
               FROM because_${type_status}
               WHERE id_table_doctor = ? AND role = 0
               ORDER BY date DESC;
@@ -765,7 +795,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const { params: { station_id } } = req;
         const station = await pool.executeQuery(
           `
-            SELECT h.*
+            SELECT h.id_farm_house , h.name_house , h.uid_line , h.link_user
             FROM acc_farmer ac_f
             LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
             WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
@@ -994,7 +1024,7 @@ app.post('/api/admin/role/update', async (req, res) => {
           con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1`, [req.body.name_plant_list], (err, result) => resolve(result));
         });
         con.query(`
-          SELECT formplant.*,
+          SELECT formplant.id , formplant.generation ,
             GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
             GROUP_CONCAT(DISTINCT formchemical.insect) AS insect_generation
           FROM formplant
@@ -1031,7 +1061,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const admin_id = result['data'].id || 0;
         const { id_plant } = req.body;
         con.query(`
-            SELECT formplant.*
+            SELECT ${FORMPLANT_COLUMNS_QUALIFIED}
             FROM formplant
             WHERE formplant.id = ?
             LIMIT 1
@@ -1266,7 +1296,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
         if (!type_data) { return res.send([]); }
         const columnName = (data.type === "pest" ? "pest_name" : "name");
-        con.query(`SELECT * FROM ${type_data} WHERE INSTR(${columnName}, ?) ORDER BY is_use DESC, ${columnName} ASC LIMIT ${Limit} OFFSET ${StartRow}`,
+        con.query(`SELECT ${MASTER_DATA_COLUMNS[type_data]} FROM ${type_data} WHERE INSTR(${columnName}, ?) ORDER BY is_use DESC, ${columnName} ASC LIMIT ${Limit} OFFSET ${StartRow}`,
           [data.textSearch], (err, result) => {
             if (err) { dbpacket.dbErrorReturn(con, err, res); return; }
             con.end();
@@ -1288,7 +1318,7 @@ app.post('/api/admin/role/update', async (req, res) => {
 				return 0;
 			}
 
-			con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+			con.query(`SELECT ${MASTER_DATA_COLUMNS.station_list} FROM station_list WHERE is_use = 1` , (err , result)=>{
 				if (err) {
 					dbpacket.dbErrorReturn(con, err, res);
 					console.log("query");
@@ -1395,7 +1425,7 @@ app.get('/api/admin/profile/get', (req, res) => {
 
   let con = Database.createConnection(listDB);
 
-  apifunc.auth(con, username, password, res, "admin")
+  apifunc.auth(con, username, password, res, "admin", "", { withImage: true })
       .then((result) => {
           con.query(
               `
@@ -2434,7 +2464,7 @@ app.post('/api/admin/data/list', async (req, res) => {
               : `GROUP BY ${columnName}`;
 
           const query = `
-              SELECT * FROM ${type_data}
+              SELECT ${MASTER_DATA_COLUMNS[type_data]} FROM ${type_data}
               WHERE INSTR(${columnName}, ?)
               ${groupByClause}
               ORDER BY is_use DESC, ${columnName} ASC
@@ -2493,7 +2523,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
           const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
  
           const query = `
-              SELECT * FROM ${type_data}
+              SELECT ${GROUP_DATA_COLUMNS[type_data]} FROM ${type_data}
               WHERE INSTR(${columnName}, ?)
               GROUP BY ${columnName}
               ORDER BY is_use DESC, ${columnName} ASC
@@ -2549,7 +2579,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
         if(From) {
           con.query(
             `
-              SELECT * FROM ${From} WHERE ${columnID} = ?
+              SELECT ${MASTER_DATA_COLUMNS[From]} FROM ${From} WHERE ${columnID} = ?
             ` 
           , 
           [data.id] ,
@@ -2603,7 +2633,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
                     data.type === "pest" ? "pest_name" : "name"
                 );
 
-                let checkQuery = `SELECT * FROM ${From} WHERE ${columnName} = ? `;
+                let checkQuery = `SELECT ${data.type === "pest" ? "pest_id" : "id"} FROM ${From} WHERE ${columnName} = ? `;
                 let checkParams = [data.name];
 
                 if (data.type === "plant") {
@@ -4011,7 +4041,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 
               con.query(
                   `
-                  SELECT * ,
+                  SELECT ${FORM_DETAIL_COLUMNS[`form${TypeForm}`]} ,
                   (
                       SELECT COUNT(status)
                       FROM editform
@@ -4166,8 +4196,9 @@ app.post('/api/admin/report/list', async(req, res) => {
           if (result['result'] === "pass") {
               con.query(
                   `
-                  SELECT acc_farmer.*
-                  FROM acc_farmer , 
+                  SELECT acc_farmer.id_farmer , acc_farmer.fullname , acc_farmer.img , acc_farmer.tel_number ,
+                      acc_farmer.date_register , acc_farmer.date_doctor_confirm , acc_farmer.text_location , acc_farmer.location
+                  FROM acc_farmer ,
                       (
                           SELECT link_user
                           FROM housefarm , 
@@ -4230,7 +4261,7 @@ app.post('/api/admin/report/list', async(req, res) => {
               if (TypePage) {
                   con.query(
                       `
-                          SELECT * , 
+                          SELECT ${MANAGE_DETAIL_COLUMNS[TypePage]} , 
                           (
                               IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
                                   (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
@@ -4406,7 +4437,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                   SELECT fromInsert.* 
                   FROM formplant ,
                   (
-                      SELECT formplant.* ,
+                      SELECT ${FORMPLANT_COLUMNS_QUALIFIED} ,
                           (
                               SELECT type_plant
                               FROM plant_list
@@ -4485,7 +4516,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const Fertirizer = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * 
+                                          SELECT ${FORM_DETAIL_COLUMNS.formfertilizer}
                                           FROM formfertilizer
                                           WHERE id_plant = ?
                                       ` , [val.id],
@@ -4502,7 +4533,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const chemical = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * 
+                                          SELECT ${FORM_DETAIL_COLUMNS.formchemical}
                                           FROM formchemical
                                           WHERE id_plant = ?
                                       ` , [val.id],
@@ -4519,7 +4550,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const Report = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.report_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4542,7 +4573,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const CheckForm = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.check_form_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4565,7 +4596,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const CheckPlant = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.check_plant_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -5168,7 +5199,7 @@ app.post('/api/admin/report/list', async(req, res) => {
       try {
           const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
           if (result['result'] === "pass") {
-              const type = req.body.id_edit ? "*" : "id_edit";
+              const type = req.body.id_edit ? "id_edit , editform.id_form , editform.id_doctor , editform.because , editform.date , editform.note , editform.status , editform.type_form" : "id_edit";
               const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
               con.query(
                   ` 
@@ -5188,7 +5219,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                       if (req.body.id_edit) {
                           con.query(
                               `
-                          SELECT * FROM detailedit
+                          SELECT id_detail , id_edit , subject_form , old_content , new_content FROM detailedit
                           WHERE id_edit = ?
                           ` , [req.body.id_edit],
                               (err, detail) => {

@@ -8,7 +8,7 @@ module.exports = function Pests(app, pool = new Pool()) {
         try {
             const pests = await pool.executeQuery(
                 `
-                    SELECT *
+                    SELECT p.pest_id , p.pest_name
                     FROM pests p
                     LEFT JOIN pest_chemical pc ON pc.pest_id = p.pest_id
                     LEFT JOIN chemical_list cl ON cl.id = pc.chemical_id

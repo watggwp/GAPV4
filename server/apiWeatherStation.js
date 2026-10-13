@@ -148,7 +148,7 @@ module.exports = function apiWeatherStation(app, pool = new Pool()) {
 
         try {
             const devicesExists = await pool.executeQuery(
-                `SELECT * FROM sensor_weather_station WHERE device_id = ? LIMIT 1`,
+                `SELECT status FROM sensor_weather_station WHERE device_id = ? LIMIT 1`,
                 [device_id]
             )
 

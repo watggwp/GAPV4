@@ -15,6 +15,22 @@ const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
 const io = new Server()
 
+// คอลัมน์ formplant ทั้งหมด (ใช้ตอนต้องส่ง/อ้างอิงข้อมูลแปลงแบบเต็ม เช่น result[0][subject])
+const FORMPLANT_COLUMNS = [
+    "id", "id_farm_house", "name_plant", "generation", "date_glow", "date_plant", "posi_w", "posi_h",
+    "qty", "area", "date_harvest", "system_glow", "water", "water_flow", "history", "insect",
+    "qtyInsect", "seft", "state_status", "date_success", "unit", "name_varieties", "expected_yield", "default_yield"
+]
+const formplantColumns = (exclude = []) => FORMPLANT_COLUMNS
+    .filter(col => !exclude.includes(col))
+    .map(col => `formplant.${col}`)
+    .join(", ")
+// คอลัมน์ทั้งหมดของ form${FactorType} (ใช้ factorData[subject] ตอนแก้ไข)
+const FACTOR_FORM_COLUMNS = {
+    fertilizer: ["id", "id_plant", "name", "formula_name", "use_is", "volume", "source", "date"],
+    chemical: ["id", "id_plant", "name", "formula_name", "insect", "use_is", "rate", "volume", "date_safe", "date", "source", "pest_id"]
+}
+
 module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbpacket, listDB, socket = io) {
 
     app.post('/api/farmer/sign', async (req, res) => {
@@ -74,7 +90,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                     return 0;
                 }
 
-                con.query(`SELECT * FROM station_list WHERE is_use = 1`, (err, result) => {
+                con.query(`SELECT id, name, location FROM station_list WHERE is_use = 1`, (err, result) => {
                     con.end()
                     if (!err) res.send(result)
                     else res.send("error auth")
@@ -479,7 +495,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 const where = (req.body.id_formplant) ? `and formplant.id = ${con.escape(req.body.id_formplant)}` : "";
 
                 const select = (req.body.id_formplant) ?
-                    `formplant.*` :
+                    formplantColumns() :
                     `formplant.id, formplant.name_plant, formplant.state_status, 
                     formplant.date_plant, formplant.generation, formplant.qty,
                     (
@@ -1259,7 +1275,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 // ดึงข้อมูลทุกรุ่นของพืชที่เลือก
                 const sqlQuery = `
                     SELECT 
-                        formplant.*, 
+                        ${formplantColumns(["insect"])}, 
                         GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
                         GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                     FROM formplant
@@ -1655,7 +1671,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             const auth = await authCheck(con, req);
 
             con.query(`
-            SELECT formplant.*
+            SELECT ${formplantColumns()}
             FROM formplant,
             (
                 SELECT id_farm_house
@@ -2009,7 +2025,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                 con.query(
                     `
-                    SELECT editform.*, 
+                    SELECT editform.id_edit, editform.because, editform.date, editform.note, editform.status, 
                            IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                     FROM editform
                     LEFT JOIN formplant ON editform.id_form = formplant.id
@@ -2037,7 +2053,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                             // Fetch details for a specific edit
                             con.query(
                                 `
-                                SELECT * FROM detailedit
+                                SELECT id_detail, subject_form, old_content, new_content FROM detailedit
                                 WHERE id_edit = ?
                             `,
                                 [req.body.id_edit],
@@ -2338,7 +2354,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                     con.end()
                     return res.send("error auth")
                 }
-                con.query(`SELECT * FROM ${listType}_list WHERE is_use = 1`, (err, result) => {
+                con.query(`SELECT id, name, name_formula, how_use FROM ${listType}_list WHERE is_use = 1`, (err, result) => {
                     con.end()
                     if (!err) {
                         res.send(result)
@@ -2804,7 +2820,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                     try {
                         const factorCurrent = await pool.executeQuery(
                             `
-                                SELECT ft.*, fp.state_status
+                                SELECT ${FACTOR_FORM_COLUMNS[FactorType].map(col => `ft.${col}`).join(", ")}, fp.state_status
                                 FROM form${FactorType} ft
                                 LEFT JOIN formplant fp ON fp.id = ft.id_plant
                                 LEFT JOIN housefarm gh ON gh.id_farm_house = fp.id_farm_house
@@ -3026,7 +3042,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 if (FactorType) {
                     con.query(
                         `
-                        SELECT editform.*, 
+                        SELECT editform.id_edit, editform.because, editform.date, editform.note, editform.status, 
                                form${FactorType}.name AS form_name,
                                IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                         FROM editform
@@ -3064,7 +3080,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                 // Fetch details for a specific edit
                                 con.query(
                                     `
-                                    SELECT * FROM detailedit
+                                    SELECT id_detail, subject_form, old_content, new_content FROM detailedit
                                     WHERE id_edit = ?
                                 `,
                                     [req.body.id_edit],
@@ -3943,7 +3959,8 @@ const authCheck = (con, req) => {
             con.connect((err) => {
                 if (!err) {
                     con.query(`
-                            SELECT * FROM acc_farmer 
+                            SELECT id_table, fullname, station, link_user, uid_line, register_auth
+                            FROM acc_farmer 
                             WHERE uid_line = ?
                             ORDER BY register_auth DESC , date_register DESC
                                 ` ,

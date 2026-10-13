@@ -6,8 +6,16 @@ const ErrorDB = (connectDB, err, res) => {
   dbFunc.dbErrorReturn(connectDB, err, res)
 }
 
+// คอลัมน์บัญชีที่ใช้ใน auth (ไม่ดึงรูป longblob ทุก request)
+const AUTH_COLUMNS = {
+  admin: "id, username, password, phone, address, station_admin, fullname_admin, status_account, status_delete, time_online",
+  acc_doctor: "id_table_doctor, id_doctor, uid_line_doctor, password_doctor, fullname_doctor, station_doctor, status_account, status_delete, time_online, doctor_role, analyst_role, consultant_role, protection_role"
+}
+// เฉพาะหน้าโปรไฟล์ที่ต้องแสดงรูป ส่ง { withImage: true } มา
+const AUTH_IMAGE_COLUMN = { admin: "img_admin", acc_doctor: "img_doctor" }
+
 const apifunc = {
-  auth: (connectDB, username, password, res, authAccount, role = "") => {
+  auth: (connectDB, username, password, res, authAccount, role = "", options = {}) => {
     return new Promise((resole, reject) => {
       connectDB.connect((err) => {
         if (err) {
@@ -31,9 +39,11 @@ const apifunc = {
           return;
         }
 
+        const columns = AUTH_COLUMNS[roleAuth] + (options.withImage ? `, ${AUTH_IMAGE_COLUMN[roleAuth]}` : "");
+
         // ดึงบัญชีด้วย username แล้วตรวจรหัสผ่าน (bcrypt / SHA-256 เดิม / session credential) ในโค้ด
         connectDB.query(
-          `SELECT * FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? ${ROLE} ${ORDER}`,
+          `SELECT ${columns} FROM ${roleAuth} WHERE BINARY ${usernameDB} = ? ${ROLE} ${ORDER}`,
           [username],
           async (err, result) => {
             if (err) {

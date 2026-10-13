@@ -99,7 +99,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
             const data = await pool.executeQuery(
                 `
-                    SELECT * , CONCAT(
+                    SELECT wg.air_temperature , wg.air_humidity , wg.light , wg.soil_temperature ,
+                        wg.soil_humidity , wg.pressure , wg.batt , CONCAT(
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
                         , ".000Z"
                     ) as timestamp
@@ -166,7 +167,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const devicesExists = await pool.executeQuery(
-                `SELECT * FROM sensor_weather_greenhouse WHERE device_id = ? LIMIT 1`,
+                `SELECT status FROM sensor_weather_greenhouse WHERE device_id = ? LIMIT 1`,
                 [device_id]
             )
 

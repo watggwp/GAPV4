@@ -65,7 +65,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
             const schedule_plants = await pool.executeQuery(
                 `
                     SELECT 
-                        s.* ,
+                        s.id , s.uid , s.category , s.title , s.age_plant , s.repeat , s.last_update ,
                         IF(
                             s.category = 1,
                         	CONCAT(
@@ -129,7 +129,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
             const schedule_plant = await pool.executeQuery(
                 `
                     SELECT 
-                        s.* ,
+                        s.id , s.uid , s.category , s.title , s.age_plant , s.repeat ,
                         IF(
                             s.category = 1,
                         	CONCAT(

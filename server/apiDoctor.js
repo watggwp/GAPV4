@@ -29,6 +29,36 @@ function generateMessageTitle(greenhouse_name, plant_name) {
     ]
 }
 
+// คอลัมน์ที่อนุญาตให้ SELECT ต่อ table (ใช้แทน SELECT * สำหรับ query ที่ชื่อ table เป็นตัวแปร)
+const TABLE_COLUMNS = {
+    formplant: ["id", "id_farm_house", "name_plant", "generation", "date_glow", "date_plant", "posi_w", "posi_h", "qty", "area", "date_harvest", "system_glow", "water", "water_flow", "history", "insect", "qtyInsect", "seft", "state_status", "date_success", "unit", "name_varieties", "expected_yield", "default_yield"],
+    formfertilizer: ["id", "id_plant", "name", "formula_name", "use_is", "volume", "source", "date"],
+    formchemical: ["id", "id_plant", "name", "formula_name", "insect", "use_is", "rate", "volume", "date_safe", "date", "source", "pest_id"],
+    editform: ["id_edit", "id_form", "id_doctor", "id_doctor_edit", "because", "date", "note", "status", "type_form", "id_admin"],
+    detailedit: ["id_detail", "id_edit", "subject_form", "old_content", "new_content"],
+    plant_list: ["id", "name", "variety_name", "is_use", "type_plant", "qty_harvest"],
+    fertilizer_list: ["id", "name", "name_formula", "how_use", "is_use"],
+    chemical_list: ["id", "name", "name_formula", "how_use", "date_safe_list", "is_use"],
+    source_list: ["id", "name", "is_use", "location"],
+    pests: ["pest_id", "pest_name", "type_pest", "is_use"],
+    station_list: ["id", "name", "is_use", "location", "id_station"],
+    success_detail: ["id", "id_success", "id_plant", "type_success", "id_table_doctor", "date_of_doctor", "date_of_farmer", "id_admin"],
+    report_detail: ["id", "id_plant", "report_text", "id_table_doctor", "date_report", "image_path", "is_read", "id_admin"],
+    check_form_detail: ["id", "id_plant", "status_check", "note_text", "id_table_doctor", "date_check", "acknowledged", "id_admin"],
+    check_plant_detail: ["id", "id_plant", "status_check", "state_check", "note_text", "id_table_doctor", "date_check", "acknowledged", "id_admin"],
+}
+
+// คอลัมน์สำหรับ dropdown หน้าจับคู่ศัตรูพืช-สารเคมี-พืช (ไม่ต้องใช้ how_use)
+const GROUP_LIST_COLUMNS = {
+    plant_list: ["id", "name", "variety_name", "is_use", "type_plant"],
+    chemical_list: ["id", "name", "name_formula", "is_use"],
+    pests: ["pest_id", "pest_name", "type_pest", "is_use"],
+    station_list: ["id", "name", "is_use", "location", "id_station"],
+}
+
+const selectColumns = (table, alias = "", columnMap = TABLE_COLUMNS) =>
+    columnMap[table].map((column) => alias ? `${alias}.\`${column}\`` : `\`${column}\``).join(", ")
+
 module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), apifunc, dbpacket, listDB, UrlApi, socket = io) {
     app.post('/api/doctor/check', (req, res) => {
         const username = req.session.user_doctor
@@ -230,8 +260,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             });
 
             const sqlQuery = `
-                SELECT 
-                    formplant.*, 
+                SELECT
+                    formplant.id, formplant.name_plant, formplant.generation,
                     GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
                     GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                 FROM formplant
@@ -275,7 +305,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-                    SELECT editform.*, 
+                    SELECT ${selectColumns("editform", "editform")},
                            IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                     FROM editform
                     LEFT JOIN formplant ON editform.id_form = formplant.id
@@ -297,7 +327,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                         if (req.body.id_edit) {
                             con.query(
-                                `SELECT * FROM detailedit WHERE id_edit = ?`,
+                                `SELECT ${selectColumns("detailedit")} FROM detailedit WHERE id_edit = ?`,
                                 [req.body.id_edit],
                                 (err, detail) => {
                                     if (err) {
@@ -346,7 +376,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const { data: { id_table_doctor } } = result
             const { id_plant } = req.body
             con.query(`
-                SELECT formplant.*
+                SELECT ${selectColumns("formplant", "formplant")}
                 FROM formplant
                 WHERE formplant.id = ?
                 LIMIT 1
@@ -611,7 +641,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-              SELECT * FROM ${type_data}
+              SELECT ${selectColumns(type_data)} FROM ${type_data}
               WHERE INSTR( ${columnName} , ? )
               ORDER BY is_use DESC , ${columnName} ASC
               LIMIT ${Limit} OFFSET ${StartRow}
@@ -729,7 +759,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
 
                 const query = `
-                    SELECT * FROM ${type_data}
+                    SELECT ${selectColumns(type_data, "", GROUP_LIST_COLUMNS)} FROM ${type_data}
                     WHERE INSTR(${columnName}, ?)
                     GROUP BY ${columnName}
                     ORDER BY is_use DESC, ${columnName} ASC
@@ -1151,7 +1181,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         let con = Database.createConnection(listDB)
 
-        apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
+        apifunc.auth(con, username, password, res, "acc_doctor", "", { withImage: true }).then((result) => {
             con.query(
                 `
                 SELECT name,id_station, ST_X(location) as lat, ST_Y(location) as lng
@@ -1574,7 +1604,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             if (result['result'] === "pass") {
                 con.query(
                     `
-                    SELECT * 
+                    SELECT id_table, id_farmer, id_table_doctor, fullname, img, station, location, register_auth,
+                           date_register, date_doctor_confirm, uid_line, link_user, tel_number, text_location
                     FROM acc_farmer
                     WHERE id_table = ? and link_user = ? and station = ?
                     ` , [req.body.id_table, req.body.link_user, result['data']['station_doctor']]
@@ -2634,7 +2665,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT * , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2672,8 +2703,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT *
-                            , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2747,7 +2777,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT * , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2982,7 +3012,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-                    SELECT * ,
+                    SELECT ${selectColumns(`form${TypeForm}`)} ,
                     (
                         SELECT COUNT(status)
                         FROM editform
@@ -3106,11 +3136,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         try {
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
-                const type = req.body.id_edit ? "*" : "id_edit";
+                const type = req.body.id_edit ? selectColumns("editform", "editform") : "editform.id_edit";
                 const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
                 con.query(
                     ` 
-                        SELECT editform.${type} , editform.id_doctor_edit , editform.id_admin
+                        SELECT ${type} , editform.id_doctor_edit , editform.id_admin
                         FROM editform
                         WHERE editform.id_form = ? and type_form = ? ${queryParams.length == 1 ? `and editform.id_edit = ?` : ""}
                         ORDER BY date DESC
@@ -3126,7 +3156,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         if (req.body.id_edit) {
                             con.query(
                                 `
-                            SELECT * FROM detailedit
+                            SELECT ${selectColumns("detailedit")} FROM detailedit
                             WHERE id_edit = ?
                             ` , [req.body.id_edit],
                                 (err, detail) => {
@@ -3591,7 +3621,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const id_report = req.query.id_report
                 con.query(
                     ` 
-                        SELECT *
+                        SELECT id_record_edit , edit_date , report_text , image_path , id_report_detail
                         FROM record_edit
                         WHERE id_report_detail = ?
                         ORDER BY edit_date DESC
@@ -3741,8 +3771,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             if (result['result'] === "pass") {
                 con.query(
                     `
-                    SELECT acc_farmer.*
-                    FROM acc_farmer , 
+                    SELECT acc_farmer.id_table , acc_farmer.id_farmer , acc_farmer.fullname , acc_farmer.img , acc_farmer.station ,
+                           acc_farmer.location , acc_farmer.register_auth , acc_farmer.date_register , acc_farmer.date_doctor_confirm ,
+                           acc_farmer.uid_line , acc_farmer.link_user , acc_farmer.tel_number , acc_farmer.text_location
+                    FROM acc_farmer ,
                         (
                             SELECT link_user
                             FROM housefarm , 
@@ -3806,7 +3838,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 if (TypePage) {
                     con.query(
                         `
-                            SELECT * , 
+                            SELECT ${selectColumns(TypePage, TypePage)} ,
                             (
                                 IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
                                     (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
@@ -4563,7 +4595,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT fromInsert.* 
                     FROM formplant ,
                     (
-                        SELECT formplant.* ,
+                        SELECT ${selectColumns("formplant", "formplant")} ,
                             (
                                 SELECT type_plant
                                 FROM plant_list
@@ -4640,7 +4672,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const Fertirizer = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * 
+                                            SELECT ${selectColumns("formfertilizer")} 
                                             FROM formfertilizer
                                             WHERE id_plant = ?
                                         ` , [val.id],
@@ -4657,7 +4689,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const chemical = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * 
+                                            SELECT ${selectColumns("formchemical")} 
                                             FROM formchemical
                                             WHERE id_plant = ?
                                         ` , [val.id],
@@ -4674,7 +4706,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const Report = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("report_detail", "report_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4697,7 +4729,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const CheckForm = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("check_form_detail", "check_form_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4720,7 +4752,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const CheckPlant = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("check_plant_detail", "check_plant_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4808,7 +4840,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     )
                     con.query(
                         `
-                        SELECT * 
+                        SELECT ${selectColumns(From)} 
                         FROM ${From}
                         ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ")}` : ""}
                         ORDER BY is_use DESC , ${columnName} ASC
@@ -5071,7 +5103,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         if (!resultCheck) {
                             const oldData = await new Promise((resolve) => {
                                 con.query(
-                                    `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                                    `SELECT ${selectColumns(From)} FROM ${From} WHERE ${columnID} = ?`,
                                     [data_id], (err, rows) => {
                                         resolve(err ? null : (rows[0] || null))
                                     }
@@ -5103,7 +5135,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                             con.query(
                                 `
-                                SELECT *
+                                SELECT ${selectColumns(From)}
                                 FROM ${From}
                                 WHERE ${columnID} = ?
                                 ` , [data_id], (err, select) => {
@@ -5305,7 +5337,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 try {
                     const oldData = await new Promise((resolve) => {
                         con.query(
-                            `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                            `SELECT ${selectColumns(From)} FROM ${From} WHERE ${columnID} = ?`,
                             [data_id], (err, rows) => {
                                 resolve(err ? null : (rows[0] || null))
                             }
@@ -5436,7 +5468,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const getNotify = (Oparetor) ? await new Promise((resole, reject) => {
                     con.query(
                         `
-                        SELECT * ,
+                        SELECT id , id_table_farmer , date , notify , type , ref_id ,
                         (
                             SELECT img
                             FROM acc_farmer
@@ -5795,7 +5827,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             try {
                 const station = await pool.executeQuery(
                     `
-                        SELECT h.*
+                        SELECT h.id_farm_house , h.uid_line , h.link_user , h.name_house
                         FROM acc_farmer ac_f
                         LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
                         WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
@@ -5839,7 +5871,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             try {
                 const data = await pool.executeQuery(
                     `
-                        SELECT ecph.* 
+                        SELECT ecph.id , ecph.id_formplant , ecph.timestamp , ecph.ec_value , ecph.ph_value 
                         FROM ecph
                         INNER JOIN (
                             SELECT (
