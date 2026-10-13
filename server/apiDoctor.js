@@ -2685,7 +2685,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     //                     https.get( MsgOfLine.responseUrl , {
                     //                         method : "GET",
                     //                         headers : {
-                    //                             Authorization : "Bearer 3bRyKhlM01xFG6hDC+x5ZlfT0r44XF4L5wHORR9CJc87tmjrHoQJad6kLvOa8cbX7hSHVu6SB08UcWx2I9QjdNWRLo6fwsExPTbm7Wuaw7Eq6zh6DJXs9FFQqSbXxZKvHJt4jURZqu4Z0NcP6zJ4wwdB04t89/1O/w1cDnyilFU="
+                    //                             Authorization : `Bearer ${process.env.channelAccessToken}`
                     //                         }
                     //                     } , (res)=>{
                     //                         let Data = Buffer.alloc(0);
@@ -2755,6 +2755,41 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             if (err == "not pass") {
                 res.redirect('/api/logout')
             }
+        }
+    })
+
+    // ดึงรูปจาก LINE ผ่าน server เพื่อไม่ให้ channel access token หลุดไปฝั่ง client
+    app.get('/api/doctor/farmer/msg/image/:message_id', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
+            return res.status(401).end()
+        }
+
+        try {
+            const con = Database.createConnection(listDB)
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor").finally(() => con.end())
+            if (result['result'] !== "pass") return res.status(401).end()
+
+            // อนุญาตเฉพาะ message id ที่เป็นรูปและอยู่ในระบบเท่านั้น
+            const image = await pool.executeQuery(
+                `SELECT id FROM message_user WHERE message = ? AND type_message = 'image' LIMIT 1`,
+                [req.params.message_id]
+            )
+            if (!image.length) return res.status(404).end()
+
+            const response = await fetch(
+                `https://api-data.line.me/v2/bot/message/${encodeURIComponent(req.params.message_id)}/content`,
+                { headers: { Authorization: `Bearer ${process.env.channelAccessToken}` } }
+            )
+            if (!response.ok) return res.status(404).end()
+
+            res.set("Content-Type", response.headers.get("content-type") || "image/jpeg")
+            res.set("Cache-Control", "private, max-age=86400")
+            res.send(Buffer.from(await response.arrayBuffer()))
+        } catch (err) {
+            if (!res.headersSent) res.status(err == "not pass" ? 401 : 500).end()
         }
     })
     //massage end

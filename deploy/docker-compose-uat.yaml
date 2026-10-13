@@ -45,7 +45,7 @@ services:
     networks:
       - royal-gap-network-uat
     ports:
-      - 8336:80
+      - 127.0.0.1:8336:80
     depends_on:
       - royal-gap-uat-db
 

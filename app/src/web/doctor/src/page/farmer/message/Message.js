@@ -230,13 +230,11 @@ const DetailMessange = ({Msg , Ref , setOpen}) => {
 
     const FetchContentMsg = async () => {
         if(Msg.type_message == "image") {
-            const url = `https://api-data.line.me/v2/bot/message/${Msg.message}/content`
+            const url = `${env.domain}${env.subpath_server}/api/doctor/farmer/msg/image/${encodeURIComponent(Msg.message)}`
             try {
                 const Data = await fetch(url , {
                     method : "GET",
-                    headers : {
-                        Authorization : "Bearer 3bRyKhlM01xFG6hDC+x5ZlfT0r44XF4L5wHORR9CJc87tmjrHoQJad6kLvOa8cbX7hSHVu6SB08UcWx2I9QjdNWRLo6fwsExPTbm7Wuaw7Eq6zh6DJXs9FFQqSbXxZKvHJt4jURZqu4Z0NcP6zJ4wwdB04t89/1O/w1cDnyilFU="
-                    }
+                    credentials : "include"
                 }).then(data=>{
                     if(data.status === 200) {
                         return data.blob()

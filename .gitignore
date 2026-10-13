@@ -17,3 +17,5 @@ services/*
 # Admin/package.json
 # Admin/sql_DATABASE_DEV.sql
 # Admin/.gitignore
+# ค่า env จริงที่ได้จาก npm run init-env (ห้าม commit)
+InitEnv/jsonEnv.json
