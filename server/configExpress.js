@@ -149,7 +149,13 @@ module.exports = function appConfig(username, password, hostServer) {
     // app.use(express.json())
     app.use(cookieParser())
     app.use(sessionMiddleware)
-    app.use(express.json({ limit: "50mb" }));
+    app.use(express.json({
+        limit: "50mb",
+        // เก็บ raw body ไว้ตรวจ x-line-signature ของ webhook LINE
+        verify: (req, res, buf) => {
+            if (req.originalUrl.split("?")[0].endsWith("/messageAPI")) req.rawBody = buf
+        }
+    }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
     // const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
