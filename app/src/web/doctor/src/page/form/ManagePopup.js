@@ -27,7 +27,8 @@ const endOfDayLocalMsInclusive = (input) => {
     const d = new Date(input);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime();
 };
-const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => {
+// initialType: แท็บที่เปิดก่อน (0 การปลูก, 1 ปัจจัยการผลิต, 2 สารเคมี) ใช้ตอนเปิดจากการแจ้งเตือน
+const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData, initialType = 0 }) => {
     const [weatherQuery, setWeatherQuery] = useState({ r: "doctor" });
     const [range, setRange] = useState(null);  // { st, et }
     const { profile } = useContext(DoctorContext) //role
@@ -42,7 +43,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
 
     const [CountEdit, setCountEdit] = useState(0)
 
-    const [TypePage, setTypePage] = useState(0) //0 : plant , 1 : fertilizer , 2 : chemical , 3 : manage , 4 : profile
+    const [TypePage, setTypePage] = useState(initialType) //0 : plant , 1 : fertilizer , 2 : chemical , 3 : manage , 4 : profile
 
     const [StateMenuShow, setStateMenuShow] = useState(false)
     const [getResize, setResize] = useState(window.innerWidth)
@@ -78,7 +79,7 @@ const ManagePopup = ({ setPopup, RefPop, id_form, session, Fecth, RefData }) => 
     useEffect(() => {
         RefPop.current.style.opacity = "1"
         RefPop.current.style.visibility = "visible"
-        FetchContent(0)
+        FetchContent(initialType)
     }, [])
 
     useEffect(() => {

@@ -180,10 +180,16 @@ const Socket = (eventSc, message) => {
     const socket = new WebSocket(`ws://${window.location.href}:3000`);
 }
 
-// เรียก liff.init ครั้งเดียวต่อ LIFF id (เดิมเรียกทุกครั้งที่ render ทำให้ init/sign ซ้ำ)
+// เรียก liff.init ครั้งเดียวต่อ LIFF id ทั้งแอป (เดิมเรียกทุกครั้งที่ render ทำให้ init/sign ซ้ำ)
+const liffInits = {}
+const initLiff = (idLiff) => {
+    if (!liffInits[idLiff]) liffInits[idLiff] = liff.init({ liffId: idLiff })
+    return liffInits[idLiff]
+}
+
 const useLiff = (idLiff) => {
     const Liff = liff
-    const init = useMemo(() => Liff.init({ liffId: idLiff }), [Liff, idLiff])
+    const init = useMemo(() => initLiff(idLiff), [idLiff])
     return [init, Liff];
 }
 
@@ -1132,4 +1138,4 @@ class HrefData {
 //     })
 // }
 
-export { ButtonMenu, Camera, ClosePopUp, ConvertDate, DatePickerThai, DateSelect, DayJSX, DownLoadImage, GetLinkUrlOfSearch, HrefData, LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, OpenImageMax, PatternCheck, PopupDom, ReportAction, ResizeImg, SetMaxLength, TabLoad, TimeDiff, TimeJSX, useLiff };
+export { ButtonMenu, Camera, ClosePopUp, ConvertDate, DatePickerThai, DateSelect, DayJSX, DownLoadImage, GetLinkUrlOfSearch, HrefData, LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, OpenImageMax, PatternCheck, PopupDom, ReportAction, ResizeImg, SetMaxLength, TabLoad, TimeDiff, TimeJSX, initLiff, useLiff };

@@ -11,6 +11,7 @@ const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
 const SafeUpdate = require('./core/safeUpdate');
+const DoctorNotify = require('./core/doctorNotify');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
@@ -218,7 +219,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                                     }
 
                                                     try {
-                                                        sendNotifyToDoctor(result.insertId, req.body['station'], "มีเกษตรกรสมัครบัญชีเข้ามาใหม่")
+                                                        sendNotifyToDoctor(result.insertId, req.body['station'], "มีเกษตรกรสมัครบัญชีเข้ามาใหม่", DoctorNotify.NOTIFY_TYPE.FARMER_REGISTER, result.insertId)
                                                     } catch (e) { }
 
                                                     res.send("insert complete")
@@ -1370,8 +1371,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                     };
 
-                    con.query(`INSERT INTO formplant 
-                                ( 
+                    const newFormId = new Date().getTime();
+                    con.query(`INSERT INTO formplant
+                                (  
                                     id, id_farm_house, name_plant, 
                                     generation, date_glow, date_plant,
                                     posi_w, posi_h,
@@ -1391,7 +1393,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                     ?, ?, ?
                                 );
                             `, [
-                        new Date().getTime(), data.id_farmhouse, data.name_plant,
+                        newFormId, data.id_farmhouse, data.name_plant,
                         valueOrNull(data.generetion), dateOrNull(data.dateGlow), new Date(data.datePlant),
                         valueOrNull(data.posiW), valueOrNull(data.posiH),
                         valueOrNull(data.qty), valueOrNull(data.area), valueOrNull(data.unit), dateOrNull(data.dateOut), valueOrNull(data.system),
@@ -1409,7 +1411,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                         }
                         con.end();
                         try {
-                            sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`);
+                            sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} มีการเพิ่มแบบบันทึก`, DoctorNotify.NOTIFY_TYPE.FORM_NEW, newFormId);
                         } catch (e) { console.log(e); }
                         res.send("insert");
                     });
@@ -1904,7 +1906,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                                             sendNotifyToDoctor(
                                                                 auth.data.id_table,
                                                                 auth.data.station,
-                                                                `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`
+                                                                `เกษตรกร ${auth.data.fullname} ทำการแก้ไขแบบฟอร์มบันทึกข้อมูล\nรหัสแบบฟอร์ม ${data.id_plant}`,
+                                                                DoctorNotify.NOTIFY_TYPE.FORM_EDIT,
+                                                                data.id_plant
                                                             );
 
                                                         } catch (e) {
@@ -2534,7 +2538,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                         if (!err) {
                                             try {
                                                 // ส่งแจ้งเตือนครั้งเดียว
-                                                sendNotifyToDoctor(auth.data.id_table, auth.data.station, notificationMessage);
+                                                sendNotifyToDoctor(auth.data.id_table, auth.data.station, notificationMessage,
+                                                    data.type_request === 'z' ? DoctorNotify.NOTIFY_TYPE.FERTILIZER : DoctorNotify.NOTIFY_TYPE.CHEMICAL, data.id_plant);
                                                 
                                                 // ถ้ามี schedule_id ให้บันทึกการ Tracking
                                                 if (data.schedule_id) {
@@ -2923,7 +2928,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                 }
 
                                 try {
-                                    await sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไข${FactorType == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nรหัสฟอร์ม ${id_form}`);
+                                    await sendNotifyToDoctor(auth.data.id_table, auth.data.station, `เกษตรกร ${auth.data.fullname} ทำการแก้ไข${FactorType == "fertilizer" ? "ปัจจัยการผลิต" : "สารเคมี"}\nรหัสฟอร์ม ${id_form}`,
+                                        FactorType == "fertilizer" ? DoctorNotify.NOTIFY_TYPE.FERTILIZER : DoctorNotify.NOTIFY_TYPE.CHEMICAL, req.body.id_plant);
                                 } catch (e) {
                                     console.error(e);
                                 }
@@ -3685,7 +3691,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         } else res.send("error auth")
     })
 
-    const sendNotifyToDoctor = async (id_table, stationSend, msg) => {
+    // type / refId บอกว่ากดการแจ้งเตือนแล้วเปิดหน้าไหน (ดู core/doctorNotify.js)
+    const sendNotifyToDoctor = async (id_table, stationSend, msg, type = DoctorNotify.NOTIFY_TYPE.GENERAL, refId = null) => {
         let con = Database.createConnection(listDB)
         con.connect(async (err) => {
             if (!err) {
@@ -3714,9 +3721,9 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 })
                 con.query(
                     `
-                    INSERT notify_doctor 
-                    (id_table_farmer , id_read , notify , station ) VALUES (? , ? , ? , ? )
-                    ` , [id_table, '{}', msg, stationSend],
+                    INSERT notify_doctor
+                    (id_table_farmer , id_read , notify , station , type , ref_id ) VALUES (? , ? , ? , ? , ? , ? )
+                    ` , [id_table, '{}', msg, stationSend, type, refId === null ? null : String(refId)],
                     (err, result) => {
                         con.end()
                     }
@@ -3724,7 +3731,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
 
                 socket.to(`notify-${stationSend}`).emit("update")
                 if (Uid_line_send.size != 0) {
-                    RoyalGapLine.multicast([...Uid_line_send], { type: "text", text: `${msg}` })
+                    RoyalGapLine.multicast([...Uid_line_send], DoctorNotify.lineMessage(`${msg}`, type, refId))
                         .catch(e => {
                             console.log(e)
                         })

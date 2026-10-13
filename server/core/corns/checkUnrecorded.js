@@ -2,6 +2,7 @@
 
 const MessageLineTemplate = require('../messageLineTemplate');
 const ImageUrl = require('../imageUrl');
+const DoctorNotify = require('../doctorNotify');
 
 const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
@@ -79,7 +80,6 @@ const checkUnrecorded = {
     notifyDoctorLineMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online"
-        const url = process.env.URL_DOCTOR || "https://doctor.gapv4.online"
         return MessageLineTemplate.beautifulBubbleUrl({
             title: "เกษตรกรยังไม่บันทึกข้อมูล",
             // subtitle: `เกษตรกร: ${row.fullname}\nกิจกรรม: ${row.title} (${typeLabel})`,
@@ -91,7 +91,8 @@ const checkUnrecorded = {
                 { label: "กิจกรรม", value: `${row.title} (${typeLabel})` }
 
             ],
-            url: `${url}/doctor`,
+            // เปิดแบบบันทึกนั้นผ่าน LIFF ของหมอ (เข้าระบบด้วยบัญชี LINE ได้ทันที)
+            url: DoctorNotify.lineUrl(DoctorNotify.targetPath(DoctorNotify.NOTIFY_TYPE.UNRECORDED, row.formplant_id)),
             buttonLabel: "คลิกเพื่อดูรายละเอียด"
         })
     }

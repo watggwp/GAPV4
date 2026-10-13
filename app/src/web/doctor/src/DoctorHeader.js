@@ -6,7 +6,12 @@ import { PopupDom, TimeDiff, Loading } from "../../../assets/js/module";
 import ProfilePage from "./page/profile/Profile";
 import ManagePopup from "./page/form/ManagePopup";
 import SchedulesPopup from "./page/form/schedules/SchedulesPageDoctor";
+import { notifyPath, openDoctorPath } from "./notifyTarget";
 import './assets/style/page/form/PageFormPlant.scss';
+
+// การแจ้งเตือนที่กดแล้วมีหน้าให้เปิด: แผนการปลูก (popup) หรือหน้าในเว็บหมอ (notifyTarget.js)
+const isScheduleNotify = (val) => (val.type === 1 || val.type === 2) && val.ref_id
+const isClickableNotify = (val) => Boolean(isScheduleNotify(val) || notifyPath(val))
 
 const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTitle, toggleSidebar }) => {
     const { profile } = useContext(DoctorContext);
@@ -241,8 +246,10 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
                         width: '350px',
                         borderLeft: '4px solid #22C7A9'
                     }} onClick={() => {
-                        if ((toastNotify.type === 1 || toastNotify.type === 2) && toastNotify.ref_id) {
+                        if (isScheduleNotify(toastNotify)) {
                             showSchedulesPopup(toastNotify.ref_id);
+                        } else if (notifyPath(toastNotify)) {
+                            openDoctorPath(notifyPath(toastNotify));
                         }
                         setToasts(prev => prev.filter(t => t.id !== toastNotify.id));
                     }}>
@@ -364,11 +371,13 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                             dataNotification.map(val =>
                                 <div className="content-notification" key={val.id} notify=""
                                     onClick={() => {
-                                        if ((val.type === 1 || val.type === 2) && val.ref_id) {
+                                        if (isScheduleNotify(val)) {
                                             showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
+                                        } else if (notifyPath(val)) {
+                                            openDoctorPath(notifyPath(val)); setShow(false); setContent(false);
                                         }
                                     }}
-                                    style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
+                                    style={{ cursor: isClickableNotify(val) ? 'pointer' : 'default' }}>
                                     <div className="box-left" notify="">
                                         <img notify="" src={val.img_farmer} alt="farmer"></img>
                                     </div>

@@ -1329,6 +1329,45 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         })
     })
 
+    // เข้าระบบด้วยบัญชี LINE ที่ผูกกับบัญชีหมอแล้ว (กดการแจ้งเตือนใน LINE แล้วเปิดผ่าน LIFF ไม่ต้องกรอกรหัสผ่าน)
+    // ผูก LINE ได้เฉพาะตอน login ด้วยรหัสผ่านใน LIFF และต้องยืนยัน access token กับ LINE ทุกครั้ง
+    app.post('/api/doctor/line/login', async (req, res) => {
+        const uidLine = await LineAuth.resolveLineUserId({ accessToken: req.body['accessToken'], uid: req.body['uid'] })
+        if (!uidLine) return res.send('')
+
+        try {
+            const [doctor] = await pool.executeQuery(
+                `
+                SELECT id_table_doctor, id_doctor, password_doctor, fullname_doctor, station_doctor,
+                    doctor_role, analyst_role, consultant_role, protection_role
+                FROM acc_doctor
+                WHERE uid_line_doctor = ? AND status_account = 1 AND status_delete = 0
+                ORDER BY id_table_doctor
+                LIMIT 1
+                `,
+                [uidLine]
+            )
+            if (!doctor || !doctor.fullname_doctor || !doctor.station_doctor) return res.send('')
+
+            const role = doctor.doctor_role ? "doctor"
+                : doctor.analyst_role ? "analyst"
+                    : doctor.consultant_role ? "consultant"
+                        : doctor.protection_role ? "protection" : ""
+            if (!role) return res.send('')
+
+            req.session.user_id = doctor.id_table_doctor
+            req.session.account_type = RoyalGapEnv.access_type.doctor
+            req.session.tokenSession = apifunc.getTokenCsurf(req)
+            req.session.user_doctor = doctor.id_doctor
+            req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", doctor)
+            req.session.role_doctor = role
+            res.send('pass')
+        } catch (err) {
+            console.log(err)
+            res.send('')
+        }
+    })
+
     app.post('/api/doctor/savePersonal', (req, res) => {
         let username = req.body['username'] ?? '';
         let password = req.body['password'] ?? '';
@@ -1615,8 +1654,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT id_table, id_farmer, id_table_doctor, fullname, img, station, location, register_auth,
                            date_register, date_doctor_confirm, uid_line, link_user, tel_number, text_location
                     FROM acc_farmer
-                    WHERE id_table = ? and link_user = ? and station = ?
-                    ` , [req.body.id_table, req.body.link_user, result['data']['station_doctor']]
+                    WHERE id_table = ? and (? IS NULL or link_user = ?) and station = ?
+                    ` , [req.body.id_table, req.body.link_user ?? null, req.body.link_user ?? null, result['data']['station_doctor']]
                     , (err, result) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res)
