@@ -141,6 +141,8 @@
     "server-dev-router": "nodemon server/server.js router",
     "server-ngrok": "node server/serverNgrok.js",
     "init-env": "node InitEnv/setupEnv.js",
+    "migrate": "node scripts/migrate.js",
+    "migrate:status": "node scripts/migrate.js status",
     "test-script": "nodemon testSetting/webSocget.js",
     "server-services:gap-dashboard": "cd ./services/gap-device-dashboard/backend && pm2 start dist/main.js --name gap-device-dashboard-backend",
     "server-services:gap-dashboard-stop": "pm2 stop gap-device-dashboard-backend",

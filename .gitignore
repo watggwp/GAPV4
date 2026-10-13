@@ -19,3 +19,6 @@ services/*
 # Admin/.gitignore
 # ค่า env จริงที่ได้จาก npm run init-env (ห้าม commit)
 InitEnv/jsonEnv.json
+
+# สำรองฐานข้อมูล (มีข้อมูลส่วนตัว ห้าม commit)
+backups/

@@ -51,18 +51,16 @@ USE gapv3;
 > [!NOTE]
 > ชื่อ database เริ่มต้นคือ `gapv3` (สามารถเปลี่ยนได้ใน `.env` ภายหลัง)
 
-#### 2.2 Import โครงสร้างตาราง (Structure)
-นำเข้าไฟล์: `SQL/main/Structure Database.sql`
+#### 2.2 สร้างโครงสร้างตาราง (Structure)
+ตั้งค่า `.env` ให้ชี้ไปที่ database ที่สร้างไว้ แล้วรัน migration:
 
 ```powershell
-# วิธีที่ 1: ใช้ command line
-mysql -u root -p gapv3 < "d:\งาน\GAPV4-main\SQL\main\Structure Database.sql"
+npm run migrate            # ฐานข้อมูล dev (DATABASE_DEV)
+npm run migrate -- deploy  # ฐานข้อมูล server (DATABASE_SER)
 ```
 
-หรือใน MySQL Workbench:
-- กด `File → Open SQL Script`
-- เลือก `SQL/main/Structure Database.sql`
-- กด Execute (⚡)
+> [!NOTE]
+> ไฟล์ `SQL/main/Structure Database.sql` เดิมขาดหลายตาราง ให้ใช้ migration แทน (ดู `SQL/migrations/README.md`)
 
 #### 2.3 Import ข้อมูล (ถ้ามี)
 ถ้าต้องการข้อมูลเริ่มต้น ให้ import ไฟล์ `gapv3_data.sql`:

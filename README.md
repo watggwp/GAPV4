@@ -26,7 +26,14 @@
       ```
 
    - Install Database
-      - SQL/main/Structure Database.sql
+      - สร้าง database เปล่า แล้วตั้งชื่อใน `.env` (`DATABASE_DEV` / `DATABASE_SER`)
+      - สร้างตารางและอัปเดตโครงสร้างด้วย migration (รันซ้ำได้ ไฟล์ที่รันแล้วจะข้าม)
+        ```
+        npm run migrate              # ฐานข้อมูล dev
+        npm run migrate -- deploy    # ฐานข้อมูล server
+        npm run migrate:status       # ดูว่าไฟล์ไหนรันแล้ว
+        ```
+      - รายละเอียดการเพิ่ม migration ดูที่ `SQL/migrations/README.md` (ไฟล์ `SQL/main/Structure Database.sql` เก่าและขาดหลายตาราง ไม่ต้องใช้แล้ว)
       - setup user admin
         ```sql
         INSERT INTO `admin` 
