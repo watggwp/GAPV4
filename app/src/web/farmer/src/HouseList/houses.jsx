@@ -8,7 +8,9 @@ export default function Houses() {
     const navigator = useNavigate()
 
     // ── Tab State ──
-    const [activeTab, setActiveTab] = useState("houses"); // "houses" | "settings"
+    const [activeTab, setActiveTab] = useState(
+        new URLSearchParams(window.location.search).get("tab") === "settings" ? "settings" : "houses"
+    ); // "houses" | "settings"
 
     // ── Houses ──
     const [houses, setHouses] = useState([]);

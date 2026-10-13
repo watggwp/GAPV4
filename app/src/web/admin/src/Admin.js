@@ -100,7 +100,8 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
             );
         } else if (path.length >= 2 && path[0] === "admin") {
             let seconPath = path[1].split("?");
-            let query = seconPath[1] || "";
+            // query อยู่ใน location.search ไม่ใช่ pathname (เดิมว่างเสมอ ทำให้ refresh/ย้อนกลับแล้วหน้าว่าง)
+            let query = seconPath[1] || window.location.search.replace(/^\?/, "");
 
             if (seconPath[0] === "schedules") {
                 setPageTitle("แผนการปลูก");
@@ -284,7 +285,7 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                         type={true}
                     />
                 );
-            } else if (query.indexOf("group") === 0) {
+            } else if (seconPath[0] === "group") {
                 setPageTitle("จัดกลุ่มข้อมูล");
                 Href.set(`group?default${type}`);
                 setBody(
