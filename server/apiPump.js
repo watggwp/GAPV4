@@ -204,14 +204,16 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
     app.post("/api/pump/:device_id/control", async (req, res) => {
         const { params: { device_id }, body: { action }, query: { r: roleUser } } = req
-        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line } = req.session
+        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line, user_username, user_password } = req.session
 
         const Authen = new AuthorizeUser(pool)
-        const { profile: { id }, result: AuthenResult, reason } = await Authen.deviceSystem(
+        const { profile: { id } = {}, result: AuthenResult, reason, accountType } = await Authen.deviceSystem(
             {
                 uid_line,
                 username: user_doctor,
-                password: pass_doctor
+                password: pass_doctor,
+                adminUsername: user_username,
+                adminPassword: user_password
             },
             roleUser,
             "pump",
@@ -250,7 +252,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
 
         const insertLog = await pool.executeQuery(
             `INSERT INTO pump_log (device_id, action, source , account_type , account_id) VALUES (?, ?, ? , ? , ?)`,
-            [device_id, action, "manual", roleUser, id]
+            [device_id, action, "manual", accountType, id]
         );
 
         const { insertId } = insertLog
@@ -272,14 +274,16 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { start_time, duration, source = "auto" } = req.body;
 
         const { r: roleUser } = req.query
-        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line } = req.session
+        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line, user_username, user_password } = req.session
 
         const Authen = new AuthorizeUser(pool)
-        const { profile: { id }, result: AuthenResult, reason } = await Authen.deviceSystem(
+        const { profile: { id } = {}, result: AuthenResult, reason, accountType } = await Authen.deviceSystem(
             {
                 uid_line,
                 username: user_doctor,
-                password: pass_doctor
+                password: pass_doctor,
+                adminUsername: user_username,
+                adminPassword: user_password
             },
             roleUser,
             "pump",
@@ -295,6 +299,12 @@ module.exports = function apiPump(app, pool = new Pool()) {
         // Validate input
         if (!device_id || !start_time || duration == null) {
             return res.status(400).json({ error: "Missing required fields (device_id, start_time, duration)" });
+        }
+
+        // อุปกรณ์รับระยะเวลาเป็น 1 byte (หน่วยนาที) จึงรับได้ 1-255 นาทีเท่านั้น
+        const durationMinutes = Number(duration)
+        if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > MAX_DURATION_MINUTES) {
+            return res.status(400).json({ error: `duration must be a whole number of minutes between 1 and ${MAX_DURATION_MINUTES}` });
         }
 
         // not allow manual commands in schedule
@@ -323,7 +333,7 @@ module.exports = function apiPump(app, pool = new Pool()) {
             }
             const insertSchedule = await pool.executeQuery(
                 `INSERT INTO pump_schedule (device_id, start_time, duration , account_type , account_id) VALUES (?, ?, ? , ? , ?)`,
-                [device_id, newStartTime, duration, roleUser, id]
+                [device_id, newStartTime, durationMinutes, accountType, id]
             );
             await updateScheduleCache();
 
@@ -349,14 +359,16 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { device_id } = req.params;
 
         const { r: roleUser } = req.query
-        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line } = req.session
+        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line, user_username, user_password } = req.session
 
         const Authen = new AuthorizeUser(pool)
         const { result: AuthenResult, reason } = await Authen.deviceSystem(
             {
                 uid_line,
                 username: user_doctor,
-                password: pass_doctor
+                password: pass_doctor,
+                adminUsername: user_username,
+                adminPassword: user_password
             },
             roleUser,
             "pump",
@@ -387,14 +399,16 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { device_id } = req.params;
 
         const { r: roleUser } = req.query
-        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line } = req.session
+        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line, user_username, user_password } = req.session
 
         const Authen = new AuthorizeUser(pool)
         const { result: AuthenResult, reason } = await Authen.deviceSystem(
             {
                 uid_line,
                 username: user_doctor,
-                password: pass_doctor
+                password: pass_doctor,
+                adminUsername: user_username,
+                adminPassword: user_password
             },
             roleUser,
             "pump",
@@ -432,14 +446,16 @@ module.exports = function apiPump(app, pool = new Pool()) {
         const { device_id, id } = req.params;
 
         const { r: roleUser } = req.query
-        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line } = req.session
+        const { user_doctor, pass_doctor, role_doctor, uidFarmer: uid_line, user_username, user_password } = req.session
 
         const Authen = new AuthorizeUser(pool)
         const { result: AuthenResult, reason } = await Authen.deviceSystem(
             {
                 uid_line,
                 username: user_doctor,
-                password: pass_doctor
+                password: pass_doctor,
+                adminUsername: user_username,
+                adminPassword: user_password
             },
             roleUser,
             "pump",
@@ -478,19 +494,23 @@ module.exports = function apiPump(app, pool = new Pool()) {
             const { device_id, duration, account_type, account_id } = row;
             const mode = 0x02;
 
-            console.log(`Trigger schedule → ${device_id} (${duration} min)`);
+            try {
+                console.log(`Trigger schedule → ${device_id} (${duration} min)`);
 
-            const result = await sendDownlink(device_id, mode, duration);
+                const result = await sendDownlink(device_id, mode, duration);
 
-            if (!result.success) {
-                console.warn(`[SCHEDULE ERROR] Device: ${device_id} →`, result.message);
-                continue; // skip logging if failed
+                if (!result.success) {
+                    console.warn(`[SCHEDULE ERROR] Device: ${device_id} →`, result.message);
+                    continue; // skip logging if failed
+                }
+
+                await pool.executeQuery(
+                    `INSERT INTO pump_log (device_id, action, source , account_type , account_id) VALUES (? , ? , ? , ? , ?)`,
+                    [device_id, "on", "auto", account_type, account_id]
+                );
+            } catch (err) {
+                console.error(`[SCHEDULE ERROR] Device: ${device_id} →`, err.message);
             }
-
-            await pool.executeQuery(
-                `INSERT INTO pump_log (device_id, action, source , account_type , account_id) VALUES (? , ? , ? , ? , ?)`,
-                [device_id, "on", "auto", account_type, account_id]
-            );
         }
 
         if (dueSchedules.length > 0) {
@@ -498,6 +518,9 @@ module.exports = function apiPump(app, pool = new Pool()) {
         }
     });
 }
+
+// ระยะเวลาสูงสุดที่ส่งให้อุปกรณ์ได้ (payload 1 byte หน่วยนาที)
+const MAX_DURATION_MINUTES = 255;
 
 async function sendDownlink(device_id, mode, duration = 0) {
     const group1 = new Set(["mae-tho-pump", "kae-noi-pump", "nong-khiew-pump"]);
@@ -522,7 +545,17 @@ async function sendDownlink(device_id, mode, duration = 0) {
 
     const url = `${endpoint}/api/v3/as/applications/${appId}/devices/${device_id}/down/replace`;
     let payload = [mode];
-    if (mode === 0x02) payload.push(duration);
+    if (mode === 0x02) {
+        const minutes = Number(duration);
+        if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_DURATION_MINUTES) {
+            return {
+                success: false,
+                status_code: 400,
+                message: `Invalid duration ${duration} (must be 1-${MAX_DURATION_MINUTES} minutes)`
+            };
+        }
+        payload.push(minutes);
+    }
 
     const frm_payload = base64.encode(String.fromCharCode(...payload));
 

@@ -112,26 +112,35 @@ class AuthorizeUser {
     }
 
     async deviceSystem(
-        profileAuth = { uid_line: "", username: "", password: "", role: "" },
+        profileAuth = { uid_line: "", username: "", password: "", role: "", adminUsername: "", adminPassword: "" },
         roleAccount,
         deviceType,
         deviceID
     ) {
-        const { uid_line, username, password, role } = profileAuth
+        const { uid_line, username, password, role, adminUsername, adminPassword } = profileAuth
         const { table, locationTable } = Util.getDeviceData(deviceType)
 
         switch (roleAccount) {
             case "doctor": {
+                // หน้าโรงเรือนของ admin ใช้คอมโพเนนต์เดียวกับหมอ (r=doctor) จึงรับ session admin ด้วย
+                if (!(username && password) && adminUsername && adminPassword) {
+                    const { profile, verified } = await this.admin(adminUsername, adminPassword)
+                    if (!verified) return { result: false, reason: "auth", profile: {} }
+                    return { result: true, profile: profile, accountType: "admin" }
+                }
+
                 const { profile, verified } = await this.doctor(username, password, role)
 
                 if (!verified) return {
                     result: false,
-                    reason: "auth"
+                    reason: "auth",
+                    profile: {}
                 }
 
                 return {
                     result: true,
-                    profile: profile
+                    profile: profile,
+                    accountType: "doctor"
                 }
             }
             case "farmer": {
@@ -160,7 +169,8 @@ class AuthorizeUser {
 
                     return {
                         result: true,
-                        profile: profile
+                        profile: profile,
+                        accountType: "farmer"
                     }
 
                 } catch (err) {
