@@ -1423,7 +1423,6 @@ app.get('/api/admin/profile/get', (req, res) => {
                       lng: station[0] ? station[0].lng : null
                   };
 
-                  console.log("Response payload:", responsePayload); 
                   res.send(responsePayload);
               }
           );

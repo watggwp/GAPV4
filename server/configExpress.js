@@ -24,6 +24,7 @@ const ScheduleCorn = require("./core/corn")
 
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
+const stripPasswords = require('./middleware/stripPasswords');
 const doctorScope = require('./middleware/doctorScope');
 const { requireRole, internalOnly } = require('./middleware/accessGuard');
 
@@ -244,6 +245,7 @@ module.exports = function appConfig(username, password, hostServer) {
     app.put("/api/pump", owns("pumpSensor", byBody("id")))
 
     // middleware custom
+    app.use(stripPasswords)
     app.use(logging(Pool))
     app.use("/api/schedules", authorizer(Pool))
     app.use("/api/schedules/*", authorizer(Pool))
