@@ -28,7 +28,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         const password = req.session.pass_doctor
         // ถ้าไม่มี session หรือ password → session หมด → ส่ง "" กลับ
         if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
-            return res.clearCookie(process.env.cookieName).send("")
+            return res.clearCookie(process.env.cookie).send("")
         }
         // session ยังอยู่ → ส่ง "pass" กลับ (ชัดเจน ไม่ใช่ redirect)
         return res.send("pass")
@@ -1586,16 +1586,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     WHERE swh.greenhouse_id = ?
     LIMIT 1;
   `;
-        const [rows] = await pool.executeQuery(sql, [houseFarm]);
+        try {
+            const [rows] = await pool.executeQuery(sql, [houseFarm]);
 
-        // ให้ตอบกลับเป็น object เดี่ยวเสมอ
-        if (Array.isArray(rows)) {
-            if (!rows.length) return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
-            return res.json(rows[0]);
-        } else if (rows) {
-            return res.json(rows);
-        } else {
-            return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+            // ให้ตอบกลับเป็น object เดี่ยวเสมอ
+            if (Array.isArray(rows)) {
+                if (!rows.length) return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+                return res.json(rows[0]);
+            } else if (rows) {
+                return res.json(rows);
+            } else {
+                return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+            }
+        } catch (err) {
+            console.error("form/get/sensor", err);
+            return res.status(500).json({ error: "internal" });
         }
     });
 

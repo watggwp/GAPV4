@@ -307,7 +307,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const rows = await pool.executeQuery(`
-                SELECT timestamp
+                SELECT TIMESTAMPDIFF(SECOND, timestamp, NOW()) AS age_seconds
                 FROM weather_greenhouse
                 WHERE device_id = ?
                 ORDER BY timestamp DESC
@@ -325,9 +325,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 return res.json({ status: "offline" });
             }
 
-            const latest = new Date(rows[0].timestamp + "Z"); // คง logic เดิม
-            const now = new Date();
-            const diffMinutes = (now - latest) / 1000 / 60;
+            const diffMinutes = Number(rows[0].age_seconds) / 60;
 
             // แปลงเป็นสถานะสำหรับตาราง swg: 'on' | 'off'
             const swgStatus = diffMinutes <= 10 ? 'on' : 'off';

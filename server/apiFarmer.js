@@ -126,7 +126,10 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                                 res.send("not found")
                             }
                         })
-                } res.send("not found")
+                } else {
+                    con.end()
+                    res.send("not found")
+                }
             })
         } else {
             res.send("not found")
@@ -1622,15 +1625,6 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
         let con = Database.createConnection(listDB);
 
         try {
-
-            process.on("uncaughtException", (err) => {
-                console.log("UNCAUGHT EXCEPTION =>", err);
-            });
-
-            process.on("unhandledRejection", (err) => {
-                console.log("UNHANDLED REJECTION =>", err);
-            });
-
             const auth = await authCheck(con, req);
 
             con.query(`
