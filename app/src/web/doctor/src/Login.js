@@ -72,7 +72,7 @@ list.forEach((item) =>
                     const profile = await liff.getProfile()
                     if(profile.userId) {
                         setUidLine(profile.userId)
-                        const Uid = await clientMo.post("/api/doctor/checkline" , {id:profile.userId})
+                        const Uid = await clientMo.post("/api/doctor/checkline" , {id:profile.userId , accessToken:liff.getAccessToken()})
                         setInput(Uid)
                         setLoadUid(true)
                     }
@@ -98,6 +98,7 @@ list.forEach((item) =>
                 username : e.target[0].value,
                 password : e.target[1].value,
                 uid_line : getUidLine,
+                line_access_token : getUidLine ? (liff.getAccessToken() || "") : "",
                 role : role
             }
 

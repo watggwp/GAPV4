@@ -180,9 +180,10 @@ const Socket = (eventSc, message) => {
     const socket = new WebSocket(`ws://${window.location.href}:3000`);
 }
 
+// เรียก liff.init ครั้งเดียวต่อ LIFF id (เดิมเรียกทุกครั้งที่ render ทำให้ init/sign ซ้ำ)
 const useLiff = (idLiff) => {
     const Liff = liff
-    const init = Liff.init({ liffId: idLiff })
+    const init = useMemo(() => Liff.init({ liffId: idLiff }), [Liff, idLiff])
     return [init, Liff];
 }
 

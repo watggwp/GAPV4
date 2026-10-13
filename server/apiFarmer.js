@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
+const LineAuth = require('./core/lineAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
 const io = new Server()
 
@@ -20,8 +21,10 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
             delete req.session.user_doctor
         }
 
-        if (req.body['uid']) {
-            req.session.uidFarmer = req.body['uid']
+        // ยืนยันตัวตนด้วย LIFF access token (ตรวจกับ LINE) ไม่เชื่อ uid จาก client
+        const uidVerified = await LineAuth.resolveLineUserId({ accessToken: req.body['accessToken'], uid: req.body['uid'] })
+        if (uidVerified) {
+            req.session.uidFarmer = uidVerified
             let con = Database.createConnection(listDB)
             try {
                 const auth = await authCheck(con, req)
@@ -59,7 +62,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 
     app.post('/api/farmer/station/search', (req, res) => {
-        const uidLine = req.session.uidFarmer ? req.session.uidFarmer : req.body.uidLine
+        const uidLine = req.session.uidFarmer
         if (uidLine) {
             let con = Database.createConnection(listDB)
             con.connect((err) => {
@@ -79,7 +82,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 
     app.post('/api/farmer/station/get/name', (req, res) => {
-        const uidLine = req.session.uidFarmer ? req.session.uidFarmer : req.body.uidLine
+        const uidLine = req.session.uidFarmer
         if (uidLine) {
             let con = Database.createConnection(listDB)
             con.connect((err) => {
@@ -135,7 +138,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 
     app.post('/api/farmer/signup', async (req, res) => {
-        const uidLine = req.session.uidFarmer ? req.session.uidFarmer : req.body.uidLine
+        const uidLine = req.session.uidFarmer
         const userLine = await new Promise(async (resole, reject) => {
             try {
                 await RoyalGapLine.getLinkToken(uidLine)
@@ -219,7 +222,7 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 
     app.post('/api/farmer/farmhouse/add', async (req, res) => {
-        const UidLine = req.session.uidFarmer ? req.session.uidFarmer : req.body.uidLine
+        const UidLine = req.session.uidFarmer
         if (UidLine) {
 
             let con = Database.createConnection(listDB)
