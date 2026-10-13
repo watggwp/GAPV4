@@ -31,7 +31,8 @@ export default function GreenhouseOutlet() {
     }, [greenhouse_id, navigator])
 
     const toNotifications = useCallback(() => {
-        navigator(`/farmer/notifications`)
+        // หน้าตั้งค่าแจ้งเตือนย้ายไปอยู่ในแท็บของหน้า /farmer/houses แล้ว (ไม่มี route /farmer/notifications)
+        navigator(`/farmer/houses?tab=settings`)
     }, [navigator])
 
     const CloseNav = useCallback((e) => {
