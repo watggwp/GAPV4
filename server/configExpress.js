@@ -15,6 +15,7 @@ const https = require('https');
 const db = require('mysql2');
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
+const MySQLStore = require('express-mysql-session')(sessions);
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -94,7 +95,22 @@ module.exports = function appConfig(username, password, hostServer) {
     if (isProduction && (process.env.KEY_SESSION || "").length < 32) {
         console.warn("[security] KEY_SESSION สั้นหรือไม่ได้ตั้งค่า ควรใช้ค่าสุ่มอย่างน้อย 32 ตัวอักษร")
     }
+    // เก็บ session ใน MySQL (ตาราง sessions) แทน memory ผู้ใช้จึงไม่หลุด login เมื่อ restart server
+    // session หมดอายุเมื่อไม่ได้ใช้งานเกิน SESSION_TTL_HOURS (ค่าเริ่มต้น 168 ชั่วโมง = 7 วัน)
+    const sessionStore = new MySQLStore({
+        host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
+        port: process.env.PORT || 3306,
+        user: username,
+        password: password,
+        database: isProduction ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
+        expiration: (Number(process.env.SESSION_TTL_HOURS) || 168) * 60 * 60 * 1000,
+        clearExpired: true,
+        createDatabaseTable: true
+    })
+    sessionStore.onReady().catch((err) => console.error("session store error", err))
+
     const sessionMiddleware = sessions({
+        store: sessionStore,
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,

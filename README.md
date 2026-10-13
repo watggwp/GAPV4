@@ -220,6 +220,7 @@
 #### การตั้งค่า Server & Ports (Application Config)
 * **`BUILD`** : กำหนด Environment Mode เช่น `deploy`
 * **`KEY_SESSION`** : Secret Key สำหรับเข้ารหัส Session ของระบบ
+* **`SESSION_TTL_HOURS`** (ไม่บังคับ) : จำนวนชั่วโมงที่ session อยู่ได้เมื่อไม่มีการใช้งาน (ค่าเริ่มต้น 168 = 7 วัน) session เก็บในตาราง `sessions` ของฐานข้อมูล
 * **`cookie`** : ชื่อ Cookie ที่ใช้เก็บ Session
 * **`pathCertFile`** / **`pathKeyFile`** : Path ของไฟล์ SSL Certificate สำหรับเปิด HTTPS (ถ้ามี)
 * **`URL_SERVER`** : Base URL ของระบบ (เช่น `https://api.gapv4.online`)

@@ -1,0 +1,8 @@
+-- ตารางเก็บ session ของ express-session (express-mysql-session)
+-- ทำให้ผู้ใช้ไม่หลุด login เมื่อ restart server
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `session_id` varchar(128) COLLATE utf8mb4_bin NOT NULL,
+  `expires` int(11) unsigned NOT NULL,
+  `data` mediumtext COLLATE utf8mb4_bin,
+  PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
