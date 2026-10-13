@@ -1,4 +1,5 @@
 const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
 const RoyalGapEnv = require('../env');
 
 const schedulePlan = {
@@ -65,7 +66,7 @@ const schedulePlan = {
 
         const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
-        const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
+        const greenhouseImage = ImageUrl.houseImageUrl(baseUrl, greenhouse_id, `&v=${date.getTime()}&ext=.jpg`);
 
         switch (category) {
             case 1: {

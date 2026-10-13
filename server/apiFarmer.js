@@ -10,6 +10,7 @@ const AuthorizeUser = require('./core/authorize');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
 const io = new Server()
@@ -102,6 +103,10 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 
     app.get("/image/farmer/:id_table", (req, res) => {
+        // ต้องมีลายเซ็นที่ถูกต้อง (ลิงก์สร้างโดย server เท่านั้น) กันการไล่ id ดูรูปเกษตรกร
+        if (!ImageUrl.verify("farmer", req.params.id_table, req.query.sig)) {
+            return res.status(403).send("forbidden")
+        }
         if (req.params.id_table) {
             let con = Database.createConnection(listDB)
             con.connect((err) => {

@@ -1,6 +1,7 @@
 'use strict';
 
 const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
 
 const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
@@ -82,7 +83,7 @@ const checkUnrecorded = {
         return MessageLineTemplate.beautifulBubbleUrl({
             title: "เกษตรกรยังไม่บันทึกข้อมูล",
             // subtitle: `เกษตรกร: ${row.fullname}\nกิจกรรม: ${row.title} (${typeLabel})`,
-            imageUrl: `${baseUrl}/image/house?imagefarm=${row.greenhouse_id}&v=${new Date().getTime()}&ext=.jpg`,
+            imageUrl: ImageUrl.houseImageUrl(baseUrl, row.greenhouse_id, `&v=${new Date().getTime()}&ext=.jpg`),
             details: [
                 { label: "เกษตรกร", value: row.fullname },
                 { label: "โรงเรือน", value: `${row.greenhouse_name}` },

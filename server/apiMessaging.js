@@ -8,6 +8,7 @@ const RoyalGapEnv = require('./core/env')
 const RoyalGapLine = require('./configLine')
 const ConnectionPool = require('./connectPool')
 const Line = require('@line/bot-sdk')
+const ImageUrl = require('./core/imageUrl')
 
 module.exports = function Messaging(app , Database , PoolMysql = new ConnectionPool() , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
@@ -94,7 +95,7 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                                 "type": "bubble",
                                                 "hero": {
                                                     "type": "image",
-                                                    "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
+                                                    "url": ImageUrl.houseImageUrl(UrlApi, id_farm_house, `&date=${key}`),
                                                     "size": "full",
                                                     "aspectRatio": "20:20",
                                                     "aspectMode": "cover",
@@ -365,6 +366,10 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
     }
 
     app.get("/image/house" , (req , res)=>{
+        // ต้องมีลายเซ็นที่ถูกต้อง (ลิงก์สร้างโดย server เท่านั้น) กันการไล่ id ดูรูปโรงเรือน
+        if (!ImageUrl.verify("house", req.query.imagefarm, req.query.sig)) {
+            return res.status(403).send("forbidden")
+        }
         if(req.query.imagefarm) {
             let con = Database.createConnection(listDB)
             con.connect(( err )=>{

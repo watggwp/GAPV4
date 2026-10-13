@@ -1,6 +1,7 @@
 'use strict';
 
 const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
 const RoyalGapLine = require('../../configLine'); // from server/core/corns to server/configLine.js
 require('dotenv').config();
 
@@ -136,7 +137,7 @@ const checkMismatch = {
                     const msgTemplate = MessageLineTemplate.beautifulBubbleUrl({
                         title: "แจ้งเตือนข้อมูลไม่ตรงตามแผน",
                         subtitle: `ฟาร์ม: ${row.greenhouse_name}\nพืช: ${row.name_plant}`,
-                        imageUrl: `${baseUrl}/image/house?imagefarm=${row.greenhouse_id}&v=${new Date().getTime()}&ext=.jpg`,
+                        imageUrl: ImageUrl.houseImageUrl(baseUrl, row.greenhouse_id, `&v=${new Date().getTime()}&ext=.jpg`),
                         details: [
                             { label: "เกษตรกร", value: row.fullname },
                             { label: "กิจกรรม", value: row.title }

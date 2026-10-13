@@ -15,6 +15,7 @@ const ConnentPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
+const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const io = new Server()
 
@@ -1695,8 +1696,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                             await new Promise(async (resole, reject) => {
                                                 await RoyalGapLine.pushMessage(resultSelect[0].uid_line, {
                                                     "type": "image",
-                                                    "originalContentUrl": `${UrlApi}/image/farmer/${req.body.id_table}`,
-                                                    "previewImageUrl": `${UrlApi}/image/farmer/${req.body.id_table}`
+                                                    "originalContentUrl": ImageUrl.farmerImageUrl(UrlApi, req.body.id_table),
+                                                    "previewImageUrl": ImageUrl.farmerImageUrl(UrlApi, req.body.id_table)
                                                 }).catch(e => { })
                                                 resole("")
                                             })
