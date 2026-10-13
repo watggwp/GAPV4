@@ -494,8 +494,8 @@ app.post('/api/admin/role/update', async (req, res) => {
 
         const TextInsert = req.body.textInput ?? "";
         const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-        const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) && req.body.statusForm !== "" ? parseInt(req.body.statusForm) : null;
-        const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+        const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+        const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
         const SubStatusForm = req.body.subStatusForm ?? "";
         let subStatusSql = "";
 
@@ -529,7 +529,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
         const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
         const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
-        const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
+        const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
 
         // Ignore admin's assigned station_admin so they can view all stations by default.
         // Fallback to the user's selected station or null (all).
@@ -691,7 +691,7 @@ app.post('/api/admin/role/update', async (req, res) => {
       const result = await apifunc.auth(con, username, password, res, "admin");
       if (result['result'] === "pass") {
         const { textSearch = "", station_id = "" } = req.body;
-        const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit;
+        const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
         const adminStation = station_id || null;
         if (req.body.approve === 1) {
           con.query(`
@@ -4382,8 +4382,8 @@ app.post('/api/admin/report/list', async(req, res) => {
           if (result['result'] === "pass") {
               const TextInsert = req.body.textInput ?? "";
               const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-              const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) ? req.body.statusForm : null;
-              const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+              const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+              const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
               const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
               const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
@@ -4883,13 +4883,14 @@ app.post('/api/admin/report/list', async(req, res) => {
                       }) : null;
 
                   if (req.body.report_text || img_path != null) {
-                      const SET = new Array(
-                          req.body.report_text ? `report_text = '${req.body.report_text}'` : "", 
-                          img_path != null ? `image_path = '${img_path}'` : "",
-                          `id_admin = ${result.data.id}`,
-                          `id_table_doctor = 0`
-                      )
-                          .filter(val => val).join(",").replaceAll(" ", "")
+                      // ใช้ placeholder ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในข้อความทิ้ง)
+                      const setClauses = []
+                      const setParams = []
+                      if (req.body.report_text) { setClauses.push("report_text = ?"); setParams.push(req.body.report_text) }
+                      if (img_path != null) { setClauses.push("image_path = ?"); setParams.push(img_path) }
+                      setClauses.push("id_admin = ?", "id_table_doctor = 0")
+                      setParams.push(result.data.id)
+                      const SET = setClauses.join(", ")
 
                       const old_report = await new Promise((resolve) => {
                           con.query(
@@ -4902,7 +4903,8 @@ app.post('/api/admin/report/list', async(req, res) => {
                               (err, oldData) => {
                                   if (err) {
                                       console.log("edit report");
-                                      return 0;
+                                      resolve(undefined)
+                                      return;
                                   }
 
                                   resolve(oldData[0])
@@ -4910,12 +4912,18 @@ app.post('/api/admin/report/list', async(req, res) => {
                           )
                       })
 
+                      // ไม่พบคำแนะนำนี้ (เดิม server ล่มเพราะอ่าน property ของ undefined)
+                      if (!old_report) {
+                          con.end()
+                          return res.send("not")
+                      }
+
                       con.query(
                           `
                           UPDATE report_detail
                           SET ${SET}
                           WHERE id_plant = ? and id = ?
-                          ` , [req.body.id_plant, req.body.id],
+                          ` , [...setParams, req.body.id_plant, req.body.id],
                           (err, resultEdit) => {
                               if (err) {
                                   dbpacket.dbErrorReturn(con, err, res);
