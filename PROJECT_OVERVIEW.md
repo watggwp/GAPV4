@@ -11,7 +11,7 @@
 ### 1. Frontend (ฝั่งหน้าเว็บแอปพลิเคชัน)
 * **Core Framework:** React.js (v18.2) 
 * **Routing:** React Router (v7)
-* **Styling & UI Components:** SCSS / Sass, Material-UI (MUI v7), Bootstrap 5, และ Tailwind CSS
+* **Styling & UI Components:** SCSS / Sass, Material-UI (MUI v7) และ Bootstrap 5
 * **Maps & Location:** Google Maps API (`@react-google-maps/api`) และ Leaflet
 * **Charts & Data Visualization:** Chart.js (`react-chartjs-2`) และ Recharts
 * **Bundler:** Webpack 5 (ตั้งค่า Custom Config เอง)
