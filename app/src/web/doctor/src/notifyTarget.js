@@ -13,7 +13,7 @@ const NOTIFY_PATH = {
 // หน้าตาของแต่ละประเภท (ไอคอน / ชื่อ / สี) ใช้ในรายการแจ้งเตือนและ toast
 // สีตรงกับการ์ด LINE ของประเภทเดียวกัน (server/core/messageLineTemplate.js)
 const NOTIFY_META = {
-    0: { icon: "🔔", label: "แจ้งเตือน", color: "#22C7A9" },
+    0: { icon: "🔔", label: "แจ้งเตือน", color: "#4FB096" },
     1: { icon: "⚠️", label: "ไม่ตรงตามแผน", color: "#B7950B" },
     2: { icon: "📝", label: "ยังไม่บันทึกตามแผน", color: "#A0620D" },
     3: { icon: "👤", label: "เกษตรกรสมัครใหม่", color: "#2E86C1" },

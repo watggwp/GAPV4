@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-@import "../../../../../assets/style/shared/colors";
 
 .header-bar {
     display: flex;
@@ -20,14 +19,14 @@
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        color: $green-strong;
+        color: #4FB096;
         padding: 5px;
     }
 
     .page-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: $green-strong;
+        color: #4FB096;
     }
 
     .header-actions {
@@ -37,7 +36,7 @@
 
         a {
             text-decoration: none;
-            color: $green-strong; // Green text for links
+            color: #4FB096; // Green text for links
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -45,7 +44,7 @@
             font-size: 1rem;
 
             &:hover {
-                color: $green-strong-hover;
+                color: #2e7d6b;
             }
 
             .show-mobile-icon {
@@ -70,7 +69,7 @@
         }
 
         .logout-btn {
-            background-color: $green-strong; // Green background
+            background-color: #4FB096; // Green background
             color: white; // White text
             padding: 8px 25px;
             border-radius: 30px; // Pill shape
@@ -89,7 +88,7 @@
             }
 
             &:hover {
-                background-color: $green-strong-hover; // Darker green
+                background-color: #3D8C77; // Darker green
             }
         }
     }
@@ -217,7 +216,7 @@
             .logout-btn {
                 padding: 6px;
                 background-color: transparent;
-                color: $green-strong;
+                color: #4FB096;
                 box-shadow: none;
 
                 .hide-mobile {
@@ -229,7 +228,7 @@
                 }
 
                 &:hover {
-                    background-color: $green-soft;
+                    background-color: rgba(79, 176, 150, 0.1);
                 }
             }
         }

@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-@import "../../../../../assets/style/shared/colors";
 
 .header-bar {
     display: flex;
@@ -20,14 +19,14 @@
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        color: $green-strong;
+        color: #4FB096;
         padding: 5px;
     }
 
     .page-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: $green-strong;
+        color: #4FB096;
     }
 
     .header-actions {
@@ -37,7 +36,7 @@
 
         a {
             text-decoration: none;
-            color: $green-strong; // Green text for links
+            color: #4FB096; // Green text for links
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -45,7 +44,7 @@
             font-size: 1rem;
 
             &:hover {
-                color: $green-strong-hover;
+                color: #2e7d6b;
             }
 
             .show-mobile-icon {
@@ -69,7 +68,7 @@
                     width: 36px;
                     height: 36px;
                     border-radius: 50%;
-                    background: $green-soft;
+                    background: rgba(79, 176, 150, 0.1);
                     transition: background 0.2s;
 
                     svg {
@@ -79,7 +78,7 @@
                 }
 
                 &:hover .bell-icon {
-                    background: $green-soft-strong;
+                    background: rgba(79, 176, 150, 0.2);
                 }
 
                 .count-notify {
@@ -103,7 +102,7 @@
         }
 
         .logout-btn {
-            background-color: $green-strong; // Green background
+            background-color: #4FB096; // Green background
             color: white; // White text
             padding: 8px 25px;
             border-radius: 30px; // Pill shape
@@ -122,7 +121,7 @@
             }
 
             &:hover {
-                background-color: $green-strong-hover; // Darker green
+                background-color: #3D8C77; // Darker green
             }
         }
     }
@@ -174,8 +173,8 @@
             .notify-new-chip {
                 padding: 2px 8px;
                 border-radius: 999px;
-                background: $green-tint;
-                color: $green-strong;
+                background: #E8F5F0;
+                color: #2E7D6B;
                 font-size: 0.75rem;
                 font-weight: 500;
             }
@@ -238,13 +237,13 @@
                 }
 
                 &:focus-visible {
-                    outline: 2px solid $green;
+                    outline: 2px solid #4FB096;
                     outline-offset: -2px;
                 }
             }
 
             &.unread {
-                background: $green-tint;
+                background: #F0F8F5;
 
                 .subject {
                     color: #1F2D2A;
@@ -252,7 +251,7 @@
                 }
 
                 &.clickable:hover {
-                    background: $green-tint-hover;
+                    background: #E6F3EE;
                 }
             }
 
@@ -270,7 +269,7 @@
             }
 
             .notify-type {
-                color: var(--notify-color, #{$green});
+                color: var(--notify-color, #4FB096);
                 font-size: 0.75rem;
                 font-weight: 600;
                 white-space: nowrap;
@@ -304,7 +303,7 @@
                 height: 8px;
                 margin-top: -4px;
                 border-radius: 50%;
-                background: $green;
+                background: #4FB096;
             }
         }
 
@@ -320,7 +319,7 @@
                 height: 56px;
                 margin-bottom: 12px;
                 border-radius: 50%;
-                background: $green-tint;
+                background: #F0F8F5;
                 font-size: 1.6rem;
             }
 
@@ -375,7 +374,7 @@
             height: 20px;
             border-radius: 50%;
             border: 2px solid white;
-            background: var(--notify-color, #{$green});
+            background: var(--notify-color, #4FB096);
             font-size: 10px;
             line-height: 1;
         }
@@ -400,7 +399,7 @@
         gap: 12px;
         padding: 14px 12px 14px 14px;
         border-radius: 12px;
-        border-left: 4px solid var(--notify-color, #{$green});
+        border-left: 4px solid var(--notify-color, #4FB096);
         background: white;
         box-shadow: 0 10px 28px rgba(16, 40, 33, 0.16);
         cursor: pointer;
@@ -415,7 +414,7 @@
         }
 
         .toast-label {
-            color: var(--notify-color, #{$green});
+            color: var(--notify-color, #4FB096);
             font-size: 0.75rem;
             font-weight: 600;
         }
@@ -510,7 +509,7 @@
             .logout-btn {
                 padding: 6px;
                 background-color: transparent;
-                color: $green-strong;
+                color: #4FB096;
                 box-shadow: none;
 
                 .hide-mobile {
@@ -522,7 +521,7 @@
                 }
 
                 &:hover {
-                    background-color: $green-soft;
+                    background-color: rgba(79, 176, 150, 0.1);
                 }
             }
         }
