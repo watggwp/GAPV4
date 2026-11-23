@@ -24,7 +24,11 @@ const MainFarmer = () => {
     const location = useLocation();
     const page = location.pathname.split("/")[2];
 
-    const [init, Liff] = useLiff(liff_id_mapping[page])
+    // init LIFF ครั้งเดียวด้วย LIFF ID ของหน้าแรกที่เปิด แล้วใช้ตัวเดิมตลอด
+    // (ทุก LIFF อยู่ channel เดียวกัน) ถ้า init ใหม่ด้วย ID อื่นตอนเปลี่ยนหน้าในแอป LINE จะโหลดหน้าใหม่
+    // ทำให้ request ที่ค้างอยู่ถูกตัด แล้วขึ้นกล่อง error ว่างๆ
+    const [liffId] = useState(() => liff_id_mapping[page])
+    const [init, Liff] = useLiff(liffId)
     const [uid, setUid] = useState("")
     const [verified, setVerified] = useState(false)
 
