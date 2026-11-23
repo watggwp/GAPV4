@@ -5497,6 +5497,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.query(
                         `
                         SELECT id , id_table_farmer , date , notify , type , ref_id ,
+                        COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) as is_read ,
                         (
                             SELECT img
                             FROM acc_farmer
@@ -5508,7 +5509,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         LIMIT ${req.query.type == "start" ? countUnRead.count != 0 ? countUnRead.count + 3 : 10 :
                             req.query.type == "update" ? "999999" :
                                 req.query.type == "get" ? "10" : 0}
-                        ` , [result.data.station_doctor, req.query.id],
+                        ` , [result.data.id_table_doctor, result.data.station_doctor, req.query.id],
                         (err, list) => {
                             if (err) {
                                 console.error("Notify SELECT error:", err);

@@ -54,16 +54,49 @@
 
             &.notification-link {
                 position: relative;
+            }
+
+            // ปุ่มกระดิ่ง: ไอคอน + ป้ายจำนวนที่ยังไม่อ่าน
+            &.bell-link {
+                gap: 8px;
+
+                .bell-icon {
+                    position: relative;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: rgba(79, 176, 150, 0.1);
+                    transition: background 0.2s;
+
+                    svg {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+
+                &:hover .bell-icon {
+                    background: rgba(79, 176, 150, 0.2);
+                }
 
                 .count-notify {
                     position: absolute;
-                    top: -5px;
-                    right: -5px;
-                    background: red;
+                    top: -4px;
+                    right: -6px;
+                    min-width: 18px;
+                    height: 18px;
+                    padding: 0 5px;
+                    box-sizing: border-box;
+                    border-radius: 9px;
+                    border: 2px solid white;
+                    background: #E5484D;
                     color: white;
-                    border-radius: 50%;
-                    padding: 2px 5px;
                     font-size: 10px;
+                    font-weight: 600;
+                    line-height: 14px;
+                    text-align: center;
                 }
             }
         }
@@ -97,78 +130,323 @@
         position: relative;
 
         .notify-content {
-            display: none; // Controlled by JS inline style or state
+            display: none; // เปิดด้วย attribute show
             position: absolute;
-            top: 40px;
+            top: 48px;
             right: 0;
-            background: white;
-            border: 1px solid #ddd;
             z-index: 1000;
-            width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 380px;
+            background: white;
+            border: 1px solid #E6ECEA;
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(16, 40, 33, 0.14);
+            overflow: hidden;
 
             &[show=""] {
                 display: block !important;
+                animation: notify-pop 0.16s ease-out;
+            }
+        }
+    }
+
+    .body-notification {
+        display: flex;
+        flex-direction: column;
+        max-height: min(520px, calc(100vh - 120px));
+
+        .notify-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid #EEF2F1;
+
+            .notify-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                color: #1F2D2A;
             }
 
-            .body-notification {
-                max-height: 250px;
-                overflow-y: auto;
-                overflow-x: hidden;
+            .notify-new-chip {
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: #E8F5F0;
+                color: #2E7D6B;
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
 
-                .list-notification {
-                    font-size: 14px;
-                    color: #333;
+            .notify-close {
+                display: none; // แสดงบนมือถือ
+                width: 32px;
+                height: 32px;
+                border: none;
+                border-radius: 50%;
+                background: transparent;
+                color: #6B7A77;
+                font-size: 1.4rem;
+                line-height: 1;
+                cursor: pointer;
 
-                    .content-notification {
-                        display: flex;
-                        justify-content: flex-start;
-                        align-items: center;
-                        padding: 10px;
-                        border-bottom: 1px solid #f0f0f0;
-                        transition: background-color 0.2s;
-
-                        &:last-child {
-                            border-bottom: none;
-                        }
-
-                        &:hover {
-                            background-color: #f9f9f9;
-                        }
-
-                        .box-left {
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            overflow: hidden;
-                            margin-right: 10px;
-                            flex-shrink: 0;
-
-                            img {
-                                width: 100%;
-                                height: 100%;
-                                object-fit: cover;
-                            }
-                        }
-
-                        .box-right {
-                            flex-grow: 1;
-
-                            .subject {
-                                font-weight: 500;
-                                margin-bottom: 2px;
-                            }
-
-                            .date {
-                                font-size: 0.8rem;
-                                color: #888;
-                            }
-                        }
-                    }
+                &:hover {
+                    background: #F2F5F4;
                 }
+            }
+        }
+
+        .list-notification {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            padding-bottom: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .notify-group-label {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 10px 16px 6px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #8A9693;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .content-notification {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 0 8px 2px;
+            padding: 10px 28px 10px 8px;
+            border-radius: 10px;
+            transition: background-color 0.15s;
+            cursor: default;
+
+            &.clickable {
+                cursor: pointer;
+
+                &:hover {
+                    background: #F4F8F7;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid #4FB096;
+                    outline-offset: -2px;
+                }
+            }
+
+            &.unread {
+                background: #F0F8F5;
+
+                .subject {
+                    color: #1F2D2A;
+                    font-weight: 500;
+                }
+
+                &.clickable:hover {
+                    background: #E6F3EE;
+                }
+            }
+
+            .box-right {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .notify-meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 2px;
+            }
+
+            .notify-type {
+                color: var(--notify-color, #4FB096);
+                font-size: 0.75rem;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .date {
+                flex-shrink: 0;
+                color: #8A9693;
+                font-size: 0.75rem;
+            }
+
+            .subject {
+                color: #4A5754;
+                font-size: 0.875rem;
+                line-height: 1.45;
+                white-space: pre-line; // ข้อความมีขึ้นบรรทัดใหม่
+                overflow-wrap: anywhere;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .unread-dot {
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                width: 8px;
+                height: 8px;
+                margin-top: -4px;
+                border-radius: 50%;
+                background: #4FB096;
+            }
+        }
+
+        .notify-empty {
+            padding: 40px 24px;
+            text-align: center;
+
+            .notify-empty-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 56px;
+                height: 56px;
+                margin-bottom: 12px;
+                border-radius: 50%;
+                background: #F0F8F5;
+                font-size: 1.6rem;
+            }
+
+            .notify-empty-title {
+                color: #1F2D2A;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+
+            .notify-empty-text {
+                color: #8A9693;
+                font-size: 0.8125rem;
+                line-height: 1.5;
+            }
+        }
+
+        .notify-loading {
+            display: flex;
+            justify-content: center;
+            padding: 32px 0;
+
+            &.small {
+                padding: 10px 0;
+            }
+        }
+    }
+
+    // รูปเกษตรกร + ไอคอนประเภท (ใช้ทั้งรายการและ toast)
+    .notify-avatar {
+        position: relative;
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #E8F0EE;
+
+        img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .notify-avatar-icon {
+            position: absolute;
+            right: -4px;
+            bottom: -4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: var(--notify-color, #4FB096);
+            font-size: 10px;
+            line-height: 1;
+        }
+    }
+
+    // toast การแจ้งเตือนใหม่ (มุมขวาบน)
+    .notify-toasts {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 360px;
+        max-width: calc(100vw - 32px);
+    }
+
+    .notify-toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 12px 14px 14px;
+        border-radius: 12px;
+        border-left: 4px solid var(--notify-color, #4FB096);
+        background: white;
+        box-shadow: 0 10px 28px rgba(16, 40, 33, 0.16);
+        cursor: pointer;
+        animation: notify-slide 0.25s ease-out;
+
+        .toast-body {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .toast-label {
+            color: var(--notify-color, #4FB096);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .toast-text {
+            color: #1F2D2A;
+            font-size: 0.875rem;
+            line-height: 1.45;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .toast-close {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            margin: -4px -2px 0 0;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #8A9693;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+
+            &:hover {
+                background: #F2F5F4;
+                color: #1F2D2A;
             }
         }
     }
@@ -178,14 +456,29 @@
 
         .menu-content {
             .notify-content {
-                position: fixed; // Fix to screen on mobile
-                top: 60px; // Below header
-                left: 50%;
-                right: auto;
-                transform: translateX(-50%); // Center horizontally
-                width: 90%; // Responsive width
-                max-width: 350px;
+                position: fixed; // มือถือ: กล่องกว้างเกือบเต็มจอ ใต้แถบหัว
+                top: 64px;
+                left: 12px;
+                right: 12px;
+                width: auto;
             }
+        }
+
+        .body-notification {
+            max-height: calc(100vh - 88px);
+
+            .notify-head .notify-close {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .notify-toasts {
+            top: 12px;
+            right: 12px;
+            left: 12px;
+            width: auto;
         }
 
         .mobile-menu-btn {
@@ -232,5 +525,22 @@
                 }
             }
         }
+    }
+}
+
+@keyframes notify-pop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes notify-slide {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .header-bar .menu-content .notify-content[show=""],
+    .header-bar .notify-toast {
+        animation: none;
     }
 }
