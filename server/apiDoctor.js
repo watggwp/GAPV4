@@ -3402,7 +3402,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                             // ✅ ส่งข้อความแจ้งเตือนผ่าน LINE
                             try {
-                                await RoyalGapLine.multicast(uidSend, MessageLineTemplate.pestAlertMessage(selectedData));
+                                await MessageLineTemplate.sendPestAlert(RoyalGapLine, uidSend, selectedData);
                                 console.log("✅ Message sent successfully!");
                                 res.status(200).json({ success: true, message: "Notification sent successfully" });
                             } catch (e) {

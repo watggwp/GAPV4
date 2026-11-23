@@ -3785,7 +3785,8 @@ app.post('/api/admin/report/list', async(req, res) => {
 	
 							//  **ส่งข้อความแจ้งเตือน**
 							con.end();
-							RoyalGapLine.multicast(uidSend, MessageLineTemplate.pestAlertMessage(selectedData));
+							MessageLineTemplate.sendPestAlert(RoyalGapLine, uidSend, selectedData)
+								.catch((e) => console.error("Error sending Line message:", e.originalError?.response?.data || e.message));
 	
 						} catch (e) {
 						con.end();

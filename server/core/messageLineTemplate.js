@@ -284,7 +284,28 @@ class MessageLineTemplate {
         ]
     }
 
-    // ประกาศเฝ้าระวังโรค/ศัตรูพืช: 1 ใบต่อ 1 ชนิด (เลื่อนดูเป็น carousel ได้สูงสุด 12 ใบ)
+    // ประกาศเฝ้าระวังทุกชนิด: carousel ใส่ได้ 12 ใบต่อข้อความ จึงแบ่งเป็นหลายข้อความ ไม่ตัดชนิดที่เกินทิ้ง
+    // คืน array ของข้อความ LINE (ส่งด้วย sendPestAlert ซึ่งส่งครั้งละไม่เกิน 5 ข้อความตามข้อจำกัดของ LINE)
+    static pestAlertMessages(items) {
+        const list = Array.isArray(items) ? items : []
+        const chunks = []
+        for (let i = 0; i < list.length; i += 12) chunks.push(list.slice(i, i + 12))
+        return chunks.map((chunk, index) => {
+            const message = MessageLineTemplate.pestAlertMessage(chunk)
+            if (chunks.length > 1) message.altText = `(${index + 1}/${chunks.length}) ${message.altText}`.slice(0, 400)
+            return message
+        })
+    }
+
+    // ส่งประกาศเฝ้าระวังให้ทุก uid (multicast ได้ครั้งละ 5 ข้อความ)
+    static async sendPestAlert(lineClient, uids, items) {
+        const messages = MessageLineTemplate.pestAlertMessages(items)
+        for (let i = 0; i < messages.length; i += 5) {
+            await lineClient.multicast(uids, messages.slice(i, i + 5))
+        }
+    }
+
+    // ประกาศเฝ้าระวังโรค/ศัตรูพืช: 1 ใบต่อ 1 ชนิด (carousel ได้สูงสุด 12 ใบ ถ้ามากกว่านั้นใช้ pestAlertMessages)
     // items: [{ pest_name, count, name_plants, chemical_used }]
     static pestAlertMessage(items) {
         const bubbles = items.slice(0, 12).map((item) => MessageLineTemplate.farmerCard({
