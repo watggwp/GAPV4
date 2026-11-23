@@ -8,6 +8,7 @@ const RoyalGapLine = require('./configLine');
 const AccountAuth = require('./core/accountAuth');
 const SafeUpdate = require('./core/safeUpdate');
 const MessageLineTemplate = require('./core/messageLineTemplate');
+const SessionLogin = require('./core/sessionLogin');
 const fs = require('fs');
 const path = require('path');
 // โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
@@ -3046,6 +3047,8 @@ app.post('/api/admin/data/change', async (req, res) => {
             }
 
             // บัญชีปกติ สามารถเข้าสู่ระบบได้
+            // login ครั้งแรก / เปลี่ยนบัญชี → เปลี่ยน session ID (กัน session fixation)
+            await SessionLogin.rotateOnLogin(req, "admin", auth['data'].id);
             req.session.role_primary = "admin";
             req.session.admin_id = auth['data'].id;
             req.session.user_username = username;

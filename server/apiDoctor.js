@@ -17,6 +17,7 @@ const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
 const SafeUpdate = require('./core/safeUpdate');
 const MessageLineTemplate = require('./core/messageLineTemplate');
+const SessionLogin = require('./core/sessionLogin');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const io = new Server()
@@ -1364,6 +1365,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         : doctor.protection_role ? "protection" : ""
             if (!role) return res.send('')
 
+            await SessionLogin.rotateOnLogin(req, "doctor", doctor.id_table_doctor)
             req.session.user_id = doctor.id_table_doctor
             req.session.account_type = RoyalGapEnv.access_type.doctor
             req.session.tokenSession = apifunc.getTokenCsurf(req)
@@ -1454,7 +1456,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         let con = Database.createConnection(listDB)
         // Database.resume()
 
-        apifunc.auth(con, username, password, res, "acc_doctor", role).then((result) => {
+        apifunc.auth(con, username, password, res, "acc_doctor", role).then(async (result) => {
             if (result['result'] === "pass") {
                 if (result['data']['status_account'] == 0
                     || result['data']['status_delete'] == 1) {
@@ -1462,6 +1464,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     res.send('account')
                 }
                 else if (result['data']['fullname_doctor'] && result['data']['station_doctor']) {
+                    // login ครั้งแรก / เปลี่ยนบัญชี → เปลี่ยน session ID (กัน session fixation)
+                    await SessionLogin.rotateOnLogin(req, "doctor", result['data']["id_table_doctor"])
                     req.session.user_id = result['data']["id_table_doctor"]
                     req.session.account_type = RoyalGapEnv.access_type.doctor
                     req.session.tokenSession = apifunc.getTokenCsurf(req)

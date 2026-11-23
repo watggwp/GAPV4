@@ -12,6 +12,7 @@ const RoyalGapLine = require('./configLine');
 const LineAuth = require('./core/lineAuth');
 const SafeUpdate = require('./core/safeUpdate');
 const DoctorNotify = require('./core/doctorNotify');
+const SessionLogin = require('./core/sessionLogin');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const checkMismatch = require('./core/corns/checkMismatch');
@@ -50,6 +51,8 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
                 const auth = await authCheck(con, req)
                 con.end()
 
+                // login ครั้งแรก / เปลี่ยนบัญชี LINE → เปลี่ยน session ID (กัน session fixation)
+                await SessionLogin.rotateOnLogin(req, "farmer", uidVerified)
                 req.session.user_id = auth["data"]["id_table"]
                 req.session.account_type = RoyalGapEnv.access_type.farmer
 
