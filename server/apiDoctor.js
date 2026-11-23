@@ -5594,6 +5594,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
     //ทดสอบ popup แจ้งเตือน---------------------------
     app.post('/api/doctor/notify/test', async (req, res) => {
+        // ปุ่มทดสอบสร้างแจ้งเตือนจริงที่หมอทุกคนในศูนย์เห็น จึงเปิดใช้เฉพาะเมื่อตั้ง ENABLE_TEST_NOTIFY=true
+        // (server เครื่องนี้รันโหมด dev แต่ให้บริการผู้ใช้จริงผ่าน cloudflared จึงดูจากโหมดอย่างเดียวไม่ได้)
+        if (process.env.ENABLE_TEST_NOTIFY !== "true") return res.status(404).send("not found")
+
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
 
