@@ -376,7 +376,7 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
             <div className="list-notification" notify="" onScroll={LoadGet}>
                 {
                     getWaitContent === "w" ?
-                        <div className="notify-loading"><Loading size={30} MaxSize={30} border={8} color="#4FB096" animetion={true} /></div>
+                        <div className="notify-loading"><Loading size={30} MaxSize={30} border={8} color="#22C7A9" animetion={true} /></div>
                         : dataNotification.length ?
                             groups.map(group =>
                                 <div className="notify-group" key={group.label} notify="">
@@ -412,7 +412,7 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                                 <div className="notify-empty-text" notify="">เมื่อเกษตรกรสมัครใหม่ หรือเพิ่ม/แก้ไขแบบบันทึก จะแสดงที่นี่</div>
                             </div>
                 }
-                {!getLoadGet ? <div className="notify-loading small"><Loading size={20} MaxSize={20} border={5} color="#4FB096" animetion={true} /></div> : null}
+                {!getLoadGet ? <div className="notify-loading small"><Loading size={20} MaxSize={20} border={5} color="#22C7A9" animetion={true} /></div> : null}
             </div>
         </section>
     )

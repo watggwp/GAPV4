@@ -120,11 +120,11 @@ const InsertGraph = () => {
           backgroundColor: "#E8F7F4",
           borderRadius: "12px",
           boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
-          border: "1px solid rgba(79, 176, 150, 0.15)",
+          border: "1px solid rgba(34, 199, 169, 0.2)",
           textAlign: "center",
         }}
       >
-        <h4 style={{ fontWeight: "900", color: "#4FB096", margin: "0 0 10px 0" }}>จำนวนเกษตรกรในพื้นที่</h4>
+        <h4 style={{ fontWeight: "900", color: "#0F7F6C", margin: "0 0 10px 0" }}>จำนวนเกษตรกรในพื้นที่</h4>
         <p
           style={{
             fontSize: "28px",

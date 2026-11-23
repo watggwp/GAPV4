@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+@import "../../../../../assets/style/shared/colors";
 
 .sidebar {
     width: 280px;
@@ -90,7 +91,7 @@
 
         .brand-name {
             font-size: 1.4rem;
-            color: #4FB096;
+            color: $green-strong;
             font-weight: 700;
             white-space: nowrap;
             opacity: 1;
@@ -101,7 +102,7 @@
             background: none;
             border: none;
             font-size: 30px;
-            color: #4FB096;
+            color: $green;
             cursor: pointer;
             padding: 0px;
             border-radius: 5px;
@@ -112,7 +113,7 @@
             height: 40px;
 
             &:hover {
-                background-color: rgba(79, 176, 150, 0.1);
+                background-color: $green-soft;
             }
         }
     }
