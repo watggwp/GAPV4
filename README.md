@@ -216,7 +216,6 @@
 * **`REACT_APP_WEATHER_STATION`** : ID ของ LIFF สำหรับหน้า **ดูสถานีตรวจวัดสภาพอากาศ** (Endpoint: `/farmer/weather-station`)
 * **`LINE_LOGIN_CHANNEL_ID`** (ไม่บังคับ) : Channel ID ของ LINE Login ที่ผูก LIFF ไว้ ใช้ตรวจ LIFF access token ถ้าไม่ใส่ระบบจะดึงจากเลขหน้า LIFF ID อัตโนมัติ
 * **`ALLOW_UNVERIFIED_LIFF`** (ไม่บังคับ) : ตั้งเป็น `true` เพื่อยอมรับ LINE uid ที่ไม่ได้ยืนยันในโหมด deploy ชั่วคราวเท่านั้น (ค่าปกติ: ปิด) ในโหมด dev ระบบยอมรับ `REACT_APP_UID_USER_TEST` อยู่แล้ว
-* **`ENABLE_TEST_NOTIFY`** / **`REACT_APP_ENABLE_TEST_NOTIFY`** (ไม่บังคับ) : ตั้งเป็น `true` เพื่อเปิดปุ่ม "ทดสอบแจ้งเตือน" ในเว็บหมอ และ API `/api/doctor/notify/test` (ค่าปกติ: ปิด เพราะสร้างแจ้งเตือนจริงที่หมอทุกคนในศูนย์เห็น)
 
 #### การตั้งค่า Server & Ports (Application Config)
 * **`BUILD`** : กำหนด Environment Mode เช่น `deploy`

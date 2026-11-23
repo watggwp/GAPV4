@@ -12,9 +12,6 @@ import './assets/style/page/form/PageFormPlant.scss';
 // การแจ้งเตือนที่กดแล้วมีหน้าให้เปิด: แผนการปลูก (popup) หรือหน้าในเว็บหมอ (notifyTarget.js)
 const isScheduleNotify = (val) => (val.type === 1 || val.type === 2) && val.ref_id
 const isClickableNotify = (val) => Boolean(isScheduleNotify(val) || notifyPath(val))
-// ปุ่มทดสอบแจ้งเตือน: ต้องเปิดเองด้วย REACT_APP_ENABLE_TEST_NOTIFY=true
-// (ใช้ NODE_ENV ไม่ได้ เพราะเว็บจริงบนเครื่องนี้เสิร์ฟจาก dev server ผ่าน cloudflared)
-const SHOW_TEST_NOTIFY = process.env.REACT_APP_ENABLE_TEST_NOTIFY === "true"
 
 const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTitle, toggleSidebar }) => {
     const { profile } = useContext(DoctorContext);
@@ -206,16 +203,6 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         setNotifyContent(true);
         setShowNotify(!getShowNotify);
     };
-    //ทดสอบ popup แจ้งเตือน
-    const handleTestNotification = async (e) => {
-        if (e) e.preventDefault();
-        try {
-            await clientMo.post('/api/doctor/notify/test');
-        } catch (err) {
-            console.error("Test notification failed:", err);
-        }
-    };
-    //-------------------------------------------------------------
     const logout = () => {
         clientMo.LoadingPage();
         setTimeout(() => {
@@ -271,13 +258,6 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
             </div>
 
             <div className="header-actions">
-                {/* ปุ่มทดสอบแจ้งเตือน (server ต้องตั้ง ENABLE_TEST_NOTIFY=true ด้วย) */}
-                {SHOW_TEST_NOTIFY ?
-                    <a href="#" className="notification-link" onClick={handleTestNotification} style={{ color: '#22C7A9', marginRight: '15px' }}>
-                        <span className="hide-mobile">ทดสอบแจ้งเตือน</span>
-                        <span className="show-mobile-icon">🧪</span>
-                    </a>
-                    : null}
                 <div className="menu-content" style={{ position: 'relative' }}>
                     <a href="#" className="notification-link bell-link" onClick={Notify} notify=""
                         aria-label={getNotifyCount ? `การแจ้งเตือน ยังไม่อ่าน ${getNotifyCount} รายการ` : "การแจ้งเตือน"}>
