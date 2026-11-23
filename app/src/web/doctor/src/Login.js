@@ -5,6 +5,7 @@ import './assets/style/Login.scss'
 import Doctor from "./Doctor";
 import { PatternCheck, PopupDom, useLiff } from "../../../assets/js/module";
 import env from "../../../env";
+import { saveLastRole } from "./lastRole";
 
 const Login = ({setMain , socket , isClick = 0}) => {
     // const [Body , setBody] = useState(<></>)
@@ -105,6 +106,7 @@ list.forEach((item) =>
             setTimeout(()=>{
                 clientMo.postForm('/api/doctor/auth' , formData).then((context)=>{
                     if(context === "pass") {
+                        saveLastRole(formData.role)
                         socket.disconnect().connect()
                         setMain(<Doctor setMain={setMain} socket={socket} isClick={1} username={formData.username} password={formData.password}/>)
                     } else if(context === "account") {

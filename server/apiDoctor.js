@@ -1359,10 +1359,13 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             )
             if (!doctor || !doctor.fullname_doctor || !doctor.station_doctor) return res.send('')
 
-            const role = doctor.doctor_role ? "doctor"
-                : doctor.analyst_role ? "analyst"
-                    : doctor.consultant_role ? "consultant"
-                        : doctor.protection_role ? "protection" : ""
+            // ใช้บทบาทที่หน้าเว็บขอ (บทบาทล่าสุดที่หมอ login ด้วยรหัสผ่าน) ถ้าบัญชีมีสิทธิ์จริง
+            // ไม่งั้นใช้บทบาทแรกที่มีตามลำดับ doctor > analyst > consultant > protection
+            const ROLE_COLUMNS = { doctor: "doctor_role", analyst: "analyst_role", consultant: "consultant_role", protection: "protection_role" }
+            const requested = req.body['role']
+            const role = (ROLE_COLUMNS[requested] && doctor[ROLE_COLUMNS[requested]])
+                ? requested
+                : Object.keys(ROLE_COLUMNS).find((name) => doctor[ROLE_COLUMNS[name]]) || ""
             if (!role) return res.send('')
 
             await SessionLogin.rotateOnLogin(req, "doctor", doctor.id_table_doctor)

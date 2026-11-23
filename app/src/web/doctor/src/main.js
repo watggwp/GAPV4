@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import liff from "@line/liff";
 import { clientMo } from "../../../assets/js/moduleClient";
 import { initLiff } from "../../../assets/js/module";
+import { loadLastRole } from "./lastRole";
 
 import Login from "./Login";
 import Doctor from "./Doctor";
@@ -22,7 +23,8 @@ const loginWithLine = async () => {
         // ส่งเฉพาะ access token ให้ server ยืนยันกับ LINE เอง (server ไม่รับ uid เปล่าๆ)
         const accessToken = liff.getAccessToken()
         if (!accessToken) return false
-        const result = await clientMo.post("/api/doctor/line/login", { accessToken })
+        // ขอบทบาทล่าสุดที่เคย login ด้วยรหัสผ่าน (server ตรวจว่ามีสิทธิ์จริงก่อนใช้)
+        const result = await clientMo.post("/api/doctor/line/login", { accessToken, role: loadLastRole() })
         return result === "pass"
     } catch (e) {
         return false
