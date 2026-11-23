@@ -211,7 +211,8 @@
                                                 .list-input-search {
                                                     display: flex;
                                                     flex-direction: column;
-                                                    overflow: scroll;
+                                                    overflow-y: auto; // เลื่อนแนวตั้งอย่างเดียว (เดิม overflow: scroll บังคับแถบเลื่อนแนวนอนด้วย)
+                                                    overflow-x: hidden;
                                                     max-height: 100px;
                                                     position: absolute;
                                                     background-color: white;
@@ -418,7 +419,38 @@
             align-items: center;
             height: 100%;
             width: 100%;
-            overflow: scroll;
+            // เลื่อนแนวตั้งอย่างเดียว: เดิม overflow: scroll บังคับแถบเลื่อนแนวนอน ปัดเฉียงแล้วรายการส่ายซ้ายขวาบนมือถือ
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain; // เลื่อนสุดกล่องแล้วไม่ลากทั้งหน้า/เด้งต่อ
+            -webkit-overflow-scrolling: touch; // เลื่อนแบบมีแรงเฉื่อยบน iOS รุ่นเก่า
+            padding-bottom: 16px;
+
+            .list-empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                width: 90%;
+                margin-top: 12px;
+                padding: 24px 16px;
+                border: 1.5px dashed #b9ddd6;
+                border-radius: 15px;
+                background-color: #f4fbf9;
+                font-family: Sans-font;
+                text-align: center;
+
+                .list-empty-title {
+                    font-size: 18px;
+                    font-weight: 900;
+                    color: #379b7a;
+                }
+
+                .list-empty-hint {
+                    font-size: 14px;
+                    color: #6b7a77;
+                }
+            }
 
             .plant-content {
                 display: flex;

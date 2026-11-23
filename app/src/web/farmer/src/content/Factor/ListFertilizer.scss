@@ -298,7 +298,8 @@ $FontText : 5vw;
                                                         .list-input-search {
                                                             display: flex;
                                                             flex-direction: column;
-                                                            overflow: scroll;
+                                                            overflow-y: auto; // เลื่อนแนวตั้งอย่างเดียว (เดิม overflow: scroll บังคับแถบเลื่อนแนวนอนด้วย)
+                                                            overflow-x: hidden;
                                                             max-height: 100px;
                                                             position: absolute;
                                                             background-color: white;
@@ -331,7 +332,8 @@ $FontText : 5vw;
                                                     .list-input-search {
                                                         display: flex;
                                                         flex-direction: column;
-                                                        overflow: scroll;
+                                                        overflow-y: auto; // เลื่อนแนวตั้งอย่างเดียว (เดิม overflow: scroll บังคับแถบเลื่อนแนวนอนด้วย)
+                                                        overflow-x: hidden;
                                                         max-height: 100px;
                                                         position: absolute;
                                                         background-color: white;

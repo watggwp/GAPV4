@@ -54,4 +54,16 @@ const Template = ({
     )
 }
 
+// ข้อความเมื่อยังไม่มีรายการ (แสดงใน .list-plant แทนกล่องขาวโล่ง)
+export const EmptyList = ({ title, hint }) => (
+    <div className="list-empty">
+        <span className="list-empty-title">{title}</span>
+        {hint ? <span className="list-empty-hint">{hint}</span> : null}
+    </div>
+)
+
+// ค่าว่าง/null จาก API แสดงเป็น "-" (เดิมขึ้นคำว่า null บนการ์ด)
+export const showValue = (value, unit = "") =>
+    value === null || value === undefined || value === "" ? "-" : `${value}${unit}`
+
 export default Template

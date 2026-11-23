@@ -3,7 +3,7 @@ import { clientMo } from "../../../../../assets/js/moduleClient";
 
 import { DayJSX } from "../../../../../assets/js/module";
 import PopupInsertPlant from "./InsertPlant";
-import Template from "../TemplateList";
+import Template, { EmptyList, showValue } from "../TemplateList";
 import { CloseAccount } from "../../method";
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -63,6 +63,10 @@ export default function Gaps() {
         <Template 
             PopUp={{ PopupRef: PopupRef, PopupBody: PopupAdd }}
             List={
+                Loading && formsGAP.length === 0 ?
+                    <EmptyList
+                        title="ยังไม่มีแบบบันทึก"
+                        hint={disabledAdd ? "" : "กด \"เพิ่มการบันทึก\" ด้านบนเพื่อเริ่มบันทึกการปลูก"} /> :
                 formsGAP.map((formGAP) =>
                     <div key={formGAP.id} className={`plant-content ${formGAP.state_status === 2 ? "submit" : ""}`} style={
                         (formGAP.report || formGAP.form || formGAP.plant || formGAP.success) && formGAP.state_status < 2 ? {
@@ -104,11 +108,11 @@ export default function Gaps() {
                         <div className="bottom">          
                             <div className="content" style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap",marginRight: "5px" }}>
                                 <span>จำนวน :</span>
-                                <div>{`${formGAP.qty} ต้น`}</div>
+                                <div>{showValue(formGAP.qty, " ต้น")}</div>
                             </div>
                             <div className="content" style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
                                 <span>รุ่นที่ :</span>
-                                <div>{formGAP.generation}</div>
+                                <div>{showValue(formGAP.generation)}</div>
                             </div>
                             <div className="bt">
                                 <button onClick={() => OpenMenuPlant(formGAP.id)}>{formGAP.state_status < 2 ? "บันทึกข้อมูล" : "ดูข้อมูล"}</button>
