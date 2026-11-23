@@ -1334,7 +1334,14 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     // เข้าระบบด้วยบัญชี LINE ที่ผูกกับบัญชีหมอแล้ว (กดการแจ้งเตือนใน LINE แล้วเปิดผ่าน LIFF ไม่ต้องกรอกรหัสผ่าน)
     // ผูก LINE ได้เฉพาะตอน login ด้วยรหัสผ่านใน LIFF และต้องยืนยัน access token กับ LINE ทุกครั้ง
     app.post('/api/doctor/line/login', async (req, res) => {
-        const uidLine = await LineAuth.resolveLineUserId({ accessToken: req.body['accessToken'], uid: req.body['uid'] })
+        // ต้องมี access token ที่ LINE ยืนยันแล้วเท่านั้น (ห้ามรับ uid เปล่าๆ แม้ในโหมด dev หรือเปิด ALLOW_UNVERIFIED_LIFF
+        // เพราะ route นี้ให้ session หมอโดยไม่ต้องใช้รหัสผ่าน)
+        let uidLine = ""
+        try {
+            uidLine = await LineAuth.getUserIdFromAccessToken(req.body['accessToken'])
+        } catch (err) {
+            console.warn("doctor LINE login rejected:", err.message)
+        }
         if (!uidLine) return res.send('')
 
         try {
@@ -1768,6 +1775,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                                 req.body.tel_number && { label: "เบอร์โทร", value: req.body.tel_number },
                                                 req.body.text_location && { label: "ที่อยู่", value: req.body.text_location },
                                                 req.body.station && { label: "ศูนย์ที่ดูแล", value: Station[0] ? Station[0].name : "" },
+                                                // ส่งรหัสผ่านใหม่ให้เกษตรกรทาง LINE ของเกษตรกรเอง (เหมือนระบบเดิม)
                                                 req.body.newPassword && { label: "รหัสผ่านใหม่", value: req.body.newPassword },
                                                 req.body.img && { label: "รูปโปรไฟล์", value: "เปลี่ยนใหม่ (ด้านบน)" },
                                             ],

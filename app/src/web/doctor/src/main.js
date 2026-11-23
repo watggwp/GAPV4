@@ -19,11 +19,10 @@ const loginWithLine = async () => {
         // liff.init พาไปหน้าที่ลิงก์ระบุ (liff.state) ให้เอง
         await initLiff(LIFF_DOCTOR)
         if (!liff.isLoggedIn()) return false
-        const profile = await liff.getProfile().catch(() => ({}))
-        const result = await clientMo.post("/api/doctor/line/login", {
-            accessToken: liff.getAccessToken(),
-            uid: profile.userId
-        })
+        // ส่งเฉพาะ access token ให้ server ยืนยันกับ LINE เอง (server ไม่รับ uid เปล่าๆ)
+        const accessToken = liff.getAccessToken()
+        if (!accessToken) return false
+        const result = await clientMo.post("/api/doctor/line/login", { accessToken })
         return result === "pass"
     } catch (e) {
         return false
