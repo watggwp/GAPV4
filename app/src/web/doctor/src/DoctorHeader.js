@@ -396,7 +396,7 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
                                                 <div className="box-right" notify="">
                                                     <div className="notify-meta" notify="">
                                                         <span className="notify-type" notify="">{meta.label}</span>
-                                                        <span className="date" notify=""><TimeDiff DATE={val.date} /></span>
+                                                        <span className="date" notify=""><TimeDiff DATE={val.date} DivInput={false} /></span>
                                                     </div>
                                                     <div className="subject" notify="">{val.notify}</div>
                                                 </div>
