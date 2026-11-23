@@ -187,7 +187,8 @@ class MessageLineTemplate {
     //   list       : { label, items: [string] } รายการ เช่น ช่องที่ถูกแก้ไข
     //   imageUrl   : รูปแนบ (https) แตะแล้วเปิดรูปเต็ม
     //   url, buttonLabel : ปุ่มด้านล่าง
-    static farmerCard({ theme = "info", title, subtitle, rows = [], highlight, list, imageUrl, url, buttonLabel, altText, date = new Date() }) {
+    //   showDate   : แสดงวันที่ส่งท้ายการ์ด (ค่าเริ่มต้น true)
+    static farmerCard({ theme = "info", title, subtitle, rows = [], highlight, list, imageUrl, url, buttonLabel, altText, date = new Date(), showDate = true }) {
         const t = FARMER_CARD_THEMES[theme] || FARMER_CARD_THEMES.info
         const heading = title || t.title
         const dateText = date.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bangkok" })
@@ -255,7 +256,8 @@ class MessageLineTemplate {
                         ...(highlight && highlight.text ? [panel(highlight.label || "รายละเอียด", [
                             { "type": "text", "text": String(highlight.text), "size": "md", "color": "#222222", "wrap": true, "margin": "sm" }
                         ])] : []),
-                        { "type": "text", "text": dateText, "size": "xs", "color": "#AAAAAA", "align": "end" }
+                        // showDate: false เมื่อการ์ดมีแถววันที่ของตัวเองอยู่แล้ว (เช่นแผนการปลูก) กันวันที่ซ้ำ/ขัดกัน
+                        ...(showDate ? [{ "type": "text", "text": dateText, "size": "xs", "color": "#AAAAAA", "align": "end" }] : [])
                     ]
                 },
                 ...(url ? {

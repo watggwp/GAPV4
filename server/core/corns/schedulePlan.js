@@ -87,10 +87,11 @@ const schedulePlan = {
                         subtitle: `กิจกรรม: ${title}`,
                         rows: [
                             ...MessageLineTemplate.gapRows(greenhouse_name, name),
-                            { label: "วันที่", value: dateString },
+                            { label: "วันที่ต้องทำ", value: dateString },
                             ...details_list
                         ],
                         imageUrl: greenhouseImage,
+                        showDate: false,
                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/z?open-insert=true&schedule_id=${schedule_id}`,
                         buttonLabel: "ใส่ปุ๋ยแล้ว กรอกข้อมูลที่นี่",
                     }).contents,
@@ -116,10 +117,11 @@ const schedulePlan = {
                         subtitle: `กิจกรรม: ${title}`,
                         rows: [
                             ...MessageLineTemplate.gapRows(greenhouse_name, name),
-                            { label: "วันที่", value: dateString },
+                            { label: "วันที่ต้องทำ", value: dateString },
                             ...details_list
                         ],
                         imageUrl: greenhouseImage,
+                        showDate: false,
                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${form_id}/c?open-insert=true&schedule_id=${schedule_id}`,
                         buttonLabel: "ใส่สารเคมีแล้ว กรอกข้อมูลที่นี่",
                     }).contents,

@@ -107,10 +107,11 @@ const plantingScheduleReminder = {
                         subtitle: `กิจกรรม: ${title}`,
                         rows: [
                             ...MessageLineTemplate.gapRows(greenhouse_name, name),
-                            { label: "วันที่", value: dateString },
+                            { label: "วันที่ต้องทำ", value: dateString },
                             ...details_list
                         ],
                         imageUrl: greenhouseImage,
+                        showDate: false,
                     }).contents,
                     details_message
                 ]
@@ -134,10 +135,11 @@ const plantingScheduleReminder = {
                         subtitle: `กิจกรรม: ${title}`,
                         rows: [
                             ...MessageLineTemplate.gapRows(greenhouse_name, name),
-                            { label: "วันที่", value: dateString },
+                            { label: "วันที่ต้องทำ", value: dateString },
                             ...details_list
                         ],
                         imageUrl: greenhouseImage,
+                        showDate: false,
                     }).contents,
                     details_message
                 ]
