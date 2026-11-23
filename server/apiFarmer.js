@@ -3966,16 +3966,29 @@ module.exports = function apiFarmer(app, Database, pool = new ConnentPool(), dbp
     })
 }
 
+// เช็กว่าผู้ใช้ยังเป็นเพื่อนกับ LINE OA (getLinkToken ล้มเหลวถ้าบล็อก/ไม่ได้เพิ่มเพื่อน)
+// เดิมเรียก LINE API ทุก request (~150-200 ms ต่อครั้ง และหน้าหนึ่งเรียกหลาย API) จึงจำผล "ผ่าน" ไว้ 5 นาทีต่อ uid
+// ผล "ไม่ผ่าน" ไม่จำ ถ้าผู้ใช้เพิ่มเพื่อนกลับมาจะใช้ได้ทันทีเหมือนเดิม
+const LINE_FRIEND_CACHE_MS = 5 * 60 * 1000
+const lineFriendCache = new Map()
+const isLineFriend = async (uid) => {
+    if (!uid) return false
+    const cachedUntil = lineFriendCache.get(uid)
+    if (cachedUntil && cachedUntil > Date.now()) return true
+    try {
+        await RoyalGapLine.getLinkToken(uid)
+        if (lineFriendCache.size > 5000) lineFriendCache.clear()
+        lineFriendCache.set(uid, Date.now() + LINE_FRIEND_CACHE_MS)
+        return true
+    } catch (e) {
+        lineFriendCache.delete(uid)
+        return false
+    }
+}
+
 const authCheck = (con, req) => {
     return new Promise(async (resole, reject) => {
-        const userLine = await new Promise(async (resole, reject) => {
-            try {
-                await RoyalGapLine.getLinkToken(req.session.uidFarmer)
-                resole(true)
-            } catch (e) {
-                resole(false)
-            }
-        })
+        const userLine = await isLineFriend(req.session.uidFarmer)
 
         if (userLine) {
             con.connect((err) => {
