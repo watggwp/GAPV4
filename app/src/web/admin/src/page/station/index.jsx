@@ -100,7 +100,8 @@ export default function WeatherStation() {
     <div style={{ padding: "20px", fontFamily: "sans-serif", width: "100%", height: "100%", overflow: "auto" }}>
       <Stack marginBottom={3} direction={"row"} width={"100%"}>
         <Grid container width={"100%"}>
-          <Grid size={{ xs: 8, xl: 6 }}>
+          {/* จอแคบ: ดรอปดาวน์เต็มแถว ปุ่มขึ้นแถวใหม่ */}
+          <Grid size={{ xs: 12, sm: 8, xl: 6 }}>
             <Stack direction={"row"}>
               <Select
                 displayEmpty
@@ -135,7 +136,7 @@ export default function WeatherStation() {
             </Stack>
           </Grid>
 
-          <Grid size={{ xs: 4, xl: 6 }}>
+          <Grid size={{ xs: 12, sm: 4, xl: 6 }} sx={{ mt: { xs: 1.5, sm: 0 } }}>
             <Stack direction={"row"} justifyContent={"end"}>
               {/* จอแคบ: แสดงข้อความสั้น ไม่ให้ปุ่มถูกบีบจนข้อความขึ้นหลายบรรทัด */}
               <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}
