@@ -18,6 +18,7 @@ const LineAuth = require('./core/lineAuth');
 const SafeUpdate = require('./core/safeUpdate');
 const MessageLineTemplate = require('./core/messageLineTemplate');
 const SessionLogin = require('./core/sessionLogin');
+const MapsLink = require('./core/mapsLink');
 const ImageUrl = require('./core/imageUrl');
 const AccountAuth = require('./core/accountAuth');
 const io = new Server()
@@ -5605,20 +5606,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         try {
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            con.end() // เดิมไม่ปิด connection (รั่วทุกครั้งที่เรียก)
             if (result['result'] === "pass") {
                 try {
-                    const Maps = await axios.request({
-                        method: "GET",
-                        maxBodyLength: Infinity,
-                        url: req.body.link,
-                        headers: {}
-                    })
-
-                    res.send({
-                        PathMap: Maps.request.path,
-                        DataMaps: JSON.stringify(Maps.data)
-                    })
-                    // res.send(JSON.stringify(Maps.data))
+                    // รับเฉพาะลิงก์ Google Maps (กัน SSRF) ดู core/mapsLink.js
+                    res.send(await MapsLink.fetchMapsPage(req.body.link))
                 } catch (e) {
                     res.send("")
                 }
