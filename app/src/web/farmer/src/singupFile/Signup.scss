@@ -355,10 +355,6 @@
                     background-color: transparent;
                 }
     
-                .step-one::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
-    
                 .step-two {
                     display: flex;
                     flex-direction: column;
@@ -534,10 +530,6 @@
                     background-color: transparent;
                 }
     
-                .step-two::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
-    
                 .step-three {
                     display: flex;
                     flex-direction: column;
@@ -611,9 +603,6 @@
                     background-color: transparent;
                 }
     
-                .step-three::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
             }
         }
     
@@ -991,13 +980,6 @@
     border: 1px solid #e0e0e0;
     
     // Smooth scrollbar
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background-color: #d0d0d0;
-        border-radius: 10px;
-    }
 }
 
 .thai-address-suggestion-item {

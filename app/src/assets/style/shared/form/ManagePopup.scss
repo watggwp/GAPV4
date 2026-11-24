@@ -165,17 +165,6 @@ $colorBoderBottonData : #3bc69c;
                         }
                     }
 
-                    .frame-text::-webkit-scrollbar {
-                        height: 4px;
-                        // width: 2px;
-                        background-color: white;
-                        border-radius: 25px;
-                    }
-
-                    .frame-text::-webkit-scrollbar-thumb {
-                        background-color: #197866;
-                        border-radius: 25px;
-                    }
                 }
 
                 .head-content {
@@ -539,18 +528,6 @@ $colorBoderBottonData : #3bc69c;
                     background-color: #81f6e169;
                     border-radius: 8px;
                     padding: 5px;
-
-                    .body::-webkit-scrollbar {
-                        width: 8px;
-                        background-color: white;
-                        border-radius: 0px 15px 15px 0px;
-                    }
-
-                    .body::-webkit-scrollbar-thumb {
-                        background-color: #52c7b1;
-                        border-radius: 15px;
-                        border-radius: 0px 15px 15px 0px;
-                    }
 
                     .body {
                         display: flex;

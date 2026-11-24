@@ -123,3 +123,39 @@ html {
         /* ให้ Datepicker ใช้ 85% ของหน้าจอบนมือถือ */
     }
 }
+
+/* ── แถบเลื่อนกลางของทุกเว็บ (admin / doctor / farmer โหลดไฟล์นี้ร่วมกัน) ─────────────
+   บางเทาอ่อน ชี้แล้วเป็นสีเขียวของระบบ
+   - ใช้เฉพาะอุปกรณ์ที่ใช้เมาส์ (คอม): บนมือถือถ้าตั้งสไตล์ แถบเลื่อนจะกินพื้นที่แทนการลอยบางๆ
+   - กล่องที่ตั้งใจซ่อนแถบเลื่อน (::-webkit-scrollbar { width: 0 }) ยังซ่อนอยู่ เพราะกฎเฉพาะจุดมีน้ำหนักมากกว่า
+   - scrollbar-width / scrollbar-color ใส่เฉพาะเบราว์เซอร์ที่ไม่มี ::-webkit-scrollbar (Firefox)
+     เพราะ Chrome รุ่นใหม่จะใช้ค่าพวกนี้แทน และทำให้แถบที่ตั้งใจซ่อนกลับมาโผล่ */
+@media (hover: hover) and (pointer: fine) {
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #c4ccca;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: #4FB096;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #c4ccca transparent;
+        }
+    }
+}
