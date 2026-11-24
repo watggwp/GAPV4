@@ -2,7 +2,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;
+    width: min(100vw, 560px);
     height: 100vh;
     flex-direction: column;
 
@@ -56,7 +56,7 @@
         .title {
             text-align: center;
             font-family: TH-font;
-            font-size: 10vw;
+            font-size: min(10vw, 56px);
             font-weight: 900;
             padding-top: 7px;
             background-color: rgb(115, 213, 115);
@@ -97,13 +97,13 @@
                         margin-bottom: 20px;
                         span {
                             font-family: TH-font;
-                            font-size: 10vw;
+                            font-size: min(10vw, 56px);
                             font-weight: 900;
                         }
 
                         input {
                             font-family: TH-font;
-                            font-size: 10vw;
+                            font-size: min(10vw, 56px);
                             padding: 0px 10px;
                             padding-top: 5px;
                             text-align: center;
@@ -171,7 +171,7 @@
                                 padding-top: 3px;
                                 font-family: TH-font;
                                 border-radius: 15px;
-                                font-size: 7vw;
+                                font-size: min(7vw, 39.2px);
                                 color: white;
                                 box-shadow: 0px 2px 2px gray;
                             }
@@ -190,7 +190,7 @@
 
                         span {
                             font-family: TH-font;
-                            font-size: 10vw;
+                            font-size: min(10vw, 56px);
                             font-weight: 900;
                         }
         
@@ -212,8 +212,8 @@
                                 background-color: rgba(255, 255, 255, 0.349);
                                 backdrop-filter: blur(8px);
                                 .loading-map-house {
-                                    width: 25vw;
-                                    height: 25vw;
+                                    width: min(25vw, 140px);
+                                    height: min(25vw, 140px);
                                 }
                             }
 
@@ -226,11 +226,11 @@
                             display: flex;
                             position: absolute;
                             font-family: TH-font;
-                            font-size: 6vw;
+                            font-size: min(6vw, 33.6px);
                             font-weight: 900;
                             background-color: white;
                             padding: 0px 10px;
-                            padding-top: 2vw;
+                            padding-top: min(2vw, 11.2px);
                             border-radius: 15px;
                             box-shadow: 0px 4px 4px rgb(0, 0, 0);
                             bottom: 0.6em;
@@ -252,10 +252,10 @@
             .bt {
                 border-radius: 15px;
                 width: 30%;
-                padding-top: 2vw;
+                padding-top: min(2vw, 11.2px);
                 border: 0;
                 font-family: TH-font;
-                font-size: 10vw;
+                font-size: min(10vw, 56px);
                 font-weight: 900;
                 color: white;
                 box-shadow: 0px 3px 4px gray;

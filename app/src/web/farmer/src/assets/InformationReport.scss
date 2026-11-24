@@ -1,5 +1,5 @@
 .Information-Report {
-    width: 100vw; /* ขยายความกว้างเต็มหน้าจอ */
+    width: min(100vw, 560px); /* ขยายความกว้างเต็มหน้าจอ */
     height: 100vh; /* ขยายความสูงเต็มหน้าจอ */
     box-sizing: border-box; /* รวม padding และ border ในขนาดของ element */
     padding: 0; /* ลบระยะ Padding ทั้งหมด */

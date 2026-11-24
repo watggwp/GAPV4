@@ -262,7 +262,7 @@ const DetailEdit = ({ Ref, setRef, type, Data_on }) => {
 
 
     return Data === null ? (
-        <Loading size={"30vw"} border={"2.5vw"} color="#23dd36" animetion={true} />
+        <Loading size={"min(30vw, 168px)"} border={"min(2.5vw, 14px)"} color="#23dd36" animetion={true} />
     ) : (
         <section id="detail-edit-popup">
             {Data[0] ? (
@@ -392,8 +392,8 @@ const DetailEdit = ({ Ref, setRef, type, Data_on }) => {
                     ) : (
                         <div className="loading-edit">
                             <Loading
-                                size={"15vw"}
-                                border={"2vw"}
+                                size={"min(15vw, 84px)"}
+                                border={"min(2vw, 11.2px)"}
                                 color="rgb(53 207 187)"
                                 animetion={true}
                             />

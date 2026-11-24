@@ -1,4 +1,4 @@
-$font-Page : 4.5vw;
+$font-Page : min(4.5vw, 25.2px);
 .farm {
     .farm-body {
         .body-main {
@@ -15,7 +15,7 @@ $font-Page : 4.5vw;
                     justify-content: center;
                     align-items: center;
                     font-family: Sans-font;
-                    font-size: 7vw;
+                    font-size: min(7vw, 39.2px);
                     font-weight: 900;
                     width: 100%;
                     height: 15%;

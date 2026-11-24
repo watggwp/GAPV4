@@ -1,8 +1,8 @@
-$FontText : 5vw;
+$FontText : min(5vw, 28px);
 .farm {
     .plant {
         .list-factor-content {
-            width: 90vw;
+            width: min(90vw, 504px);
             position: relative;
             background-color: #daf1ee;
             padding: 0px 8px;
@@ -28,12 +28,12 @@ $FontText : 5vw;
                 align-items: start;
                 position: relative;
                 font-family: Sans-font;
-                font-size: 5vw;
-                margin: 1.3vw 0px;
+                font-size: min(5vw, 28px);
+                margin: min(1.3vw, 7.28px) 0px;
                 
                 .name {
                     font-weight: 900;
-                    font-size: 7vw;
+                    font-size: min(7vw, 39.2px);
                 }
     
                 .date {
@@ -45,7 +45,7 @@ $FontText : 5vw;
                     span {
                         width: 100%;
                         text-align: end;
-                        font-size: 4vw;
+                        font-size: min(4vw, 22.4px);
                         font-weight: 900;
                     }
                     input {
@@ -55,7 +55,7 @@ $FontText : 5vw;
                         border: 0;
                         background-color: transparent;
                         outline: 0;
-                        font-size: 4vw;
+                        font-size: min(4vw, 22.4px);
                     }
                 }
 
@@ -75,12 +75,12 @@ $FontText : 5vw;
                         width: 58%;
                         padding: 0;
                         background-color: transparent;
-                        font-size: 5vw;
+                        font-size: min(5vw, 28px);
                     }
                 }
     
                 button {
-                    font-size: 5vw;
+                    font-size: min(5vw, 28px);
                     font-family: Sans-font;
                     border: 0;
                     border-radius: 15px;
@@ -130,7 +130,7 @@ $FontText : 5vw;
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    font-size: 8vw;
+                    font-size: min(8vw, 44.8px);
                     font-weight: 900;
                     font-family: Sans-font;
                     // height: 10%;
@@ -158,7 +158,7 @@ $FontText : 5vw;
                             padding: 5px 15px;
                             font-family: Sans-font;
                             font-weight: 900;
-                            font-size: 6vw;
+                            font-size: min(6vw, 33.6px);
                         }
                     }
     
@@ -213,7 +213,7 @@ $FontText : 5vw;
                                                 }
 
                                                 .unit {
-                                                    font-size: 4vw;
+                                                    font-size: min(4vw, 22.4px);
                                                     display: flex;
                                                     justify-content: center;
                                                     align-items: center;
@@ -306,7 +306,7 @@ $FontText : 5vw;
                                                             width: 100%;
                                                             border-radius: 8px;
                                                             box-shadow: 0px 4px 4px rgb(181, 181, 181);
-                                                            padding: 1vw;
+                                                            padding: min(1vw, 5.6px);
                                                             z-index: 2;
         
                                                             span {
@@ -340,7 +340,7 @@ $FontText : 5vw;
                                                         width: 100%;
                                                         border-radius: 8px;
                                                         box-shadow: 0px 4px 4px rgb(181, 181, 181);
-                                                        padding: 1vw;
+                                                        padding: min(1vw, 5.6px);
                                                         z-index: 2;
     
                                                         span {
@@ -383,9 +383,9 @@ $FontText : 5vw;
                             background-color: #23dd36;
                             border-radius: 5px;
                             border: 0;
-                            width: 30vw;
+                            width: min(30vw, 168px);
                             font-weight: 900;
-                            font-size: 6vw;
+                            font-size: min(6vw, 33.6px);
                             font-family: Sans-font;
                             padding: 3px 0px;
                         }
@@ -426,7 +426,7 @@ $FontText : 5vw;
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: min(100vw, 560px);
     height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     display: flex;

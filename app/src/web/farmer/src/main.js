@@ -4,6 +4,7 @@ import { useLiff } from "../../../assets/js/module";
 import { CloseAccount } from "./method";
 import liff from "@line/liff";
 import { Outlet, useLocation } from "react-router";
+import "./assets/Responsive.scss";
 
 const FarmerContext = createContext({
     liff: liff,
