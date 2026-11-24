@@ -137,8 +137,11 @@ export default function WeatherStation() {
 
           <Grid size={{ xs: 4, xl: 6 }}>
             <Stack direction={"row"} justifyContent={"end"}>
-              <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}>
-                <Typography>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
+              {/* จอแคบ: แสดงข้อความสั้น ไม่ให้ปุ่มถูกบีบจนข้อความขึ้นหลายบรรทัด */}
+              <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}
+                sx={{ whiteSpace: "nowrap", minWidth: "auto" }}>
+                <Typography sx={{ display: { xs: "none", md: "inline" } }}>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
+                <Typography sx={{ display: { xs: "inline", md: "none" } }}>จัดการเครื่องวัด</Typography>
               </Button>
             </Stack>
           </Grid>

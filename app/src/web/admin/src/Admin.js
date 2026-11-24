@@ -299,6 +299,9 @@ const Admin = ({ setBodyFileMain, socket, username, password }) => {
                     />
                 );
 
+            } else if (seconPath[0] === "weather-station" || seconPath[0] === "station") {
+                // เปิดหน้านี้ตรงๆ (รีเฟรช/ลิงก์) เดิมหัวหน้าค้างเป็น "Dashboard" (เนื้อหาหน้ามาจาก Route เหมือนเดิม)
+                setPageTitle("ข้อมูลสภาพแวดล้อม");
             }
         } else {
             setPageTitle("Dashboard");

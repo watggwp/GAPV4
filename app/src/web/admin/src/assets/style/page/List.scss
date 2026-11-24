@@ -1650,10 +1650,24 @@
         text-overflow: ellipsis;
         max-width: calc(100% - 40px); /* ป้องกันข้อความล้น */
     }
-    
-    
-      
 
-    
+// การ์ดสารเคมีวาง "ชื่อสารเคมี" (กว้าง 40%) กับ "ชื่อสามัญสารเคมี" แถวเดียวกันแบบห้ามตัดบรรทัด
+// การ์ดแคบทุกขนาดจอ ข้อความจึงทับกันและล้นการ์ด → เรียงเป็นแถวลงมาและให้ข้อความยาวขึ้นบรรทัดใหม่ได้
+// (ใช้ !important เพราะกฎเดิมซ้อนลึกและมีน้ำหนักมากกว่า)
+detail-data[flex="chemical"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px;
 
- 
+    .chemical[w="chemical"],
+    .name_formula {
+        width: 100% !important;
+        min-width: 0;
+    }
+
+    .text-data {
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        min-width: 0;
+    }
+}
