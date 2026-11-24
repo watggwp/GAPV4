@@ -797,6 +797,21 @@ const GapCardList = () => {
         fetchAll(true);
     };
 
+    // มีฟอร์มเปิดทับหน้าอยู่ (บันทึกปุ๋ย/สารเคมี หรือเพิ่มใบ GAP) → ซ่อนปุ่ม + ไม่ให้ลอยทับฟอร์ม
+    const popupOpen = Boolean(PopupAdd && PopupAdd.type !== React.Fragment);
+    const anyFormOpen = popupOpen || showModal;
+
+    // ปิดฟอร์มแล้ว: บน iPhone (LINE/WebView) แป้นพิมพ์ที่เพิ่งหุบทำให้ปุ่ม position: fixed ค้างผิดตำแหน่ง
+    // (เช่นลอยไปอยู่ด้านบน) จนกว่าจะเลื่อนจอ จึงปิดแป้นพิมพ์และสั่งคำนวณตำแหน่งใหม่
+    const wasFormOpen = useRef(false);
+    useEffect(() => {
+        if (wasFormOpen.current && !anyFormOpen) {
+            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+            requestAnimationFrame(() => window.scrollTo(window.scrollX, window.scrollY));
+        }
+        wasFormOpen.current = anyFormOpen;
+    }, [anyFormOpen]);
+
     return (
         <div className="gap-liff-page">
             <header className="gap-liff-header">
@@ -846,7 +861,7 @@ const GapCardList = () => {
                 </div>
             )}
 
-            {houses.some((h) => Number(h.status) === 1) && (
+            {!anyFormOpen && houses.some((h) => Number(h.status) === 1) && (
                 <button className="gap-fab" onClick={() => setShowModal(true)} aria-label="เพิ่มใบ GAP">+</button>
             )}
 
@@ -860,7 +875,7 @@ const GapCardList = () => {
 
             <div className="farm">
                 <div className="plant">
-                    <section ref={PopupRef} className="popup-add" {...(PopupAdd && PopupAdd.type !== React.Fragment ? { show: "" } : {})}>
+                    <section ref={PopupRef} className="popup-add" {...(popupOpen ? { show: "" } : {})}>
                         {PopupAdd}
                     </section>
                 </div>
