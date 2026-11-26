@@ -2,6 +2,7 @@ const router = require('./routerApi');
 
 const dbpackage = require('./dbConfig');
 const ConnectPool = require('./connectPool');
+const ownershipGuard = require('./middleware/ownershipGuard');
 const apifunc = require('./apifunc');
 const WebSocket = require('./webSocket');
 
@@ -14,6 +15,7 @@ const https = require('https');
 const db = require('mysql2');
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
+const MySQLStore = require('express-mysql-session')(sessions);
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -22,6 +24,9 @@ const ScheduleCorn = require("./core/corn")
 
 const logging = require('./middleware/userAccessLogs');
 const authorizer = require('./middleware/authorizer');
+const stripPasswords = require('./middleware/stripPasswords');
+const doctorScope = require('./middleware/doctorScope');
+const { requireRole, internalOnly } = require('./middleware/accessGuard');
 
 const apiAdmin = require('./apiAdmin');
 const apiDoctor = require('./apiDoctor');
@@ -71,13 +76,6 @@ module.exports = function appConfig(username, password, hostServer) {
     // เมื่อใช้ ngrok หากไม่ได้ใช้ ngrok ให้ comment
     app.set('trust proxy', 1);
 
-    app.use((req, res, next) => {
-        console.log('host:', req.headers.host);
-        console.log('protocol:', req.protocol);
-        console.log('secure:', req.secure);
-        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
-        next();
-    });
 
     const upload = multer()
     const server =
@@ -96,7 +94,25 @@ module.exports = function appConfig(username, password, hostServer) {
 
     // set session
     const isProduction = mode == process.env.BUILD
+    if (isProduction && (process.env.KEY_SESSION || "").length < 32) {
+        console.warn("[security] KEY_SESSION สั้นหรือไม่ได้ตั้งค่า ควรใช้ค่าสุ่มอย่างน้อย 32 ตัวอักษร")
+    }
+    // เก็บ session ใน MySQL (ตาราง sessions) แทน memory ผู้ใช้จึงไม่หลุด login เมื่อ restart server
+    // session หมดอายุเมื่อไม่ได้ใช้งานเกิน SESSION_TTL_HOURS (ค่าเริ่มต้น 168 ชั่วโมง = 7 วัน)
+    const sessionStore = new MySQLStore({
+        host: process.env.HOST_DB_CONTAINER || process.env.HOST_DB,
+        port: process.env.PORT || 3306,
+        user: username,
+        password: password,
+        database: isProduction ? process.env.DATABASE_SER : process.env.DATABASE_DEV,
+        expiration: (Number(process.env.SESSION_TTL_HOURS) || 168) * 60 * 60 * 1000,
+        clearExpired: true,
+        createDatabaseTable: true
+    })
+    sessionStore.onReady().catch((err) => console.error("session store error", err))
+
     const sessionMiddleware = sessions({
+        store: sessionStore,
         name: process.env.cookie,
         secret: process.env.KEY_SESSION ?? "gap_project_royal",
         saveUninitialized: false,
@@ -149,7 +165,13 @@ module.exports = function appConfig(username, password, hostServer) {
     // app.use(express.json())
     app.use(cookieParser())
     app.use(sessionMiddleware)
-    app.use(express.json({ limit: "50mb" }));
+    app.use(express.json({
+        limit: "50mb",
+        // เก็บ raw body ไว้ตรวจ x-line-signature ของ webhook LINE
+        verify: (req, res, buf) => {
+            if (req.originalUrl.split("?")[0].endsWith("/messageAPI")) req.rawBody = buf
+        }
+    }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
     // const jsonDataNgrok = JSON.parse(fs.readFileSync(__dirname.replace('\server' , "/UrlServer.json")).toString())
@@ -208,7 +230,22 @@ module.exports = function appConfig(username, password, hostServer) {
         credentials: true,
     }))
 
+    // เกษตรกร (?r=farmer) เข้าถึงได้เฉพาะโรงเรือน/แปลง/อุปกรณ์ของตัวเอง
+    const owns = ownershipGuard(Pool)
+    const byParam = (name) => (req) => req.params[name]
+    const byBody = (name) => (req) => req.body && req.body[name]
+    app.get("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.post("/api/ecph/:id_formplant", owns("formplant", byParam("id_formplant")))
+    app.put("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.delete("/api/ecph/:id", owns("ecph", byParam("id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.all("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/sensor/weather-greenhouse", owns("weatherSensor", byBody("id")))
+    app.all("/api/pump/:greenhouse_id", owns("greenhouse", byParam("greenhouse_id")))
+    app.put("/api/pump", owns("pumpSensor", byBody("id")))
+
     // middleware custom
+    app.use(stripPasswords)
     app.use(logging(Pool))
     app.use("/api/schedules", authorizer(Pool))
     app.use("/api/schedules/*", authorizer(Pool))
@@ -217,8 +254,58 @@ module.exports = function appConfig(username, password, hostServer) {
     app.use("/api/fertilizers", authorizer(Pool))
     app.use("/api/pests/*", authorizer(Pool))
 
+    // API ที่ก่อนหน้านี้เรียกได้โดยไม่ต้อง login
+    // ระบบภายใน (MQTT bridge / gap-device-dashboard)
+    app.post("/api/add/device", internalOnly)
+    app.delete("/api/delete/device", internalOnly)
+    app.post("/api/line/notify/*", internalOnly)
+    app.post("/api/sensor/weather-greenhouse", internalOnly)
+    app.post("/api/sensor/weather-station", internalOnly)
+    // ผู้ใช้ที่ login แล้ว
+    app.get("/api/sensor/weather-greenhouse/:greenhouse_id/:device_id/status", requireRole("admin", "doctor", "farmer"))
+    app.post("/api/admin/formplant/detail", requireRole("admin"))
+    app.post("/api/admin/formplant/schedules", requireRole("admin"))
+    app.post("/api/admin/station/list", requireRole("admin"))
+    app.get("/api/doctor/form/get/sensor", requireRole("doctor"))
+    app.post("/api/farmer/report/acknowledge", requireRole("farmer"))
+    app.post("/api/farmer/pests", requireRole("farmer"))
+    app.post("/api/farmer/pest-chemical", requireRole("farmer"))
+    app.post("/api/farmer/check-schedule", requireRole("farmer"))
+
     // config environment
     app.use(upload.any())
+
+    // หมอเข้าถึงได้เฉพาะข้อมูลของศูนย์ตัวเอง (ต้องอยู่หลัง upload.any() เพื่ออ่าน body แบบ multipart ได้)
+    const inStation = doctorScope(Pool)
+    const editTarget = (req) => ({ plant: "form", fertilizer: "fertilizer", chemical: "chemical" })[req.body && req.body.type_form]
+    app.post("/api/doctor/formplant/insert", inStation(["farmhouse", "id_farmhouse"]))
+    app.post("/api/doctor/formplant/history", inStation(["farmhouse", "id_farmhouse"]))
+    app.post("/api/doctor/formplant/edit", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/formplant/schedules", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/farmer/get/count", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/get/detail", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/edit", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmhouse/get/HouseList", inStation(["linkUser", "id_farmer"]))
+    app.post("/api/doctor/farmer/account/comfirm", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/account/cancel", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/convert/cancel", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/convert/comfirm", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/msg/count", inStation(["farmer", "id_table"]))
+    app.post("/api/doctor/farmer/msg/read", inStation(["lineUser", "uid_line"]))
+    app.post("/api/doctor/farmer/msg/send", inStation(["lineUser", "uid_line"]))
+    app.post("/api/doctor/farmer/msg/get", inStation(["lineUser", "uid_line"]))
+    app.get("/api/doctor/farmer/msg/image/:message_id", inStation(["lineMessage", "message_id"]))
+    app.get("/api/doctor/form/get/detail", inStation(["form", "id_form"]))
+    app.get("/api/doctor/form/get/farmer", inStation(["form", "id_form"]))
+    app.post("/api/doctor/form/edit/get", inStation([editTarget, "id_form"]))
+    app.get("/api/doctor/form/report/edit/gets", inStation(["report", "id_report"]))
+    app.put("/api/doctor/form/edit/change/status", inStation(["form", "id_plant"]))
+    app.get("/api/doctor/form/manage/get", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/success/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/report/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/report/edit", inStation(["form", "id_plant"], ["report", "id"]))
+    app.post("/api/doctor/form/manage/checkplant/insert", inStation(["form", "id_plant"]))
+    app.post("/api/doctor/form/manage/checkform/insert", inStation(["form", "id_plant"]))
     app.use(express.static('app/src/assets/style'))
     app.use(express.static('app/src/assets/font'))
     app.use(express.static('app/src/assets/img'))
@@ -254,13 +341,14 @@ module.exports = function appConfig(username, password, hostServer) {
     apiPests(app, Pool)
 
     apiAddDevice(app, Pool)
+    // ต้องอยู่ก่อน catch-all "*" ไม่งั้นไม่เคยถูกเรียก
+    app.get("/api/heartbeat", (req, res) => {
+        res.status(200).json({ status: "ok" })
+    });
+
     // page error 404
     app.get("*", (req, res) => {
         res.sendFile(__dirname.replace('\server', '/index404.html'));
-    });
-
-    app.get("/api/heartbeat", (req, res) => {
-        res.status(200)
     });
 
     return server

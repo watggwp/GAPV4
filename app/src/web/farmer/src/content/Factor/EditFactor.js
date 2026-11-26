@@ -768,7 +768,7 @@ const ResetListPestsPopup = () => {
                                                                     justifyContent : "center" ,
                                                                     alignItems : "center"
                                                                 }}> 
-                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
+                                                                    <Loading size={"min(8vw, 44.8px)"} border={"min(2vw, 11.2px)"} color="green" animetion={true}/>
                                                                 </div>
                                                                 }
                                                         </div>
@@ -789,7 +789,7 @@ const ResetListPestsPopup = () => {
                                                                 justifyContent : "center" ,
                                                                 alignItems : "center"
                                                             }}> 
-                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true}/>
+                                                                <Loading size={"min(8vw, 44.8px)"} border={"min(2vw, 11.2px)"} color="green" animetion={true}/>
                                                             </div>
                                                         }
                                                     </div>
@@ -878,7 +878,7 @@ const ResetListPestsPopup = () => {
                                                                         alignItems: "center",
                                                                     }}
                                                                 >
-                                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                    <Loading size={"min(8vw, 44.8px)"} border={"min(2vw, 11.2px)"} color="green" animetion={true} />
                                                                 </div>
                                                             )}
                                                         </div>
@@ -915,7 +915,7 @@ const ResetListPestsPopup = () => {
                                                                     alignItems: "center",
                                                                 }}
                                                             >
-                                                                <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                                <Loading size={"min(8vw, 44.8px)"} border={"min(2vw, 11.2px)"} color="green" animetion={true} />
                                                             </div>
                                                         )}
                                                     </div>
@@ -952,7 +952,7 @@ const ResetListPestsPopup = () => {
                                                         alignItems: "center",
                                                     }}
                                                     >
-                                                    <Loading size={"8vw"} border={"2vw"} color="green" animetion={true} />
+                                                    <Loading size={"min(8vw, 44.8px)"} border={"min(2vw, 11.2px)"} color="green" animetion={true} />
                                                     </div>
                                                 )}
                                                 </div>

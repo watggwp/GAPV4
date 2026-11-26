@@ -4,12 +4,23 @@ require('dotenv').config().parsed
 const wordcut = require('thai-wordcut')
 const axios = require('axios').default;
 const fs = require("fs")
+const path = require("path")
+// โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
+const REPORT_IMAGE_DIR = path.join(__dirname, "..", "app", "src", "assets", "img", "doctor", "report")
+fs.mkdirSync(REPORT_IMAGE_DIR, { recursive: true })
 wordcut.init()
 
 const { Server } = require('socket.io')
 const ConnentPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const RoyalGapLine = require('./configLine');
+const LineAuth = require('./core/lineAuth');
+const SafeUpdate = require('./core/safeUpdate');
+const MessageLineTemplate = require('./core/messageLineTemplate');
+const SessionLogin = require('./core/sessionLogin');
+const MapsLink = require('./core/mapsLink');
+const ImageUrl = require('./core/imageUrl');
+const AccountAuth = require('./core/accountAuth');
 const io = new Server()
 
 const RichSign = process.env.RICH_SIGN
@@ -22,16 +33,50 @@ function generateMessageTitle(greenhouse_name, plant_name) {
     ]
 }
 
+// คอลัมน์ที่อนุญาตให้ SELECT ต่อ table (ใช้แทน SELECT * สำหรับ query ที่ชื่อ table เป็นตัวแปร)
+const TABLE_COLUMNS = {
+    formplant: ["id", "id_farm_house", "name_plant", "generation", "date_glow", "date_plant", "posi_w", "posi_h", "qty", "area", "date_harvest", "system_glow", "water", "water_flow", "history", "insect", "qtyInsect", "seft", "state_status", "date_success", "unit", "name_varieties", "expected_yield", "default_yield"],
+    formfertilizer: ["id", "id_plant", "name", "formula_name", "use_is", "volume", "source", "date"],
+    formchemical: ["id", "id_plant", "name", "formula_name", "insect", "use_is", "rate", "volume", "date_safe", "date", "source", "pest_id"],
+    editform: ["id_edit", "id_form", "id_doctor", "id_doctor_edit", "because", "date", "note", "status", "type_form", "id_admin"],
+    detailedit: ["id_detail", "id_edit", "subject_form", "old_content", "new_content"],
+    plant_list: ["id", "name", "variety_name", "is_use", "type_plant", "qty_harvest"],
+    fertilizer_list: ["id", "name", "name_formula", "how_use", "is_use"],
+    chemical_list: ["id", "name", "name_formula", "how_use", "date_safe_list", "is_use"],
+    source_list: ["id", "name", "is_use", "location"],
+    pests: ["pest_id", "pest_name", "type_pest", "is_use"],
+    station_list: ["id", "name", "is_use", "location", "id_station"],
+    success_detail: ["id", "id_success", "id_plant", "type_success", "id_table_doctor", "date_of_doctor", "date_of_farmer", "id_admin"],
+    report_detail: ["id", "id_plant", "report_text", "id_table_doctor", "date_report", "image_path", "is_read", "id_admin"],
+    check_form_detail: ["id", "id_plant", "status_check", "note_text", "id_table_doctor", "date_check", "acknowledged", "id_admin"],
+    check_plant_detail: ["id", "id_plant", "status_check", "state_check", "note_text", "id_table_doctor", "date_check", "acknowledged", "id_admin"],
+}
+
+// คอลัมน์สำหรับ dropdown หน้าจับคู่ศัตรูพืช-สารเคมี-พืช (ไม่ต้องใช้ how_use)
+const GROUP_LIST_COLUMNS = {
+    plant_list: ["id", "name", "variety_name", "is_use", "type_plant"],
+    chemical_list: ["id", "name", "name_formula", "is_use"],
+    pests: ["pest_id", "pest_name", "type_pest", "is_use"],
+    station_list: ["id", "name", "is_use", "location", "id_station"],
+}
+
+const selectColumns = (table, alias = "", columnMap = TABLE_COLUMNS) =>
+    columnMap[table].map((column) => alias ? `${alias}.\`${column}\`` : `\`${column}\``).join(", ")
+
 module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), apifunc, dbpacket, listDB, UrlApi, socket = io) {
     app.post('/api/doctor/check', (req, res) => {
         const username = req.session.user_doctor
         const password = req.session.pass_doctor
         // ถ้าไม่มี session หรือ password → session หมด → ส่ง "" กลับ
         if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
-            return res.clearCookie(process.env.cookieName).send("")
+            return res.clearCookie(process.env.cookie).send("")
         }
-        // session ยังอยู่ → ส่ง "pass" กลับ (ชัดเจน ไม่ใช่ redirect)
-        return res.send("pass")
+        // ตรวจ session credential กับฐานข้อมูล (เปลี่ยนรหัสผ่านแล้ว session เก่าจะหลุด)
+        const con = Database.createConnection(listDB)
+        apifunc.auth(con, username, password, res, "acc_doctor")
+            .then(() => res.send("pass"))
+            .catch(() => res.clearCookie(process.env.cookie).send(""))
+            .finally(() => con.end())
     })
 
 
@@ -219,8 +264,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             });
 
             const sqlQuery = `
-                SELECT 
-                    formplant.*, 
+                SELECT
+                    formplant.id, formplant.name_plant, formplant.generation,
                     GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
                     GROUP_CONCAT(DISTINCT formchemical.insect ) AS insect_generation
                 FROM formplant
@@ -260,11 +305,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
             try {
                 const auth = await authCheck(con, res, req);
-                const where = req.body.id_edit ? `AND editform.id_edit = '${req.body.id_edit}'` : '';
+                const where = req.body.id_edit ? `AND editform.id_edit = ${con.escape(req.body.id_edit)}` : '';
 
                 con.query(
                     `
-                    SELECT editform.*, 
+                    SELECT ${selectColumns("editform", "editform")},
                            IF(editform.id_admin != 0 AND editform.id_admin IS NOT NULL, admin.fullname_admin, acc_doctor.fullname_doctor) AS fullname_doctor
                     FROM editform
                     LEFT JOIN formplant ON editform.id_form = formplant.id
@@ -286,7 +331,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                         if (req.body.id_edit) {
                             con.query(
-                                `SELECT * FROM detailedit WHERE id_edit = ?`,
+                                `SELECT ${selectColumns("detailedit")} FROM detailedit WHERE id_edit = ?`,
                                 [req.body.id_edit],
                                 (err, detail) => {
                                     if (err) {
@@ -335,7 +380,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const { data: { id_table_doctor } } = result
             const { id_plant } = req.body
             con.query(`
-                SELECT formplant.*
+                SELECT ${selectColumns("formplant", "formplant")}
                 FROM formplant
                 WHERE formplant.id = ?
                 LIMIT 1
@@ -353,6 +398,13 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     }
 
                     const data = req.body;
+                    // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+                    data.dataChange = SafeUpdate.pickFormChanges("formplant", data.dataChange);
+                    if (!Object.keys(data.dataChange).length) {
+                        con.end();
+                        res.send("not");
+                        return;
+                    }
                     if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                         con.query(`
                         INSERT INTO editform 
@@ -495,17 +547,18 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                                     const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                                         id_plant,
                                                         pool,
-                                                        (gapData) => {
+                                                        (gapData, { url }) => {
                                                             const { greenhouse_name, plant_name } = gapData || {}
-                                                            return [
-                                                                ...generateMessageTitle(greenhouse_name, plant_name),
-                                                                "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
-                                                                "",
-                                                                `แก้ไขรายการ:`,
-                                                                edits_content.map(({ name, prev, current }) =>
-                                                                    `${name}: จาก ${prev} เป็น ${current}`
-                                                                )
-                                                            ]
+                                                            return MessageLineTemplate.farmerCard({
+                                                                theme: "formEdited",
+                                                                subtitle: "โดยหมอพืช",
+                                                                rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                                list: {
+                                                                    label: "รายการที่แก้ไข",
+                                                                    items: edits_content.map(({ name, prev, current }) => `${name}: ${prev || "-"} → ${current || "-"}`)
+                                                                },
+                                                                url
+                                                            })
                                                         },
                                                         {
                                                             url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
@@ -600,7 +653,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-              SELECT * FROM ${type_data}
+              SELECT ${selectColumns(type_data)} FROM ${type_data}
               WHERE INSTR( ${columnName} , ? )
               ORDER BY is_use DESC , ${columnName} ASC
               LIMIT ${Limit} OFFSET ${StartRow}
@@ -718,7 +771,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
 
                 const query = `
-                    SELECT * FROM ${type_data}
+                    SELECT ${selectColumns(type_data, "", GROUP_LIST_COLUMNS)} FROM ${type_data}
                     WHERE INSTR(${columnName}, ?)
                     GROUP BY ${columnName}
                     ORDER BY is_use DESC, ${columnName} ASC
@@ -1140,7 +1193,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         let con = Database.createConnection(listDB)
 
-        apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
+        apifunc.auth(con, username, password, res, "acc_doctor", "", { withImage: true }).then((result) => {
             con.query(
                 `
                 SELECT name,id_station, ST_X(location) as lat, ST_Y(location) as lng
@@ -1218,18 +1271,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
             const SET = req.body.type === "name" ? "fullname_doctor = ?" :
                 req.body.type === "station" ? "station_doctor = ?" :
-                    req.body.type === "passwordNew" ? "password_doctor = SHA2( ? , 256)" : ""
+                    req.body.type === "passwordNew" ? "password_doctor = ?" : ""
+            const newValue = req.body.type === "passwordNew" ? AccountAuth.hashPassword(req.body.value) : req.body.value
             if (SET) {
                 con.query(
                     `
                     UPDATE acc_doctor
                     SET ${SET}
                     WHERE id_table_doctor = ?
-                    ` , [req.body.value, result["data"].id_table_doctor],
+                    ` , [newValue, result["data"].id_table_doctor],
                     (err, resultEdit) => {
                         if (!err) {
                             if (req.body.type === "passwordNew") {
-                                req.session.pass_doctor = req.body.value
+                                req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", { ...result["data"], password_doctor: newValue })
                             }
                             con.end()
                             res.send("1")
@@ -1252,7 +1306,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         })
     })
 
-    app.post('/api/doctor/checkline', (req, res) => {
+    app.post('/api/doctor/checkline', async (req, res) => {
+        // ต้องยืนยัน LIFF access token ก่อน ไม่งั้นใครก็ถาม username หมอจาก LINE uid ได้
+        const uidLine = await LineAuth.resolveLineUserId({ accessToken: req.body['accessToken'], uid: req.body['id'] })
+        if (!uidLine) return res.send('')
+
         let con = Database.createConnection(listDB)
         con.connect((err) => {
             if (!err) {
@@ -1260,10 +1318,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT id_doctor 
                     FROM acc_doctor 
                     WHERE uid_line_doctor = ?` ,
-                    [req.body['id']],
+                    [uidLine],
                     (err, result) => {
                         con.end()
-                        if (result[0]) {
+                        if (!err && result[0]) {
                             res.send(result[0]['id_doctor'])
                         } else {
                             res.send('')
@@ -1273,6 +1331,56 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 res.send('')
             }
         })
+    })
+
+    // เข้าระบบด้วยบัญชี LINE ที่ผูกกับบัญชีหมอแล้ว (กดการแจ้งเตือนใน LINE แล้วเปิดผ่าน LIFF ไม่ต้องกรอกรหัสผ่าน)
+    // ผูก LINE ได้เฉพาะตอน login ด้วยรหัสผ่านใน LIFF และต้องยืนยัน access token กับ LINE ทุกครั้ง
+    app.post('/api/doctor/line/login', async (req, res) => {
+        // ต้องมี access token ที่ LINE ยืนยันแล้วเท่านั้น (ห้ามรับ uid เปล่าๆ แม้ในโหมด dev หรือเปิด ALLOW_UNVERIFIED_LIFF
+        // เพราะ route นี้ให้ session หมอโดยไม่ต้องใช้รหัสผ่าน)
+        let uidLine = ""
+        try {
+            uidLine = await LineAuth.getUserIdFromAccessToken(req.body['accessToken'])
+        } catch (err) {
+            console.warn("doctor LINE login rejected:", err.message)
+        }
+        if (!uidLine) return res.send('')
+
+        try {
+            const [doctor] = await pool.executeQuery(
+                `
+                SELECT id_table_doctor, id_doctor, password_doctor, fullname_doctor, station_doctor,
+                    doctor_role, analyst_role, consultant_role, protection_role
+                FROM acc_doctor
+                WHERE uid_line_doctor = ? AND status_account = 1 AND status_delete = 0
+                ORDER BY id_table_doctor
+                LIMIT 1
+                `,
+                [uidLine]
+            )
+            if (!doctor || !doctor.fullname_doctor || !doctor.station_doctor) return res.send('')
+
+            // ใช้บทบาทที่หน้าเว็บขอ (บทบาทล่าสุดที่หมอ login ด้วยรหัสผ่าน) ถ้าบัญชีมีสิทธิ์จริง
+            // ไม่งั้นใช้บทบาทแรกที่มีตามลำดับ doctor > analyst > consultant > protection
+            const ROLE_COLUMNS = { doctor: "doctor_role", analyst: "analyst_role", consultant: "consultant_role", protection: "protection_role" }
+            const requested = req.body['role']
+            const role = (ROLE_COLUMNS[requested] && doctor[ROLE_COLUMNS[requested]])
+                ? requested
+                : Object.keys(ROLE_COLUMNS).find((name) => doctor[ROLE_COLUMNS[name]]) || ""
+            if (!role) return res.send('')
+
+            await SessionLogin.rotateOnLogin(req, "doctor", doctor.id_table_doctor)
+            req.session.user_id = doctor.id_table_doctor
+            req.session.account_type = RoyalGapEnv.access_type.doctor
+            req.session.tokenSession = apifunc.getTokenCsurf(req)
+            req.session.user_doctor = doctor.id_doctor
+            req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", doctor)
+            req.session.role_doctor = role
+            res.send('pass')
+        } catch (err) {
+            console.log(err)
+            res.send('')
+        }
     })
 
     app.post('/api/doctor/savePersonal', (req, res) => {
@@ -1311,7 +1419,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             if (val['changedRows'] == 1) {
                                 req.session.tokenSession = apifunc.getTokenCsurf(req)
                                 req.session.user_doctor = username
-                                req.session.pass_doctor = password
+                                req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", result['data'])
                                 res.send('pass')
                             } else {
                                 console.log("update error")
@@ -1332,7 +1440,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         })
     })
 
-    app.all('/api/doctor/auth', (req, res) => {
+    app.all('/api/doctor/auth', async (req, res) => {
+        // ผูก LINE กับบัญชีหมอได้เฉพาะ uid ที่ยืนยันจาก LIFF access token แล้ว
+        const uidLineVerified = (req.body['line_access_token'] || req.body['uid_line'])
+            ? await LineAuth.resolveLineUserId({ accessToken: req.body['line_access_token'], uid: req.body['uid_line'] })
+            : ""
+
         // เช็คการเข้าสู่ระบบจริงๆ
 
         let username = req.session.user_doctor ?? req.body['username'] ?? '';
@@ -1347,7 +1460,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         let con = Database.createConnection(listDB)
         // Database.resume()
 
-        apifunc.auth(con, username, password, res, "acc_doctor", role).then((result) => {
+        apifunc.auth(con, username, password, res, "acc_doctor", role).then(async (result) => {
             if (result['result'] === "pass") {
                 if (result['data']['status_account'] == 0
                     || result['data']['status_delete'] == 1) {
@@ -1355,24 +1468,26 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     res.send('account')
                 }
                 else if (result['data']['fullname_doctor'] && result['data']['station_doctor']) {
+                    // login ครั้งแรก / เปลี่ยนบัญชี → เปลี่ยน session ID (กัน session fixation)
+                    await SessionLogin.rotateOnLogin(req, "doctor", result['data']["id_table_doctor"])
                     req.session.user_id = result['data']["id_table_doctor"]
                     req.session.account_type = RoyalGapEnv.access_type.doctor
                     req.session.tokenSession = apifunc.getTokenCsurf(req)
                     req.session.user_doctor = username
-                    req.session.pass_doctor = password
+                    req.session.pass_doctor = AccountAuth.sessionCredential("acc_doctor", result['data'])
                     req.session.role_doctor = role
 
-                    if (req.body.uid_line) {
+                    if (uidLineVerified) {
                         con.query(
                             `
                             UPDATE acc_doctor 
                             SET uid_line_doctor = ?
-                            WHERE id_table_doctor = ? and uid_line_doctor != ?
-                            ` , [req.body.uid_line, result.data.id_table_doctor, req.body.uid_line],
+                            WHERE id_table_doctor = ? and (uid_line_doctor IS NULL OR uid_line_doctor != ?)
+                            ` , [uidLineVerified, result.data.id_table_doctor, uidLineVerified],
                             (err, uid) => {
                                 con.end()
                                 !err && uid.changedRows != 0 && RoyalGapLine.pushMessage(
-                                    req.body.uid_line, { type: "text", text: "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ" }
+                                    uidLineVerified, { type: "text", text: "เชื่อมต่อบัญชีเจ้าหน้าที่กับบัญชีไลน์เรียบร้อยค่ะ" }
                                 ).catch((e) => { })
                             }
                         )
@@ -1553,10 +1668,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             if (result['result'] === "pass") {
                 con.query(
                     `
-                    SELECT * 
+                    SELECT id_table, id_farmer, id_table_doctor, fullname, img, station, location, register_auth,
+                           date_register, date_doctor_confirm, uid_line, link_user, tel_number, text_location
                     FROM acc_farmer
-                    WHERE id_table = ? and link_user = ? and station = ?
-                    ` , [req.body.id_table, req.body.link_user, result['data']['station_doctor']]
+                    WHERE id_table = ? and (? IS NULL or link_user = ?) and station = ?
+                    ` , [req.body.id_table, req.body.link_user ?? null, req.body.link_user ?? null, result['data']['station_doctor']]
                     , (err, result) => {
                         if (err) {
                             dbpacket.dbErrorReturn(con, err, res)
@@ -1586,16 +1702,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
     WHERE swh.greenhouse_id = ?
     LIMIT 1;
   `;
-        const [rows] = await pool.executeQuery(sql, [houseFarm]);
+        try {
+            const [rows] = await pool.executeQuery(sql, [houseFarm]);
 
-        // ให้ตอบกลับเป็น object เดี่ยวเสมอ
-        if (Array.isArray(rows)) {
-            if (!rows.length) return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
-            return res.json(rows[0]);
-        } else if (rows) {
-            return res.json(rows);
-        } else {
-            return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+            // ให้ตอบกลับเป็น object เดี่ยวเสมอ
+            if (Array.isArray(rows)) {
+                if (!rows.length) return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+                return res.json(rows[0]);
+            } else if (rows) {
+                return res.json(rows);
+            } else {
+                return res.status(404).json({ error: "not_found", message: `ไม่พบข้อมูล greenhouse_id: ${houseFarm}` });
+            }
+        } catch (err) {
+            console.error("form/get/sensor", err);
+            return res.status(500).json({ error: "internal" });
         }
     });
 
@@ -1613,16 +1734,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
                 delete req.body.password
-                const img = req.body.img ? `img = "${req.body.img}"` : "";
-                const id = req.body.id_farmer ? `id_farmer = "${req.body.id_farmer}"` : "";
-                const fullname = req.body.fullname ? `fullname = "${req.body.fullname}"` : "";
-                const location = req.body.lag && req.body.lng ? `location = POINT(${req.body.lag} , ${req.body.lng})` : "";
-                const station = req.body.station ? `station = "${req.body.station}"` : "";
-                const tel_number = req.body.tel_number ? `tel_number = "${req.body.tel_number}"` : "";
-                const text_location = req.body.text_location ? `text_location = "${req.body.text_location}"` : "";
-                const newPassword = req.body.newPassword ? `password = SHA2("${req.body.newPassword}" , 256)` : "";
+                // ใช้ placeholder ทุกค่า ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในชื่อ/ที่อยู่ทิ้ง)
+                const setClauses = []
+                const setParams = []
+                const addSet = (clause, ...values) => { setClauses.push(clause); setParams.push(...values) }
+                if (req.body.img) addSet("img = ?", req.body.img)
+                if (req.body.id_farmer) addSet("id_farmer = ?", req.body.id_farmer)
+                if (req.body.fullname) addSet("fullname = ?", req.body.fullname)
+                if (req.body.lag && req.body.lng && !isNaN(parseFloat(req.body.lag)) && !isNaN(parseFloat(req.body.lng)))
+                    addSet("location = POINT(? , ?)", parseFloat(req.body.lag), parseFloat(req.body.lng))
+                if (req.body.station) addSet("station = ?", req.body.station)
+                if (req.body.tel_number) addSet("tel_number = ?", req.body.tel_number)
+                if (req.body.text_location) addSet("text_location = ?", req.body.text_location)
+                if (req.body.newPassword) addSet("password = ?", AccountAuth.hashPassword(req.body.newPassword))
 
-                const SET = [img, id, fullname, location, station, tel_number, text_location, newPassword].filter(val => val).join(" , ").replaceAll(" ", "")
+                const SET = setClauses.join(" , ")
 
                 if (SET) {
                     const checkProfile = await new Promise((resole, reject) => {
@@ -1647,30 +1773,23 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                             )
                                         })
 
-                                        const dataSend = {
-                                            type: "text",
-                                            text: `ผู้ส่งเสริม ${result["data"].fullname_doctor}\n\n` +
-                                                `ทำการเปลี่ยนข้อมูลของท่าน :` +
-                                                `${req.body.id_farmer ? `\nรหัสประจำตัวเกษตกร : ${req.body.id_farmer}` : ""}` +
-                                                `${req.body.fullname ? `\nชื่อ : ${req.body.fullname}` : ""}` +
-                                                `${req.body.tel_number ? `\nเบอร์โทร : ${req.body.tel_number}` : ""}` +
-                                                `${req.body.text_location ? `\nที่อยู่ : ${req.body.text_location}` : ""}` +
-                                                `${req.body.station ? `\nศูนย์ในการดูแล : ${Station[0] ? Station[0].name : ""}` : ""}` +
-                                                `${req.body.newPassword ? `\nรหัสผ่าน : ${req.body.newPassword}` : ""}` +
-                                                `${req.body.img ? `\nรูปภาพ :` : ""}`
-                                        }
+                                        // การ์ดสรุปข้อมูลที่ถูกแก้ (รูปโปรไฟล์ใหม่อยู่ในการ์ด)
+                                        const dataSend = MessageLineTemplate.farmerCard({
+                                            theme: "profileEdited",
+                                            subtitle: `โดยผู้ส่งเสริม · ${result["data"].fullname_doctor}`,
+                                            rows: [
+                                                req.body.id_farmer && { label: "รหัสเกษตรกร", value: req.body.id_farmer },
+                                                req.body.fullname && { label: "ชื่อ", value: req.body.fullname },
+                                                req.body.tel_number && { label: "เบอร์โทร", value: req.body.tel_number },
+                                                req.body.text_location && { label: "ที่อยู่", value: req.body.text_location },
+                                                req.body.station && { label: "ศูนย์ที่ดูแล", value: Station[0] ? Station[0].name : "" },
+                                                // ส่งรหัสผ่านใหม่ให้เกษตรกรทาง LINE ของเกษตรกรเอง (เหมือนระบบเดิม)
+                                                req.body.newPassword && { label: "รหัสผ่านใหม่", value: req.body.newPassword },
+                                                req.body.img && { label: "รูปโปรไฟล์", value: "เปลี่ยนใหม่ (ด้านบน)" },
+                                            ],
+                                            imageUrl: req.body.img ? ImageUrl.farmerImageUrl(UrlApi, req.body.id_table) : ""
+                                        })
                                         await RoyalGapLine.pushMessage(resultSelect[0].uid_line, dataSend).catch(e => { })
-
-                                        if (req.body.img) {
-                                            await new Promise(async (resole, reject) => {
-                                                await RoyalGapLine.pushMessage(resultSelect[0].uid_line, {
-                                                    "type": "image",
-                                                    "originalContentUrl": `${UrlApi}/image/farmer/${req.body.id_table}`,
-                                                    "previewImageUrl": `${UrlApi}/image/farmer/${req.body.id_table}`
-                                                }).catch(e => { })
-                                                resole("")
-                                            })
-                                        }
 
                                         if (req.body.lag && req.body.lng) {
                                             await new Promise(async (resole, reject) => {
@@ -1701,7 +1820,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 UPDATE acc_farmer
                                 SET ${SET}
                                 WHERE id_table = ?
-                            ` , [req.body.id_table],
+                            ` , [...setParams, req.body.id_table],
                             (err, resultEdit) => {
                                 con.end()
                                 if (!err) res.send("1")
@@ -1785,7 +1904,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 console.log("✅ Authentication Successful:", result['data']);
 
                 const { body: { textSearch = "", station_id = "" } } = req
-                const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit; // ตั้งค่าดีฟอลต์เป็น 10
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit); // ตั้งค่าดีฟอลต์เป็น 10
                 console.log("🔹 Query Limit:", Limit);
 
                 let queryType;
@@ -2050,10 +2169,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                                     return 0
                                                 };
                                                 try {
-                                                    RoyalGapLine.pushMessage(convert[0].uid_line, {
-                                                        type: "text",
-                                                        text: `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
-                                                    }).catch(e => { })
+                                                    RoyalGapLine.pushMessage(convert[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", highlight: { label: "สถานะ", text: "เชื่อมบัญชีของท่านเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                                                 } catch (e) { }
                                                 resole(1)
                                             }
@@ -2089,10 +2205,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         async (err, result) => {
                                             con.end()
                                             try {
-                                                RoyalGapLine.pushMessage(req.body.uid_line, {
-                                                    type: "text",
-                                                    text: `บัญชีผ่านการตรวจสอบแล้วนะคะ \nและมีการเชื่อมบัญชีกับคุณ ${convert[0].fullname}\u2764`
-                                                }).catch(e => { })
+                                                RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountOk", rows: [{ label: "เชื่อมบัญชีกับ", value: convert[0].fullname }], highlight: { label: "เริ่มใช้งานได้เลย", text: "เพิ่มโรงเรือนและบันทึกแบบบันทึก GAP ได้จากเมนูด้านล่าง" }, url: RoyalGapEnv.url_line.get_greenhouse, buttonLabel: "เปิดโรงเรือนของฉัน" })).catch(e => { })
                                             } catch (e) { }
                                             try {
                                                 await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
@@ -2105,10 +2218,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 } else {
                                     con.end()
                                     try {
-                                        RoyalGapLine.pushMessage(req.body.uid_line, {
-                                            type: "text",
-                                            text: "บัญชีผ่านการตรวจสอบแล้วนะคะ \u2764"
-                                        }).catch(e => { })
+                                        RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountOk", highlight: { label: "เริ่มใช้งานได้เลย", text: "เพิ่มโรงเรือนและบันทึกแบบบันทึก GAP ได้จากเมนูด้านล่าง" }, url: RoyalGapEnv.url_line.get_greenhouse, buttonLabel: "เปิดโรงเรือนของฉัน" })).catch(e => { })
                                     } catch (e) { }
                                     try {
                                         await RoyalGapLine.unlinkRichMenuFromUser(req.body.uid_line)
@@ -2176,10 +2286,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 con.end()
                                 if (!err, check[0]) {
                                     try {
-                                        RoyalGapLine.pushMessage(check[0].uid_line, {
-                                            type: "text",
-                                            text: "บัญชีไม่ผ่านการตรวจสอบ กรุณาส่งข้อความเพื่อพูดคุยกับเจ้าหน้าที่ หรือสมัครบัญชีอีกครั้งนะคะ \u2764"
-                                        }).catch(e => { })
+                                        RoyalGapLine.pushMessage(check[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountFail", highlight: { label: "ขั้นตอนต่อไป", text: "กรุณาส่งข้อความในแชทนี้เพื่อพูดคุยกับเจ้าหน้าที่ หรือสมัครบัญชีอีกครั้ง" } })).catch(e => { })
                                     } catch (e) { }
                                     try {
                                         await RoyalGapLine.unlinkRichMenuFromUser(check[0].uid_line)
@@ -2215,7 +2322,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         apifunc.auth(con, username, password, res, "acc_doctor").then((result) => {
             if (result['result'] === "pass") {
-                const Limit = isNaN(parseInt(req.body.limit)) ? 0 : req.body.limit;
+                const Limit = isNaN(parseInt(req.body.limit)) ? 0 : parseInt(req.body.limit);
                 con.query(
                     `
                     SELECT acc_farmer.id_table , acc_farmer.fullname , acc_farmer.img , acc_farmer.id_farmer
@@ -2273,7 +2380,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             await RoyalGapLine.pushMessageToFarmerAccessedForm(
                                 search[0].link_user,
                                 pool,
-                                "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย"
+                                MessageLineTemplate.farmerCard({ theme: "accountLink", title: "ยกเลิกการเชื่อมบัญชีแล้ว", highlight: { label: "สถานะ", text: "ยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย" } })
                             )
                             // await SendToFarmerLink(con , search[0].link_user , "ทำการยกเลิกการเชื่อมต่อบัญชีของท่านเรียบร้อย")
                             con.query(
@@ -2342,10 +2449,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         ` , [req.body.id_table_convert, result['data']['station_doctor']]
                         , (err, result) => {
                             try {
-                                RoyalGapLine.pushMessage(convert[0].uid_line, {
-                                    type: "text",
-                                    text: `คุณได้ทำการเชื่อมบัญชีเรียบร้อย \u2764`
-                                }).catch(e => { })
+                                RoyalGapLine.pushMessage(convert[0].uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", highlight: { label: "สถานะ", text: "เชื่อมบัญชีของท่านเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                             } catch (e) { }
                             resole(result)
                         })
@@ -2404,10 +2508,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     (err, result) => {
                                         if (!err) {
                                             try {
-                                                RoyalGapLine.pushMessage(req.body.uid_line, {
-                                                    type: "text",
-                                                    text: `เชื่อมบัญชีกับคุณ ${convert[0].fullname} \u2764`
-                                                }).catch(e => { })
+                                                RoyalGapLine.pushMessage(req.body.uid_line, MessageLineTemplate.farmerCard({ theme: "accountLink", rows: [{ label: "เชื่อมกับ", value: convert[0].fullname }], highlight: { label: "สถานะ", text: "เชื่อมบัญชีเรียบร้อยแล้ว ใช้งานโรงเรือนและแบบบันทึกร่วมกันได้ทันที" } })).catch(e => { })
                                             } catch (e) { }
                                             con.end()
                                         }
@@ -2603,7 +2704,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT * , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2641,8 +2742,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT *
-                            , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2685,7 +2785,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     //                     https.get( MsgOfLine.responseUrl , {
                     //                         method : "GET",
                     //                         headers : {
-                    //                             Authorization : "Bearer 3bRyKhlM01xFG6hDC+x5ZlfT0r44XF4L5wHORR9CJc87tmjrHoQJad6kLvOa8cbX7hSHVu6SB08UcWx2I9QjdNWRLo6fwsExPTbm7Wuaw7Eq6zh6DJXs9FFQqSbXxZKvHJt4jURZqu4Z0NcP6zJ4wwdB04t89/1O/w1cDnyilFU="
+                    //                             Authorization : `Bearer ${process.env.channelAccessToken}`
                     //                         }
                     //                     } , (res)=>{
                     //                         let Data = Buffer.alloc(0);
@@ -2710,13 +2810,13 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     con.end()
                     res.send(ListMsg)
                 } else if (req.body.open_msg === "load") {
-                    const LIMIT = isNaN(parseInt(req.body.limit)) ? 0 : req.body.limit
+                    const LIMIT = isNaN(parseInt(req.body.limit)) ? 0 : parseInt(req.body.limit)
                     const OFFSET = isNaN(parseInt(req.body.offset)) ? 0 : req.body.offset
 
                     const ListMsg = await new Promise((resole, reject) => {
                         con.query(
                             `
-                            SELECT * , 
+                            SELECT id , message , date , type , type_message , 
                             (
                                 SELECT fullname_doctor
                                 FROM acc_doctor
@@ -2757,6 +2857,41 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             }
         }
     })
+
+    // ดึงรูปจาก LINE ผ่าน server เพื่อไม่ให้ channel access token หลุดไปฝั่ง client
+    app.get('/api/doctor/farmer/msg/image/:message_id', async (req, res) => {
+        let username = req.session.user_doctor
+        let password = req.session.pass_doctor
+
+        if (!username || !password || !apifunc.authCsurf("doctor", req, res)) {
+            return res.status(401).end()
+        }
+
+        try {
+            const con = Database.createConnection(listDB)
+            const result = await apifunc.auth(con, username, password, res, "acc_doctor").finally(() => con.end())
+            if (result['result'] !== "pass") return res.status(401).end()
+
+            // อนุญาตเฉพาะ message id ที่เป็นรูปและอยู่ในระบบเท่านั้น
+            const image = await pool.executeQuery(
+                `SELECT id FROM message_user WHERE message = ? AND type_message = 'image' LIMIT 1`,
+                [req.params.message_id]
+            )
+            if (!image.length) return res.status(404).end()
+
+            const response = await fetch(
+                `https://api-data.line.me/v2/bot/message/${encodeURIComponent(req.params.message_id)}/content`,
+                { headers: { Authorization: `Bearer ${process.env.channelAccessToken}` } }
+            )
+            if (!response.ok) return res.status(404).end()
+
+            res.set("Content-Type", response.headers.get("content-type") || "image/jpeg")
+            res.set("Cache-Control", "private, max-age=86400")
+            res.send(Buffer.from(await response.arrayBuffer()))
+        } catch (err) {
+            if (!res.headersSent) res.status(err == "not pass" ? 401 : 500).end()
+        }
+    })
     //massage end
 
     // form start
@@ -2778,8 +2913,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 // select out table
                 const TextInsert = req.body.textInput ?? "";
                 const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-                const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) && req.body.statusForm !== "" ? parseInt(req.body.statusForm) : null;
-                const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+                const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+                const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
                 const SubStatusForm = req.body.subStatusForm ?? "";
                 let subStatusSql = "";
@@ -2814,7 +2949,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
 
                 const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
-                const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
+                const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
 
                 con.query(
                     `
@@ -2916,7 +3051,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                 con.query(
                     `
-                    SELECT * ,
+                    SELECT ${selectColumns(`form${TypeForm}`)} ,
                     (
                         SELECT COUNT(status)
                         FROM editform
@@ -3040,11 +3175,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         try {
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
-                const type = req.body.id_edit ? "*" : "id_edit";
+                const type = req.body.id_edit ? selectColumns("editform", "editform") : "editform.id_edit";
                 const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
                 con.query(
                     ` 
-                        SELECT editform.${type} , editform.id_doctor_edit , editform.id_admin
+                        SELECT ${type} , editform.id_doctor_edit , editform.id_admin
                         FROM editform
                         WHERE editform.id_form = ? and type_form = ? ${queryParams.length == 1 ? `and editform.id_edit = ?` : ""}
                         ORDER BY date DESC
@@ -3060,7 +3195,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         if (req.body.id_edit) {
                             con.query(
                                 `
-                            SELECT * FROM detailedit
+                            SELECT ${selectColumns("detailedit")} FROM detailedit
                             WHERE id_edit = ?
                             ` , [req.body.id_edit],
                                 (err, detail) => {
@@ -3275,7 +3410,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
                             // ✅ ส่งข้อความแจ้งเตือนผ่าน LINE
                             try {
-                                await RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
+                                await MessageLineTemplate.sendPestAlert(RoyalGapLine, uidSend, selectedData);
                                 console.log("✅ Message sent successfully!");
                                 res.status(200).json({ success: true, message: "Notification sent successfully" });
                             } catch (e) {
@@ -3525,7 +3660,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const id_report = req.query.id_report
                 con.query(
                     ` 
-                        SELECT *
+                        SELECT id_record_edit , edit_date , report_text , image_path , id_report_detail
                         FROM record_edit
                         WHERE id_report_detail = ?
                         ORDER BY edit_date DESC
@@ -3619,20 +3754,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    (gapData) => {
+                                    (gapData, { url }) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        const messages = [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
-                                            "",
-                                            "รายการ:",
-                                            editDatas.map(({ subject_form, old_content, new_content }) =>
-                                                `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
-                                            )
-                                        ]
-
-                                        if (note) messages.push(`หมายเหตุ: ${note}`)
-                                        return messages
+                                        return MessageLineTemplate.farmerCard({
+                                            theme: "editRejected",
+                                            rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                            list: {
+                                                label: "รายการที่ขอแก้ไข",
+                                                items: editDatas.map(({ subject_form, old_content, new_content }) =>
+                                                    `${RoyalGapEnv.fields[subject_form] || subject_form}: ${old_content || "-"} → ${new_content || "-"}`)
+                                            },
+                                            highlight: note ? { label: "หมายเหตุจากเจ้าหน้าที่", text: note } : null,
+                                            url
+                                        })
                                     },
                                     {
                                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`
@@ -3675,8 +3809,10 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             if (result['result'] === "pass") {
                 con.query(
                     `
-                    SELECT acc_farmer.*
-                    FROM acc_farmer , 
+                    SELECT acc_farmer.id_table , acc_farmer.id_farmer , acc_farmer.fullname , acc_farmer.img , acc_farmer.station ,
+                           acc_farmer.location , acc_farmer.register_auth , acc_farmer.date_register , acc_farmer.date_doctor_confirm ,
+                           acc_farmer.uid_line , acc_farmer.link_user , acc_farmer.tel_number , acc_farmer.text_location
+                    FROM acc_farmer ,
                         (
                             SELECT link_user
                             FROM housefarm , 
@@ -3740,7 +3876,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 if (TypePage) {
                     con.query(
                         `
-                            SELECT * , 
+                            SELECT ${selectColumns(TypePage, TypePage)} ,
                             (
                                 IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
                                     (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
@@ -4010,13 +4146,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             await RoyalGapLine.pushMessageToFarmerByFormID(
                                 id_plant,
                                 pool,
-                                (gapData) => {
+                                (gapData, { url }) => {
                                     const { greenhouse_name, plant_name } = gapData || {}
-                                    return [
-                                        ...generateMessageTitle(greenhouse_name, plant_name),
-                                        `หมอพืชสั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
-                                        `รหัสการเก็บเกี่ยว: ${Random}`
-                                    ]
+                                    return MessageLineTemplate.farmerCard({
+                                        theme: "harvest",
+                                        subtitle: "จากหมอพืช",
+                                        rows: [
+                                            ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                            { label: "ระยะ", value: req.body.type == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                            { label: "รหัสเก็บเกี่ยว", value: Random }
+                                        ],
+                                        highlight: { label: "สิ่งที่ต้องทำ", text: "กรุณาเก็บตัวอย่างผลผลิตตามรหัสด้านบน เพื่อส่งตรวจสอบ" },
+                                        url
+                                    })
                                 },
                                 {
                                     url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
@@ -4080,11 +4222,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
             if (result['result'] === "pass") {
                 const { id_plant } = req.body
+                const doctorName = result.data.fullname_doctor
                 try {
                     const name = req.body.img_report ?
                         await new Promise((resole, reject) => {
                             const name_image = `${result.data.id_table_doctor}${req.body.id_plant}${new Date().getTime()}.jpg`
-                            const Path = __dirname.replace("server", "app") + `/src/assets/img/doctor/report/${name_image}`
+                            const Path = path.join(REPORT_IMAGE_DIR, name_image)
                             const base64Data = req.body.img_report.replace("data:image/jpeg;base64,", "")
                             const imageBuffer = Buffer.from(base64Data, 'base64');
                             fs.writeFile(Path, imageBuffer, (err) => {
@@ -4101,38 +4244,27 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             VALUES
                             (? , ? , ? , ? , 0)
                         ` , [req.body.id_plant, req.body.report_text, result.data.id_table_doctor, name],
-                        async (err, result) => {
+                        async (err) => {
                             if (!err) {
-                                const { lineIds: arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                                // ส่งเป็นการ์ดคำแนะนำ (รูปแนบอยู่ในการ์ด แตะเพื่อดูรูปเต็ม)
+                                const adviceUrl = `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                                await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
                                     (gapData) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        return [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `มีคำแนะนำการปลูกจากหมอพืช`,
-                                            '',
-                                            req.body.report_text
-                                        ]
+                                        return MessageLineTemplate.adviceMessage({
+                                            fromLabel: "หมอพืช",
+                                            senderName: doctorName,
+                                            greenhouseName: greenhouse_name,
+                                            plantName: plant_name,
+                                            advice: req.body.report_text,
+                                            imageUrl: name ? `${UrlApi}/doctor/report/${name}` : "",
+                                            url: adviceUrl
+                                        })
                                     },
-                                    {
-                                        url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
-                                    }
+                                    { url: adviceUrl }
                                 )
-                                // const arrUID = await SendToFarmerHouse(con , req.body.id_plant , "หมอพืชให้คำแนะนำกับการปลูก" , `\nคำแนะนำ : ${req.body.report_text}`)
-                                if (name) {
-                                    const imageURL = `${UrlApi}/doctor/report/${name}`;
-                                    try {
-                                        RoyalGapLine.multicast(
-                                            arrUID,
-                                            {
-                                                type: "image",
-                                                originalContentUrl: imageURL,
-                                                previewImageUrl: imageURL
-                                            }
-                                        )
-                                    } catch (e) { }
-                                }
 
                                 con.end()
                                 res.send("113")
@@ -4182,9 +4314,9 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 ` , [req.body.id_plant, req.body.id, result.data.id_table_doctor],
                                 async (err, resoleImg) => {
                                     if (!err) {
-                                        const Path = __dirname.replace("server", "src") + `/assets/img/doctor/report/`
+                                        const Path = REPORT_IMAGE_DIR + path.sep
                                         // หากเจอภาพเก่า จึงลบออก
-                                        if (resoleImg[0].image_path)
+                                        if (resoleImg[0] && resoleImg[0].image_path)
                                             try { fs.rmSync(Path + `${resoleImg[0].image_path}`) } catch (e) { }
 
                                         // อัปไฟล์ใหม่ลง server
@@ -4203,8 +4335,12 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         }) : null;
 
                     if (req.body.report_text || img_path != null) {
-                        const SET = new Array(req.body.report_text ? `report_text = '${req.body.report_text}'` : "", img_path != null ? `image_path = '${img_path}'` : "")
-                            .filter(val => val).join(",").replaceAll(" ", "")
+                        // ใช้ placeholder ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในข้อความทิ้ง)
+                        const setClauses = []
+                        const setParams = []
+                        if (req.body.report_text) { setClauses.push("report_text = ?"); setParams.push(req.body.report_text) }
+                        if (img_path != null) { setClauses.push("image_path = ?"); setParams.push(img_path) }
+                        const SET = setClauses.join(", ")
 
                         const old_report = await new Promise((resolve) => {
                             con.query(
@@ -4217,7 +4353,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 (err, oldData) => {
                                     if (err) {
                                         console.log("edit report");
-                                        return 0;
+                                        resolve(undefined)
+                                        return;
                                     }
 
                                     resolve(oldData[0])
@@ -4225,12 +4362,18 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                             )
                         })
 
+                        // ไม่พบคำแนะนำนี้ (เดิม server ล่มเพราะอ่าน property ของ undefined)
+                        if (!old_report) {
+                            con.end()
+                            return res.send("not")
+                        }
+
                         con.query(
                             `
                             UPDATE report_detail
                             SET ${SET}
                             WHERE id_plant = ? and id = ? and id_table_doctor = ?
-                            ` , [req.body.id_plant, req.body.id, result.data.id_table_doctor],
+                            ` , [...setParams, req.body.id_plant, req.body.id, result.data.id_table_doctor],
                             (err, resultEdit) => {
                                 if (err) {
                                     dbpacket.dbErrorReturn(con, err, res);
@@ -4317,16 +4460,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                     id_plant,
                                     pool,
-                                    (gapData) => {
+                                    (gapData, { url }) => {
                                         const { greenhouse_name, plant_name } = gapData || {}
-                                        const messages = [
-                                            ...generateMessageTitle(greenhouse_name, plant_name),
-                                            `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
-                                            `คะแนนการประเมิน: ${statusCheck}`
-                                        ]
-
-                                        if (report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
-                                        return messages
+                                        return MessageLineTemplate.farmerCard({
+                                            theme: "checkPlant",
+                                            subtitle: "จากหมอพืช",
+                                            rows: [
+                                                ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                { label: "ระยะ", value: stateCheck == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                                { label: "คะแนนประเมิน", value: statusCheck }
+                                            ],
+                                            highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                            url
+                                        })
                                     },
                                     {
                                         url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
@@ -4410,18 +4556,19 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                         const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                             id_plant,
                                             pool,
-                                            (gapData) => {
+                                            (gapData, { url }) => {
                                                 const { greenhouse_name, plant_name } = gapData || {}
-                                                const messages = [
-                                                    ...generateMessageTitle(greenhouse_name, plant_name),
-                                                    `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
-                                                ]
-
-                                                if (report_text) messages.push(
-                                                    `ข้อความจากเจ้าหน้าที่: ${report_text}`
-                                                )
-
-                                                return messages
+                                                const passed = Boolean(Number(statusCheck))
+                                                return MessageLineTemplate.farmerCard({
+                                                    theme: passed ? "checkFormPass" : "checkFormFail",
+                                                    subtitle: "ตรวจโดยหมอพืช",
+                                                    rows: [
+                                                        ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                        { label: "ผลการตรวจ", value: passed ? "ผ่าน" : "ไม่ผ่าน" }
+                                                    ],
+                                                    highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                                    url
+                                                })
                                             },
                                             {
                                                 url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
@@ -4472,8 +4619,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 // select out table
                 const TextInsert = req.body.textInput ?? "";
                 const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-                const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) ? req.body.statusForm : null;
-                const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+                const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+                const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
                 const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
                 const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
@@ -4486,7 +4633,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                     SELECT fromInsert.* 
                     FROM formplant ,
                     (
-                        SELECT formplant.* ,
+                        SELECT ${selectColumns("formplant", "formplant")} ,
                             (
                                 SELECT type_plant
                                 FROM plant_list
@@ -4563,7 +4710,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const Fertirizer = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * 
+                                            SELECT ${selectColumns("formfertilizer")} 
                                             FROM formfertilizer
                                             WHERE id_plant = ?
                                         ` , [val.id],
@@ -4580,7 +4727,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const chemical = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * 
+                                            SELECT ${selectColumns("formchemical")} 
                                             FROM formchemical
                                             WHERE id_plant = ?
                                         ` , [val.id],
@@ -4597,7 +4744,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const Report = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("report_detail", "report_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4620,7 +4767,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const CheckForm = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("check_form_detail", "check_form_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4643,7 +4790,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                 const CheckPlant = await new Promise((resole, reject) => {
                                     con.query(
                                         `
-                                            SELECT * , 
+                                            SELECT ${selectColumns("check_plant_detail", "check_plant_detail")} , 
                                             (
                                                 IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                     (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4719,21 +4866,21 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                                     req.body.type == "pest" ? { pest_name: 1, type_pest: 1 } :
                                         ""
                     if (!Check || !Check[Data[0]]) return null
-                    else if (Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE '${Data[1]}' )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
-                    else return `INSTR( ${Data[0]} , '${Data[1]}' )`
+                    else if (Data[0] == "name_formula" && req.body.type == "fertilizer") return `( ${Data[0]} LIKE ${con.escape(String(Data[1]))} )` // สำหรับค้นหาสูตรปุ๋ย เลยใช้ LIKE เพราะทาง client จะส่งค่าที่มี %% มาด้วยหากพิมพ์มาไม่ครบช่อง
+                    else return `INSTR( ${Data[0]} , ${con.escape(String(Data[1]))} )`
                 })
 
-                const StartRow = !isNaN(req.body.StartRow) ? req.body.StartRow : 0
-                const Limit = !isNaN(req.body.Limit) ? req.body.Limit : 0
+                const StartRow = isNaN(parseInt(req.body.StartRow)) ? 0 : parseInt(req.body.StartRow)
+                const Limit = isNaN(parseInt(req.body.Limit)) ? 0 : parseInt(req.body.Limit)
                 if (From && QuerySearch.filter(val => val == null).length === 0) {
                     const columnName = (
                         req.body.type == "pest" ? "pest_name" : "name"
                     )
                     con.query(
                         `
-                        SELECT * 
+                        SELECT ${selectColumns(From)} 
                         FROM ${From}
-                        ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ").replaceAll(";", "")}` : ""}
+                        ${QuerySearch.join(" and ") ? `WHERE ${QuerySearch.join(" and ")}` : ""}
                         ORDER BY is_use DESC , ${columnName} ASC
                         LIMIT ${Limit} OFFSET ${StartRow}
                         ` ,
@@ -4961,30 +5108,25 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         type_request == "pest" ? "pest_id" : "id"
                     )
                     try {
-                        // ตัดการส่ง check จากหน้าบ้าน ให้หลังบ้าน check แทน
-                        // revise code
-                        const OverCheck = Object.entries(req.body.check).map((checkData) => {
-                            checkData[1] = `"${checkData[1].trim()}"`
-                            return checkData.join("=").replaceAll(" ", "")
-                        })
-                            .join(" and ")
-                            .replaceAll(";", "")
+                        // ชื่อคอลัมน์ต้องอยู่ใน whitelist และค่าทุกตัวส่งเป็น parameter (กัน SQL injection)
+                        const overCheck = SafeUpdate.buildWhere(From, req.body.check)
+                        const changes = SafeUpdate.buildSet(From, req.body.data)
 
-                        const resultCheck = OverCheck.length ? await new Promise((resole, reject) => {
+                        const resultCheck = overCheck.sql ? await new Promise((resole) => {
                             con.query(
                                 `
                                 SELECT (
                                     SELECT EXISTS (
-                                        SELECT ${columnID} 
+                                        SELECT ${columnID}
                                         FROM ${From}
-                                        WHERE ${OverCheck}
+                                        WHERE ${overCheck.sql}
                                     )
                                 ) as checkData
-                                ` , (err, resultIn) => {
-                                console.log(resultIn)
+                                ` , overCheck.params, (err, resultIn) => {
                                 if (err) {
                                     console.log(err)
                                     resole(0)
+                                    return
                                 }
                                 resole(parseInt(resultIn[0].checkData))
                             }
@@ -4994,39 +5136,35 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         if (!resultCheck) {
                             const oldData = await new Promise((resolve) => {
                                 con.query(
-                                    `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                                    `SELECT ${selectColumns(From)} FROM ${From} WHERE ${columnID} = ?`,
                                     [data_id], (err, rows) => {
                                         resolve(err ? null : (rows[0] || null))
                                     }
                                 )
                             })
 
-                            const update = Object.entries(req.body.data).map(data => {
-                                if (data[0] === "location") {
-                                    data[1] = data[1] != "0" ? `ST_PointFromText("${data[1].trim()}")` : "NULL"
-                                }
-                                else data[1] = `"${data[1].trim()}"`
-                                return data.join(" = ")
-                            })
-                                .join(' , ')
-                                .replaceAll(";", "")
-                                .replaceAll(" ", "")
-
-                            await new Promise((resole, reject) => {
+                            const updateError = await new Promise((resole) => {
                                 con.query(
                                     `
                                     UPDATE ${From}
-                                    SET ${update}
+                                    SET ${changes.sql}
                                     WHERE ${columnID} = ?
-                                    ` , [data_id], (err, updateData) => {
-                                    resole()
+                                    ` , [...changes.params, data_id], (err) => {
+                                    resole(err)
                                 }
                                 )
                             })
 
+                            if (updateError) {
+                                console.log(updateError)
+                                con.end()
+                                res.send({ result: "error" })
+                                return
+                            }
+
                             con.query(
                                 `
-                                SELECT *
+                                SELECT ${selectColumns(From)}
                                 FROM ${From}
                                 WHERE ${columnID} = ?
                                 ` , [data_id], (err, select) => {
@@ -5228,7 +5366,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 try {
                     const oldData = await new Promise((resolve) => {
                         con.query(
-                            `SELECT * FROM ${From} WHERE ${columnID} = ?`,
+                            `SELECT ${selectColumns(From)} FROM ${From} WHERE ${columnID} = ?`,
                             [data_id], (err, rows) => {
                                 resolve(err ? null : (rows[0] || null))
                             }
@@ -5359,7 +5497,8 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                 const getNotify = (Oparetor) ? await new Promise((resole, reject) => {
                     con.query(
                         `
-                        SELECT * ,
+                        SELECT id , id_table_farmer , date , notify , type , ref_id ,
+                        COALESCE(JSON_CONTAINS(id_read , '"read"' , CONCAT('$."', ?, '"')) , 0) as is_read ,
                         (
                             SELECT img
                             FROM acc_farmer
@@ -5371,7 +5510,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
                         LIMIT ${req.query.type == "start" ? countUnRead.count != 0 ? countUnRead.count + 3 : 10 :
                             req.query.type == "update" ? "999999" :
                                 req.query.type == "get" ? "10" : 0}
-                        ` , [result.data.station_doctor, req.query.id],
+                        ` , [result.data.id_table_doctor, result.data.station_doctor, req.query.id],
                         (err, list) => {
                             if (err) {
                                 console.error("Notify SELECT error:", err);
@@ -5454,63 +5593,6 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
         }
     })
 
-    //ทดสอบ popup แจ้งเตือน---------------------------
-    app.post('/api/doctor/notify/test', async (req, res) => {
-        let username = req.session.user_doctor
-        let password = req.session.pass_doctor
-
-        if (username === '' || password === '' || !apifunc.authCsurf("doctor", req, res)) {
-            res.redirect('/api/logout')
-            return 0
-        }
-
-        let con = Database.createConnection(listDB)
-
-        try {
-            const result = await apifunc.auth(con, username, password, res, "acc_doctor")
-            if (result['result'] === "pass") {
-                const station = result.data.station_doctor;
-
-                // Find a farmer ID from this station to link to the notification
-                con.query(
-                    `
-                    SELECT id_table FROM acc_farmer WHERE station = ? LIMIT 1
-                    `, [station],
-                    (err, farmers) => {
-                        const farmerId = (farmers && farmers.length > 0) ? farmers[0].id_table : 0;
-                        const msg = `ระบบทดสอบการแจ้งเตือนสำหรับสถานีที่ ${station}`;
-
-                        con.query(
-                            `
-                            INSERT INTO notify_doctor 
-                            (id_table_farmer, id_read, notify, station, type, ref_id)
-                            VALUES (?, '{}', ?, ?, 0, 0)
-                            `, [farmerId, msg, station],
-                            (err, insertResult) => {
-                                con.end();
-                                if (err) {
-                                    console.error("Test Notify INSERT error:", err);
-                                    return res.status(500).send("Database error");
-                                }
-                                // Emit update event to the station room
-                                socket.to(`notify-${station}`).emit("update");
-                                res.send("OK");
-                            }
-                        );
-                    }
-                );
-            }
-        } catch (err) {
-            con.end();
-            if (err == "not pass") {
-                res.redirect('/api/logout');
-            } else {
-                res.status(500).send("Server error");
-            }
-        }
-    })
-    //-------------------------------------------------------------
-
     app.post('/api/doctor/google/maps/get', async (req, res) => {
         let username = req.session.user_doctor
         let password = req.session.pass_doctor
@@ -5524,20 +5606,11 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
 
         try {
             const result = await apifunc.auth(con, username, password, res, "acc_doctor")
+            con.end() // เดิมไม่ปิด connection (รั่วทุกครั้งที่เรียก)
             if (result['result'] === "pass") {
                 try {
-                    const Maps = await axios.request({
-                        method: "GET",
-                        maxBodyLength: Infinity,
-                        url: req.body.link,
-                        headers: {}
-                    })
-
-                    res.send({
-                        PathMap: Maps.request.path,
-                        DataMaps: JSON.stringify(Maps.data)
-                    })
-                    // res.send(JSON.stringify(Maps.data))
+                    // รับเฉพาะลิงก์ Google Maps (กัน SSRF) ดู core/mapsLink.js
+                    res.send(await MapsLink.fetchMapsPage(req.body.link))
                 } catch (e) {
                     res.send("")
                 }
@@ -5718,7 +5791,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             try {
                 const station = await pool.executeQuery(
                     `
-                        SELECT h.*
+                        SELECT h.id_farm_house , h.uid_line , h.link_user , h.name_house
                         FROM acc_farmer ac_f
                         LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
                         WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
@@ -5762,7 +5835,7 @@ module.exports = function apiDoctor(app, Database, pool = new ConnentPool(), api
             try {
                 const data = await pool.executeQuery(
                     `
-                        SELECT ecph.* 
+                        SELECT ecph.id , ecph.id_formplant , ecph.timestamp , ecph.ec_value , ecph.ph_value 
                         FROM ecph
                         INNER JOIN (
                             SELECT (

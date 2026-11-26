@@ -5,6 +5,46 @@ const ConnectionPool = require('./connectPool');
 const RoyalGapEnv = require('./core/env');
 const { ca } = require('date-fns/locale');
 const RoyalGapLine = require('./configLine');
+const AccountAuth = require('./core/accountAuth');
+const SafeUpdate = require('./core/safeUpdate');
+const MessageLineTemplate = require('./core/messageLineTemplate');
+const SessionLogin = require('./core/sessionLogin');
+const MapsLink = require('./core/mapsLink');
+const fs = require('fs');
+const path = require('path');
+// โฟลเดอร์เก็บรูปแนบคำแนะนำ (เสิร์ฟผ่าน express.static('app/src/assets/img') ที่ /doctor/report/...)
+const REPORT_IMAGE_DIR = path.join(__dirname, "..", "app", "src", "assets", "img", "doctor", "report")
+fs.mkdirSync(REPORT_IMAGE_DIR, { recursive: true })
+
+// คอลัมน์ของตารางข้อมูลหลัก (หน้า data list/get ใช้ทุกช่อง)
+const MASTER_DATA_COLUMNS = {
+  plant_list : "id , name , variety_name , is_use , type_plant , qty_harvest",
+  station_list : "id , name , is_use , location , id_station",
+  chemical_list : "id , name , name_formula , how_use , date_safe_list , is_use",
+  pests : "pest_id , pest_name , type_pest , is_use",
+}
+// คอลัมน์ของแบบบันทึก (form/get/detail แสดงและแก้ไขทุกช่อง)
+const FORM_DETAIL_COLUMNS = {
+  formplant : "id , id_farm_house , name_plant , generation , date_glow , date_plant , posi_w , posi_h , qty , area , date_harvest , system_glow , water , water_flow , history , insect , qtyInsect , seft , state_status , date_success , unit , name_varieties , expected_yield , default_yield",
+  formfertilizer : "id , id_plant , name , formula_name , use_is , volume , source , date",
+  formchemical : "id , id_plant , name , formula_name , insect , use_is , rate , volume , date_safe , date , source , pest_id",
+}
+// formplant แบบระบุชื่อตาราง (ใช้ใน query ที่ join กับตารางอื่น)
+const FORMPLANT_COLUMNS_QUALIFIED = FORM_DETAIL_COLUMNS.formplant.split(" , ").map((col) => `formplant.${col}`).join(" , ")
+// คอลัมน์ของรายการจัดการแบบบันทึก (form/manage/get ใช้ทุกช่อง รวมถึงส่งกลับตอนแก้ไข)
+const MANAGE_DETAIL_COLUMNS = {
+  success_detail : "id , id_success , id_plant , type_success , id_table_doctor , date_of_doctor , date_of_farmer , id_admin",
+  report_detail : "id , id_plant , report_text , id_table_doctor , date_report , image_path , is_read , id_admin",
+  check_form_detail : "id , id_plant , status_check , note_text , id_table_doctor , date_check , acknowledged , id_admin",
+  check_plant_detail : "id , id_plant , status_check , state_check , note_text , id_table_doctor , date_check , acknowledged , id_admin",
+}
+// คอลัมน์สำหรับตัวเลือกในหน้าจัดกลุ่ม (data/listforgroup)
+const GROUP_DATA_COLUMNS = {
+  plant_list : "id , name",
+  station_list : "id , name , is_use , id_station",
+  chemical_list : "id , name",
+  pests : "pest_id , pest_name , type_pest",
+}
 
 require('dotenv').config().parsed
 const axios = require('axios').default;
@@ -15,10 +55,14 @@ module.exports = function apiAdmin (app , Database , pool = new ConnectionPool()
     const password = req.session.user_password
     // ถ้าไม่มี session → หมด session → ส่ง "" กลับ
     if (!username || !password || !apifunc.authCsurf("admin", req, res)) {
-      return res.clearCookie(process.env.cookieName).send("")
+      return res.clearCookie(process.env.cookie).send("")
     }
-    // session ยังอยู่ → ส่ง "pass" กลับ
-    return res.send("pass")
+    // ตรวจ session credential กับฐานข้อมูล (เปลี่ยนรหัสผ่านแล้ว session เก่าจะหลุด)
+    const con = Database.createConnection(listDB)
+    apifunc.auth(con, username, password, res, "admin")
+      .then(() => res.send("pass"))
+      .catch(() => res.clearCookie(process.env.cookie).send(""))
+      .finally(() => con.end())
   })
   
 // doctor page
@@ -376,7 +420,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         if(type_status && data.id_table) {
           con.query(
             `
-              SELECT * 
+              SELECT id , because_text , date , id_admin${type_status === "status" ? " , type_status" : ""}
               FROM because_${type_status}
               WHERE id_table_doctor = ?  AND role = 1
               ORDER BY date DESC;
@@ -422,7 +466,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         if(type_status && data.id) {
           con.query(
             `
-              SELECT * 
+              SELECT id , because_text , date , id_admin${type_status === "status" ? " , type_status" : ""}
               FROM because_${type_status}
               WHERE id_table_doctor = ? AND role = 0
               ORDER BY date DESC;
@@ -494,8 +538,8 @@ app.post('/api/admin/role/update', async (req, res) => {
 
         const TextInsert = req.body.textInput ?? "";
         const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-        const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) && req.body.statusForm !== "" ? parseInt(req.body.statusForm) : null;
-        const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+        const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+        const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
         const SubStatusForm = req.body.subStatusForm ?? "";
         let subStatusSql = "";
 
@@ -529,7 +573,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
         const EndDate = (new Date(req.body.EndDate).toString() !== "Invalid Date") ? req.body.EndDate : null;
         const OrderBy = (req.body.typeDate == 1) ? "date_success" : "date_plant";
-        const Limit = (!isNaN(req.body.limit)) ? req.body.limit : null;
+        const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
 
         // Ignore admin's assigned station_admin so they can view all stations by default.
         // Fallback to the user's selected station or null (all).
@@ -691,7 +735,7 @@ app.post('/api/admin/role/update', async (req, res) => {
       const result = await apifunc.auth(con, username, password, res, "admin");
       if (result['result'] === "pass") {
         const { textSearch = "", station_id = "" } = req.body;
-        const Limit = isNaN(parseInt(req.body.limit)) ? null : req.body.limit;
+        const Limit = isNaN(parseInt(req.body.limit)) ? null : parseInt(req.body.limit);
         const adminStation = station_id || null;
         if (req.body.approve === 1) {
           con.query(`
@@ -755,7 +799,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const { params: { station_id } } = req;
         const station = await pool.executeQuery(
           `
-            SELECT h.*
+            SELECT h.id_farm_house , h.name_house , h.uid_line , h.link_user
             FROM acc_farmer ac_f
             LEFT JOIN housefarm h ON h.uid_line = ac_f.uid_line
             WHERE ac_f.station = ? AND h.id_farm_house IS NOT NULL
@@ -984,7 +1028,7 @@ app.post('/api/admin/role/update', async (req, res) => {
           con.query(`SELECT qty_harvest FROM plant_list WHERE name = ? AND is_use = 1`, [req.body.name_plant_list], (err, result) => resolve(result));
         });
         con.query(`
-          SELECT formplant.*,
+          SELECT formplant.id , formplant.generation ,
             GROUP_CONCAT(DISTINCT formchemical.insect ORDER BY formchemical.insect ASC) AS insect,
             GROUP_CONCAT(DISTINCT formchemical.insect) AS insect_generation
           FROM formplant
@@ -1021,7 +1065,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const admin_id = result['data'].id || 0;
         const { id_plant } = req.body;
         con.query(`
-            SELECT formplant.*
+            SELECT ${FORMPLANT_COLUMNS_QUALIFIED}
             FROM formplant
             WHERE formplant.id = ?
             LIMIT 1
@@ -1039,6 +1083,13 @@ app.post('/api/admin/role/update', async (req, res) => {
             }
 
             const data = req.body;
+            // รับเฉพาะ field ที่เป็นคอลัมน์จริง (ชื่อ field ถูกนำไปต่อเป็น SET)
+            data.dataChange = SafeUpdate.pickFormChanges("formplant", data.dataChange);
+            if (!Object.keys(data.dataChange).length) {
+                con.end();
+                res.send("not");
+                return;
+            }
             if (dataCurrent[0].state_status === 0 || dataCurrent[0].state_status === 1 || dataCurrent[0].state_status === 2) {
                 con.query(`
                 INSERT INTO editform 
@@ -1195,18 +1246,18 @@ app.post('/api/admin/role/update', async (req, res) => {
                                             const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                                 id_plant,
                                                 pool,
-                                                (gapData) => {
-                                                    const { greenhouse_name, plant_name } = gapData || {};
-                                                    return [
-                                                        `โรงเรือน: ${greenhouse_name || ""}`,
-                                                        `แปลงปลูก: ${plant_name || ""}`,
-                                                        "เจ้าหน้าที่แก้ไขแบบบันทึก GAP ของท่าน",
-                                                        "",
-                                                        `แก้ไขรายการ:`,
-                                                        edits_content.map(({ name, prev, current }) =>
-                                                            `${name}: จาก ${prev} เป็น ${current}`
-                                                        )
-                                                    ];
+                                                (gapData, { url }) => {
+                                                    const { greenhouse_name, plant_name } = gapData || {}
+                                                    return MessageLineTemplate.farmerCard({
+                                                        theme: "formEdited",
+                                                        subtitle: "โดยเจ้าหน้าที่",
+                                                        rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                        list: {
+                                                            label: "รายการที่แก้ไข",
+                                                            items: edits_content.map(({ name, prev, current }) => `${name}: ${prev || "-"} → ${current || "-"}`)
+                                                        },
+                                                        url
+                                                    })
                                                 },
                                                 {
                                                     url: `${RoyalGapEnv.url_line.get_greenhouse}/${greenhouse_id}/${id_plant}/d`
@@ -1256,7 +1307,7 @@ app.post('/api/admin/role/update', async (req, res) => {
         const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
         if (!type_data) { return res.send([]); }
         const columnName = (data.type === "pest" ? "pest_name" : "name");
-        con.query(`SELECT * FROM ${type_data} WHERE INSTR(${columnName}, ?) ORDER BY is_use DESC, ${columnName} ASC LIMIT ${Limit} OFFSET ${StartRow}`,
+        con.query(`SELECT ${MASTER_DATA_COLUMNS[type_data]} FROM ${type_data} WHERE INSTR(${columnName}, ?) ORDER BY is_use DESC, ${columnName} ASC LIMIT ${Limit} OFFSET ${StartRow}`,
           [data.textSearch], (err, result) => {
             if (err) { dbpacket.dbErrorReturn(con, err, res); return; }
             con.end();
@@ -1278,7 +1329,7 @@ app.post('/api/admin/role/update', async (req, res) => {
 				return 0;
 			}
 
-			con.query(`SELECT * FROM station_list WHERE is_use = 1` , (err , result)=>{
+			con.query(`SELECT ${MASTER_DATA_COLUMNS.station_list} FROM station_list WHERE is_use = 1` , (err , result)=>{
 				if (err) {
 					dbpacket.dbErrorReturn(con, err, res);
 					console.log("query");
@@ -1306,18 +1357,19 @@ app.post('/api/admin/role/update', async (req, res) => {
       console.log(result)
         const SET = req.body.type === "name" ? "fullname_admin = ?" :
                         req.body.type === "station" ? "station_admin = ?" :
-                        req.body.type === "passwordNew" ? "password = SHA2( ? , 256)" : ""
+                        req.body.type === "passwordNew" ? "password = ?" : ""
+        const newValue = req.body.type === "passwordNew" ? AccountAuth.hashPassword(req.body.value) : req.body.value
         if(SET) {
             con.query(
                 `
                 UPDATE admin
                 SET ${SET}
                 WHERE id = ?
-                ` , [ req.body.value , result["data"].id ] , 
+                ` , [ newValue , result["data"].id ] , 
                 (err , resultEdit) => {
                     if(!err) {
                         if(req.body.type === "passwordNew") {
-                            req.session.user_password = req.body.value
+                            req.session.user_password = AccountAuth.sessionCredential("admin", { ...result["data"], password: newValue })
                         }
                         con.end()
                         res.send("1")
@@ -1384,7 +1436,7 @@ app.get('/api/admin/profile/get', (req, res) => {
 
   let con = Database.createConnection(listDB);
 
-  apifunc.auth(con, username, password, res, "admin")
+  apifunc.auth(con, username, password, res, "admin", "", { withImage: true })
       .then((result) => {
           con.query(
               `
@@ -1412,7 +1464,6 @@ app.get('/api/admin/profile/get', (req, res) => {
                       lng: station[0] ? station[0].lng : null
                   };
 
-                  console.log("Response payload:", responsePayload); 
                   res.send(responsePayload);
               }
           );
@@ -1473,8 +1524,8 @@ app.post('/api/admin/add', async (req, res) => {
                           status_delete,
                           time_online
                       ) 
-                      VALUES (?, SHA2(?,256), '', '', 1, 0, "")
-                  `, [req.body['id'], req.body['passwordAdNew']], (err, result) => {
+                      VALUES (?, ?, '', '', 1, 0, "")
+                  `, [req.body['id'], AccountAuth.hashPassword(req.body['passwordAdNew'])], (err, result) => {
                       if (err) {
                           dbpacket.dbErrorReturn(con, err, res);
                           console.log("Error inserting admin");
@@ -1549,8 +1600,8 @@ app.post('/api/admin/add', async (req, res) => {
                             consultant_role,
                             protection_role
                         ) 
-                        VALUES ('', ?, '', SHA2(?,256), '', '', 1, 0, "", ?, ?, ?, ?)
-                    `, [req.body['id_doctor'], req.body['passwordDT'], doctor_role, analyst_role, consultant_role, protection_role], 
+                        VALUES ('', ?, '', ?, '', '', 1, 0, "", ?, ?, ?, ?)
+                    `, [req.body['id_doctor'], AccountAuth.hashPassword(req.body['passwordDT']), doctor_role, analyst_role, consultant_role, protection_role], 
                     (err, result) => {
                         if(err) {
                             dbpacket.dbErrorReturn(con , err , res);
@@ -2424,7 +2475,7 @@ app.post('/api/admin/data/list', async (req, res) => {
               : `GROUP BY ${columnName}`;
 
           const query = `
-              SELECT * FROM ${type_data}
+              SELECT ${MASTER_DATA_COLUMNS[type_data]} FROM ${type_data}
               WHERE INSTR(${columnName}, ?)
               ${groupByClause}
               ORDER BY is_use DESC, ${columnName} ASC
@@ -2483,7 +2534,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
           const StartRow = isNaN(parseInt(data.startRow)) ? 0 : parseInt(data.startRow);
  
           const query = `
-              SELECT * FROM ${type_data}
+              SELECT ${GROUP_DATA_COLUMNS[type_data]} FROM ${type_data}
               WHERE INSTR(${columnName}, ?)
               GROUP BY ${columnName}
               ORDER BY is_use DESC, ${columnName} ASC
@@ -2539,7 +2590,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
         if(From) {
           con.query(
             `
-              SELECT * FROM ${From} WHERE ${columnID} = ?
+              SELECT ${MASTER_DATA_COLUMNS[From]} FROM ${From} WHERE ${columnID} = ?
             ` 
           , 
           [data.id] ,
@@ -2593,7 +2644,7 @@ app.post('/api/admin/data/listforgroup', async (req, res) => {
                     data.type === "pest" ? "pest_name" : "name"
                 );
 
-                let checkQuery = `SELECT * FROM ${From} WHERE ${columnName} = ? `;
+                let checkQuery = `SELECT ${data.type === "pest" ? "pest_id" : "id"} FROM ${From} WHERE ${columnName} = ? `;
                 let checkParams = [data.name];
 
                 if (data.type === "plant") {
@@ -2816,37 +2867,42 @@ app.post('/api/admin/data/change', async (req, res) => {
 
         if(From) {
           try {
-            const verify = data.update.name ? await new Promise((resole , reject)=> {
+            // หน้าเว็บส่ง name มาเสมอ ส่วนตาราง pests ใช้คอลัมน์ pest_name
+            const changes = { ...(data.update || {}) }
+            if (From === "pests" && "name" in changes) {
+              changes.pest_name = changes.name
+              delete changes.name
+            }
+            // ชื่อคอลัมน์ต้องอยู่ใน whitelist และค่าทุกตัวส่งเป็น parameter (กัน SQL injection)
+            const set = SafeUpdate.buildSet(From, changes)
+            const newName = changes[columnName]
+            const columnID = SafeUpdate.primaryKey(From)
+
+            const verify = newName ? await new Promise((resole , reject)=> {
               con.query(
                 `
                 SELECT (
                   SELECT EXISTS (
-                    SELECT id
+                    SELECT ${columnID}
                     FROM ${From}
                     WHERE ${From}.${columnName} = ? and ${From}.is_use = 1
                   )
                 ) as verifyStatus
                 `
-                ,[ data.update.name.replaceAll('"' , "") ], (err , result)=>{
+                ,[ SafeUpdate.cleanValue(newName) ], (err , result)=>{
                 if(err) reject("")
                 else resole(!result[0].verifyStatus)
-              }) 
+              })
             }) : true
-  
+
             if(verify) {
-              const update = Object.entries(data.update).map(val=>{
-                val[0] = val[0].replaceAll(" " , "")
-                val[1] = val[1].replaceAll(" " , "")
-                val = val.join("=")
-                return val
-              }).join(",").replaceAll(" " , "");
               con.query(
                 `
-                UPDATE ${From} 
-                SET ${update}
-                WHERE id = ?;
+                UPDATE ${From}
+                SET ${set.sql}
+                WHERE ${columnID} = ?;
                 `
-                , [ data.id_table ] , (err , result)=>{
+                , [ ...set.params , data.id_table ] , (err , result)=>{
                 if(err) {
                   con.end()
                   res.send("")
@@ -2886,20 +2942,11 @@ app.post('/api/admin/data/change', async (req, res) => {
 
     try {
         const auth = await apifunc.auth(con , username , password , res , "admin")
+        con.end() // เดิมไม่ปิด connection (รั่วทุกครั้งที่เรียก)
         if(auth['result'] === "pass") {
             try {
-              const Maps = await axios.request({
-                method : "GET",
-                maxBodyLength: Infinity,
-                url : req.body.link,
-                headers : {}
-              })
-
-              res.send({
-                PathMap : Maps.request.path,
-                DataMaps : JSON.stringify(Maps.data)
-              })
-              // res.send(JSON.stringify(Maps.data))
+              // รับเฉพาะลิงก์ Google Maps (กัน SSRF) ดู core/mapsLink.js
+              res.send(await MapsLink.fetchMapsPage(req.body.link))
             } catch(e) {
               res.send('{}')
             }
@@ -2992,10 +3039,12 @@ app.post('/api/admin/data/change', async (req, res) => {
             }
 
             // บัญชีปกติ สามารถเข้าสู่ระบบได้
+            // login ครั้งแรก / เปลี่ยนบัญชี → เปลี่ยน session ID (กัน session fixation)
+            await SessionLogin.rotateOnLogin(req, "admin", auth['data'].id);
             req.session.role_primary = "admin";
             req.session.admin_id = auth['data'].id;
             req.session.user_username = username;
-            req.session.user_password = password;
+            req.session.user_password = AccountAuth.sessionCredential("admin", auth['data']);
             // req.session.user_doctor = "666";
             // req.session.pass_doctor = "666";
             req.session.tokenSession = apifunc.getTokenCsurf(req);
@@ -3731,7 +3780,8 @@ app.post('/api/admin/report/list', async(req, res) => {
 	
 							//  **ส่งข้อความแจ้งเตือน**
 							con.end();
-							RoyalGapLine.multicast(uidSend, { type: "text", text: textSend });
+							MessageLineTemplate.sendPestAlert(RoyalGapLine, uidSend, selectedData)
+								.catch((e) => console.error("Error sending Line message:", e.originalError?.response?.data || e.message));
 	
 						} catch (e) {
 						con.end();
@@ -4001,7 +4051,7 @@ app.post('/api/admin/report/list', async(req, res) => {
 
               con.query(
                   `
-                  SELECT * ,
+                  SELECT ${FORM_DETAIL_COLUMNS[`form${TypeForm}`]} ,
                   (
                       SELECT COUNT(status)
                       FROM editform
@@ -4156,8 +4206,9 @@ app.post('/api/admin/report/list', async(req, res) => {
           if (result['result'] === "pass") {
               con.query(
                   `
-                  SELECT acc_farmer.*
-                  FROM acc_farmer , 
+                  SELECT acc_farmer.id_farmer , acc_farmer.fullname , acc_farmer.img , acc_farmer.tel_number ,
+                      acc_farmer.date_register , acc_farmer.date_doctor_confirm , acc_farmer.text_location , acc_farmer.location
+                  FROM acc_farmer ,
                       (
                           SELECT link_user
                           FROM housefarm , 
@@ -4220,7 +4271,7 @@ app.post('/api/admin/report/list', async(req, res) => {
               if (TypePage) {
                   con.query(
                       `
-                          SELECT * , 
+                          SELECT ${MANAGE_DETAIL_COLUMNS[TypePage]} , 
                           (
                               IF(${TypePage}.id_admin != 0 AND ${TypePage}.id_admin IS NOT NULL,
                                   (SELECT fullname_admin FROM admin WHERE id = ${TypePage}.id_admin),
@@ -4382,8 +4433,8 @@ app.post('/api/admin/report/list', async(req, res) => {
           if (result['result'] === "pass") {
               const TextInsert = req.body.textInput ?? "";
               const TypePlant = req.body.typePlant ? [req.body.typePlant] : [];
-              const Submit = (req.body.statusForm >= 0 && req.body.statusForm <= 2) ? req.body.statusForm : null;
-              const StatusFarmer = (req.body.statusFarmer >= 0 && req.body.statusFarmer <= 1) ? req.body.statusFarmer : null;
+              const Submit = [0, 1, 2, "0", "1", "2"].includes(req.body.statusForm) ? parseInt(req.body.statusForm) : null;
+              const StatusFarmer = [0, 1, "0", "1"].includes(req.body.statusFarmer) ? parseInt(req.body.statusFarmer) : null;
 
               const TypeDate = (req.body.typeDate == 1) ? "date_success" : (req.body.typeDate == 0) ? "date_plant" : null;
               const StartDate = (new Date(req.body.StartDate).toString() !== "Invalid Date") ? req.body.StartDate : null;
@@ -4396,7 +4447,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                   SELECT fromInsert.* 
                   FROM formplant ,
                   (
-                      SELECT formplant.* ,
+                      SELECT ${FORMPLANT_COLUMNS_QUALIFIED} ,
                           (
                               SELECT type_plant
                               FROM plant_list
@@ -4475,7 +4526,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const Fertirizer = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * 
+                                          SELECT ${FORM_DETAIL_COLUMNS.formfertilizer}
                                           FROM formfertilizer
                                           WHERE id_plant = ?
                                       ` , [val.id],
@@ -4492,7 +4543,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const chemical = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * 
+                                          SELECT ${FORM_DETAIL_COLUMNS.formchemical}
                                           FROM formchemical
                                           WHERE id_plant = ?
                                       ` , [val.id],
@@ -4509,7 +4560,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const Report = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.report_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4532,7 +4583,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const CheckForm = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.check_form_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4555,7 +4606,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const CheckPlant = await new Promise((resole, reject) => {
                                   con.query(
                                       `
-                                          SELECT * , 
+                                          SELECT ${MANAGE_DETAIL_COLUMNS.check_plant_detail} , 
                                           (
                                               IF(id_admin != 0 AND id_admin IS NOT NULL,
                                                   (SELECT fullname_admin FROM admin WHERE id = id_admin),
@@ -4704,13 +4755,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                           await RoyalGapLine.pushMessageToFarmerByFormID(
                               id_plant,
                               pool,
-                              (gapData) => {
+                              (gapData, { url }) => {
                                   const { greenhouse_name, plant_name } = gapData || {}
-                                  return [
-                                      ...generateMessageTitle(greenhouse_name, plant_name),
-                                      `เจ้าหน้าที่สั่งเก็บเกี่ยวตัวอย่างผลผลิต`,
-                                      `รหัสการเก็บเกี่ยว: ${Random}`
-                                  ]
+                                  return MessageLineTemplate.farmerCard({
+                                      theme: "harvest",
+                                      subtitle: "จากเจ้าหน้าที่",
+                                      rows: [
+                                          ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                          { label: "ระยะ", value: req.body.type == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                          { label: "รหัสเก็บเกี่ยว", value: Random }
+                                      ],
+                                      highlight: { label: "สิ่งที่ต้องทำ", text: "กรุณาเก็บตัวอย่างผลผลิตตามรหัสด้านบน เพื่อส่งตรวจสอบ" },
+                                      url
+                                  })
                               },
                               {
                                   url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/h`
@@ -4762,12 +4819,13 @@ app.post('/api/admin/report/list', async(req, res) => {
           const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
           if (result['result'] === "pass") {
               const { id_plant } = req.body
+              const adminName = result.data.fullname_admin
               try {
                   const fs = require('fs');
                   const name = req.body.img_report ?
                       await new Promise((resole, reject) => {
                           const name_image = `${result.data.id}${req.body.id_plant}${new Date().getTime()}.jpg`
-                          const Path = __dirname.replace("server", "app") + `/src/assets/img/doctor/report/${name_image}`
+                          const Path = path.join(REPORT_IMAGE_DIR, name_image)
                           const base64Data = req.body.img_report.replace("data:image/jpeg;base64,", "")
                           const imageBuffer = Buffer.from(base64Data, 'base64');
                           fs.writeFile(Path, imageBuffer, (err) => {
@@ -4784,37 +4842,27 @@ app.post('/api/admin/report/list', async(req, res) => {
                           VALUES
                           (? , ? , ? , ? , ?)
                       ` , [req.body.id_plant, req.body.report_text, 0, name, result.data.id],
-                      async (err, result) => {
+                      async (err) => {
                           if (!err) {
-                              const { lineIds: arrUID } = await RoyalGapLine.pushMessageToFarmerByFormID(
+                              // ส่งเป็นการ์ดคำแนะนำ (รูปแนบอยู่ในการ์ด แตะเพื่อดูรูปเต็ม)
+                              const adviceUrl = `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
+                              await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
                                   (gapData) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      return [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `มีคำแนะนำการปลูกจากเจ้าหน้าที่`,
-                                          '',
-                                          req.body.report_text
-                                      ]
+                                      return MessageLineTemplate.adviceMessage({
+                                          fromLabel: "เจ้าหน้าที่",
+                                          senderName: adminName,
+                                          greenhouseName: greenhouse_name,
+                                          plantName: plant_name,
+                                          advice: req.body.report_text,
+                                          imageUrl: name ? `${hostServer}/doctor/report/${name}` : "",
+                                          url: adviceUrl
+                                      })
                                   },
-                                  {
-                                      url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/r`
-                                  }
+                                  { url: adviceUrl }
                               )
-                              if (name) {
-                                  const imageURL = `${hostServer}/doctor/report/${name}`;
-                                  try {
-                                      RoyalGapLine.multicast(
-                                          arrUID,
-                                          {
-                                              type: "image",
-                                              originalContentUrl: imageURL,
-                                              previewImageUrl: imageURL
-                                          }
-                                      )
-                                  } catch (e) { }
-                              }
 
                               con.end()
                               res.send("113")
@@ -4864,8 +4912,8 @@ app.post('/api/admin/report/list', async(req, res) => {
                               ` , [req.body.id_plant, req.body.id],
                               async (err, resoleImg) => {
                                   if (!err) {
-                                      const Path = __dirname.replace("server", "src") + `/assets/img/doctor/report/`
-                                      if (resoleImg[0].image_path)
+                                      const Path = REPORT_IMAGE_DIR + path.sep
+                                      if (resoleImg[0] && resoleImg[0].image_path)
                                           try { fs.rmSync(Path + `${resoleImg[0].image_path}`) } catch (e) { }
 
                                       if (req.body.image_object) {
@@ -4883,13 +4931,14 @@ app.post('/api/admin/report/list', async(req, res) => {
                       }) : null;
 
                   if (req.body.report_text || img_path != null) {
-                      const SET = new Array(
-                          req.body.report_text ? `report_text = '${req.body.report_text}'` : "", 
-                          img_path != null ? `image_path = '${img_path}'` : "",
-                          `id_admin = ${result.data.id}`,
-                          `id_table_doctor = 0`
-                      )
-                          .filter(val => val).join(",").replaceAll(" ", "")
+                      // ใช้ placeholder ป้องกัน SQL injection (เดิมต่อ string และลบช่องว่างในข้อความทิ้ง)
+                      const setClauses = []
+                      const setParams = []
+                      if (req.body.report_text) { setClauses.push("report_text = ?"); setParams.push(req.body.report_text) }
+                      if (img_path != null) { setClauses.push("image_path = ?"); setParams.push(img_path) }
+                      setClauses.push("id_admin = ?", "id_table_doctor = 0")
+                      setParams.push(result.data.id)
+                      const SET = setClauses.join(", ")
 
                       const old_report = await new Promise((resolve) => {
                           con.query(
@@ -4902,7 +4951,8 @@ app.post('/api/admin/report/list', async(req, res) => {
                               (err, oldData) => {
                                   if (err) {
                                       console.log("edit report");
-                                      return 0;
+                                      resolve(undefined)
+                                      return;
                                   }
 
                                   resolve(oldData[0])
@@ -4910,12 +4960,18 @@ app.post('/api/admin/report/list', async(req, res) => {
                           )
                       })
 
+                      // ไม่พบคำแนะนำนี้ (เดิม server ล่มเพราะอ่าน property ของ undefined)
+                      if (!old_report) {
+                          con.end()
+                          return res.send("not")
+                      }
+
                       con.query(
                           `
                           UPDATE report_detail
                           SET ${SET}
                           WHERE id_plant = ? and id = ?
-                          ` , [req.body.id_plant, req.body.id],
+                          ` , [...setParams, req.body.id_plant, req.body.id],
                           (err, resultEdit) => {
                               if (err) {
                                   dbpacket.dbErrorReturn(con, err, res);
@@ -5002,16 +5058,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                               const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
-                                  (gapData) => {
+                                  (gapData, { url }) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      const messages = [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `มีผลการตรวจสอบผลผลิตจากเจ้าหน้าที่`,
-                                          `คะแนนการประเมิน: ${statusCheck}`
-                                      ]
-
-                                      if (report_text) messages.push(`ข้อความจากเจ้าหน้าที่: ${report_text}`)
-                                      return messages
+                                      return MessageLineTemplate.farmerCard({
+                                          theme: "checkPlant",
+                                          subtitle: "จากเจ้าหน้าที่",
+                                          rows: [
+                                              ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                              { label: "ระยะ", value: stateCheck == 1 ? "หลังเก็บเกี่ยว" : "ก่อนเก็บเกี่ยว" },
+                                              { label: "คะแนนประเมิน", value: statusCheck }
+                                          ],
+                                          highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                          url
+                                      })
                                   },
                                   {
                                       url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cp`
@@ -5094,18 +5153,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                                       const { error } = await RoyalGapLine.pushMessageToFarmerByFormID(
                                           id_plant,
                                           pool,
-                                          (gapData) => {
+                                          (gapData, { url }) => {
                                               const { greenhouse_name, plant_name } = gapData || {}
-                                              const messages = [
-                                                  ...generateMessageTitle(greenhouse_name, plant_name),
-                                                  `ผลการตรวจสอบแบบบันทึก: ${statusCheck ? "ผ่าน" : "ไม่ผ่าน"}`
-                                              ]
-
-                                              if (report_text) messages.push(
-                                                  `ข้อความจากเจ้าหน้าที่: ${report_text}`
-                                              )
-
-                                              return messages
+                                              const passed = Boolean(Number(statusCheck))
+                                              return MessageLineTemplate.farmerCard({
+                                                  theme: passed ? "checkFormPass" : "checkFormFail",
+                                                  subtitle: "ตรวจโดยเจ้าหน้าที่",
+                                                  rows: [
+                                                      ...MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                                      { label: "ผลการตรวจ", value: passed ? "ผ่าน" : "ไม่ผ่าน" }
+                                                  ],
+                                                  highlight: report_text ? { label: "ข้อความจากเจ้าหน้าที่", text: report_text } : null,
+                                                  url
+                                              })
                                           },
                                           {
                                               url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/s/cf`
@@ -5150,7 +5210,7 @@ app.post('/api/admin/report/list', async(req, res) => {
       try {
           const result = await apifunc.auth(con, adminUsername, adminPassword, res, "admin")
           if (result['result'] === "pass") {
-              const type = req.body.id_edit ? "*" : "id_edit";
+              const type = req.body.id_edit ? "id_edit , editform.id_form , editform.id_doctor , editform.because , editform.date , editform.note , editform.status , editform.type_form" : "id_edit";
               const queryParams = req.body.id_edit ? [req.body.id_edit] : [];
               con.query(
                   ` 
@@ -5170,7 +5230,7 @@ app.post('/api/admin/report/list', async(req, res) => {
                       if (req.body.id_edit) {
                           con.query(
                               `
-                          SELECT * FROM detailedit
+                          SELECT id_detail , id_edit , subject_form , old_content , new_content FROM detailedit
                           WHERE id_edit = ?
                           ` , [req.body.id_edit],
                               (err, detail) => {
@@ -5237,20 +5297,19 @@ app.post('/api/admin/report/list', async(req, res) => {
                               await RoyalGapLine.pushMessageToFarmerByFormID(
                                   id_plant,
                                   pool,
-                                  (gapData) => {
+                                  (gapData, { url }) => {
                                       const { greenhouse_name, plant_name } = gapData || {}
-                                      const messages = [
-                                          ...generateMessageTitle(greenhouse_name, plant_name),
-                                          `การแก้ไขแบบบันทึก GAP ของท่าน ไม่ผ่านการตรวจสอบ`,
-                                          "",
-                                          "รายการ:",
-                                          editDatas.map(({ subject_form, old_content, new_content }) =>
-                                              `${RoyalGapEnv.fields[subject_form]}: จาก ${old_content} เป็น ${new_content}`
-                                          )
-                                      ]
-
-                                      if (note) messages.push(`หมายเหตุ: ${note}`)
-                                      return messages
+                                      return MessageLineTemplate.farmerCard({
+                                          theme: "editRejected",
+                                          rows: MessageLineTemplate.gapRows(greenhouse_name, plant_name),
+                                          list: {
+                                              label: "รายการที่ขอแก้ไข",
+                                              items: editDatas.map(({ subject_form, old_content, new_content }) =>
+                                                  `${RoyalGapEnv.fields[subject_form] || subject_form}: ${old_content || "-"} → ${new_content || "-"}`)
+                                          },
+                                          highlight: note ? { label: "หมายเหตุจากเจ้าหน้าที่", text: note } : null,
+                                          url
+                                      })
                                   },
                                   {
                                       url: `${RoyalGapEnv.url_line.get_greenhouse}/${await getGreenhouseIdByFromGapID(id_plant)}/${id_plant}/d`

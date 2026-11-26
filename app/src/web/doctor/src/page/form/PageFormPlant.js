@@ -860,6 +860,16 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
         ManageShow(Data)
     }, [Data])
 
+    // เปิดจากการแจ้งเตือน: /doctor/form?id_form=xxx[&tab=fertilizer|chemical] → เปิดแบบบันทึกนั้นทันที
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const idForm = params.get("id_form")
+        if (!idForm) return
+        const tab = { fertilizer: 1, chemical: 2 }[params.get("tab")] || 0
+        window.history.replaceState({}, "", window.location.pathname)
+        showPopup(idForm, React.createRef(), tab)
+    }, [])
+
     const ManageShow = (Data) => {
         if (Data.length !== 0) {
             // let Max = 0 , SizeFont = 0 , SizeFontDate = 0
@@ -984,10 +994,10 @@ const ManageList = ({ Data, session, fetch, count, setCount, viewMode }) => {
         }
     }
 
-    const showPopup = async (id_form, Ref) => {
+    const showPopup = async (id_form, Ref, initialType = 0) => {
         const context = await clientMo.post('/api/doctor/check')
         if (context)
-            setPop(<ManagePopup RefData={Ref} setPopup={setPop} RefPop={RefPop}
+            setPop(<ManagePopup RefData={Ref} setPopup={setPop} RefPop={RefPop} initialType={initialType}
                 id_form={id_form} session={session} Fecth={() => fetch(count)} />)
         else session()
     }

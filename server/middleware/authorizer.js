@@ -26,7 +26,10 @@ module.exports = function Authorizer(connectionPool = new ConnectPool()) {
             return res.redirect('/api/logout')
         }
         
-        req.session.profile = profile
+        // เก็บเฉพาะข้อมูลที่จำเป็น (ไม่เก็บรูป/รหัสผ่าน) เพราะ session ถูกบันทึกลงฐานข้อมูล
+        req.session.profile = Object.fromEntries(
+            Object.entries(profile || {}).filter(([key, value]) => !Buffer.isBuffer(value) && !/password/i.test(key))
+        )
         next()
     }
 }

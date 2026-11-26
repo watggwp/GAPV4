@@ -116,12 +116,11 @@ module.exports = function Schedules(connectionPool = new ConnectPool(), socket) 
                         if (doctorUIDs.length > 0) {
                             await RoyalGapLine.multicast(
                                 doctorUIDs,
-                                MessageLineTemplate.bubbleTemplateUrl(
-                                    'เกษตรกรยังไม่บันทึกกิจกรรม',
-                                    checkUnrecorded.notifyDoctorLineMessage(row),
-                                    'https://doctor.gapv4.online',
-                                    { buttonLabel: 'ไปที่ระบบ GAP' }
-                                )
+                                {
+                                    type: "flex",
+                                    altText: "เกษตรกรยังไม่บันทึกกิจกรรม",
+                                    contents: checkUnrecorded.notifyDoctorLineMessage(row)
+                                }
                             )
                         }
                     } catch (lineErr) {

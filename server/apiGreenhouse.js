@@ -52,7 +52,11 @@ module.exports = function apiGreenhouse(app, pool = new Pool()) {
         try {
             const gaps = await pool.executeQuery(
                 `
-                    SELECT *
+                    SELECT g.id , g.id_farm_house , g.name_plant , g.generation , g.date_glow , g.date_plant ,
+                        g.posi_w , g.posi_h , g.qty , g.area , g.date_harvest , g.system_glow , g.water ,
+                        g.water_flow , g.history , g.insect , g.qtyInsect , g.seft , g.state_status ,
+                        g.date_success , g.unit , g.name_varieties , g.expected_yield , g.default_yield ,
+                        gh.uid_line , gh.link_user , gh.name_house , gh.location , gh.status
                     FROM formplant g
                     INNER JOIN housefarm gh ON gh.id_farm_house = g.id_farm_house
                     WHERE ${query.join(" AND ")}

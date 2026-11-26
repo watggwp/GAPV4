@@ -26,13 +26,21 @@
       ```
 
    - Install Database
-      - SQL/main/Structure Database.sql
+      - สร้าง database เปล่า แล้วตั้งชื่อใน `.env` (`DATABASE_DEV` / `DATABASE_SER`)
+      - สร้างตารางและอัปเดตโครงสร้างด้วย migration (รันซ้ำได้ ไฟล์ที่รันแล้วจะข้าม)
+        ```
+        npm run migrate              # ฐานข้อมูล dev
+        npm run migrate -- deploy    # ฐานข้อมูล server
+        npm run migrate:status       # ดูว่าไฟล์ไหนรันแล้ว
+        ```
+      - รายละเอียดการเพิ่ม migration ดูที่ `SQL/migrations/README.md` (ไฟล์ `SQL/main/Structure Database.sql` เก่าและขาดหลายตาราง ไม่ต้องใช้แล้ว)
       - setup user admin
         ```sql
         INSERT INTO `admin` 
          (username , password , phone , address) 
          VALUES ('--username--' , SHA2('--password--', 256) , '--number phone--' , POINT(0000 , 0000))
         ```
+        (รหัสผ่านแบบ SHA2 ใช้ login ได้ และระบบจะแปลงเป็น bcrypt ให้อัตโนมัติเมื่อ login ครั้งแรก)
 
 ### Build Project
 
@@ -206,10 +214,14 @@
 * **`REACT_APP_LINE_GAP`** : ID ของ LIFF สำหรับหน้า **ดูใบ GAP** (Endpoint: `/farmer/gap`)
 * **`REACT_APP_LIFF_DOCTOR`** : ID ของ LIFF สำหรับหน้า **เชื่อมต่อ LINE OA ของหมอพืช** (Endpoint: `/doctor`)
 * **`REACT_APP_WEATHER_STATION`** : ID ของ LIFF สำหรับหน้า **ดูสถานีตรวจวัดสภาพอากาศ** (Endpoint: `/farmer/weather-station`)
+* **`LINE_LOGIN_CHANNEL_ID`** (ไม่บังคับ) : Channel ID ของ LINE Login ที่ผูก LIFF ไว้ ใช้ตรวจ LIFF access token ถ้าไม่ใส่ระบบจะดึงจากเลขหน้า LIFF ID อัตโนมัติ
+* **`ALLOW_UNVERIFIED_LIFF`** (ไม่บังคับ) : ตั้งเป็น `true` เพื่อยอมรับ LINE uid ที่ไม่ได้ยืนยันในโหมด deploy ชั่วคราวเท่านั้น (ค่าปกติ: ปิด) ในโหมด dev ระบบยอมรับ `REACT_APP_UID_USER_TEST` อยู่แล้ว
 
 #### การตั้งค่า Server & Ports (Application Config)
 * **`BUILD`** : กำหนด Environment Mode เช่น `deploy`
 * **`KEY_SESSION`** : Secret Key สำหรับเข้ารหัส Session ของระบบ
+* **`IMAGE_URL_SECRET`** (ไม่บังคับ) : key สำหรับเซ็นลิงก์รูปเกษตรกร/โรงเรือนที่ส่งใน LINE (ไม่ตั้งจะใช้ `KEY_SESSION`) เปลี่ยนค่าแล้วรูปในข้อความ LINE เก่าจะเปิดไม่ได้
+* **`SESSION_TTL_HOURS`** (ไม่บังคับ) : จำนวนชั่วโมงที่ session อยู่ได้เมื่อไม่มีการใช้งาน (ค่าเริ่มต้น 168 = 7 วัน) session เก็บในตาราง `sessions` ของฐานข้อมูล
 * **`cookie`** : ชื่อ Cookie ที่ใช้เก็บ Session
 * **`pathCertFile`** / **`pathKeyFile`** : Path ของไฟล์ SSL Certificate สำหรับเปิด HTTPS (ถ้ามี)
 * **`URL_SERVER`** : Base URL ของระบบ (เช่น `https://api.gapv4.online`)
@@ -232,9 +244,15 @@
 * **`TTN_SENSOR_PASSWORD`** : Password (หรือ API Key) สำหรับต่อ MQTT ของ TTN
 * **`TTN_SENSOR_TOPIC`** : Topic MQTT ที่ใช้ Subscribe อ่านค่าเซ็นเซอร์ที่ส่งเข้ามา (Uplink)
 
+#### การป้องกัน API ภายใน
+* **`INTERNAL_API_KEY`** (ไม่บังคับ) : key สำหรับ API ที่ระบบภายในเรียก (`/api/sensor/weather-*` แบบ POST, `/api/add/device`, `/api/delete/device`, `/api/line/notify/*`) ส่งมาใน header `x-internal-api-key` ถ้าไม่ได้ส่ง key ระบบจะยอมรับเฉพาะ request ที่มาจากเครื่องเดียวกัน (localhost) และไม่ผ่าน proxy หรือ ngrok
+
 #### การตั้งค่า Ngrok
 * **`NGROK_URL`** : URL ชั่วคราวที่ได้จาก Ngrok
 * **`NGROK_AUTHTOKEN`** : Auth Token ประจำบัญชี Ngrok
+
+#### การรายงาน error ให้ผู้ดูแล
+* **`ADMIN_REPORT_UID`** (ไม่บังคับ) : LINE userId ของผู้ดูแลที่จะได้รับข้อความ error จากระบบ ถ้าไม่ตั้งค่า ระบบจะบันทึก error ลง log อย่างเดียว
 
 #### การตั้งค่า Discord Webhook (แจ้งเตือน)
 * **`WEBHOOK_NOTIFIER`** : URL ของ Discord Webhook สำหรับส่งข้อความแจ้งเตือน Error หรือสถานะต่างๆ

@@ -7,13 +7,35 @@ const Report = require("./reportToAdmin")
 const RoyalGapEnv = require('./core/env')
 const RoyalGapLine = require('./configLine')
 const ConnectionPool = require('./connectPool')
+const Line = require('@line/bot-sdk')
+const ImageUrl = require('./core/imageUrl')
 
 module.exports = function Messaging(app , Database , PoolMysql = new ConnectionPool() , apifunc , dbpacket , listDB , UrlApi , socket = io) {
 
     app.post('/messageAPI' , async (req , res)=>{
+        // ตรวจ x-line-signature เพื่อยืนยันว่า request มาจาก LINE จริง
+        const signature = req.get('x-line-signature')
+        if (!process.env.channelSecret || !signature || !req.rawBody ||
+            !Line.validateSignature(req.rawBody, process.env.channelSecret, signature)) {
+            return res.status(401).send('invalid signature')
+        }
+
+        // ตอบ LINE ทันที ป้องกัน timeout และการส่ง event ซ้ำ แล้วค่อยประมวลผลต่อ
+        res.status(200).send('OK')
+
         const { body : { events } = {} } = req
-        if(events?.length > 0) {
-            const [ { type , postback , message , source : { userId : uid_line_message } = {} , replyToken } ] = events
+        for (const event of (events || [])) {
+            try {
+                await handleEvent(event)
+            } catch (err) {
+                console.error("messageAPI event error", err)
+            }
+        }
+    })
+
+    const handleEvent = async (event) => {
+        {
+            const { type , postback , message , source : { userId : uid_line_message } = {} , replyToken } = event
             if(type === "postback") {
                 const { data } = postback
                 let msg
@@ -73,7 +95,7 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                                 "type": "bubble",
                                                 "hero": {
                                                     "type": "image",
-                                                    "url": `${UrlApi}/image/house?imagefarm=${id_farm_house}&date=${key}`,
+                                                    "url": ImageUrl.houseImageUrl(UrlApi, id_farm_house, `&date=${key}`),
                                                     "size": "full",
                                                     "aspectRatio": "20:20",
                                                     "aspectMode": "cover",
@@ -205,7 +227,7 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                 try {
                     await RoyalGapLine.replyMessage(replyToken , msg)
                 } catch(err) {}
-                return res.status(200).send('OK')
+                return
             } else if (type === "message") {
                 if(message.type == "text" || message.type == "image") {
                     const con = await ConnectDB()
@@ -309,7 +331,7 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                                             RoyalGapLine.replyMessage(replyToken , {
                                                 type : "text",
                                                 text : "พบปัญหาในการส่งข้อความ กรุณารอสักครู่และส่งข้อความใหม่อีกครั้ง \u2764"
-                                            })
+                                            }).catch(() => {})
                                         })
                                 } else con.end()
                             } catch(e) {}
@@ -335,18 +357,19 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
                         con.end()
                     }
 
-                    if(msg.type) RoyalGapLine.replyMessage(replyToken , msg)
+                    if(msg.type) await RoyalGapLine.replyMessage(replyToken , msg).catch(() => {})
                 } else {
-                    RoyalGapLine.replyMessage(replyToken , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"})
+                    await RoyalGapLine.replyMessage(replyToken , {text : "กรุณาส่งเป็นข้อความหรือรูปภาพนะคะ" , type : "text"}).catch(() => {})
                 }
             } 
-        } else {
-            return res.status(200).send('OK')
         }
-        
-    })
+    }
 
     app.get("/image/house" , (req , res)=>{
+        // ต้องมีลายเซ็นที่ถูกต้อง (ลิงก์สร้างโดย server เท่านั้น) กันการไล่ id ดูรูปโรงเรือน
+        if (!ImageUrl.verify("house", req.query.imagefarm, req.query.sig)) {
+            return res.status(403).send("forbidden")
+        }
         if(req.query.imagefarm) {
             let con = Database.createConnection(listDB)
             con.connect(( err )=>{
@@ -393,9 +416,8 @@ module.exports = function Messaging(app , Database , PoolMysql = new ConnectionP
             const connect = Database.createConnection(listDB)
             connect.connect(( err )=>{
                 if (err) {
-                    dbpacket.dbErrorReturn(con, err, res);
-                    console.log("connect");
-                    return 0;
+                    console.log("connect", err);
+                    return reject(err);
                 }
                 resole(connect)
             })

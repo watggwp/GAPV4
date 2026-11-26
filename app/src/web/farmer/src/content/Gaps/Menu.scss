@@ -2,7 +2,7 @@
 .nav-first {
   display: flex;
   justify-content: center;
-  width: 100vw;
+  width: min(100vw, 560px);
   min-height: 100%;
 
   .all-menu {

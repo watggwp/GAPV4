@@ -1,6 +1,8 @@
 'use strict';
 
 const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
+const DoctorNotify = require('../doctorNotify');
 const RoyalGapLine = require('../../configLine'); // from server/core/corns to server/configLine.js
 require('dotenv').config();
 
@@ -133,24 +135,20 @@ const checkMismatch = {
                 if (row.doctor_uids) {
                     const uids = row.doctor_uids.split(',');
                     const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
-                    const msgTemplate = MessageLineTemplate.beautifulBubbleUrl({
-                        title: "แจ้งเตือนข้อมูลไม่ตรงตามแผน",
-                        subtitle: `ฟาร์ม: ${row.greenhouse_name}\nพืช: ${row.name_plant}`,
-                        imageUrl: `${baseUrl}/image/house?imagefarm=${row.greenhouse_id}&v=${new Date().getTime()}&ext=.jpg`,
-                        details: [
-                            { label: "เกษตรกร", value: row.fullname },
+                    // เปิดแบบบันทึกนั้นผ่าน LIFF ของหมอ (เข้าระบบด้วยบัญชี LINE ได้ทันที)
+                    const message = MessageLineTemplate.farmerCard({
+                        theme: "mismatch",
+                        subtitle: `เกษตรกร: ${row.fullname}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(row.greenhouse_name, row.name_plant),
                             { label: "กิจกรรม", value: row.title }
                         ],
-                        url: `${baseUrl}/doctor/dashboard`,
-                        buttonLabel: "คลิกเพื่อดูรายละเอียด"
+                        imageUrl: ImageUrl.houseImageUrl(baseUrl, row.greenhouse_id, `&v=${new Date().getTime()}&ext=.jpg`),
+                        url: DoctorNotify.lineUrl(DoctorNotify.targetPath(DoctorNotify.NOTIFY_TYPE.MISMATCH, row.formplant_id)),
                     });
                     for (let uid of uids) {
                         try {
-                            await RoyalGapLine.pushMessage(uid, {
-                                type: "flex",
-                                altText: "แจ้งเตือนข้อมูลไม่ตรงตามแผน",
-                                contents: msgTemplate
-                            });
+                            await RoyalGapLine.pushMessage(uid, message);
                         } catch (e) {
                             console.error("Line Push Error:", e.response?.data || e.message);
                         }

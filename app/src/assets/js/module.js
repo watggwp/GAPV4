@@ -28,6 +28,29 @@ const MapsJSX = ({ lat, lng, w, h }) => {
     )
 }
 
+// แปลงข้อความ array ที่ตัดมาจากหน้า Google Maps เช่น "[13.75,100.5]" ให้เป็น array โดยไม่รันโค้ด
+// (เดิมใช้ eval ซึ่งรันข้อความจากหน้าเว็บภายนอกเป็นโค้ดได้)
+// ให้ผลเหมือน eval กับข้อมูลชนิดนี้: ตัวเลข (รวม .5, +1, 1e-3), null, true/false,
+// ช่องว่างแบบ [1,,2] และ comma ท้าย [1,2,] (JSON.parse อ่านสองแบบหลังไม่ได้)
+// ค่าอื่น (ข้อความ คำสั่ง ฯลฯ) จะ throw เหมือนข้อมูลผิดรูป และผู้เรียกคืนค่า [] ตามเดิม
+const parseArrayLiteral = (text) => {
+    const s = String(text).trim()
+    if (!s.startsWith("[") || !s.endsWith("]")) throw new SyntaxError("not an array literal")
+    const body = s.slice(1, -1)
+    if (body.trim() === "") return []
+    const parts = body.split(",")
+    if (parts.length > 1 && parts[parts.length - 1].trim() === "") parts.pop()
+    return parts.map((raw) => {
+        const t = raw.trim()
+        if (t === "") return undefined
+        if (t === "null") return null
+        if (t === "true") return true
+        if (t === "false") return false
+        if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(t)) return Number(t)
+        throw new SyntaxError("unexpected value in array")
+    })
+}
+
 const GetLinkUrlOfSearch = async (valueLocation, auth) => {
     const Link = valueLocation.split(" ").filter(map => map.indexOf("maps") >= 0)
     if (Link.length != 0) {
@@ -51,10 +74,10 @@ const GetLinkUrlOfSearch = async (valueLocation, auth) => {
                         if (MapsData.indexOf("lore-rec") >= 0) {
                             const MapsReStart = DataFecth.slice(DataFecth.lastIndexOf(",null,null,null,null,null,[null,null,") + 37)
                             const MapsReData = MapsReStart.slice(0, MapsReStart.indexOf("]"))
-                            const newLocation = eval(`[${MapsReData}]`)
+                            const newLocation = parseArrayLiteral(`[${MapsReData}]`)
                             newLocation.push(0)
                             resole(newLocation)
-                        } else resole(eval(MapsData).reverse() ?? []);
+                        } else resole(parseArrayLiteral(MapsData).reverse() ?? []);
                     }
                 })
                 return result
@@ -180,9 +203,16 @@ const Socket = (eventSc, message) => {
     const socket = new WebSocket(`ws://${window.location.href}:3000`);
 }
 
+// เรียก liff.init ครั้งเดียวต่อ LIFF id ทั้งแอป (เดิมเรียกทุกครั้งที่ render ทำให้ init/sign ซ้ำ)
+const liffInits = {}
+const initLiff = (idLiff) => {
+    if (!liffInits[idLiff]) liffInits[idLiff] = liff.init({ liffId: idLiff })
+    return liffInits[idLiff]
+}
+
 const useLiff = (idLiff) => {
     const Liff = liff
-    const init = Liff.init({ liffId: idLiff })
+    const init = useMemo(() => initLiff(idLiff), [idLiff])
     return [init, Liff];
 }
 
@@ -1131,4 +1161,4 @@ class HrefData {
 //     })
 // }
 
-export { ButtonMenu, Camera, ClosePopUp, ConvertDate, DatePickerThai, DateSelect, DayJSX, DownLoadImage, GetLinkUrlOfSearch, HrefData, LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, OpenImageMax, PatternCheck, PopupDom, ReportAction, ResizeImg, SetMaxLength, TabLoad, TimeDiff, TimeJSX, useLiff };
+export { ButtonMenu, Camera, ClosePopUp, ConvertDate, DatePickerThai, DateSelect, DayJSX, DownLoadImage, GetLinkUrlOfSearch, HrefData, LoadOtherDom, LoadOtherOffset, Loading, MapsJSX, OpenImageMax, PatternCheck, PopupDom, ReportAction, ResizeImg, SetMaxLength, TabLoad, TimeDiff, TimeJSX, initLiff, useLiff };

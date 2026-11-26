@@ -135,17 +135,6 @@
                 height: 60%;
             }
     
-            .detail-content::-webkit-scrollbar {
-                width: 5px;
-                background-color: white;
-                border-radius: 20px;
-            }
-    
-            .detail-content::-webkit-scrollbar-thumb {
-                background-color: rgb(208, 113, 113);
-                border-radius: 20px;
-            }
-            
             .detail-content {
                 position: relative;
                 padding: 0px 10px;
@@ -545,16 +534,6 @@
                                 padding-top: 2px;
                             }
                         }
-                    }
-
-                    .message::-webkit-scrollbar {
-                        width: 4px;
-                        background-color: transparent;
-                    }
-
-                    .message::-webkit-scrollbar-thumb {
-                        background-color: white;
-                        border-radius: 50px;
                     }
 
                     .send-msg {

@@ -3,7 +3,7 @@
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    width: 100vw;
+    width: min(100vw, 560px);
     height: 100%;
     .popup-add[show=""] {
         opacity: 1;
@@ -50,7 +50,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: 8vw;
+                font-size: min(8vw, 44.8px);
                 font-weight: 900;
                 font-family: Sans-font;
                 height: 10%;
@@ -211,14 +211,15 @@
                                                 .list-input-search {
                                                     display: flex;
                                                     flex-direction: column;
-                                                    overflow: scroll;
+                                                    overflow-y: auto; // เลื่อนแนวตั้งอย่างเดียว (เดิม overflow: scroll บังคับแถบเลื่อนแนวนอนด้วย)
+                                                    overflow-x: hidden;
                                                     max-height: 100px;
                                                     position: absolute;
                                                     background-color: white;
                                                     width: 100%;
                                                     border-radius: 8px;
                                                     box-shadow: 0px 4px 4px rgb(181, 181, 181);
-                                                    padding: 1vw;
+                                                    padding: min(1vw, 5.6px);
                                                     z-index: 2;
 
                                                     span {
@@ -360,7 +361,7 @@
                 width: 100%;
                 font-weight: 900;
                 font-family: Sans-font;
-                font-size: 7vw;
+                font-size: min(7vw, 39.2px);
                 position: relative;
 
                 .return {
@@ -390,8 +391,8 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    width: 25vw;
-                    height: 25vw;
+                    width: min(25vw, 140px);
+                    height: min(25vw, 140px);
                     border-radius: 50%;
                     overflow: hidden;
                     // background-size:;
@@ -403,7 +404,7 @@
                 span {
                     margin-top: 10px;
                     font-family: Sans-font;
-                    font-size: 5vw;
+                    font-size: min(5vw, 28px);
                     text-align: center;
                     font-weight: 900;
                     color: red;
@@ -418,7 +419,38 @@
             align-items: center;
             height: 100%;
             width: 100%;
-            overflow: scroll;
+            // เลื่อนแนวตั้งอย่างเดียว: เดิม overflow: scroll บังคับแถบเลื่อนแนวนอน ปัดเฉียงแล้วรายการส่ายซ้ายขวาบนมือถือ
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain; // เลื่อนสุดกล่องแล้วไม่ลากทั้งหน้า/เด้งต่อ
+            -webkit-overflow-scrolling: touch; // เลื่อนแบบมีแรงเฉื่อยบน iOS รุ่นเก่า
+            padding-bottom: 16px;
+
+            .list-empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                width: 90%;
+                margin-top: 12px;
+                padding: 24px 16px;
+                border: 1.5px dashed #b9ddd6;
+                border-radius: 15px;
+                background-color: #f4fbf9;
+                font-family: Sans-font;
+                text-align: center;
+
+                .list-empty-title {
+                    font-size: 18px;
+                    font-weight: 900;
+                    color: #379b7a;
+                }
+
+                .list-empty-hint {
+                    font-size: 14px;
+                    color: #6b7a77;
+                }
+            }
 
             .plant-content {
                 display: flex;
@@ -442,7 +474,7 @@
                         width: 28%;
                         input {
                             width: 100%;
-                            font-size: 7vw;
+                            font-size: min(7vw, 39.2px);
                             font-weight: 900;
                             padding: 0;
                         }
@@ -460,13 +492,13 @@
                             display: flex;
                             flex-direction: column;
                             text-align: end;
-                            font-size: 4vw;
+                            font-size: min(4vw, 22.4px);
                             font-weight: 900;
                         }
 
                         input {
                             text-align: end;
-                            font-size: 4vw;
+                            font-size: min(4vw, 22.4px);
                         }
                     }
                 }
@@ -479,7 +511,7 @@
                     margin: 4px 0px;
                     
                     .content {
-                        font-size: 5vw;
+                        font-size: min(5vw, 28px);
                         font-family: Sans-font;
                         display: flex;
                         justify-content: center;
@@ -491,7 +523,7 @@
 
                         input {
                             text-align: end;
-                            font-size: 4vw;
+                            font-size: min(4vw, 22.4px);
                             width: 100%;
                         }
                     }
@@ -504,7 +536,7 @@
                     align-items: center;
                     
                     .content {
-                        font-size: 5vw;
+                        font-size: min(5vw, 28px);
                         font-family: Sans-font;
                         display: flex;
                         justify-content: center;
@@ -524,7 +556,7 @@
                         justify-content: flex-end;
                         width: 180px;
                         button {
-                            font-size: 5vw;
+                            font-size: min(5vw, 28px);
                             font-family: Sans-font;
                             border: 0;
                             border-radius: 15px;

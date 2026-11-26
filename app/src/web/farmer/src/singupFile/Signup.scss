@@ -2,14 +2,14 @@
     display: flex;
     justify-content: center;
     align-items: start;
-    width: 100vw;
+    width: min(100vw, 560px);
     height: 100vh;
     overflow-y: scroll;
     .frame-form {
         display: flex;
         flex-direction: column;
         justify-content: space-around;
-        width: 100vw;
+        width: min(100vw, 560px);
         // height: 100vh;
         max-width: 470px;
         .popUpPreview {
@@ -35,7 +35,7 @@
                     text-report {
                         margin-bottom: 10px;
                         font-family: TH-font;
-                        font-size: 9.025vw;
+                        font-size: min(9.025vw, 50.54px);
                         font-weight: 900;
                         background-color: white;
                         padding-left: 10px;
@@ -67,7 +67,7 @@
                             padding: 0px 25px;
                             padding-top: 2px;
                             font-family: TH-font;
-                            font-size: 10.83vw;
+                            font-size: min(10.83vw, 60.65px);
                             font-weight: 900;
                             color: white;
                             box-shadow: 0px 2px 2px gray;
@@ -92,7 +92,7 @@
                     background-color: #abffb4;
                     border-radius: 50px;
                     font-family: TH-font;
-                    font-size: 10.83vw;
+                    font-size: min(10.83vw, 60.65px);
                     font-weight: 900;
                     padding: 0px 20px;
                     padding-top: 4px;
@@ -137,7 +137,7 @@
                                 
                                 div , input , textarea {
                                     font-family: TH-font;
-                                    font-size: 9.025vw;
+                                    font-size: min(9.025vw, 50.54px);
                                     font-weight: 900;
                                 }
 
@@ -236,7 +236,7 @@
             z-index: 20;
             background-color: transparent;
             backdrop-filter: blur(8px);
-            width: 100vw;
+            width: min(100vw, 560px);
             height: 100vh;
             opacity: 0;
             top: 0;
@@ -254,7 +254,7 @@
             .title-form {
                 text-align: center;
                 font-family: TH-font;
-                font-size: 10vw;
+                font-size: min(10vw, 56px);
                 font-weight: 900;
                 padding-top: 7px;
                 background-color: rgb(115, 213, 115);
@@ -263,7 +263,7 @@
             .subtitle {
                 text-align: center;
                 font-family: TH-font;
-                font-size: 9vw;
+                font-size: min(9vw, 50.4px);
                 font-weight: 900;
                 padding-top: 10px;
             }
@@ -285,7 +285,7 @@
                     overflow-y: scroll;
                     .head-step {
                         text-align: center;
-                        font-size: 9vw;
+                        font-size: min(9vw, 50.4px);
                         font-family: TH-font;
                         padding: 5px 0px;
                         padding-top: 9px;
@@ -305,7 +305,7 @@
                             flex-direction: column;
                             margin-top: 8px;
                             span {
-                                font-size: 8vw;
+                                font-size: min(8vw, 44.8px);
                                 font-family: TH-font;
                                 width: 100%;
                                 text-align: start;
@@ -321,13 +321,13 @@
                                 border-radius: 8px;
                                 border: 0px;
                                 background-color: rgb(179, 229, 179);
-                                font-size: 7.5vw;
+                                font-size: min(7.5vw, 42px);
                                 font-weight: 900;
                                 padding: 0px 8px;
                                 padding-top: 4px;
                                 width: 90%;
                                 font-family: TH-font;
-                                height: 10vw;
+                                height: min(10vw, 56px);
                             }
 
                             input[type="password"] {
@@ -355,10 +355,6 @@
                     background-color: transparent;
                 }
     
-                .step-one::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
-    
                 .step-two {
                     display: flex;
                     flex-direction: column;
@@ -366,7 +362,7 @@
                     overflow-y: scroll;
                     .head-step {
                         text-align: center;
-                        font-size: 9vw;
+                        font-size: min(9vw, 50.4px);
                         font-family: TH-font;
                         padding: 5px 0px;
                         padding-top: 9px;
@@ -386,7 +382,7 @@
                             flex-direction: column;
                             margin-bottom: 8px;
                             span {
-                                font-size: 8vw;
+                                font-size: min(8vw, 44.8px);
                                 font-family: TH-font;
                                 width: 100%;
                                 text-align: start;
@@ -402,7 +398,7 @@
                                 border-radius: 8px;
                                 border: 0px;
                                 background-color: rgb(179, 229, 179);
-                                font-size: 7.5vw;
+                                font-size: min(7.5vw, 42px);
                                 font-weight: 900;
                                 padding: 0px 8px;
                                 padding-top: 4px;
@@ -417,13 +413,13 @@
 
                         .location {
                             .head-map {
-                                font-size: 8vw;
+                                font-size: min(8vw, 44.8px);
                                 font-family: TH-font;
                                 width: 100%;
                                 text-align: start;
                             }
                             .warning {
-                                font-size: 6vw;
+                                font-size: min(6vw, 33.6px);
                                 font-weight: 900;
                                 color: red;
                                 line-height: 27px;
@@ -466,7 +462,7 @@
                                 margin-top: 5px;
                                 .bt-map-reload {
                                     font-family: TH-font;
-                                    font-size: 6vw;
+                                    font-size: min(6vw, 33.6px);
                                     font-weight: 900;
                                     background-color: rgb(131, 224, 131);
                                     border-radius: 15px;
@@ -483,7 +479,7 @@
                                 margin-top: 10px;
                                 border-top: 2px solid green;
                                 .head-station {
-                                    font-size: 8vw;
+                                    font-size: min(8vw, 44.8px);
                                     font-family: TH-font;
                                     width: 100%;
                                     text-align: start;
@@ -501,7 +497,7 @@
                                     // padding: 0px 5px;
                                     select {
                                         font-family: TH-font;
-                                        font-size: 7vw;
+                                        font-size: min(7vw, 39.2px);
                                         font-weight: 900;
                                         width: 100%;
                                         padding: 0px 3px;
@@ -519,7 +515,7 @@
                                     // height: 31.4px;
                                     span {
                                         font-family: TH-font;
-                                        font-size: 7vw;
+                                        font-size: min(7vw, 39.2px);
                                         margin-left: 8px;
                                         padding-top: 5px;
                                     }
@@ -534,10 +530,6 @@
                     background-color: transparent;
                 }
     
-                .step-two::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
-    
                 .step-three {
                     display: flex;
                     flex-direction: column;
@@ -546,7 +538,7 @@
     
                     .head-step {
                         text-align: center;
-                        font-size: 9vw;
+                        font-size: min(9vw, 50.4px);
                         font-family: TH-font;
                         padding: 5px 0px;
                         padding-top: 9px;
@@ -596,7 +588,7 @@
                         .bt-upload {
                             text-align: center;
                             font-family: TH-font;
-                            font-size: 10vw;
+                            font-size: min(10vw, 56px);
                             font-weight: 900;
                             background-color: rgb(131, 224, 131);
                             border-radius: 10px;
@@ -611,9 +603,6 @@
                     background-color: transparent;
                 }
     
-                .step-three::-webkit-scrollbar-thumb {
-                    background-color: greenyellow;
-                }
             }
         }
     
@@ -628,7 +617,7 @@
             margin: 30px 0px;
             z-index: 0;
             .back , .next , .confirm {
-                width: 15vw;
+                width: min(15vw, 84px);
                 fill: #009919;
             }
     
@@ -656,12 +645,12 @@
                 align-items: center;
     
                 span {
-                    width: 7vw;
-                    height: 7vw;
+                    width: min(7vw, 39.2px);
+                    height: min(7vw, 39.2px);
                     border-radius: 50%;
                     background-color: greenyellow;
                     transition: 0.5s background-color;
-                    margin: 0px 3vw;
+                    margin: 0px min(3vw, 16.8px);
                 }
     
                 span[select=""] {
@@ -987,17 +976,10 @@
     margin: 5px 0 0 0;
     list-style: none;
     font-family: TH-font, sans-serif;
-    font-size: 5.5vw;
+    font-size: min(5.5vw, 30.8px);
     border: 1px solid #e0e0e0;
     
     // Smooth scrollbar
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background-color: #d0d0d0;
-        border-radius: 10px;
-    }
 }
 
 .thai-address-suggestion-item {

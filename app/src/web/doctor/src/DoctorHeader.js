@@ -6,7 +6,12 @@ import { PopupDom, TimeDiff, Loading } from "../../../assets/js/module";
 import ProfilePage from "./page/profile/Profile";
 import ManagePopup from "./page/form/ManagePopup";
 import SchedulesPopup from "./page/form/schedules/SchedulesPageDoctor";
+import { notifyMeta, notifyPath, openDoctorPath } from "./notifyTarget";
 import './assets/style/page/form/PageFormPlant.scss';
+
+// การแจ้งเตือนที่กดแล้วมีหน้าให้เปิด: แผนการปลูก (popup) หรือหน้าในเว็บหมอ (notifyTarget.js)
+const isScheduleNotify = (val) => (val.type === 1 || val.type === 2) && val.ref_id
+const isClickableNotify = (val) => Boolean(isScheduleNotify(val) || notifyPath(val))
 
 const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTitle, toggleSidebar }) => {
     const { profile } = useContext(DoctorContext);
@@ -198,16 +203,6 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
         setNotifyContent(true);
         setShowNotify(!getShowNotify);
     };
-    //ทดสอบ popup แจ้งเตือน
-    const handleTestNotification = async (e) => {
-        if (e) e.preventDefault();
-        try {
-            await clientMo.post('/api/doctor/notify/test');
-        } catch (err) {
-            console.error("Test notification failed:", err);
-        }
-    };
-    //-------------------------------------------------------------
     const logout = () => {
         clientMo.LoadingPage();
         setTimeout(() => {
@@ -226,33 +221,31 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
     return (
         <div className="header-bar" style={{ width: '100%', marginBottom: '20px' }}>
             <PopupDom Ref={RefPopup} Body={BodyPopup} zIndex={999} />
-            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {toasts.map(toastNotify => (
-                    <div key={toastNotify.id} style={{
-                        background: 'white',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        borderRadius: '8px',
-                        padding: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        animation: 'fadeIn 0.3s ease-out',
-                        cursor: 'pointer',
-                        width: '350px',
-                        borderLeft: '4px solid #22C7A9'
-                    }} onClick={() => {
-                        if ((toastNotify.type === 1 || toastNotify.type === 2) && toastNotify.ref_id) {
-                            showSchedulesPopup(toastNotify.ref_id);
-                        }
-                        setToasts(prev => prev.filter(t => t.id !== toastNotify.id));
-                    }}>
-                        <img src={toastNotify.img_farmer} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} alt="farmer" />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>การแจ้งเตือนใหม่</span>
-                            <span style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{toastNotify.notify}</span>
+            <div className="notify-toasts">
+                {toasts.map(toastNotify => {
+                    const meta = notifyMeta(toastNotify)
+                    const dismiss = () => setToasts(prev => prev.filter(t => t.id !== toastNotify.id))
+                    return (
+                        <div key={toastNotify.id} className="notify-toast" role="status"
+                            style={{ "--notify-color": meta.color }}
+                            onClick={() => {
+                                if (isScheduleNotify(toastNotify)) {
+                                    showSchedulesPopup(toastNotify.ref_id);
+                                } else if (notifyPath(toastNotify)) {
+                                    openDoctorPath(notifyPath(toastNotify));
+                                }
+                                dismiss();
+                            }}>
+                            <NotifyAvatar val={toastNotify} />
+                            <div className="toast-body">
+                                <span className="toast-label">{meta.label}</span>
+                                <span className="toast-text">{toastNotify.notify}</span>
+                            </div>
+                            <button type="button" className="toast-close" aria-label="ปิด"
+                                onClick={(e) => { e.stopPropagation(); dismiss(); }}>×</button>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -265,19 +258,17 @@ const DoctorHeader = ({ setMain, socket, setSession, isSidebarCollapsed, pageTit
             </div>
 
             <div className="header-actions">
-                <a href="#" className="notification-link" onClick={handleTestNotification} style={{ color: '#22C7A9', marginRight: '15px' }}>
-                    <span className="hide-mobile">ทดสอบแจ้งเตือน</span>
-                    <span className="show-mobile-icon">🧪</span>
-                </a>
                 <div className="menu-content" style={{ position: 'relative' }}>
-                    <a href="#" className="notification-link" onClick={Notify} notify="">
+                    <a href="#" className="notification-link bell-link" onClick={Notify} notify=""
+                        aria-label={getNotifyCount ? `การแจ้งเตือน ยังไม่อ่าน ${getNotifyCount} รายการ` : "การแจ้งเตือน"}>
+                        <span className="bell-icon" notify="">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                            {getNotifyCount ? <span notify="" className="count-notify">{getNotifyCount < 100 ? getNotifyCount : "99+"}</span> : null}
+                        </span>
                         <span className="hide-mobile">การแจ้งเตือน</span>
-                        <span className="show-mobile-icon">🔔</span>
-                        {getNotifyCount ? <div notify="" className="count-notify" style={{
-                            position: 'absolute', top: '-5px', right: '-5px',
-                            background: 'red', color: 'white', borderRadius: '50%',
-                            padding: '2px 5px', fontSize: '10px'
-                        }}>{getNotifyCount < 10 ? getNotifyCount : "9+"}</div> : null}
                     </a>
                     <div className="notify-content" show={getShowNotify ? "" : null}>
                         {getNotifyContent ?
@@ -347,47 +338,114 @@ const Notification = ({ setShow, setContent, dataNotification, FetchNotifyData, 
         }
     }
 
+    // เลื่อนใกล้ล่างสุด (เหลือไม่ถึง 40px) แล้วโหลดเพิ่ม (เดิมต้องตรงพิกเซลพอดีจึงมักไม่โหลด)
     const LoadGet = async (e) => {
-        if (parseInt(e.target.scrollHeight) === parseInt(e.target.scrollTop + e.target.clientHeight) + 1 && getLoadGet && getListNew.length !== 0) {
+        const box = e.target
+        if (box.scrollHeight - box.scrollTop - box.clientHeight < 40 && getLoadGet && getListNew.length !== 0) {
             setLoadGet(false)
             setListNew(await FetchNotify())
             setLoadGet(true)
         }
     }
 
+    const closePanel = () => {
+        setShow(false)
+        setTimeout(() => setContent(false), 200)
+    }
+
+    const openItem = (val) => {
+        if (isScheduleNotify(val)) {
+            showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
+        } else if (notifyPath(val)) {
+            openDoctorPath(notifyPath(val)); setShow(false); setContent(false);
+        }
+    }
+
+    const unreadCount = getWaitContent !== "w" ? dataNotification.filter(isUnread).length : 0
+    const groups = groupByDay(dataNotification)
+
     return (
-        <section className="body-notification" notify="" onScroll={LoadGet}>
-            <div className="list-notification" notify="">
+        <section className="body-notification" notify="">
+            <header className="notify-head" notify="">
+                <div className="notify-title" notify="">
+                    การแจ้งเตือน
+                    {unreadCount ? <span className="notify-new-chip" notify="">ใหม่ {unreadCount}</span> : null}
+                </div>
+                <button type="button" className="notify-close" aria-label="ปิดการแจ้งเตือน" onClick={closePanel}>×</button>
+            </header>
+            <div className="list-notification" notify="" onScroll={LoadGet}>
                 {
-                    getWaitContent !== "w" ?
-                        dataNotification.length ?
-                            dataNotification.map(val =>
-                                <div className="content-notification" key={val.id} notify=""
-                                    onClick={() => {
-                                        if ((val.type === 1 || val.type === 2) && val.ref_id) {
-                                            showSchedulesPopup(val.ref_id); setShow(false); setContent(false);
-                                        }
-                                    }}
-                                    style={{ cursor: ((val.type === 1 || val.type === 2) && val.ref_id) ? 'pointer' : 'default' }}>
-                                    <div className="box-left" notify="">
-                                        <img notify="" src={val.img_farmer} alt="farmer"></img>
-                                    </div>
-                                    <div className="box-right" notify="">
-                                        <div className="subject" notify="">
-                                            {val.notify}
-                                        </div>
-                                        <div className="date" notify="">
-                                            <TimeDiff DATE={val.date} />
-                                        </div>
-                                    </div>
+                    getWaitContent === "w" ?
+                        <div className="notify-loading"><Loading size={30} MaxSize={30} border={8} color="#4FB096" animetion={true} /></div>
+                        : dataNotification.length ?
+                            groups.map(group =>
+                                <div className="notify-group" key={group.label} notify="">
+                                    <div className="notify-group-label" notify="">{group.label}</div>
+                                    {group.items.map(val => {
+                                        const meta = notifyMeta(val)
+                                        const clickable = isClickableNotify(val)
+                                        return (
+                                            <div key={val.id} notify=""
+                                                className={`content-notification${isUnread(val) ? " unread" : ""}${clickable ? " clickable" : ""}`}
+                                                style={{ "--notify-color": meta.color }}
+                                                role={clickable ? "button" : undefined}
+                                                tabIndex={clickable ? 0 : undefined}
+                                                onClick={() => openItem(val)}
+                                                onKeyDown={(e) => { if (clickable && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openItem(val) } }}>
+                                                <NotifyAvatar val={val} />
+                                                <div className="box-right" notify="">
+                                                    <div className="notify-meta" notify="">
+                                                        <span className="notify-type" notify="">{meta.label}</span>
+                                                        <span className="date" notify=""><TimeDiff DATE={val.date} DivInput={false} /></span>
+                                                    </div>
+                                                    <div className="subject" notify="">{val.notify}</div>
+                                                </div>
+                                                {isUnread(val) ? <span className="unread-dot" aria-label="ยังไม่อ่าน" notify=""></span> : null}
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                             )
-                            : <div>ไม่มีการแจ้งเตือน</div>
-                        : <Loading size={30} MaxSize={30} border={8} color="#22C7A9" animetion={true} />
+                            : <div className="notify-empty" notify="">
+                                <div className="notify-empty-icon" notify="">🔔</div>
+                                <div className="notify-empty-title" notify="">ยังไม่มีการแจ้งเตือน</div>
+                                <div className="notify-empty-text" notify="">เมื่อเกษตรกรสมัครใหม่ หรือเพิ่ม/แก้ไขแบบบันทึก จะแสดงที่นี่</div>
+                            </div>
                 }
+                {!getLoadGet ? <div className="notify-loading small"><Loading size={20} MaxSize={20} border={5} color="#4FB096" animetion={true} /></div> : null}
             </div>
         </section>
     )
+}
+
+// รูปเกษตรกร + ไอคอนประเภทมุมขวาล่าง
+const NotifyAvatar = ({ val }) => {
+    const meta = notifyMeta(val)
+    return (
+        <div className="notify-avatar" notify="" style={{ "--notify-color": meta.color }}>
+            <img notify="" src={val.img_farmer} alt="" onError={(e) => { e.currentTarget.style.visibility = "hidden" }} />
+            <span className="notify-avatar-icon" notify="" aria-hidden="true">{meta.icon}</span>
+        </div>
+    )
+}
+
+const isUnread = (val) => Number(val.is_read) === 0
+
+// จัดกลุ่มตามวัน: วันนี้ / เมื่อวาน / ก่อนหน้านี้ (รายการเรียงใหม่ไปเก่าอยู่แล้ว)
+const groupByDay = (list) => {
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    const today = startOfDay(new Date())
+    const yesterday = today - 24 * 60 * 60 * 1000
+    const groups = []
+    list.forEach((val) => {
+        const date = new Date(val.date)
+        const day = isNaN(date.getTime()) ? 0 : startOfDay(date)
+        const label = day >= today ? "วันนี้" : day >= yesterday ? "เมื่อวาน" : "ก่อนหน้านี้"
+        const last = groups[groups.length - 1]
+        if (last && last.label === label) last.items.push(val)
+        else groups.push({ label, items: [val] })
+    })
+    return groups
 }
 
 export default DoctorHeader;

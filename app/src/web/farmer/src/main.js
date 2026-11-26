@@ -4,6 +4,7 @@ import { useLiff } from "../../../assets/js/module";
 import { CloseAccount } from "./method";
 import liff from "@line/liff";
 import { Outlet, useLocation } from "react-router";
+import "./assets/Responsive.scss";
 
 const FarmerContext = createContext({
     liff: liff,
@@ -24,12 +25,17 @@ const MainFarmer = () => {
     const location = useLocation();
     const page = location.pathname.split("/")[2];
 
-    const [init, Liff] = useLiff(liff_id_mapping[page])
+    // init LIFF ครั้งเดียวด้วย LIFF ID ของหน้าแรกที่เปิด แล้วใช้ตัวเดิมตลอด
+    // (ทุก LIFF อยู่ channel เดียวกัน) ถ้า init ใหม่ด้วย ID อื่นตอนเปลี่ยนหน้าในแอป LINE จะโหลดหน้าใหม่
+    // ทำให้ request ที่ค้างอยู่ถูกตัด แล้วขึ้นกล่อง error ว่างๆ
+    const [liffId] = useState(() => liff_id_mapping[page])
+    const [init, Liff] = useLiff(liffId)
     const [uid, setUid] = useState("")
     const [verified, setVerified] = useState(false)
 
-    const RouterPage = useCallback(async (uid) => {
-        const result = await clientMo.post("/api/farmer/sign", { uid: uid, page: page });
+    const RouterPage = useCallback(async (uid, accessToken) => {
+        // server ใช้ accessToken ยืนยันตัวตนกับ LINE ส่วน uid ใช้ได้เฉพาะตอน dev
+        const result = await clientMo.post("/api/farmer/sign", { uid: uid, accessToken: accessToken, page: page });
         setUid(uid)
 
         switch (result) {
@@ -81,7 +87,7 @@ const MainFarmer = () => {
                     return
                 }
                 const uidTest = process.env.REACT_APP_UID_USER_TEST
-                RouterPage(uidTest, Liff)
+                RouterPage(uidTest)
                 return
             }
 
@@ -91,7 +97,7 @@ const MainFarmer = () => {
             }
 
             const profile = await Liff.getProfile()
-            profile.userId && RouterPage(profile.userId, Liff)
+            profile.userId && RouterPage(profile.userId, Liff.getAccessToken())
         } catch (err) {
             CloseAccount("not line", null, "พบปัญหาจากระบบ")
         }

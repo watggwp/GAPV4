@@ -29,7 +29,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2009108007-REIob8fw"
+            "uri": `https://liff.line.me/${process.env.REACT_APP_LINE_SIGNUP}`
           }
         },
         {
@@ -41,7 +41,7 @@ const RichMenu = {
           },
           "action": {
             "type": "uri",
-            "uri": "https://liff.line.me/2009108007-9j6NrujI"
+            "uri": `https://liff.line.me/${process.env.REACT_APP_LIFF_DOCTOR}`
           }
         },
       ]
@@ -57,7 +57,7 @@ const RichMenu = {
 
   createRichAddFarm : (object_create) => {    
     richmenu.createRichMenu(object_create).then((RichID)=>{
-      let pathImage = "API/assets/farmer-menuV4-small.png"
+      let pathImage = "API/assets/farmer-menuV4_1-small.png"
       richmenu.setRichMenuImage(RichID , fs.readFileSync(pathImage) , "image/png")
     })
   },
@@ -96,8 +96,8 @@ const RichMenu = {
 
 //รูปภาพห้ามเกิน1MB
 
-// RichMenu.DeleteRichMenu.someone("richmenu-67122c2041070ca16eafeaa30d1dd4c3")
-// RichMenu.GetRichMenu()
+// RichMenu.DeleteRichMenu.someone("richmenu-abd7379be52146f0b3e015cd6816f7c2")
+RichMenu.GetRichMenu()
 // RichMenu.createRichLogin()
 // RichMenu.setDefault("richmenu-de534382f619a47859395782454c8df8")
 // richmenu.linkRichMenuToUser("Uff9c982ec0354c273ea3605abb777445" , "richmenu-222ec92b02d740bf4f6dd6d5f7a5f7bc")
@@ -119,7 +119,7 @@ const RichMenu = {
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2009108007-suQvoPkK"
+//         "uri": `https://liff.line.me/${process.env.REACT_APP_WEATHER_STATION}`
 //       }
 //     },
 //     {
@@ -131,7 +131,7 @@ const RichMenu = {
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2009108007-HZeEJyK0"
+//         "uri": `https://liff.line.me/${process.env.REACT_APP_LINE_HOUSE}`
 //       }
 //     },
 //     {
@@ -147,7 +147,7 @@ const RichMenu = {
 //       // }
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2009108007-b5gCZTDc"
+//         "uri": `https://liff.line.me/${process.env.REACT_APP_LINE_GAP}`
 //       }
 //     },
 //     {
@@ -159,7 +159,7 @@ const RichMenu = {
 //       },
 //       "action": {
 //         "type": "uri",
-//         "uri": "https://liff.line.me/2009108007-Kh7K514Q"
+//         "uri": `https://liff.line.me/${process.env.REACT_APP_LINE_HOUSELIST}`
 //       }
 //     }
 //   ]

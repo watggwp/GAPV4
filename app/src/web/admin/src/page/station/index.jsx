@@ -6,7 +6,7 @@ import Houses from "./houses";
 import WeatherManagement from "../../../../../assets/components/weather-management";
 import RequestAPI from "../../../../../assets/js/requestAPI";
 import { Grid } from "@mui/system";
-import ManageDevicesWeatherStation from "./manageDevice";
+import ManageDevicesWeatherStation from "../../../../../assets/components/station-management/manageDeviceWeatherStation";
 
 const WeatherStationContext = createContext({
   selectedStationData: {},
@@ -100,7 +100,8 @@ export default function WeatherStation() {
     <div style={{ padding: "20px", fontFamily: "sans-serif", width: "100%", height: "100%", overflow: "auto" }}>
       <Stack marginBottom={3} direction={"row"} width={"100%"}>
         <Grid container width={"100%"}>
-          <Grid size={{ xs: 8, xl: 6 }}>
+          {/* จอแคบ: ดรอปดาวน์เต็มแถว ปุ่มขึ้นแถวใหม่ */}
+          <Grid size={{ xs: 12, sm: 8, xl: 6 }}>
             <Stack direction={"row"}>
               <Select
                 displayEmpty
@@ -135,10 +136,13 @@ export default function WeatherStation() {
             </Stack>
           </Grid>
 
-          <Grid size={{ xs: 4, xl: 6 }}>
+          <Grid size={{ xs: 12, sm: 4, xl: 6 }} sx={{ mt: { xs: 1.5, sm: 0 } }}>
             <Stack direction={"row"} justifyContent={"end"}>
-              <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}>
-                <Typography>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
+              {/* จอแคบ: แสดงข้อความสั้น ไม่ให้ปุ่มถูกบีบจนข้อความขึ้นหลายบรรทัด */}
+              <Button variant="contained" onClick={() => setOpenManageWeatherStation(true)}
+                sx={{ whiteSpace: "nowrap", minWidth: "auto" }}>
+                <Typography sx={{ display: { xs: "none", md: "inline" } }}>จัดการเครื่องวัดสภาพแวดล้อมในศูนย์ฯ</Typography>
+                <Typography sx={{ display: { xs: "inline", md: "none" } }}>จัดการเครื่องวัด</Typography>
               </Button>
             </Stack>
           </Grid>

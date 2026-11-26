@@ -3,7 +3,7 @@
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    width: 100vw;
+    width: min(100vw, 560px);
     height: 100%;
     .all-menu {
         display: flex;
@@ -17,17 +17,17 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            height: 5vw;
+            height: min(5vw, 28px);
             font-family: main-font;
             font-weight: 900;
-            font-size: 12vw;
+            font-size: min(12vw, 67.2px);
         }
         .content-menu {
             display: flex;
             justify-content: space-evenly;
             flex-direction: column;
             align-items: center;
-            width: 100vw;
+            width: min(100vw, 560px);
             .frame-menu {
                 display: flex;
                 justify-content: space-evenly;
@@ -36,8 +36,8 @@
                 border-radius: 50px;
                 padding: 0px 15px;
                 box-shadow: 0px 4px 4px rgb(179, 179, 179);
-                width: 80vw;
-                height: 80vw;
+                width: min(80vw, 448px);
+                height: min(80vw, 448px);
                 // overflow: hidden;
                 .box-icon {
                     display: flex;
@@ -49,8 +49,8 @@
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        width: 25vw;
-                        height: 25vw;
+                        width: min(25vw, 140px);
+                        height: min(25vw, 140px);
                         border-radius: 50%;
                         overflow: hidden;
                         // box-shadow: 0px 0px ;
@@ -61,29 +61,29 @@
                     }
 
                     .frame-plant {
-                        box-shadow: 0px 0px 100vw rgba(0, 255, 63, 0.35);
+                        box-shadow: 0px 0px min(100vw, 560px) rgba(0, 255, 63, 0.35);
                     }
         
                     .frame-ferti {
-                        box-shadow: 0px 0px 100vw #ffe5a1;
+                        box-shadow: 0px 0px min(100vw, 560px) #ffe5a1;
                     }
         
                     .frame-chemi {
-                        box-shadow: 0px 0px 100vw #ffa2a2;
+                        box-shadow: 0px 0px min(100vw, 560px) #ffa2a2;
                     }
         
                     .frame-success {
-                        box-shadow: 0px 0px 100vw #c070ff;
+                        box-shadow: 0px 0px min(100vw, 560px) #c070ff;
                     }
                 }
                 span {
                     // margin-top: 10px;
                     font-family: Sans-font;
-                    font-size: 6vw;
+                    font-size: min(6vw, 33.6px);
                     text-align: center;
                     font-weight: 900;
                     // width: 55vw;
-                    padding: 1vw 5vw;
+                    padding: min(1vw, 5.6px) min(5vw, 28px);
                     background-color: white;
                     z-index: 1;
                     box-shadow: 0px 0px 15px white;

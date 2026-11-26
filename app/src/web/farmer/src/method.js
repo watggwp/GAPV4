@@ -19,7 +19,8 @@ const CloseAccount = (result , setPage , textError = "") => {
             } catch(e) {}
             resolve(0)
         } else if (result === "not line") {
-            document.querySelector("#session-farmer .body #session-text").innerHTML = textError
+            // ไม่มีข้อความ = กล่อง error ว่าง ผู้ใช้ไม่รู้ว่าเกิดอะไร จึงใส่ข้อความสำรองไว้เสมอ
+            document.querySelector("#session-farmer .body #session-text").innerHTML = textError || "พบปัญหาจากระบบ กรุณาลองใหม่อีกครั้ง"
             document.querySelector("#session-farmer").style.opacity = "1"
             document.querySelector("#session-farmer").style.visibility = "visible"
         }

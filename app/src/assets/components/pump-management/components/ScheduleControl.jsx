@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ScheduleList from './ScheduleList';
-import { Box, Button, Stack } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { DebounceTime, usePumpManagement } from '..';
 import RequestAPI from '../../../js/requestAPI';
 import { useRef } from 'react';
@@ -9,10 +9,19 @@ import ApproveDialogApp from '../../ApproveDialogApp';
 import TimePickerApp from "../../TimePickerApp"
 import { useDebounce } from '../../useRoyalGAP';
 
+// อุปกรณ์รับระยะเวลาเป็น 1 byte (หน่วยนาที) จึงตั้งได้ 1-255 นาที
+const MAX_DURATION_MINUTES = 255
+
+const isValidDuration = (value) => {
+    const minutes = Number(value)
+    return value !== '' && Number.isInteger(minutes) && minutes >= 1 && minutes <= MAX_DURATION_MINUTES
+}
+
 export default function ScheduleControl() {
     const { device_id , role } = usePumpManagement()
     const [time, setTime] = useState('');
     const [duration, setDuration] = useState('');
+    const [errorText, setErrorText] = useState('');
     
     const [ schedules , setSchedules ] = useState([])
     const [ loading , setLoading ] = useState(false)
@@ -40,6 +49,11 @@ export default function ScheduleControl() {
 
     const handleAdd = useCallback( async () => {
         if (time && duration) {
+            if (!isValidDuration(duration)) {
+                setErrorText(`กรอกจำนวนนาทีเป็นจำนวนเต็ม 1-${MAX_DURATION_MINUTES}`)
+                return
+            }
+            setErrorText('')
             setLoadingAdd(true)
             const { data , status } = await RequestAPI.post(`/api/pump/${device_id}/schedule` , {
                 start_time : time,
@@ -59,7 +73,11 @@ export default function ScheduleControl() {
                         ...crrSchedule
                     ])
                     break;
+                case 409 :
+                    setErrorText('มีตารางเวลานี้อยู่แล้ว')
+                    break;
                 default :
+                    setErrorText('บันทึกตารางเวลาไม่สำเร็จ')
                     break;
             }
 
@@ -126,8 +144,9 @@ export default function ScheduleControl() {
                 </label>
                 <label style={{ width : "100%" }}>
                     จำนวน (นาที)
-                    <input type="number" style={{ textAlign : "center" }} value={duration} onChange={e => setDuration(e.target.value)} />
+                    <input type="number" min={1} max={MAX_DURATION_MINUTES} step={1} style={{ textAlign : "center" }} value={duration} onChange={e => setDuration(e.target.value)} />
                 </label>
+                {errorText && <Typography color="error" fontSize={14}>{errorText}</Typography>}
                 <Button 
                     disabled={loadingAdd || debounce > 0} 
                     sx={{ 

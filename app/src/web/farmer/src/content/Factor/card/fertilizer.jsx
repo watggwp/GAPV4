@@ -4,6 +4,7 @@ import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { useGreenhouse } from "../..";
 import { CloseAccount } from "../../../method";
 import { DayJSX } from "../../../../../../assets/js/module";
+import { EmptyList } from "../../TemplateList";
 
 export default function Fertilizer({
     OpenManage,
@@ -16,6 +17,7 @@ export default function Fertilizer({
     const { setCurrentPage } = useGreenhouse()
 
     const [ fertilizers , setFertilizer ] = useState([])
+    const [ loaded , setLoaded ] = useState(false)
 
     const requestFertilizer = useCallback( async () => {
         const result = await clientMo.post('/api/farmer/factor/select' , {
@@ -27,6 +29,7 @@ export default function Fertilizer({
         
         if(await CloseAccount(result , setCurrentPage)) {
             setFertilizer(JSON.parse(result))
+            setLoaded(true)
             setLoading(true)
         }
     } , [gap_id, greenhouse_id, setCurrentPage, setLoading])
@@ -34,6 +37,9 @@ export default function Fertilizer({
     useEffect(() => {
         requestFertilizer()
     } , [requestFertilizer])
+
+    // ยังไม่มีการบันทึก: แสดงข้อความแทนกล่องว่าง
+    if (loaded && fertilizers.length === 0) return <EmptyList title="ยังไม่มีการบันทึกปุ๋ย" hint="เมื่อบันทึกแล้ว รายการจะแสดงที่นี่" />
 
     return(
         fertilizers.map((fertilizer , key)=>

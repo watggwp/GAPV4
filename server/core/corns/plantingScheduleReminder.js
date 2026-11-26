@@ -1,4 +1,5 @@
 const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
 const RoyalGapEnv = require('../env');
 const plantingScheduleReminder = {
     queryPlan: async (connectionPool) => {
@@ -16,7 +17,7 @@ const plantingScheduleReminder = {
                 FROM plant_list pl
                 INNER JOIN (
                     SELECT 
-                        s.* ,
+                        s.id , s.plant_id , s.station_id , s.category , s.title , s.age_plant , s.repeat ,
                         IF(
                             s.category = 1,
                         	CONCAT(
@@ -86,7 +87,7 @@ const plantingScheduleReminder = {
 
         const subtitle = `โรงเรือน: ${greenhouse_name}\nพืช: ${name}\nวันที่: ${dateString}`;
         const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online";
-        const greenhouseImage = `${baseUrl}/image/house?imagefarm=${greenhouse_id}&v=${date.getTime()}&ext=.jpg`;
+        const greenhouseImage = ImageUrl.houseImageUrl(baseUrl, greenhouse_id, `&v=${date.getTime()}&ext=.jpg`);
         switch (category) {
             case 1: {
                 const { name_fertilizer, formula_fertilizer, volume, unit_volume, how_use } = details
@@ -100,12 +101,18 @@ const plantingScheduleReminder = {
 
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
+                    MessageLineTemplate.farmerCard({
+                        theme: "planReminder",
                         title: reminderTitle,
-                        subtitle: subtitle,
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่ต้องทำ", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list // Keep empty to avoid displaying details table on bubble
-                    }),
+                        showDate: false,
+                    }).contents,
                     details_message
                 ]
             }
@@ -122,12 +129,18 @@ const plantingScheduleReminder = {
 
                 const details_message = details_list.map(d => `${d.label}: ${d.value}`);
                 return [
-                    MessageLineTemplate.beautifulBubbleUrl({
+                    MessageLineTemplate.farmerCard({
+                        theme: "planReminder",
                         title: reminderTitle,
-                        subtitle: subtitle,
+                        subtitle: `กิจกรรม: ${title}`,
+                        rows: [
+                            ...MessageLineTemplate.gapRows(greenhouse_name, name),
+                            { label: "วันที่ต้องทำ", value: dateString },
+                            ...details_list
+                        ],
                         imageUrl: greenhouseImage,
-                        details: details_list // Keep empty to avoid displaying details table on bubble
-                    }),
+                        showDate: false,
+                    }).contents,
                     details_message
                 ]
             }

@@ -4,6 +4,7 @@ import { clientMo } from "../../../../../../assets/js/moduleClient";
 import { useGreenhouse } from "../..";
 import { CloseAccount } from "../../../method";
 import { DayJSX } from "../../../../../../assets/js/module";
+import { EmptyList } from "../../TemplateList";
 
 export default function Chemical({
     OpenManage,
@@ -16,6 +17,7 @@ export default function Chemical({
     const { setCurrentPage } = useGreenhouse()
 
     const [ chemicals , setChemicals ] = useState([])
+    const [ loaded , setLoaded ] = useState(false)
 
     const requestChemical = useCallback( async () => {
         const result = await clientMo.post('/api/farmer/factor/select' , {
@@ -27,6 +29,7 @@ export default function Chemical({
         
         if(await CloseAccount(result , setCurrentPage)) {
             setChemicals(JSON.parse(result))
+            setLoaded(true)
             setLoading(true)
         }
     } , [gap_id, greenhouse_id, setCurrentPage, setLoading])
@@ -34,6 +37,9 @@ export default function Chemical({
     useEffect(() => {
         requestChemical()
     } , [requestChemical])
+
+    // ยังไม่มีการบันทึก: แสดงข้อความแทนกล่องว่าง
+    if (loaded && chemicals.length === 0) return <EmptyList title="ยังไม่มีการบันทึกสารเคมี" hint="เมื่อบันทึกแล้ว รายการจะแสดงที่นี่" />
 
     return(
         chemicals.map((chemical , key)=>

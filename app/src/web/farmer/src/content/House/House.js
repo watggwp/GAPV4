@@ -261,7 +261,8 @@ const House = ({Ref , setPopup}) => {
                 delete data.name;
             }
 
-            if (!data.lag || !data.lng || (data.lag == OldLOcation.x || data.lng == OldLOcation.y)) {
+            // ส่งพิกัดเมื่อมีการเปลี่ยน lat หรือ lng อย่างใดอย่างหนึ่ง (เดิมใช้ || ทำให้เปลี่ยนแค่แกนเดียวแล้วไม่ถูกบันทึก)
+            if (!data.lag || !data.lng || (data.lag == OldLOcation.x && data.lng == OldLOcation.y)) {
                 delete data.lag;
                 delete data.lng;
             }

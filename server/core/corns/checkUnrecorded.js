@@ -1,5 +1,8 @@
 'use strict';
 
+const MessageLineTemplate = require('../messageLineTemplate');
+const ImageUrl = require('../imageUrl');
+const DoctorNotify = require('../doctorNotify');
 
 const checkUnrecorded = {
     queryUnrecorded: async (connectionPool) => {
@@ -76,12 +79,18 @@ const checkUnrecorded = {
 
     notifyDoctorLineMessage: (row) => {
         const typeLabel = row.category === 1 ? 'ปุ๋ย' : 'สารเคมี'
-        return [
-            `เกษตรกร: ${row.fullname}`,
-            `พืช: ${row.name_plant}`,
-            `กิจกรรม: ${row.title} (${typeLabel})`,
-            `โรงเรือน: ${row.greenhouse_name}`
-        ]
+        const baseUrl = process.env.URL_SERVER || "https://api.gapv4.online"
+        return MessageLineTemplate.farmerCard({
+            theme: "unrecorded",
+            subtitle: `เกษตรกร: ${row.fullname}`,
+            imageUrl: ImageUrl.houseImageUrl(baseUrl, row.greenhouse_id, `&v=${new Date().getTime()}&ext=.jpg`),
+            rows: [
+                ...MessageLineTemplate.gapRows(row.greenhouse_name, row.name_plant),
+                { label: "กิจกรรม", value: `${row.title} (${typeLabel})` }
+            ],
+            // เปิดแบบบันทึกนั้นผ่าน LIFF ของหมอ (เข้าระบบด้วยบัญชี LINE ได้ทันที)
+            url: DoctorNotify.lineUrl(DoctorNotify.targetPath(DoctorNotify.NOTIFY_TYPE.UNRECORDED, row.formplant_id)),
+        }).contents
     }
 }
 

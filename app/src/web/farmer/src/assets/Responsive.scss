@@ -1,0 +1,39 @@
+// หน้าเกษตรกรออกแบบสำหรับมือถือ (เปิดใน LINE)
+// บนแท็บเล็ต/คอม (กว้างเกิน 560px) ให้แสดงเป็นแอปกว้าง 560px อยู่กลางจอ แทนการยืดเต็มจอ
+// ขนาดที่เป็น vw ในไฟล์อื่นถูกจำกัดไว้ที่ค่าของจอ 560px แล้ว (min(Nvw, N*5.6px)) จึงเข้ากับกรอบนี้พอดี
+
+$app-max: 560px;
+
+@media (min-width: 561px) {
+    body {
+        background-color: #e6ecea;
+    }
+
+    #farmer {
+        position: relative;
+        max-width: $app-max;
+        min-height: 100%;
+        margin: 0 auto;
+        background-color: #ffffff;
+        box-shadow: 0 0 24px rgba(0, 0, 0, 0.08);
+    }
+
+    // แถบหัวที่ติดจอ: ให้อยู่ในกรอบเดียวกับหน้า
+    .farm .farm-body .head-nav {
+        left: 50%;
+        width: 100%;
+        max-width: $app-max;
+        transform: translateX(-50%);
+    }
+
+    // เมนูด้านข้าง (70% ของกรอบ ไม่ใช่ของจอ)
+    .farm .background-nav .nav-menu {
+        max-width: $app-max * 0.7;
+    }
+
+    // ปุ่ม + หน้ารายการ GAP: ชิดขอบขวาของกรอบ
+    // (.gap-liff-page นำหน้าเพื่อให้ชนะกฎ .gap-fab ใน GapCardList.scss ที่โหลดทีหลัง)
+    .gap-liff-page .gap-fab {
+        right: calc((100vw - #{$app-max}) / 2 + 22px);
+    }
+}

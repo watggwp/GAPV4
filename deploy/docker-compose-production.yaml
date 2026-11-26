@@ -40,7 +40,7 @@ services:
     networks:
       - royal-gap-network-prod
     ports:
-      - 8335:80
+      - 127.0.0.1:8335:80
     depends_on:
       - royal-gap-production-db
 

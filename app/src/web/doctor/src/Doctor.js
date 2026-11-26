@@ -53,7 +53,8 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
     const [SizeProfileImg, setSizeProfileImg] = useState(0)
 
     useEffect(() => {
-        if (isClick === 1) window.history.replaceState({}, "", "/doctor")
+        // หลัง login ให้กลับหน้าแรก ยกเว้นเปิดมาจากลิงก์การแจ้งเตือน (ต้องไปหน้านั้นต่อ)
+        if (isClick === 1 && !/[?&](id_form|farmer)=/.test(window.location.search)) window.history.replaceState({}, "", "/doctor")
 
         // ซ่อน #loading splash screen เมื่อ Doctor component mount
         clientMo.unLoadingPage()
@@ -70,10 +71,10 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
         ChkPath(null, "web")
         window.addEventListener("popstate", ChkPath)
         window.addEventListener("resize", handleResize)
-        socket.emit("connect-account", username, password)
+        socket.emit("connect-account")
 
         return () => {
-            socket.emit("disconnect-account", username, password)
+            socket.emit("disconnect-account")
             window.removeEventListener("popstate", ChkPath)
             window.removeEventListener("resize", handleResize)
         }
@@ -99,7 +100,7 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
             }
             else if (path.length >= 2 && path[0] === "doctor") {
                 if (path[1] === "form") {
-                    setBody(<PageFormPlant setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />);
+                    setBody(<PageFormPlant key={window.location.search} setMain={setMain} socket={socket} setBodyDoctor={setBody} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />);
                     setPageTitle("แบบบันทึกการปลูก");
                 } else if (path[1] === "farmer") {
                     setPageTitle("ทะเบียนเกษตรกร");
@@ -107,7 +108,7 @@ const Doctor = ({ setMain, socket, isClick = 0, username, password }) => {
                         setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`ap:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
                     }
                     else if (path[2] === "wt") {
-                        setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`wt:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
+                        setBody(<PageFarmer key={window.location.search} setMain={setMain} socket={socket} session={sessionoff} LoadType={`wt:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)
                     }
                     else if (path[2] === "not") {
                         setBody(<PageFarmer setMain={setMain} socket={socket} session={sessionoff} LoadType={`not:${type}`} eleImageCover={ImageCover} eleBody={BodyRef} setTextStatus={setTextPage} />)

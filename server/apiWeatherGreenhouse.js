@@ -99,7 +99,8 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
             const data = await pool.executeQuery(
                 `
-                    SELECT * , CONCAT(
+                    SELECT wg.air_temperature , wg.air_humidity , wg.light , wg.soil_temperature ,
+                        wg.soil_humidity , wg.pressure , wg.batt , CONCAT(
                         DATE_FORMAT(timestamp, '%Y-%m-%dT%H:%i:%s') 
                         , ".000Z"
                     ) as timestamp
@@ -166,7 +167,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const devicesExists = await pool.executeQuery(
-                `SELECT * FROM sensor_weather_greenhouse WHERE device_id = ? LIMIT 1`,
+                `SELECT status FROM sensor_weather_greenhouse WHERE device_id = ? LIMIT 1`,
                 [device_id]
             )
 
@@ -268,6 +269,10 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
             } = req.body
 
             // select avg current
+            // ไม่รับข้อมูลที่ไม่มี device_id / timestamp (กันแถวว่างเข้าฐานข้อมูล)
+            if (!device_id || !timestamp) {
+                return res.status(400).send("Missing device_id or timestamp")
+            }
 
             try {
                 await pool.executeQuery(
@@ -307,7 +312,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
 
         try {
             const rows = await pool.executeQuery(`
-                SELECT timestamp
+                SELECT TIMESTAMPDIFF(SECOND, timestamp, NOW()) AS age_seconds
                 FROM weather_greenhouse
                 WHERE device_id = ?
                 ORDER BY timestamp DESC
@@ -325,9 +330,7 @@ module.exports = function apiWeatherGreenhouse(app, pool = new Pool()) {
                 return res.json({ status: "offline" });
             }
 
-            const latest = new Date(rows[0].timestamp + "Z"); // คง logic เดิม
-            const now = new Date();
-            const diffMinutes = (now - latest) / 1000 / 60;
+            const diffMinutes = Number(rows[0].age_seconds) / 60;
 
             // แปลงเป็นสถานะสำหรับตาราง swg: 'on' | 'off'
             const swgStatus = diffMinutes <= 10 ? 'on' : 'off';

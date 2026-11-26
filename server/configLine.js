@@ -54,12 +54,13 @@ class LineGAP extends Line.Client {
 				` , [ formID ]
 			)
 
-			const message = await generateMessage(resultGAP[0] || {})
+			const message = await generateMessage(resultGAP[0] || {}, buttonData || {})
 			
 			try {
+				// generateMessage คืนข้อความ LINE สำเร็จรูป (มี type) ได้ เช่น การ์ดคำแนะนำ
 				await this.multicast(
 					farmerLineIDs , 
-					!buttonData ? {
+					message && message.type ? message : !buttonData ? {
 						type : "text" , 
 						text : message.join("\n")
 					} : {
@@ -125,9 +126,7 @@ class LineGAP extends Line.Client {
 
 			await RoyalGapLine.multicast(
 				farmerLineIDs , 
-				{
-					type : "text" , text : message
-				}
+				typeof message === "string" ? { type : "text" , text : message } : message
 			)
 
 			return {

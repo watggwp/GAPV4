@@ -178,6 +178,19 @@ const ManageList = ({ Data, status, session, fetch, count, setCount, socket }) =
     const RefPop = useRef()
     const [PopBody, setPop] = useState(<></>)
 
+    // เปิดจากการแจ้งเตือน: /doctor/farmer/wt?farmer=<id_table> → เปิดข้อมูลเกษตรกรคนนั้นทันที
+    useEffect(() => {
+        const idTable = new URLSearchParams(window.location.search).get("farmer")
+        if (!idTable) return
+        window.history.replaceState({}, "", window.location.pathname)
+        clientMo.post("/api/doctor/farmer/get/detail", { id_table: idTable }).then((result) => {
+            try {
+                const [farmer] = JSON.parse(result)
+                if (farmer) showPopup(farmer.id_table, farmer.link_user)
+            } catch (e) { }
+        })
+    }, [])
+
     // let refData = Data.map(() => React.createRef());
 
     useEffect(() => {

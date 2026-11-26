@@ -2,24 +2,31 @@
 
 const Pool = require("../connectPool")
 const Util = require("./util")
+const AccountAuth = require("./accountAuth")
+
+// คอลัมน์โปรไฟล์ตั้งต้น (ไม่ดึงรูป longblob และรหัสผ่าน รหัสผ่านตรวจด้วย query แยก)
+const ADMIN_PROFILE_COLUMNS = "id, username, phone, address, station_admin, fullname_admin, status_account, status_delete, time_online"
+const DOCTOR_PROFILE_COLUMNS = "id_table_doctor, id_doctor, uid_line_doctor, fullname_doctor, station_doctor, status_account, status_delete, time_online, doctor_role, analyst_role, consultant_role, protection_role"
+const FARMER_PROFILE_COLUMNS = "acc_farmer.id_farmer, acc_farmer.fullname, acc_farmer.station, acc_farmer.register_auth, acc_farmer.date_register, acc_farmer.uid_line, acc_farmer.link_user, acc_farmer.tel_number, station_list.name, station_list.id_station"
 
 class AuthorizeUser {
     constructor(pool = new Pool()) {
         this.Pool = pool
     }
 
-    async admin(username, password, options = { select: "*" }) {
+    async admin(username, password, options = { select: ADMIN_PROFILE_COLUMNS }) {
         const { select } = options
         try {
-            const [profile] = await this.Pool.executeQuery(
+            const rows = await this.Pool.executeQuery(
                 `
-                SELECT ${select}
+                SELECT id, username, password
                 FROM admin
-                WHERE BINARY username = ? AND password = SHA2( ? , 256)
-                LIMIT 1
+                WHERE BINARY username = ?
                 `,
-                [username, password]
+                [username]
             )
+            const account = await AccountAuth.verifyAccount("admin", rows, password, (sql, params) => this.Pool.executeQuery(sql, params))
+            const profile = account ? await this.selectColumns("admin", "id", account.id, select) : undefined
 
             return {
                 profile: profile,
@@ -33,14 +40,14 @@ class AuthorizeUser {
         }
     }
 
-    async doctor(username, password, role, options = { select: "*" }) {
+    async doctor(username, password, role, options = { select: DOCTOR_PROFILE_COLUMNS }) {
         const { select } = options
         try {
-            const [profile] = await this.Pool.executeQuery(
+            const rows = await this.Pool.executeQuery(
                 `
-                SELECT ${select} , id_table_doctor as id , uid_line_doctor as uid_line
+                SELECT id_table_doctor, id_doctor, password_doctor
                 FROM acc_doctor
-                WHERE BINARY id_doctor = ? AND password_doctor = SHA2( ? , 256)
+                WHERE BINARY id_doctor = ?
                 ${role == "doctor" ?
                     "AND doctor_role = 1" :
                     role == "analyst" ?
@@ -52,10 +59,14 @@ class AuthorizeUser {
                                 ""
                 } 
                 ORDER BY status_delete ASC
-                LIMIT 1
                 `,
-                [username, password]
+                [username]
             )
+            const account = await AccountAuth.verifyAccount("acc_doctor", rows, password, (sql, params) => this.Pool.executeQuery(sql, params))
+            const profile = account ? await this.selectColumns(
+                "acc_doctor", "id_table_doctor", account.id_table_doctor,
+                `${select} , id_table_doctor as id , uid_line_doctor as uid_line`
+            ) : undefined
 
             return {
                 profile: profile,
@@ -69,7 +80,16 @@ class AuthorizeUser {
         }
     }
 
-    async farmer(uid_line, options = { select: "*" }) {
+    // ดึงคอลัมน์ตาม select ของเดิมหลังตรวจรหัสผ่านผ่านแล้ว
+    async selectColumns(table, idColumn, id, select) {
+        const [profile] = await this.Pool.executeQuery(
+            `SELECT ${select} FROM ${table} WHERE ${idColumn} = ? LIMIT 1`,
+            [id]
+        )
+        return profile
+    }
+
+    async farmer(uid_line, options = { select: FARMER_PROFILE_COLUMNS }) {
         const { select } = options
         try {
             const [profile] = await this.Pool.executeQuery(
@@ -97,26 +117,35 @@ class AuthorizeUser {
     }
 
     async deviceSystem(
-        profileAuth = { uid_line: "", username: "", password: "", role: "" },
+        profileAuth = { uid_line: "", username: "", password: "", role: "", adminUsername: "", adminPassword: "" },
         roleAccount,
         deviceType,
         deviceID
     ) {
-        const { uid_line, username, password, role } = profileAuth
+        const { uid_line, username, password, role, adminUsername, adminPassword } = profileAuth
         const { table, locationTable } = Util.getDeviceData(deviceType)
 
         switch (roleAccount) {
             case "doctor": {
+                // หน้าโรงเรือนของ admin ใช้คอมโพเนนต์เดียวกับหมอ (r=doctor) จึงรับ session admin ด้วย
+                if (!(username && password) && adminUsername && adminPassword) {
+                    const { profile, verified } = await this.admin(adminUsername, adminPassword)
+                    if (!verified) return { result: false, reason: "auth", profile: {} }
+                    return { result: true, profile: profile, accountType: "admin" }
+                }
+
                 const { profile, verified } = await this.doctor(username, password, role)
 
                 if (!verified) return {
                     result: false,
-                    reason: "auth"
+                    reason: "auth",
+                    profile: {}
                 }
 
                 return {
                     result: true,
-                    profile: profile
+                    profile: profile,
+                    accountType: "doctor"
                 }
             }
             case "farmer": {
@@ -145,7 +174,8 @@ class AuthorizeUser {
 
                     return {
                         result: true,
-                        profile: profile
+                        profile: profile,
+                        accountType: "farmer"
                     }
 
                 } catch (err) {

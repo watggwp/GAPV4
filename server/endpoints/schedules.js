@@ -65,7 +65,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
             const schedule_plants = await pool.executeQuery(
                 `
                     SELECT 
-                        s.* ,
+                        s.id , s.uid , s.category , s.title , s.age_plant , s.repeat , s.last_update ,
                         IF(
                             s.category = 1,
                         	CONCAT(
@@ -95,14 +95,14 @@ module.exports = function Schedules(app, pool = new Pool()) {
                     ${station_id_payload !== undefined ?
                     "AND s.station_id = ?" : ""
                 }
-                    ${s &&
+                    ${s ?
                 `
                                 AND (
                                     s.title LIKE ? OR
                                     sdf.fertilizer LIKE ? OR
                                     sdf.formula_fertilizer LIKE ?
                                 )
-                            `
+                            ` : ""
                 }
                     GROUP BY s.id
                     ORDER BY s.age_plant ASC , s.repeat ASC
@@ -129,7 +129,7 @@ module.exports = function Schedules(app, pool = new Pool()) {
             const schedule_plant = await pool.executeQuery(
                 `
                     SELECT 
-                        s.* ,
+                        s.id , s.uid , s.category , s.title , s.age_plant , s.repeat ,
                         IF(
                             s.category = 1,
                         	CONCAT(

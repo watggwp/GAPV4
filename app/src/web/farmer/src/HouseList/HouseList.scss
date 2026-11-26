@@ -18,7 +18,7 @@
         text-align: center;
         color: black;
         background-color: #aaf4b6; /* สีเขียวเข้ม */
-        width: 100vw; /* ให้เต็มหน้าจอ */
+        width: min(100vw, 560px); /* ให้เต็มหน้าจอ */
         padding: 14px 0;
         margin: 0; /* ลบ margin */
         box-sizing: border-box; /* ป้องกัน padding ทำให้ขนาดเกิน */

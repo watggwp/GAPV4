@@ -5,6 +5,7 @@ import './assets/style/Login.scss'
 import Doctor from "./Doctor";
 import { PatternCheck, PopupDom, useLiff } from "../../../assets/js/module";
 import env from "../../../env";
+import { saveLastRole } from "./lastRole";
 
 const Login = ({setMain , socket , isClick = 0}) => {
     // const [Body , setBody] = useState(<></>)
@@ -72,7 +73,7 @@ list.forEach((item) =>
                     const profile = await liff.getProfile()
                     if(profile.userId) {
                         setUidLine(profile.userId)
-                        const Uid = await clientMo.post("/api/doctor/checkline" , {id:profile.userId})
+                        const Uid = await clientMo.post("/api/doctor/checkline" , {id:profile.userId , accessToken:liff.getAccessToken()})
                         setInput(Uid)
                         setLoadUid(true)
                     }
@@ -98,12 +99,15 @@ list.forEach((item) =>
                 username : e.target[0].value,
                 password : e.target[1].value,
                 uid_line : getUidLine,
+                line_access_token : getUidLine ? (liff.getAccessToken() || "") : "",
                 role : role
             }
 
             setTimeout(()=>{
                 clientMo.postForm('/api/doctor/auth' , formData).then((context)=>{
                     if(context === "pass") {
+                        saveLastRole(formData.role)
+                        socket.disconnect().connect()
                         setMain(<Doctor setMain={setMain} socket={socket} isClick={1} username={formData.username} password={formData.password}/>)
                     } else if(context === "account") {
                         ErrorLogin.current.innerHTML = "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ"
@@ -304,6 +308,7 @@ const handleStationChange = (event) => {
                     password:pw.value
                 })
                 if(result === "pass"){
+                    main.socket.disconnect().connect()
                     main.setMain(<Doctor isClick={1} setMain={main.setMain} socket={main.socket} username={id_doctor} password={pw.value}/>)
                 } else if(result === "password") {
                     pw.setAttribute('err' , "")

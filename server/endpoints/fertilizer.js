@@ -7,7 +7,7 @@ module.exports = function Fertilizer(app, pool = new Pool()) {
     app.get('/api/fertilizers', async (req, res) => {
         try {
             const fertilizers = await pool.executeQuery(
-                `SELECT * FROM fertilizer_list WHERE is_use = 1`
+                `SELECT id, name, name_formula, how_use FROM fertilizer_list WHERE is_use = 1`
             )
 
             return res.json(fertilizers)
